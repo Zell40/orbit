@@ -22,6 +22,7 @@ export interface AppConfig {
     tagline: string;    // connect screen — first title line
     taglineEm: string;  // connect screen — emphasised second line
     subtitle: string;   // connect screen — paragraph under the title
+    projectUrl: string; // the Orbit project/source page (shown in Settings → À propos)
   };
   turnstile: {
     enabled: boolean;   // require the Cloudflare Turnstile challenge on register
@@ -57,6 +58,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     tagline: 'Le tchat français,',
     taglineEm: 'en direct.',
     subtitle: 'Salons publics, messages privés, modération — et zéro inscription. Choisis un pseudo et rejoins la conversation, avec toute la France.',
+    projectUrl: 'https://orbit.tchatou.fr',
   },
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
   report: { target: '#staff' },

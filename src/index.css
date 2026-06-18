@@ -690,7 +690,14 @@ input, textarea { font-family: inherit; }
 .settings__nav { display: flex; flex-direction: column; min-height: 0; background: var(--bg-soft); border-right: 1px solid var(--border); }
 .settings__brand { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 1.15rem 1.15rem .75rem; }
 .settings__brand-title { font-size: 1.18rem; font-weight: 800; letter-spacing: -.02em; }
-.settings__navlist { display: flex; flex-direction: column; gap: .12rem; padding: .3rem .6rem .8rem; overflow-y: auto; }
+.settings__navlist { display: flex; flex-direction: column; gap: .12rem; padding: .3rem .6rem .8rem; overflow-y: auto; flex: 1; }
+/* "Propulsé par Orbit" — links to the project/source page (orbit.tchatou.fr) */
+.settings__about { margin-top: auto; display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; border-top: 1px solid var(--border); color: var(--muted); transition: background .12s, color .12s; }
+.settings__about:hover { background: var(--bg-soft-2); color: var(--ink); }
+.settings__about-mark { font-size: 1.1rem; color: var(--green-d); }
+.settings__about-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.settings__about-name { font-size: .82rem; font-weight: 700; }
+.settings__about-sub { font-size: .68rem; color: var(--faint); }
 .settings__navitem {
   display: flex; align-items: center; gap: .7rem; width: 100%; text-align: left;
   padding: .58rem .6rem; border: 0; border-radius: 12px; background: none; cursor: pointer; font: inherit; color: var(--ink);

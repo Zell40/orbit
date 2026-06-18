@@ -52,6 +52,13 @@ export function SettingsModal() {
               </button>
             ))}
           </nav>
+          <a className="settings__about" href={getConfig().branding.projectUrl} target="_blank" rel="noopener noreferrer">
+            <span className="settings__about-mark" aria-hidden>◐</span>
+            <span className="settings__about-txt">
+              <span className="settings__about-name">Propulsé par Orbit</span>
+              <span className="settings__about-sub">client IRCv3 · code & projet ↗</span>
+            </span>
+          </a>
         </aside>
 
         {/* content pane */}
