@@ -25,6 +25,7 @@ NICK = os.environ.get("IRC_NICK", "git")
 CHAN = os.environ.get("IRC_CHANNEL", "#orbit")
 REPO = os.environ.get("ORBIT_REPO", os.getcwd())
 COMPARE = os.environ.get("COMPARE_BASE", "https://codeberg.org/reversefr/orbit")
+BOT_SOCK = os.environ.get("ORBIT_BOT_SOCK", "/run/orbit-gitbot/sock")
 PROJECT = "orbit"
 MAX_COMMITS = 6
 ZERO = "0" * 40
@@ -84,6 +85,20 @@ def build_lines(ref, old, new):
         lines.append("%s %s" % (tag, c(14, "... and %d more commit%s" % (extra, "" if extra == 1 else "s"))))
     return lines
 
+def send_via_daemon(lines):
+    """Hand the lines to the persistent bot over its Unix socket. Returns True
+    if the daemon accepted them; False if it isn't running (→ transient fallback)."""
+    try:
+        c = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        c.settimeout(3)
+        c.connect(BOT_SOCK)
+        c.sendall(("\n".join(lines) + "\n").encode("utf-8", "replace"))
+        c.close()
+        return True
+    except Exception:
+        return False
+
+
 def announce(lines):
     nick = NICK
     sock = socket.create_connection((HOST, PORT), timeout=8)
@@ -141,10 +156,14 @@ def main():
     lines = build_lines(ref, old, new)
     if not lines:
         return
+    # Prefer the always-connected daemon; fall back to a transient connection.
+    if send_via_daemon(lines):
+        sys.stderr.write("irc-announce: queued %d lines via daemon\n" % len(lines))
+        return
     try:
         ok = announce(lines)
-        sys.stderr.write("irc-announce: %s (%d lines to %s)\n" %
-                         ("ok" if ok else "not registered", len(lines), CHAN))
+        sys.stderr.write("irc-announce: %s (%d lines, transient) \n" %
+                         ("ok" if ok else "not registered", len(lines)))
     except Exception as e:
         sys.stderr.write("irc-announce: failed: %s\n" % e)
 
