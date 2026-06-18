@@ -4,8 +4,8 @@ import type { ChatMessage, Member } from '../irc/types';
 import { USER_MODE_NAMES } from '../irc/modes';
 import { Avatar } from './Avatar';
 import { Turnstile } from './Turnstile';
-import { getTheme, setTheme, useTheme, type Theme } from '../theme';
-import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../push';
+import { getTheme, setTheme, useTheme, type Theme } from '../ui/theme';
+import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../services/push';
 import { getConfig } from '../config';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];

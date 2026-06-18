@@ -1,5 +1,5 @@
 // User preferences (General settings) — persisted in localStorage.
-import { getConfig } from './config';
+import { getConfig } from '../config';
 
 export interface Prefs {
   sound: boolean;        // play a blip on mention / private message

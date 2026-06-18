@@ -1,8 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { applyTheme, getTheme } from './theme.ts'
+import { applyTheme, getTheme } from './ui/theme.ts'
 import './index.css'
-import { initViewport } from './viewport.ts'
+import { initViewport } from './ui/viewport.ts'
 import { loadConfig } from './config.ts'
 
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.

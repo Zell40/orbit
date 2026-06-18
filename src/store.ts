@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { IrcClient } from './irc/client';
-import { initNotify, desktopNotify, blip } from './notify';
-import { getPrefs, savePrefs, applyPrefs, type Prefs } from './prefs';
+import { initNotify, desktopNotify, blip } from './services/notify';
+import { getPrefs, savePrefs, applyPrefs, type Prefs } from './ui/prefs';
 import type { Buffer, ChatMessage, ConnectOptions, IrcMessage, Member, MessageKind, WhoisInfo } from './irc/types';
 import { NUMERICS, ERROR_NUMERICS, ERROR_FR } from './irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes, USER_MODE_NAMES } from './irc/modes';

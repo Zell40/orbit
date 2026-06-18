@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { getConfig } from './config';
+import { getConfig } from '../config';
 
 // Theme — persisted in localStorage, applied via [data-theme] on <html>.
 // 'yomirc' is a retro classic-mIRC skin (monospace, grey 95-style chrome, flat nick list).

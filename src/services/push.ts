@@ -6,7 +6,7 @@
 // the push endpoint, which the service worker (public/sw.js) turns into native
 // notifications — even when the tab/PWA is backgrounded. Push-while-fully-closed
 // works for logged-in accounts (the server persists the subscription by account).
-import type { IrcClient } from './irc/client';
+import type { IrcClient } from '../irc/client';
 
 const PREF_KEY = 'tchatou-push';
 

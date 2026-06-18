@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useChat } from './store';
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
-import { refreshPush } from './push';
+import { refreshPush } from './services/push';
 
 export default function App() {
   const status = useChat((s) => s.status);
