@@ -86,3 +86,9 @@ export default defineConfig([
   },
 ])
 ```
+
+## License
+
+Licensed under the **GNU Affero General Public License v3.0 or later** (AGPL-3.0).
+If you run a modified version of Orbit as a network service, you must make your
+modified source available to its users. See [LICENSE](./LICENSE).
