@@ -92,7 +92,6 @@ export function Composer() {
     const onSel = () => { if (ed.current && document.activeElement === ed.current) syncFmt(); };
     document.addEventListener('selectionchange', onSel);
     return () => document.removeEventListener('selectionchange', onSel);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load the saved draft for a salon into the editor (rich), once on mount.
@@ -214,7 +213,7 @@ export function Composer() {
     const token = (before.match(/(\S*)$/)?.[1]) ?? '';
     if (!token) return;
     const start = pos - token.length;
-    let cands: string[] = [];
+    let cands: string[];
 
     if (token.startsWith(':') && token.length > 1) {
       const q = token.slice(1).toLowerCase();

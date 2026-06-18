@@ -25,7 +25,7 @@ export function pushEnabledPref(): boolean {
 }
 
 function setPref(on: boolean): void {
-  try { on ? localStorage.setItem(PREF_KEY, 'on') : localStorage.removeItem(PREF_KEY); } catch { /* ignore */ }
+  try { if (on) localStorage.setItem(PREF_KEY, 'on'); else localStorage.removeItem(PREF_KEY); } catch { /* ignore */ }
 }
 
 // base64url (no padding) -> Uint8Array, for applicationServerKey.

@@ -58,6 +58,5 @@ export function detectServiceLeak(text: string): { service: string; command: str
 // Strip IRC formatting control codes (bold/italic/underline/strike/mono/reverse/
 // reset + mIRC colour). Needed so a line is still recognised as a /command even
 // when "sticky" formatting (e.g. bold left on) prefixes it with a control byte.
-// eslint-disable-next-line no-control-regex
 const IRC_FMT_RE = /\x03\d{0,2}(?:,\d{1,2})?|\x04[0-9A-Fa-f]{0,6}|[\x02\x1d\x1f\x1e\x11\x16\x0f]/g;
 export function stripFormatting(s: string): string { return s.replace(IRC_FMT_RE, ''); }

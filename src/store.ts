@@ -567,7 +567,7 @@ export const useChat = create<ChatState>((set, get) => {
         if (msg.command === 'NOTICE' && (target === '*' || !msg.user)) {
           // Intercept /FILEHOST replies while an upload is in flight.
           if (filehostResolve && /FILEHOST|file host|hosting|héberger|heberger/i.test(text)) {
-            const tok = text.match(/[?&]token=([\w.\-]+)/);
+            const tok = text.match(/[?&]token=([\w.-]+)/);
             if (tok) {
               if (filehostTimer) clearTimeout(filehostTimer);
               const r = filehostResolve; filehostResolve = null; filehostReject = null;
@@ -921,17 +921,6 @@ export const useChat = create<ChatState>((set, get) => {
         const account = acct && acct !== '*' ? acct : undefined;
         patchMemberEverywhere(msg.nick, { account });
         if (msg.nick === me) set({ account: account ?? '' });
-        break;
-      }
-      case 'CHGHOST': {
-        // chghost: ":nick CHGHOST <user> <host>" — keep user@host fresh (also keeps
-        // ban-mask matching correct after a cloak/vhost change).
-        patchMemberEverywhere(msg.nick, { user: msg.params[0], host: msg.params[1] });
-        break;
-      }
-      case 'SETNAME': {
-        // setname: ":nick SETNAME :<realname>" — live realname, no WHOIS needed.
-        patchMemberEverywhere(msg.nick, { realname: msg.params[0] });
         break;
       }
       case 'TOPIC': { // :<nick> TOPIC <channel> :<new topic>
