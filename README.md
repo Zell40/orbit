@@ -1,5 +1,7 @@
 # Orbit — a modern IRCv3 web client
 
+[![status](https://ci.codeberg.org/api/badges/reversefr/orbit/status.svg)](https://ci.codeberg.org/repos/reversefr/orbit)
+
 A bespoke, pluggable IRCv3 web client (TypeScript + React + Vite, zustand state).
 Powers [tchatou.fr](https://tchatou.fr), and re-pointable at any IRCv3 network
 via `config.json` — no rebuild needed.
