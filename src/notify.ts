@@ -1,0 +1,41 @@
+// Browser notifications, a subtle sound blip, and permission handling.
+import { pushEnabledPref } from './push';
+
+let ac: AudioContext | null = null;
+
+export function initNotify(): void {
+  try {
+    if ('Notification' in window && Notification.permission === 'default') {
+      void Notification.requestPermission();
+    }
+  } catch { /* ignore */ }
+}
+
+export function desktopNotify(title: string, body: string): void {
+  try {
+    // When Web Push is enabled the service worker owns OS notifications (it fires
+    // even when the tab is backgrounded/closed) — skip here to avoid duplicates.
+    if (pushEnabledPref()) return;
+    if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+      const n = new Notification(title, { body, icon: '/app/favicon.svg', silent: true });
+      n.onclick = () => { window.focus(); n.close(); };
+      setTimeout(() => n.close(), 6000);
+    }
+  } catch { /* ignore */ }
+}
+
+export function blip(): void {
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    ac = ac || new Ctx();
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    o.type = 'sine'; o.frequency.value = 680;
+    g.gain.setValueAtTime(0.0001, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.10, ac.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.28);
+    o.start();
+    o.stop(ac.currentTime + 0.3);
+  } catch { /* ignore */ }
+}

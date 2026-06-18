@@ -1,0 +1,16 @@
+{
+  "name": "Tchatou — Le tchat français",
+  "short_name": "Tchatou",
+  "description": "Le tchat français, en direct. Salons publics, messages privés, sans inscription.",
+  "lang": "fr",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d1b3e",
+  "theme_color": "#1452cc",
+  "icons": [
+    { "src": "/app/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/app/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

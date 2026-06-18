@@ -1,0 +1,35 @@
+{
+  "server": {
+    "url": "wss://www.swaygo.fr/irc/"
+  },
+  "startup": {
+    "channels": ["#taverne"]
+  },
+  "branding": {
+    "name": "Tchatou",
+    "icon": "https://tchatou.fr/static/img/favicon.svg",
+    "url": "https://tchatou.fr",
+    "tagline": "Le tchat français,",
+    "taglineEm": "en direct.",
+    "subtitle": "Salons publics, messages privés, modération — et zéro inscription. Choisis un pseudo et rejoins la conversation, avec toute la France."
+  },
+  "turnstile": {
+    "enabled": true,
+    "sitekey": "0x4AAAAAADlXGeFQ-Aj3Kitp"
+  },
+  "report": {
+    "target": "#staff"
+  },
+  "defaults": {
+    "theme": "light",
+    "compact": false,
+    "sound": true,
+    "hideJoinQuit": false,
+    "clock24": true
+  },
+  "features": {
+    "push": true,
+    "imageUpload": true,
+    "register": true
+  }
+}
