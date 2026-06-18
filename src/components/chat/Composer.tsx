@@ -1,0 +1,354 @@
+import { useEffect, useRef, useState } from 'react';
+import { useChat, SERVER } from '../../store';
+import { nickColor, MIRC_PALETTE } from '../../lib/format';
+import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '../../lib/editor';
+import { getConfig } from '../../config';
+function TypingIndicator() {
+  const buffer = useChat((s) => s.buffers[s.active]);
+  if (!buffer) return null;
+  const now = Date.now();
+  const who = Object.entries(buffer.typing).filter(([, exp]) => exp > now).map(([n]) => n);
+  if (!who.length) return <div className="typing" />;
+  const label = who.length === 1
+    ? `${who[0]} est en train d'écrire`
+    : who.length === 2
+      ? `${who[0]} et ${who[1]} écrivent`
+      : `${who.length} personnes écrivent`;
+  return (
+    <div className="typing">
+      <span className="typing__dots"><i /><i /><i /></span>{label}…
+    </div>
+  );
+}
+
+const EMOJIS = ['😀','😂','🤣','😊','😍','😘','😎','🤩','🥳','😏','😢','😭','😡','🤔','😴','🙄','👍','👎','👏','🙌','🙏','💪','👋','✌️','🤝','❤️','🔥','✨','🎉','🌹','☕','🍺','🍷','🎶','💯','😅','😜','🤗','😇','👀'];
+
+// :name: → emoji, for tab-completion in the composer.
+const EMOJI_NAMES: Record<string, string> = {
+  sourire: '😀', rire: '😂', mdr: '🤣', joie: '😊', amour: '😍', bisou: '😘',
+  cool: '😎', etoiles: '🤩', fete: '🥳', malin: '😏', triste: '😢', pleure: '😭',
+  colere: '😡', reflechir: '🤔', dodo: '😴', clindoeil: '😜', calin: '🤗', ange: '😇',
+  yeux: '👀', pouce: '👍', nul: '👎', bravo: '👏', mains: '🙌', merci: '🙏',
+  muscle: '💪', salut: '👋', victoire: '✌️', accord: '🤝', coeur: '❤️', feu: '🔥',
+  brille: '✨', tada: '🎉', rose: '🌹', cafe: '☕', biere: '🍺', vin: '🍷',
+  musique: '🎶', cent: '💯', heart: '❤️', fire: '🔥', smile: '😀', laugh: '😂',
+  ok: '👌', wave: '👋', party: '🥳', think: '🤔', wink: '😉', sun: '☀️', star: '⭐',
+};
+// Slash commands offered by tab-completion (with a leading '/').
+const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', 'kick', 'ban', 'op', 'deop', 'voice', 'ignore', 'unignore', 'list', 'clear', 'help'];
+
+// ── Rich composer plumbing ───────────────────────────────────────────────────
+// The composer is a contentEditable so the user sees real bold/italic/colour as
+// they type (never the control codes). We only convert to/from IRC formatting
+// codes at the edges: serialize() on send, ircToHtml() when restoring a draft.
+
+export function Composer() {
+  const active = useChat((s) => s.active);
+  const send = useChat((s) => s.sendInput);
+  const notifyTyping = useChat((s) => s.notifyTyping);
+  const uploadImage = useChat((s) => s.uploadImage);
+  const setDraft = useChat((s) => s.setDraft);
+
+  const [picker, setPicker] = useState(false);
+  const [colors, setColors] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [empty, setEmpty] = useState(true);
+  const [fmt, setFmt] = useState({ b: false, i: false, u: false });
+  const fgRef = useRef('');                 // active text colour, kept sticky across sends
+  const ed = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const cyc = useRef<{ start: number; len: number; cands: string[]; idx: number } | null>(null);
+  const prevActive = useRef(active);
+  // mIRC-style sent-message history (global to the session). idx -1 = live draft.
+  const history = useRef<string[]>([]);
+  const histIdx = useRef(-1);
+  const histStash = useRef('');
+  const isConsole = active === SERVER;
+
+  // Light up the toolbar to match the formatting at the caret (like Slack/iMessage).
+  function syncFmt() {
+    if (!ed.current || document.activeElement !== ed.current) return;
+    try {
+      setFmt({
+        b: document.queryCommandState('bold'),
+        i: document.queryCommandState('italic'),
+        u: document.queryCommandState('underline'),
+      });
+    } catch { /* queryCommandState unsupported — leave as-is */ }
+  }
+
+  // Reflect editor contents into the empty flag (placeholder + send button) and ping typing.
+  function changed() {
+    const root = ed.current; if (!root) return;
+    const has = !!(root.textContent && root.textContent.trim());
+    setEmpty(!has);
+    if (has && !isConsole) notifyTyping();
+    histIdx.current = -1; // typing exits history-recall mode
+    syncFmt();
+  }
+
+  // Keep the toolbar in sync as the caret/selection moves around the editor.
+  useEffect(() => {
+    const onSel = () => { if (ed.current && document.activeElement === ed.current) syncFmt(); };
+    document.addEventListener('selectionchange', onSel);
+    return () => document.removeEventListener('selectionchange', onSel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load the saved draft for a salon into the editor (rich), once on mount.
+  useEffect(() => {
+    const root = ed.current; if (!root) return;
+    root.innerHTML = ircToHtml(useChat.getState().drafts[active] ?? '');
+    setEmpty(!(root.textContent || '').trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Switching salons: stash the unsent text under the old one, restore the new one's.
+  useEffect(() => {
+    if (prevActive.current === active) return;
+    const root = ed.current; if (!root) return;
+    setDraft(prevActive.current, serialize(root));
+    root.innerHTML = ircToHtml(useChat.getState().drafts[active] ?? '');
+    setEmpty(!(root.textContent || '').trim());
+    cyc.current = null;
+    prevActive.current = active;
+  }, [active, setDraft]);
+
+  // Re-assert the active formatting onto the (empty) editor so it stays "held down"
+  // for the next message — wiping innerHTML clears the browser's pending-style state.
+  function reapplySticky() {
+    const root = ed.current; if (!root) return;
+    root.focus();
+    if (fmt.b && !document.queryCommandState('bold')) document.execCommand('bold');
+    if (fmt.i && !document.queryCommandState('italic')) document.execCommand('italic');
+    if (fmt.u && !document.queryCommandState('underline')) document.execCommand('underline');
+    if (fgRef.current) { document.execCommand('styleWithCSS', false, 'true'); document.execCommand('foreColor', false, fgRef.current); }
+  }
+
+  function submit() {
+    const root = ed.current; if (!root) return;
+    const out = serialize(root);
+    if (!out.trim()) return;
+    send(out);
+    // Record in the recall history (skip consecutive duplicates), cap at 100.
+    if (history.current[history.current.length - 1] !== out) history.current.push(out);
+    if (history.current.length > 100) history.current.shift();
+    histIdx.current = -1;
+    histStash.current = '';
+    root.innerHTML = '';
+    setEmpty(true);
+    setDraft(active, '');
+    cyc.current = null;
+    reapplySticky();   // keep bold/italic/colour active for the next line
+  }
+
+  // Replace the editor contents with an IRC-formatted string + caret to end.
+  function setEditorText(irc: string) {
+    const root = ed.current; if (!root) return;
+    root.innerHTML = ircToHtml(irc);
+    setEmpty(!(root.textContent || '').trim());
+    caretToEnd(root);
+  }
+
+  // ↑ recall older sent messages; ↓ walk back toward the live draft.
+  function historyPrev() {
+    const root = ed.current; if (!root || !history.current.length) return;
+    if (histIdx.current === -1) histStash.current = serialize(root); // stash the in-progress draft
+    if (histIdx.current < history.current.length - 1) histIdx.current++;
+    setEditorText(history.current[history.current.length - 1 - histIdx.current]);
+  }
+  function historyNext() {
+    const root = ed.current; if (!root || histIdx.current === -1) return;
+    histIdx.current--;
+    setEditorText(histIdx.current === -1 ? histStash.current : history.current[history.current.length - 1 - histIdx.current]);
+  }
+
+  function insert(emoji: string) {
+    ed.current?.focus();
+    document.execCommand('insertText', false, emoji);
+    setPicker(false);
+    changed();
+  }
+
+  // Apply a style command to the current selection / typing position.
+  function exec(cmd: string) {
+    ed.current?.focus();
+    document.execCommand(cmd);
+    syncFmt();
+    changed();
+  }
+  function applyColor(index: number) {
+    ed.current?.focus();
+    fgRef.current = MIRC_PALETTE[index];
+    document.execCommand('styleWithCSS', false, 'true');
+    document.execCommand('foreColor', false, fgRef.current);
+    setColors(false);
+    changed();
+  }
+  function clearFmt() {
+    ed.current?.focus();
+    fgRef.current = '';
+    setFmt({ b: false, i: false, u: false });
+    document.execCommand('removeFormat');
+    setColors(false);
+    changed();
+  }
+
+  // Tab-completion over the editor's plain text: nicks, /commands, :emoji:.
+  function tabComplete() {
+    const root = ed.current; if (!root) return;
+    const text = root.textContent || '';
+    const pos = caretIndex(root);
+
+    const c = cyc.current;
+    if (c && pos === c.start + c.len) {
+      c.idx = (c.idx + 1) % c.cands.length;
+      const pick = c.cands[c.idx];
+      selectRange(root, c.start, c.start + c.len);
+      document.execCommand('insertText', false, pick);
+      c.len = pick.length;
+      return;
+    }
+
+    const before = text.slice(0, pos);
+    const token = (before.match(/(\S*)$/)?.[1]) ?? '';
+    if (!token) return;
+    const start = pos - token.length;
+    let cands: string[] = [];
+
+    if (token.startsWith(':') && token.length > 1) {
+      const q = token.slice(1).toLowerCase();
+      cands = Object.keys(EMOJI_NAMES).filter((n) => n.startsWith(q)).map((n) => EMOJI_NAMES[n]);
+    } else if (token.startsWith('/') && start === 0) {
+      const q = token.slice(1).toLowerCase();
+      cands = SLASH_COMMANDS.filter((c2) => c2.startsWith(q)).map((c2) => '/' + c2 + ' ');
+    } else {
+      const members = Object.keys(useChat.getState().buffers[active]?.members ?? {});
+      const q = token.toLowerCase();
+      const tail = start === 0 ? ': ' : ' ';
+      cands = members.filter((n) => n.toLowerCase().startsWith(q)).sort((a, b) => a.localeCompare(b))
+        .map((n) => n + tail);
+    }
+    if (!cands.length) return;
+    selectRange(root, start, pos);
+    document.execCommand('insertText', false, cands[0]);
+    cyc.current = { start, len: cands[0].length, cands, idx: 0 };
+  }
+
+  const canUpload = getConfig().features.imageUpload;
+  function uploadFrom(files: FileList | null | undefined): boolean {
+    if (!files || isConsole || !canUpload) return false;
+    const img = Array.from(files).find((f) => f.type.startsWith('image/'));
+    if (img) { uploadImage(img); return true; }
+    return false;
+  }
+
+  const placeholder = isConsole
+    ? 'Commande IRC — ex : /list, /whois pseudo, /join #salon'
+    : `Envoyer un message dans ${active || '…'}`;
+
+  return (
+    <div className={`composer ${isConsole ? 'composer--console' : ''}`}>
+      <TypingIndicator />
+      <ReplyBar />
+      {picker && (
+        <>
+          <div className="emoji-backdrop" onClick={() => setPicker(false)} />
+          <div className="emoji-pop">
+            {EMOJIS.map((e) => <button key={e} onClick={() => insert(e)}>{e}</button>)}
+          </div>
+        </>
+      )}
+      {colors && (
+        <>
+          <div className="emoji-backdrop" onClick={() => setColors(false)} />
+          <div className="color-pop" onMouseDown={(e) => e.preventDefault()}>
+            {MIRC_PALETTE.slice(0, 16).map((hex, i) => (
+              <button key={i} title={`Couleur ${i}`} style={{ background: hex }}
+                onClick={() => applyColor(i)} />
+            ))}
+            <button className="color-pop__reset" title="Effacer le format"
+              onClick={clearFmt}>⌫</button>
+          </div>
+        </>
+      )}
+      <input ref={fileRef} type="file" accept="image/*" hidden
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ''; }} />
+      <div className={`composer__box ${isConsole ? 'composer__box--console' : ''} ${dragOver ? 'is-drop' : ''}`}
+        onDragOver={(e) => { if (!isConsole) { e.preventDefault(); setDragOver(true); } }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { setDragOver(false); if (uploadFrom(e.dataTransfer.files)) e.preventDefault(); }}>
+        {canUpload && !isConsole && (
+          <button className="composer__add" title="Envoyer une image" aria-label="Envoyer une image" onClick={() => fileRef.current?.click()}>
+            <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="4" />
+              <circle cx="8.5" cy="8.5" r="1.6" />
+              <path d="M21 15.5 16 10.5 5.5 21" />
+            </svg>
+          </button>
+        )}
+        <div
+          ref={ed}
+          className={`composer__rich ${isConsole ? 'composer__rich--console' : ''} ${empty ? 'is-empty' : ''}`}
+          contentEditable
+          suppressContentEditableWarning
+          role="textbox"
+          aria-multiline="true"
+          spellCheck={!isConsole}
+          data-ph={dragOver ? 'Dépose ton image ici…' : placeholder}
+          onInput={changed}
+          onPaste={(e) => {
+            if (uploadFrom(e.clipboardData?.files)) { e.preventDefault(); return; }
+            const t = e.clipboardData?.getData('text/plain');
+            if (t != null) { e.preventDefault(); document.execCommand('insertText', false, t); changed(); }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Tab' && !isConsole) { e.preventDefault(); tabComplete(); return; }
+            if (e.key !== 'Tab') cyc.current = null;
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); return; }
+            if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); document.execCommand('insertLineBreak'); changed(); return; }
+            // mIRC-style recall: ↑ at the first line goes back through sent
+            // messages, ↓ at the last line walks forward to the live draft.
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+              const root = ed.current; if (!root) return;
+              const edge = caretAtEdge(root);
+              if (e.key === 'ArrowUp' && edge.top) { e.preventDefault(); historyPrev(); }
+              else if (e.key === 'ArrowDown' && edge.bottom) { e.preventDefault(); historyNext(); }
+            }
+          }}
+        />
+        {!isConsole && (
+          <div className="composer__fmt">
+            <button className={`composer__fmtbtn ${fmt.b ? 'is-on' : ''}`} title="Gras" aria-label="Gras" aria-pressed={fmt.b}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => exec('bold')}><b>G</b></button>
+            <button className={`composer__fmtbtn ${fmt.i ? 'is-on' : ''}`} title="Italique" aria-label="Italique" aria-pressed={fmt.i}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => exec('italic')}><i>I</i></button>
+            <button className={`composer__fmtbtn ${fmt.u ? 'is-on' : ''}`} title="Souligné" aria-label="Souligné" aria-pressed={fmt.u}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => exec('underline')}><u>S</u></button>
+            <button className={`composer__fmtbtn composer__fmtbtn--color ${colors ? 'is-on' : ''}`} title="Couleur" aria-label="Couleur"
+              onMouseDown={(e) => e.preventDefault()} onClick={() => setColors((c) => !c)}>🎨</button>
+          </div>
+        )}
+        {!isConsole && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title="Emoji" aria-label="Emoji" onClick={() => setPicker((p) => !p)}>😊</button>}
+        <button className="composer__send" disabled={empty} onClick={submit} aria-label="Envoyer">{isConsole ? '⏎' : '➤'}</button>
+      </div>
+    </div>
+  );
+}
+
+function ReplyBar() {
+  const reply = useChat((s) => s.replyTarget);
+  const clear = useChat((s) => s.clearReply);
+  if (!reply) return null;
+  return (
+    <div className="replybar">
+      <span className="replybar__icon">↩</span>
+      <span className="replybar__txt">
+        Réponse à <b style={{ color: nickColor(reply.from) }}>{reply.from}</b> — {reply.text}
+      </span>
+      <button className="replybar__x" onClick={clear} aria-label="Annuler la réponse">✕</button>
+    </div>
+  );
+}
+
