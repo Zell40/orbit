@@ -1,31 +1,13 @@
 // Tchatou IRC client — IRCv3-aware connection over WebSocket to server.
 import { parseLine } from './parser';
 import { casefold } from './casemap';
-import { getConfig } from '../config';
+import { WANTED_CAPS } from './caps';
+import { CTCP_REPLIES } from './ctcp';
 import type { ConnectOptions, IrcMessage } from './types';
 
-// Capabilities we request if the server advertises them.
-const WANTED_CAPS = [
-  'multi-prefix', 'away-notify', 'account-notify', 'extended-join', 'chghost',
-  'account-tag', 'server-time', 'echo-message', 'batch', 'labeled-response',
-  'message-tags', 'sasl', 'invite-notify', 'setname', 'userhost-in-names',
-  'draft/chathistory', 'draft/event-playback',
-  'draft/message-redaction', 'draft/read-marker', 'draft/multiline',
-  'draft/metadata-2', 'standard-replies', 'draft/account-registration',
-  'draft/pre-away', 'draft/webpush',
-];
 
 type Listener = (...args: unknown[]) => void;
 
-// CTCP queries we answer (per the CTCP spec). ACTION is a message, not a query.
-// VERSION/SOURCE read branding from the runtime config (resolved before connect).
-const CTCP_REPLIES: Record<string, (arg: string) => string> = {
-  VERSION: () => `${getConfig().branding.name} Web (${getConfig().branding.url})`,
-  SOURCE: () => getConfig().branding.url,
-  PING: (arg) => arg, // echo the token back
-  TIME: () => new Date().toISOString(),
-  CLIENTINFO: () => 'ACTION CLIENTINFO PING SOURCE TIME VERSION',
-};
 
 function b64utf8(input: string): string {
   const bytes = new TextEncoder().encode(input);
