@@ -879,6 +879,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme="dark"], [data-theme="orbit"] .room__av[data-server], [data-theme="dark"], [data-theme="orbit"] .topbar__av[data-server] { background: #333a44; color: var(--muted); }
 [data-theme="dark"], [data-theme="orbit"] *::-webkit-scrollbar-thumb { background: #3a414b; background-clip: padding-box; }
 [data-theme="dark"], [data-theme="orbit"] .avatar { box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+/* image avatars: the <img> covers the inset ring, so a dark photo vanishes into the dark bg —
+   give it a visible OUTER ring instead so the circle always reads */
+[data-theme="dark"] .avatar--img, [data-theme="orbit"] .avatar--img { box-shadow: 0 0 0 1px rgba(255,255,255,.16); }
 
 /* ============ ORBIT THEME — mirrors orbit.tchatou.fr (near-black slate, green accent) ============ */
 [data-theme="orbit"] {
