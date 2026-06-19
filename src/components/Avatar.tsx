@@ -27,7 +27,8 @@ export function Avatar({ nick, size = 40, account }: { nick: string; size?: numb
         width: size,
         height: size,
         fontSize: size * 0.42,
-        background: `linear-gradient(140deg, hsl(${h},80%,62%), hsl(${(h + 45) % 360},75%,50%))`,
+        // S/L are theme-overridable (CSS vars) so night themes can dim the bubble; hue stays per-nick.
+        background: `linear-gradient(140deg, hsl(${h}, var(--av-s1,80%), var(--av-l1,62%)), hsl(${(h + 45) % 360}, var(--av-s2,75%), var(--av-l2,50%)))`,
       }}
     >
       {n[0].toUpperCase()}

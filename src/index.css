@@ -888,6 +888,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   --bg: #10151d; --bg-soft: #0b0e13; --bg-soft-2: #19212c; --bg-active: #1b2533; --rail-bg: #07090d;
   --border: #1f2733; --border-2: #2a3340;
   --shadow-pop: 0 14px 40px -12px rgba(0,0,0,.72), 0 2px 8px -2px rgba(0,0,0,.55);
+  /* dim the hash-coloured avatar bubbles — easy on the eyes at night */
+  --av-s1: 45%; --av-l1: 42%; --av-s2: 42%; --av-l2: 32%;
   color-scheme: dark;
 }
 [data-theme="orbit"] body { background: #07090d; }
@@ -903,6 +905,16 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme="orbit"] .pill.is-on { box-shadow: 0 4px 12px -4px rgba(63,185,80,.45); }
 [data-theme="orbit"] .pm-btn--primary { box-shadow: 0 10px 24px -8px rgba(63,185,80,.5); }
 [data-theme="orbit"] .pm-btn--primary:hover { box-shadow: 0 14px 30px -8px rgba(63,185,80,.65); }
+/* dim the big hue-coloured profile banner + avatar ring for night */
+[data-theme="orbit"] .pm-cover {
+  background:
+    radial-gradient(130% 150% at 18% 0%, hsl(var(--hue), 50%, 38%), transparent 58%),
+    radial-gradient(130% 170% at 92% 6%, hsl(calc(var(--hue) + 50), 46%, 32%), transparent 54%),
+    linear-gradient(135deg, hsl(var(--hue), 44%, 26%), hsl(calc(var(--hue) + 70), 40%, 22%));
+}
+[data-theme="orbit"] .pm-avring {
+  background: conic-gradient(from 130deg, hsl(var(--hue),50%,44%), hsl(calc(var(--hue) + 80),46%,42%), hsl(calc(var(--hue) + 200),48%,46%), hsl(var(--hue),50%,44%));
+}
 
 /* ============ PROFILE MODAL (stunning centered card) ============ */
 .pm-backdrop {
