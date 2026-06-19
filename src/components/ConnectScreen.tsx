@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type CSSProperties } from 'react';
+import { useState, useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useChat } from '../store';
 import { getConfig } from '../config';
 
@@ -84,8 +84,58 @@ function LiveFeed({ chan }: { chan: string }) {
   );
 }
 
+// Aide / FAQ — a polished in-app help overlay reachable from the welcome. `focus`
+// pre-opens one entry (e.g. "register" or "forgot" from the welcome links).
+type Faq = { id: string; q: string; a: ReactNode };
+function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) {
+  const cfg = getConfig();
+  const site = cfg.branding.url.replace(/^https?:\/\//, '');
+  const [open, setOpen] = useState(focus);
+  const items: Faq[] = [
+    { id: 'register', q: 'Comment créer un compte ?', a: (
+      <>Pas besoin de t’inscrire pour discuter — mais un compte <b>réserve ton pseudo</b> et garde ton avatar, ton 2FA et tes réglages.
+        <ol className="cfaq__steps">
+          <li>Entre d’abord avec le pseudo que tu veux garder.</li>
+          <li>Ouvre les <b>Réglages</b> (⚙, en bas à gauche) → onglet <b>Compte</b>.</li>
+          <li>Choisis <b>« Créer un compte »</b>, indique ton e-mail et un mot de passe.</li>
+          <li>Saisis le code reçu par e-mail — ton pseudo est protégé ✅</li>
+        </ol></>) },
+    { id: 'forgot', q: 'J’ai oublié mon mot de passe', a: (
+      <>Si tu es <b>encore connecté</b> à ton compte, change-le dans <b>Réglages → Compte → Sécurité</b>.<br />
+        Sinon, demande de l’aide à un modérateur dans le salon, ou via <a href={cfg.branding.url} target="_blank" rel="noopener">{site}</a> — la réinitialisation par e-mail arrive bientôt.</>) },
+    { id: 'free', q: 'C’est vraiment gratuit ?', a: <>Oui, entièrement. Aucun paiement, aucune publicité. {cfg.branding.name} est un service ouvert.</> },
+    { id: 'noaccount', q: 'Suis-je obligé de m’inscrire ?', a: <>Non. Choisis un pseudo et tu es dans le salon. Le compte est <b>optionnel</b> : il sert à protéger ton identité.</> },
+    { id: 'taken', q: 'Mon pseudo est déjà pris', a: <>Un pseudo protégé appartient à un compte. Si c’est le tien, clique <b>« Pseudo déjà enregistré ? »</b> pour t’identifier. Sinon, choisis-en un autre.</> },
+    { id: 'privacy', q: 'Mes conversations sont-elles privées ?', a: <>La connexion est <b>chiffrée</b> (TLS) et il n’y a aucune revente de données. Les messages privés ne circulent qu’entre toi et ton interlocuteur.</> },
+    { id: 'mobile', q: 'Ça marche sur mobile ?', a: <>Oui — c’est une appli installable (PWA). Depuis ton navigateur, « Ajouter à l’écran d’accueil » et tu l’as comme une vraie appli, notifications comprises.</> },
+    { id: 'what', q: `C’est quoi ${cfg.branding.name} ?`, a: <>Un tchat français en direct, bâti sur le protocole ouvert <b>IRCv3</b> et propulsé par <a href={cfg.branding.projectUrl} target="_blank" rel="noopener">Orbit</a>, un client web libre.</> },
+  ];
+  return (
+    <div className="cfaq-scrim" onClick={onClose}>
+      <div className="cfaq" role="dialog" aria-label="Aide et FAQ" onClick={(e) => e.stopPropagation()}>
+        <div className="cfaq__head">
+          <span className="ic"><img src={cfg.branding.icon} alt="" width={18} height={18} style={{ borderRadius: 4 }} /></span>
+          <h2>Aide &amp; FAQ</h2>
+          <button className="cfaq__close" onClick={onClose} aria-label="Fermer">✕</button>
+        </div>
+        <div className="cfaq__body">
+          {items.map((it) => (
+            <div className={`cfaq__item ${open === it.id ? 'is-open' : ''}`} key={it.id}>
+              <button className="cfaq__q" onClick={() => setOpen(open === it.id ? '' : it.id)}>
+                {it.q}<span className="chev">›</span>
+              </button>
+              <div className="cfaq__a">{it.a}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ConnectScreen() {
   const cfg = getConfig();
+  const [faq, setFaq] = useState<string | null>(null);
   const connect = useChat((s) => s.connect);
   const status = useChat((s) => s.status);
   const [nick, setNick] = useState(param('nick', ''));
@@ -171,6 +221,14 @@ export function ConnectScreen() {
           {errors[status] && <div className="cjoin__err">⚠ {errors[status]}</div>}
         </form>
 
+        <div className="cjoin__links">
+          <button type="button" className="primary" onClick={() => setFaq('register')}>Créer un compte</button>
+          <span className="d">·</span>
+          <button type="button" onClick={() => setFaq('forgot')}>Mot de passe oublié ?</button>
+          <span className="d">·</span>
+          <button type="button" onClick={() => setFaq('')}>Aide &amp; FAQ</button>
+        </div>
+
         <div className="cjoin__trust">
           <span>🔒 Chiffré de bout en bout</span>
           <span className="sep">·</span>
@@ -181,6 +239,8 @@ export function ConnectScreen() {
       </section>
 
       <LiveFeed chan={chan} />
+
+      {faq !== null && <FaqOverlay focus={faq} onClose={() => setFaq(null)} />}
     </div>
   );
 }
