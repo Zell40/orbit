@@ -3,18 +3,20 @@ import { getConfig } from '../config';
 
 // Theme — persisted in localStorage, applied via [data-theme] on <html>.
 // 'yomirc' is a retro classic-mIRC skin (monospace, grey 95-style chrome, flat nick list).
-export type Theme = 'light' | 'dark' | 'yomirc' | 'yomirc-dark';
+// 'orbit' mirrors the orbit.tchatou.fr project site — near-black slate, green accent.
+export type Theme = 'light' | 'dark' | 'orbit' | 'yomirc' | 'yomirc-dark';
 
 const KEY = 'tchatou-theme';
 
 const THEME_COLOR: Record<Theme, string> = {
   light: '#ffffff',
   dark: '#16191c',
+  orbit: '#0b0e13',
   yomirc: '#c0c0c0',
   'yomirc-dark': '#0d1219',
 };
 
-const THEMES: Theme[] = ['light', 'dark', 'yomirc', 'yomirc-dark'];
+const THEMES: Theme[] = ['light', 'dark', 'orbit', 'yomirc', 'yomirc-dark'];
 
 export function getTheme(): Theme {
   const t = localStorage.getItem(KEY) as Theme;

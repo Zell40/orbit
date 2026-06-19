@@ -222,6 +222,7 @@ function AppearanceSection() {
   const THEME_OPTS: Array<{ id: Theme; icon: string; label: string }> = [
     { id: 'light', icon: '☀️', label: 'Clair' },
     { id: 'dark', icon: '🌙', label: 'Sombre' },
+    { id: 'orbit', icon: '🛰️', label: 'Orbit' },
     { id: 'yomirc', icon: '🖥️', label: 'yomIRC' },
     { id: 'yomirc-dark', icon: '🌑', label: 'yomIRC nuit' },
   ];
