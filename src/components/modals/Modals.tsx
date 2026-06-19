@@ -78,7 +78,7 @@ function ExploreModal() {
   return (
     <Modal title="Explorer les salons" onClose={() => setModal('')}>
       <div className="set-inline" style={{ marginBottom: '.7rem' }}>
-        <input className="modal__input" placeholder="Rechercher ou créer #salon…" value={q}
+        <input className="modal__input" name="channel-search" type="search" autoComplete="off" placeholder="Rechercher ou créer #salon…" value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && q.trim()) join(q); }} autoFocus />
         <button className="upbtn upbtn--primary" onClick={() => join(q)} disabled={!q.trim()}>Rejoindre</button>

@@ -24,7 +24,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       <div className="topbar topbar--search">
         <button className="nav-toggle" onClick={onMenu} aria-label="Salons">☰</button>
         <span className="topbar__searchicon">🔍</span>
-        <input className="topbar__searchinput" autoFocus placeholder={`Rechercher dans ${label}…`}
+        <input className="topbar__searchinput" name="message-search" type="search" autoComplete="off" autoFocus placeholder={`Rechercher dans ${label}…`}
           value={search} onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Escape') { setSearch(''); setSearching(false); } }} />
         <button className="topbar__searchclose" onClick={() => { setSearch(''); setSearching(false); }} aria-label="Fermer la recherche">✕</button>

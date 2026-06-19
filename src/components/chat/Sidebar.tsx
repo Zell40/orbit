@@ -88,7 +88,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
 
       <div className="side-search">
         <span className="side-search__icon">🔍</span>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher" aria-label="Rechercher" />
+        <input name="room-filter" type="search" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher" aria-label="Rechercher" />
       </div>
 
       <div className="pills">
