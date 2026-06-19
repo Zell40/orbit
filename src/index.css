@@ -885,8 +885,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* ============ ORBIT THEME — mirrors orbit.tchatou.fr (near-black slate, green accent) ============ */
 [data-theme="orbit"] {
-  --green: #3fb950; --green-d: #56d364; --green-soft: rgba(63,185,80,.16);
-  --online: #3fb950; --online-d: #56d364; --online-soft: rgba(63,185,80,.13);
+  --green: #2ea043; --green-d: #46c35c; --green-soft: rgba(46,160,67,.16);
+  --online: #2ea043; --online-d: #46c35c; --online-soft: rgba(46,160,67,.13);
   --ink: #dde4ee; --ink-2: #c2ccd9; --muted: #8b97a8; --faint: #5f6b7a;
   --bg: #10151d; --bg-soft: #0b0e13; --bg-soft-2: #19212c; --bg-active: #1b2533; --rail-bg: #07090d;
   --border: #1f2733; --border-2: #2a3340;
@@ -898,25 +898,25 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme="orbit"] body { background: #07090d; }
 /* connect screen: green aurora to match the site hero */
 [data-theme="orbit"] .connect { background: radial-gradient(120% 80% at 50% -20%, #11321f, transparent 60%), linear-gradient(180deg, #0c1118, #07090d); }
-[data-theme="orbit"] .connect__go { background: linear-gradient(120deg,#2ea043,#3fb950); box-shadow: 0 12px 30px -8px rgba(63,185,80,.5), inset 0 1px 0 rgba(255,255,255,.25); }
-[data-theme="orbit"] .connect__go:hover:not(:disabled) { box-shadow: 0 18px 40px -10px rgba(63,185,80,.6); }
+[data-theme="orbit"] .connect__go { background: linear-gradient(120deg,#22813a,#2ea043); box-shadow: 0 12px 30px -8px rgba(46,160,67,.5), inset 0 1px 0 rgba(255,255,255,.22); }
+[data-theme="orbit"] .connect__go:hover:not(:disabled) { box-shadow: 0 18px 40px -10px rgba(46,160,67,.6); }
 /* green-ify the accent glows that are hardcoded blue in the base sheet */
-[data-theme="orbit"] .composer__send { box-shadow: 0 6px 16px -6px rgba(63,185,80,.55); }
-[data-theme="orbit"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(63,185,80,.16); }
-[data-theme="orbit"] .room.is-active::before { box-shadow: 0 0 10px 0 rgba(63,185,80,.55); }
-[data-theme="orbit"] .room__badge { box-shadow: 0 2px 6px -1px rgba(63,185,80,.45); }
-[data-theme="orbit"] .pill.is-on { box-shadow: 0 4px 12px -4px rgba(63,185,80,.45); }
-[data-theme="orbit"] .pm-btn--primary { box-shadow: 0 10px 24px -8px rgba(63,185,80,.5); }
-[data-theme="orbit"] .pm-btn--primary:hover { box-shadow: 0 14px 30px -8px rgba(63,185,80,.65); }
-/* profile banner + avatar ring: drop the per-nick hue, use the site green */
+[data-theme="orbit"] .composer__send { box-shadow: 0 6px 16px -6px rgba(46,160,67,.55); }
+[data-theme="orbit"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(46,160,67,.16); }
+[data-theme="orbit"] .room.is-active::before { box-shadow: 0 0 10px 0 rgba(46,160,67,.55); }
+[data-theme="orbit"] .room__badge { box-shadow: 0 2px 6px -1px rgba(46,160,67,.45); }
+[data-theme="orbit"] .pill.is-on { box-shadow: 0 4px 12px -4px rgba(46,160,67,.45); }
+[data-theme="orbit"] .pm-btn--primary { box-shadow: 0 10px 24px -8px rgba(46,160,67,.5); }
+[data-theme="orbit"] .pm-btn--primary:hover { box-shadow: 0 14px 30px -8px rgba(46,160,67,.65); }
+/* profile banner + avatar ring: drop the per-nick hue, use a deep site green */
 [data-theme="orbit"] .pm-cover {
   background:
-    radial-gradient(130% 150% at 18% 0%, rgba(63,185,80,.45), transparent 60%),
-    radial-gradient(120% 160% at 92% 0%, rgba(46,160,67,.40), transparent 55%),
-    linear-gradient(135deg, #2ea043, #15602f);
+    radial-gradient(130% 150% at 18% 0%, rgba(46,160,67,.34), transparent 60%),
+    radial-gradient(120% 160% at 92% 0%, rgba(33,122,52,.32), transparent 55%),
+    linear-gradient(135deg, #207a39, #0f4423);
 }
 [data-theme="orbit"] .pm-avring {
-  background: conic-gradient(from 130deg, #3fb950, #2ea043, #1f7a3a, #3fb950);
+  background: conic-gradient(from 130deg, #2ea043, #22813a, #176430, #2ea043);
 }
 
 /* ============ PROFILE MODAL (stunning centered card) ============ */
