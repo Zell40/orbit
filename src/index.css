@@ -908,15 +908,15 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme="orbit"] .pill.is-on { box-shadow: 0 4px 12px -4px rgba(63,185,80,.45); }
 [data-theme="orbit"] .pm-btn--primary { box-shadow: 0 10px 24px -8px rgba(63,185,80,.5); }
 [data-theme="orbit"] .pm-btn--primary:hover { box-shadow: 0 14px 30px -8px rgba(63,185,80,.65); }
-/* dim the big hue-coloured profile banner + avatar ring for night */
+/* profile banner + avatar ring: drop the per-nick hue, use the site green */
 [data-theme="orbit"] .pm-cover {
   background:
-    radial-gradient(130% 150% at 18% 0%, hsl(var(--hue), 50%, 38%), transparent 58%),
-    radial-gradient(130% 170% at 92% 6%, hsl(calc(var(--hue) + 50), 46%, 32%), transparent 54%),
-    linear-gradient(135deg, hsl(var(--hue), 44%, 26%), hsl(calc(var(--hue) + 70), 40%, 22%));
+    radial-gradient(130% 150% at 18% 0%, rgba(63,185,80,.45), transparent 60%),
+    radial-gradient(120% 160% at 92% 0%, rgba(46,160,67,.40), transparent 55%),
+    linear-gradient(135deg, #2ea043, #15602f);
 }
 [data-theme="orbit"] .pm-avring {
-  background: conic-gradient(from 130deg, hsl(var(--hue),50%,44%), hsl(calc(var(--hue) + 80),46%,42%), hsl(calc(var(--hue) + 200),48%,46%), hsl(var(--hue),50%,44%));
+  background: conic-gradient(from 130deg, #3fb950, #2ea043, #1f7a3a, #3fb950);
 }
 
 /* ============ PROFILE MODAL (stunning centered card) ============ */
