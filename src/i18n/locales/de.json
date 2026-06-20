@@ -616,7 +616,8 @@
       "channelTypes": "Kanaltypen",
       "roles": "Rollen",
       "limits": "Limits",
-      "limitsValue": "Spitzname {{nick}} · Kanal {{chan}} · Thema {{topic}}"
+      "limitsValue": "Spitzname {{nick}} · Kanal {{chan}} · Thema {{topic}}",
+      "navDesc": "Netzwerk & Verbindung"
     }
   }
 }

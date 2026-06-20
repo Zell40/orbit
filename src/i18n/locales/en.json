@@ -616,7 +616,8 @@
       "channelTypes": "Channel types",
       "roles": "Roles",
       "limits": "Limits",
-      "limitsValue": "nick {{nick}} · channel {{chan}} · topic {{topic}}"
+      "limitsValue": "nick {{nick}} · channel {{chan}} · topic {{topic}}",
+      "navDesc": "Network & connection"
     }
   }
 }

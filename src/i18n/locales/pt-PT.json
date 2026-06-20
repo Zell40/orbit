@@ -616,7 +616,8 @@
       "channelTypes": "Tipos de canal",
       "roles": "Funções",
       "limits": "Limites",
-      "limitsValue": "alcunha {{nick}} · canal {{chan}} · tópico {{topic}}"
+      "limitsValue": "alcunha {{nick}} · canal {{chan}} · tópico {{topic}}",
+      "navDesc": "Rede e ligação"
     }
   }
 }

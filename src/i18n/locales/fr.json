@@ -616,7 +616,8 @@
       "channelTypes": "Types de salons",
       "roles": "Rôles",
       "limits": "Limites",
-      "limitsValue": "pseudo {{nick}} · salon {{chan}} · sujet {{topic}}"
+      "limitsValue": "pseudo {{nick}} · salon {{chan}} · sujet {{topic}}",
+      "navDesc": "Réseau & connexion"
     }
   }
 }

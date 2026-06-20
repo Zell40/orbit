@@ -15,6 +15,7 @@ const SETTINGS_SECTIONS = [
   { id: 'apparence', icon: '🎨' },
   { id: 'notifs',    icon: '🔔' },
   { id: 'compte',    icon: '🔑' },
+  { id: 'server',    icon: '🖥️' },
   { id: 'ircv3',     icon: '🛰️' },
 ] as const;
 type SettingsSection = (typeof SETTINGS_SECTIONS)[number]['id'];
@@ -24,6 +25,7 @@ const SEC_KEY: Record<SettingsSection, string> = {
   apparence: 'settings.sections.appearance',
   notifs: 'settings.sections.notifications',
   compte: 'settings.sections.account',
+  server: 'caps.server.title',
   ircv3: 'caps.navLabel',
 };
 
@@ -32,6 +34,7 @@ const SEC_DESC: Record<SettingsSection, string> = {
   apparence: 'settings.sectionDesc.appearance',
   notifs: 'settings.sectionDesc.notifications',
   compte: 'settings.sectionDesc.account',
+  server: 'caps.server.navDesc',
   ircv3: 'caps.navDesc',
 };
 
@@ -96,6 +99,7 @@ export function SettingsModal() {
             {section === 'apparence' && <AppearanceSection />}
             {section === 'notifs' && <NotificationsSection />}
             {section === 'compte' && <LoginTab />}
+            {section === 'server' && <ServerSection />}
             {section === 'ircv3' && <CapabilitiesSection />}
           </div>
         </section>
@@ -324,17 +328,13 @@ function NotificationsSection() {
   );
 }
 
-// IRCv3 capabilities panel — shows every cap Orbit negotiates and whether the
-// connected server actually supports it (live, from the client's CAP state).
-function CapabilitiesSection() {
+// Server / IRCd facts, pulled live from the registration numerics + ISUPPORT.
+function ServerSection() {
   const { t } = useTranslation();
   const client = useChat((s) => s.client);
   const status = useChat((s) => s.status);
   const connected = status === 'registered' && !!client;
-  const caps = client ? client.listCaps() : CAP_KEYS.map((name) => ({ name, available: false, enabled: false }));
-  const active = caps.filter((c) => c.enabled).length;
 
-  // ── Server facts, pulled live from registration numerics + ISUPPORT ──────────
   const dash = '—';
   let host = '', secure = false;
   try { const u = new URL(getConfig().server.url); host = u.host; secure = u.protocol === 'wss:'; } catch { /* bad url */ }
@@ -354,9 +354,7 @@ function CapabilitiesSection() {
   ];
 
   return (
-    <>
     <div className="scard">
-      <div className="scard__h">🖥️ {t('caps.server.title')}</div>
       <div className="scard__body">
         <dl className="srv-info">
           {srv.map((r) => (
@@ -368,6 +366,20 @@ function CapabilitiesSection() {
         </dl>
       </div>
     </div>
+  );
+}
+
+// IRCv3 capabilities panel — shows every cap Orbit negotiates and whether the
+// connected server actually supports it (live, from the client's CAP state).
+function CapabilitiesSection() {
+  const { t } = useTranslation();
+  const client = useChat((s) => s.client);
+  const status = useChat((s) => s.status);
+  const connected = status === 'registered' && !!client;
+  const caps = client ? client.listCaps() : CAP_KEYS.map((name) => ({ name, available: false, enabled: false }));
+  const active = caps.filter((c) => c.enabled).length;
+
+  return (
     <div className="scard">
       <div className="scard__body">
         <div className="sfield"><div className="sfield__intro">{t('caps.intro')}</div></div>
@@ -391,7 +403,6 @@ function CapabilitiesSection() {
         </ul>
       </div>
     </div>
-    </>
   );
 }
 const CAP_KEYS = Object.keys(CAP_INFO);

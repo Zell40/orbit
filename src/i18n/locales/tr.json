@@ -616,7 +616,8 @@
       "channelTypes": "Kanal türleri",
       "roles": "Roller",
       "limits": "Sınırlar",
-      "limitsValue": "takma ad {{nick}} · kanal {{chan}} · konu {{topic}}"
+      "limitsValue": "takma ad {{nick}} · kanal {{chan}} · konu {{topic}}",
+      "navDesc": "Ağ ve bağlantı"
     }
   }
 }

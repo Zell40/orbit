@@ -616,7 +616,8 @@
       "channelTypes": "च्यानल प्रकार",
       "roles": "भूमिका",
       "limits": "सीमा",
-      "limitsValue": "उपनाम {{nick}} · च्यानल {{chan}} · विषय {{topic}}"
+      "limitsValue": "उपनाम {{nick}} · च्यानल {{chan}} · विषय {{topic}}",
+      "navDesc": "नेटवर्क र जडान"
     }
   }
 }

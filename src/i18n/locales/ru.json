@@ -616,7 +616,8 @@
       "channelTypes": "Типы каналов",
       "roles": "Роли",
       "limits": "Ограничения",
-      "limitsValue": "ник {{nick}} · канал {{chan}} · тема {{topic}}"
+      "limitsValue": "ник {{nick}} · канал {{chan}} · тема {{topic}}",
+      "navDesc": "Сеть и соединение"
     }
   }
 }
