@@ -631,5 +631,16 @@
     "project": "Proje sayfası",
     "running": "Dağıtım",
     "madeWith": "React · IRCv3 ile yapıldı"
+  },
+  "switcher": {
+    "title": "Hızlı geçiş",
+    "placeholder": "Bir kanala, ÖM'ye veya kişiye git…",
+    "empty": "Eşleşme yok",
+    "join": "{{chan}} kanalına katıl",
+    "hint": "↑↓ gez · ↵ aç · esc kapat",
+    "kind_channel": "kanal",
+    "kind_dm": "özel mesaj",
+    "kind_person": "kişi",
+    "kind_join": "katıl"
   }
 }

@@ -65,7 +65,7 @@ function canon(name: string): string {
   return casefold(name, casemapping);
 }
 
-export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin';
+export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'switcher';
 export interface ChannelInfo { name: string; users: number; topic: string }
 export interface KickInfo { channel: string; by: string; reason: string; kind: 'kick' | 'ban' | 'mute' }
 

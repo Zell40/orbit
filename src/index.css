@@ -1616,3 +1616,26 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   /* Close button: smaller, less intrusive */
   .pm-x { top: .6rem; right: .6rem; width: 30px; height: 30px; }
 }
+
+/* ── Quick switcher (Ctrl/⌘-K) ────────────────────────────────────────────── */
+.qswitch-scrim { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.4);
+  display: flex; justify-content: center; align-items: flex-start; padding: 12vh 1rem 1rem;
+  animation: fade .12s ease both; }
+.qswitch { width: min(560px, 94vw); max-height: 70vh; display: flex; flex-direction: column;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.35); overflow: hidden; }
+.qswitch__bar { display: flex; align-items: center; gap: .6rem; padding: .8rem 1rem; border-bottom: 1px solid var(--border); }
+.qswitch__ic { opacity: .55; font-size: .95rem; }
+.qswitch__input { flex: 1; border: 0; background: transparent; color: var(--ink); font-size: 1.02rem; outline: none; min-width: 0; }
+.qswitch__list { list-style: none; margin: 0; padding: .35rem; overflow-y: auto; }
+.qswitch__item { display: flex; align-items: center; gap: .6rem; padding: .5rem .55rem; border-radius: 9px; cursor: pointer; }
+.qswitch__item.is-sel { background: var(--green-soft); }
+.qswitch__av { width: 26px; height: 26px; flex: none; border-radius: 7px; display: grid; place-items: center;
+  color: #fff; font-size: .82rem; font-weight: 700; }
+.qswitch__av--join { background: var(--green); }
+.qswitch__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--ink); font-weight: 600; font-size: .9rem; }
+.qswitch__item.is-sel .qswitch__name { color: var(--green-d); }
+.qswitch__kind { flex: none; font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.qswitch__empty { padding: 1.3rem; text-align: center; color: var(--muted); font-size: .85rem; }
+.qswitch__foot { padding: .5rem 1rem; border-top: 1px solid var(--border); font-size: .72rem; color: var(--muted); }

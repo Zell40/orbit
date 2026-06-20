@@ -631,5 +631,16 @@
     "project": "Project page",
     "running": "Deployment",
     "madeWith": "Built with React · IRCv3"
+  },
+  "switcher": {
+    "title": "Quick switcher",
+    "placeholder": "Jump to a channel, DM or person…",
+    "empty": "No matches",
+    "join": "Join {{chan}}",
+    "hint": "↑↓ navigate · ↵ open · esc close",
+    "kind_channel": "channel",
+    "kind_dm": "direct message",
+    "kind_person": "person",
+    "kind_join": "join"
   }
 }

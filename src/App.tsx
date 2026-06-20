@@ -24,6 +24,20 @@ export default function App() {
     if (client) void refreshPush(client);
   }, [status]);
 
+  // Ctrl/⌘-K opens the quick switcher (toggles it closed if already open).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        const st = useChat.getState();
+        if (st.status !== 'registered' && !st.everRegistered) return; // chat view only
+        e.preventDefault();
+        st.setModal(st.modal === 'switcher' ? '' : 'switcher');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // A click on a push notification asks the SW to open the relevant buffer.
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;

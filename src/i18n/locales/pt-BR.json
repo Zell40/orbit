@@ -631,5 +631,16 @@
     "project": "Página do projeto",
     "running": "Implantação",
     "madeWith": "Feito com React · IRCv3"
+  },
+  "switcher": {
+    "title": "Troca rápida",
+    "placeholder": "Ir para um canal, DM ou pessoa…",
+    "empty": "Nenhum resultado",
+    "join": "Entrar em {{chan}}",
+    "hint": "↑↓ navegar · ↵ abrir · esc fechar",
+    "kind_channel": "canal",
+    "kind_dm": "mensagem direta",
+    "kind_person": "pessoa",
+    "kind_join": "entrar"
   }
 }

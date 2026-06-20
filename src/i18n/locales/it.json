@@ -631,5 +631,16 @@
     "project": "Pagina del progetto",
     "running": "Distribuzione",
     "madeWith": "Creato con React · IRCv3"
+  },
+  "switcher": {
+    "title": "Accesso rapido",
+    "placeholder": "Vai a un canale, MP o persona…",
+    "empty": "Nessun risultato",
+    "join": "Entra in {{chan}}",
+    "hint": "↑↓ naviga · ↵ apri · esc chiudi",
+    "kind_channel": "canale",
+    "kind_dm": "messaggio diretto",
+    "kind_person": "persona",
+    "kind_join": "entra"
   }
 }

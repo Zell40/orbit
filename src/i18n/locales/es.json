@@ -631,5 +631,16 @@
     "project": "Página del proyecto",
     "running": "Despliegue",
     "madeWith": "Hecho con React · IRCv3"
+  },
+  "switcher": {
+    "title": "Cambio rápido",
+    "placeholder": "Ir a un canal, MD o persona…",
+    "empty": "Sin resultados",
+    "join": "Unirse a {{chan}}",
+    "hint": "↑↓ navegar · ↵ abrir · esc cerrar",
+    "kind_channel": "canal",
+    "kind_dm": "mensaje directo",
+    "kind_person": "persona",
+    "kind_join": "unirse"
   }
 }

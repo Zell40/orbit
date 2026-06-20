@@ -631,5 +631,16 @@
     "project": "Projektseite",
     "running": "Bereitstellung",
     "madeWith": "Erstellt mit React · IRCv3"
+  },
+  "switcher": {
+    "title": "Schnellwechsel",
+    "placeholder": "Zu Kanal, DN oder Person springen…",
+    "empty": "Keine Treffer",
+    "join": "{{chan}} beitreten",
+    "hint": "↑↓ navigieren · ↵ öffnen · Esc schließen",
+    "kind_channel": "Kanal",
+    "kind_dm": "Direktnachricht",
+    "kind_person": "Person",
+    "kind_join": "beitreten"
   }
 }

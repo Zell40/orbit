@@ -631,5 +631,16 @@
     "project": "Page du projet",
     "running": "Déploiement",
     "madeWith": "Conçu avec React · IRCv3"
+  },
+  "switcher": {
+    "title": "Accès rapide",
+    "placeholder": "Aller à un salon, un MP ou une personne…",
+    "empty": "Aucun résultat",
+    "join": "Rejoindre {{chan}}",
+    "hint": "↑↓ naviguer · ↵ ouvrir · échap fermer",
+    "kind_channel": "salon",
+    "kind_dm": "message privé",
+    "kind_person": "personne",
+    "kind_join": "rejoindre"
   }
 }

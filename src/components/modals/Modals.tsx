@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
 import { Avatar } from '../Avatar';
 import { SettingsModal } from '../settings/SettingsModal';
+import { QuickSwitcher } from '../QuickSwitcher';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const { t } = useTranslation();
@@ -229,5 +230,6 @@ export function Modals() {
   if (modal === 'explore') return <ExploreModal />;
   if (modal === 'friends') return <FriendsModal />;
   if (modal === 'chanadmin') return <ChanAdminModal />;
+  if (modal === 'switcher') return <QuickSwitcher />;
   return null;
 }
