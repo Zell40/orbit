@@ -33,5 +33,5 @@
     "imageUpload": true,
     "register": true
   },
-  "plugins": []
+  "plugins": ["/app/plugins/orbit-clock.js", "/app/plugins/orbit-copy.js"]
 }
