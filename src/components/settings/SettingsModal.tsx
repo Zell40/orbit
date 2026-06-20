@@ -343,12 +343,13 @@ function CapabilitiesSection() {
           {caps.map((c) => {
             const info = CAP_INFO[c.name];
             const state = !connected ? 'offline' : c.enabled ? 'enabled' : c.available ? 'available' : 'unavailable';
+            const desc = info ? t(`caps.desc.${info.key}`) : '';
             return (
-              <li key={c.name} className={`caprow caprow--${state}`}>
+              <li key={c.name} className={`caprow caprow--${state}`} title={desc ? `${c.name} — ${desc}` : c.name}>
                 <span className="caprow__ic" aria-hidden>{info?.icon ?? '🔌'}</span>
                 <div className="caprow__txt">
                   <code className="caprow__name">{c.name}</code>
-                  {info && <span className="caprow__desc">{t(`caps.desc.${info.key}`)}</span>}
+                  {desc && <span className="caprow__desc">{desc}</span>}
                 </div>
                 <span className={`capbadge capbadge--${state}`}>{t(`caps.status.${state}`)}</span>
               </li>
