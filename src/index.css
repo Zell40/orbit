@@ -693,6 +693,25 @@ input, textarea { font-family: inherit; }
 .sfield__intro { font-size: .85rem; line-height: 1.5; color: var(--muted); }
 .sfield__intro strong { color: var(--ink); }
 .sfield__row { display: flex; gap: .5rem; }
+
+/* ── IRCv3 capabilities panel ─────────────────────────────────────────────── */
+.caps-count { margin: .55rem 0 .3rem; font-size: .8rem; color: var(--muted); }
+.caps-count b { color: var(--green-d); }
+.caps-list { display: flex; flex-direction: column; gap: .12rem; margin: 0; padding: 0; list-style: none; }
+.caprow { display: flex; align-items: center; gap: .65rem; padding: .5rem .55rem; border-radius: 10px; transition: background .12s; }
+.caprow:hover { background: var(--bg-soft-2); }
+.caprow__ic { font-size: 1.05rem; width: 1.5rem; text-align: center; flex: none; }
+.caprow__txt { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.25; }
+.caprow__name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .76rem; color: var(--ink-2); }
+.caprow__desc { font-size: .76rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.caprow--unavailable .caprow__ic, .caprow--offline .caprow__ic { filter: grayscale(1); opacity: .55; }
+.caprow--unavailable .caprow__name, .caprow--offline .caprow__name { text-decoration: line-through; opacity: .7; }
+
+.capbadge { flex: none; font-size: .68rem; font-weight: 700; padding: .18rem .5rem; border-radius: 999px; letter-spacing: .01em; white-space: nowrap; }
+.capbadge--enabled { color: var(--green-d); background: var(--green-soft); }
+.capbadge--available { color: #b06c00; background: rgba(204,128,0,.12); }
+.capbadge--unavailable { color: var(--danger); background: rgba(214,70,95,.1); }
+.capbadge--offline { color: var(--muted); background: var(--bg-soft-2); }
 .sfield__row .modal__input { flex: 1; min-width: 0; }
 .sfield__row .upbtn { flex: none; padding: .6rem 1.05rem; }
 .sfield__err { font-size: .82rem; font-weight: 600; color: var(--danger); }

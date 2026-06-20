@@ -566,5 +566,44 @@
     "min": "{{n}} min",
     "hourMin": "{{h}} h {{m}} min",
     "day": "{{n}} j"
+  },
+  "caps": {
+    "navLabel": "IRCv3",
+    "navDesc": "Capacités du protocole",
+    "title": "Capacités IRCv3",
+    "intro": "Fonctionnalités du protocole utilisées par Orbit, et leur prise en charge par ton serveur.",
+    "status": {
+      "enabled": "Active",
+      "available": "Disponible",
+      "unavailable": "Indisponible",
+      "offline": "Non connecté"
+    },
+    "desc": {
+      "multiPrefix": "Affiche tous les rôles d’un membre à la fois",
+      "awayNotify": "Statut absent/présent en temps réel",
+      "accountNotify": "Sait quand un membre se connecte ou se déconnecte",
+      "extendedJoin": "Voit les comptes dès l’arrivée des membres",
+      "chghost": "Suit les changements d’hôte sans reconnexion",
+      "accountTag": "Associe chaque message à son compte",
+      "serverTime": "Horodatage précis fourni par le serveur",
+      "echoMessage": "Confirme tes propres messages envoyés",
+      "batch": "Regroupe les messages liés",
+      "labeledResponse": "Associe les réponses à tes requêtes",
+      "messageTags": "Transporte réactions, réponses et métadonnées",
+      "sasl": "Connexion sécurisée pendant la connexion",
+      "inviteNotify": "Voit les invitations de salon en direct",
+      "setname": "Changement de nom affiché en direct",
+      "userhostInNames": "user@host complet dans la liste des membres",
+      "chathistory": "Charge les anciens messages à l’arrivée",
+      "eventPlayback": "Rejoue entrées/sorties dans l’historique",
+      "messageRedaction": "Supprime ou modifie les messages envoyés",
+      "readMarker": "Synchronise ta position de lecture entre appareils",
+      "multiline": "Envoie de vrais messages multi-lignes",
+      "metadata": "Avatars et métadonnées de profil",
+      "standardReplies": "Messages d’erreur clairs et structurés",
+      "accountRegistration": "Crée un compte dans l’app",
+      "preAway": "Marqué absent dès la connexion",
+      "webpush": "Notifications push quand l’app est fermée"
+    }
   }
 }

@@ -495,6 +495,17 @@ export class IrcClient {
 
   hasCap(name: string): boolean { return this.ackedCaps.has(name); }
 
+  // Snapshot of every capability Orbit wants, with its negotiated state — for the
+  // Settings "IRCv3 capabilities" panel. `enabled` = the server ACK'd it and we're
+  // using it; `available` = the server advertised it in CAP LS.
+  listCaps(): { name: string; available: boolean; enabled: boolean }[] {
+    return WANTED_CAPS.map((name) => ({
+      name,
+      available: this.availableCaps.has(name),
+      enabled: this.ackedCaps.has(name),
+    }));
+  }
+
   // ---- line-length handling (the 512-byte IRC line limit) -----------------
   private enc = new TextEncoder();
   private byteLen(s: string): number { return this.enc.encode(s).length; }

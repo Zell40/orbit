@@ -566,5 +566,44 @@
     "min": "{{n}} min",
     "hourMin": "{{h}} h {{m}} min",
     "day": "{{n}} d"
+  },
+  "caps": {
+    "navLabel": "IRCv3",
+    "navDesc": "Capacidades do protocolo",
+    "title": "Capacidades IRCv3",
+    "intro": "Recursos do protocolo que o Orbit usa e se o seu servidor os suporta.",
+    "status": {
+      "enabled": "Ativo",
+      "available": "Disponível",
+      "unavailable": "Indisponível",
+      "offline": "Sem conexão"
+    },
+    "desc": {
+      "multiPrefix": "Mostra todos os papéis de um membro de uma vez",
+      "awayNotify": "Status ausente/presente em tempo real",
+      "accountNotify": "Sabe quando os membros entram ou saem",
+      "extendedJoin": "Vê as contas quando os membros entram",
+      "chghost": "Acompanha mudanças de host sem reentrar",
+      "accountTag": "Marca cada mensagem com sua conta",
+      "serverTime": "Carimbos de hora precisos do servidor",
+      "echoMessage": "Confirma suas próprias mensagens enviadas",
+      "batch": "Agrupa mensagens relacionadas",
+      "labeledResponse": "Associa as respostas às suas solicitações",
+      "messageTags": "Transporta reações, respostas e metadados",
+      "sasl": "Login seguro durante a conexão",
+      "inviteNotify": "Vê os convites de canal em tempo real",
+      "setname": "Alterações do nome exibido em tempo real",
+      "userhostInNames": "user@host completo na lista de membros",
+      "chathistory": "Carrega mensagens anteriores ao entrar",
+      "eventPlayback": "Repete entradas/saídas no histórico",
+      "messageRedaction": "Exclui ou edita mensagens enviadas",
+      "readMarker": "Sincroniza sua posição de leitura entre dispositivos",
+      "multiline": "Envia mensagens multilinha reais",
+      "metadata": "Avatares e metadados de perfil",
+      "standardReplies": "Mensagens de erro claras e estruturadas",
+      "accountRegistration": "Cria uma conta no app",
+      "preAway": "Marcado ausente assim que você conecta",
+      "webpush": "Notificações push com o app fechado"
+    }
   }
 }

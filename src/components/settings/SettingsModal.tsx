@@ -5,6 +5,7 @@ import { useChat } from '../../store';
 import { getConfig } from '../../config';
 import { getTheme, setTheme, type Theme } from '../../ui/theme';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../services/push';
+import { CAP_INFO } from '../../irc/cap-info';
 import { Avatar } from '../Avatar';
 import { Turnstile } from '../Turnstile';
 
@@ -14,6 +15,7 @@ const SETTINGS_SECTIONS = [
   { id: 'apparence', icon: '🎨' },
   { id: 'notifs',    icon: '🔔' },
   { id: 'compte',    icon: '🔑' },
+  { id: 'ircv3',     icon: '🛰️' },
 ] as const;
 type SettingsSection = (typeof SETTINGS_SECTIONS)[number]['id'];
 
@@ -22,6 +24,7 @@ const SEC_KEY: Record<SettingsSection, string> = {
   apparence: 'settings.sections.appearance',
   notifs: 'settings.sections.notifications',
   compte: 'settings.sections.account',
+  ircv3: 'caps.navLabel',
 };
 
 const SEC_DESC: Record<SettingsSection, string> = {
@@ -29,6 +32,7 @@ const SEC_DESC: Record<SettingsSection, string> = {
   apparence: 'settings.sectionDesc.appearance',
   notifs: 'settings.sectionDesc.notifications',
   compte: 'settings.sectionDesc.account',
+  ircv3: 'caps.navDesc',
 };
 
 export function SettingsModal() {
@@ -92,6 +96,7 @@ export function SettingsModal() {
             {section === 'apparence' && <AppearanceSection />}
             {section === 'notifs' && <NotificationsSection />}
             {section === 'compte' && <LoginTab />}
+            {section === 'ircv3' && <CapabilitiesSection />}
           </div>
         </section>
       </div>
@@ -318,6 +323,43 @@ function NotificationsSection() {
     </div>
   );
 }
+
+// IRCv3 capabilities panel — shows every cap Orbit negotiates and whether the
+// connected server actually supports it (live, from the client's CAP state).
+function CapabilitiesSection() {
+  const { t } = useTranslation();
+  const client = useChat((s) => s.client);
+  const status = useChat((s) => s.status);
+  const connected = status === 'registered' && !!client;
+  const caps = client ? client.listCaps() : CAP_KEYS.map((name) => ({ name, available: false, enabled: false }));
+  const active = caps.filter((c) => c.enabled).length;
+
+  return (
+    <div className="scard">
+      <div className="scard__body">
+        <div className="sfield"><div className="sfield__intro">{t('caps.intro')}</div></div>
+        <div className="caps-count">{t('caps.status.enabled')} · <b>{active}</b> / {caps.length}</div>
+        <ul className="caps-list">
+          {caps.map((c) => {
+            const info = CAP_INFO[c.name];
+            const state = !connected ? 'offline' : c.enabled ? 'enabled' : c.available ? 'available' : 'unavailable';
+            return (
+              <li key={c.name} className={`caprow caprow--${state}`}>
+                <span className="caprow__ic" aria-hidden>{info?.icon ?? '🔌'}</span>
+                <div className="caprow__txt">
+                  <code className="caprow__name">{c.name}</code>
+                  {info && <span className="caprow__desc">{t(`caps.desc.${info.key}`)}</span>}
+                </div>
+                <span className={`capbadge capbadge--${state}`}>{t(`caps.status.${state}`)}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+const CAP_KEYS = Object.keys(CAP_INFO);
 
 function LoginTab() {
   const { t } = useTranslation();

@@ -566,5 +566,44 @@
     "min": "{{n}} Min",
     "hourMin": "{{h}} Std {{m}} Min",
     "day": "{{n}} T"
+  },
+  "caps": {
+    "navLabel": "IRCv3",
+    "navDesc": "Protokoll-Fähigkeiten",
+    "title": "IRCv3-Fähigkeiten",
+    "intro": "Protokollfunktionen, die Orbit nutzt, und ob dein Server sie unterstützt.",
+    "status": {
+      "enabled": "Aktiv",
+      "available": "Verfügbar",
+      "unavailable": "Nicht verfügbar",
+      "offline": "Nicht verbunden"
+    },
+    "desc": {
+      "multiPrefix": "Zeigt alle Rollen eines Mitglieds auf einmal",
+      "awayNotify": "Abwesend/Anwesend in Echtzeit",
+      "accountNotify": "Weiß, wann sich Mitglieder an-/abmelden",
+      "extendedJoin": "Sieht Konten, sobald Mitglieder beitreten",
+      "chghost": "Verfolgt Host-Änderungen ohne erneutes Beitreten",
+      "accountTag": "Markiert jede Nachricht mit ihrem Konto",
+      "serverTime": "Genaue, vom Server gestempelte Zeitstempel",
+      "echoMessage": "Bestätigt deine eigenen gesendeten Nachrichten",
+      "batch": "Gruppiert zusammengehörige Nachrichten",
+      "labeledResponse": "Ordnet Antworten deinen Anfragen zu",
+      "messageTags": "Überträgt Reaktionen, Antworten und Metadaten",
+      "sasl": "Sichere Anmeldung während der Verbindung",
+      "inviteNotify": "Sieht Kanal-Einladungen in Echtzeit",
+      "setname": "Anzeigename-Änderungen in Echtzeit",
+      "userhostInNames": "Vollständiges user@host in der Mitgliederliste",
+      "chathistory": "Lädt frühere Nachrichten beim Beitritt",
+      "eventPlayback": "Spielt Beitritte/Verlassen im Verlauf ab",
+      "messageRedaction": "Gesendete Nachrichten löschen oder bearbeiten",
+      "readMarker": "Synchronisiert deine Leseposition geräteübergreifend",
+      "multiline": "Echte mehrzeilige Nachrichten senden",
+      "metadata": "Avatare und Profil-Metadaten",
+      "standardReplies": "Klare, strukturierte Fehlermeldungen",
+      "accountRegistration": "Konto in der App erstellen",
+      "preAway": "Sofort beim Verbinden als abwesend markiert",
+      "webpush": "Push-Benachrichtigungen bei geschlossener App"
+    }
   }
 }

@@ -566,5 +566,44 @@
     "min": "{{n}} min",
     "hourMin": "{{h}} h {{m}} min",
     "day": "{{n}} d"
+  },
+  "caps": {
+    "navLabel": "IRCv3",
+    "navDesc": "Capacidades del protocolo",
+    "title": "Capacidades IRCv3",
+    "intro": "Funciones del protocolo que usa Orbit, y si tu servidor las admite.",
+    "status": {
+      "enabled": "Activo",
+      "available": "Disponible",
+      "unavailable": "No disponible",
+      "offline": "Sin conexión"
+    },
+    "desc": {
+      "multiPrefix": "Muestra todos los roles de un miembro a la vez",
+      "awayNotify": "Estado ausente/presente en tiempo real",
+      "accountNotify": "Sabe cuándo los miembros inician o cierran sesión",
+      "extendedJoin": "Ve las cuentas al entrar los miembros",
+      "chghost": "Sigue los cambios de host sin volver a entrar",
+      "accountTag": "Etiqueta cada mensaje con su cuenta",
+      "serverTime": "Marcas de tiempo precisas del servidor",
+      "echoMessage": "Confirma tus propios mensajes enviados",
+      "batch": "Agrupa los mensajes relacionados",
+      "labeledResponse": "Asocia las respuestas a tus peticiones",
+      "messageTags": "Transporta reacciones, respuestas y metadatos",
+      "sasl": "Inicio de sesión seguro durante la conexión",
+      "inviteNotify": "Ve las invitaciones de canal en directo",
+      "setname": "Cambios de nombre visible en directo",
+      "userhostInNames": "user@host completo en la lista de miembros",
+      "chathistory": "Carga mensajes anteriores al entrar",
+      "eventPlayback": "Reproduce entradas/salidas en el historial",
+      "messageRedaction": "Elimina o edita mensajes enviados",
+      "readMarker": "Sincroniza tu posición de lectura entre dispositivos",
+      "multiline": "Envía mensajes multilínea reales",
+      "metadata": "Avatares y metadatos de perfil",
+      "standardReplies": "Mensajes de error claros y estructurados",
+      "accountRegistration": "Crea una cuenta en la app",
+      "preAway": "Marcado ausente al conectar",
+      "webpush": "Notificaciones push con la app cerrada"
+    }
   }
 }

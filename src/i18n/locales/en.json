@@ -566,5 +566,44 @@
     "min": "{{n}}m",
     "hourMin": "{{h}}h {{m}}m",
     "day": "{{n}}d"
+  },
+  "caps": {
+    "navLabel": "IRCv3",
+    "navDesc": "Protocol capabilities",
+    "title": "IRCv3 capabilities",
+    "intro": "Protocol features Orbit uses, and whether your server supports them.",
+    "status": {
+      "enabled": "Active",
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "offline": "Not connected"
+    },
+    "desc": {
+      "multiPrefix": "Shows all of a member’s roles at once",
+      "awayNotify": "Live away/back status updates",
+      "accountNotify": "Knows when members log in or out",
+      "extendedJoin": "Sees accounts as members join",
+      "chghost": "Tracks host changes without rejoining",
+      "accountTag": "Tags each message with its account",
+      "serverTime": "Accurate, server-stamped timestamps",
+      "echoMessage": "Confirms your own sent messages",
+      "batch": "Groups related messages together",
+      "labeledResponse": "Matches replies to your requests",
+      "messageTags": "Carries reactions, replies and metadata",
+      "sasl": "Secure login during connection",
+      "inviteNotify": "Sees channel invites as they happen",
+      "setname": "Live display-name changes",
+      "userhostInNames": "Full user@host in the member list",
+      "chathistory": "Loads past messages on join",
+      "eventPlayback": "Replays joins/leaves in history",
+      "messageRedaction": "Delete or edit sent messages",
+      "readMarker": "Syncs your read position across devices",
+      "multiline": "Send true multi-line messages",
+      "metadata": "Avatars and profile metadata",
+      "standardReplies": "Clear, structured error messages",
+      "accountRegistration": "Create an account in-app",
+      "preAway": "Marked away the moment you connect",
+      "webpush": "Push notifications when the app is closed"
+    }
   }
 }

@@ -1,0 +1,30 @@
+// Display metadata for the Settings "IRCv3 capabilities" panel. Each entry maps a
+// capability token (as advertised over CAP) to an i18n description key (caps.desc.*)
+// and an icon. Tokens themselves are protocol identifiers and shown verbatim.
+export const CAP_INFO: Record<string, { icon: string; key: string }> = {
+  'multi-prefix': { icon: '👑', key: 'multiPrefix' },
+  'away-notify': { icon: '🌙', key: 'awayNotify' },
+  'account-notify': { icon: '🔑', key: 'accountNotify' },
+  'extended-join': { icon: '🚪', key: 'extendedJoin' },
+  'chghost': { icon: '🪪', key: 'chghost' },
+  'account-tag': { icon: '🏷️', key: 'accountTag' },
+  'server-time': { icon: '🕒', key: 'serverTime' },
+  'echo-message': { icon: '↩️', key: 'echoMessage' },
+  'batch': { icon: '📦', key: 'batch' },
+  'labeled-response': { icon: '🔖', key: 'labeledResponse' },
+  'message-tags': { icon: '🏷️', key: 'messageTags' },
+  'sasl': { icon: '🔐', key: 'sasl' },
+  'invite-notify': { icon: '✉️', key: 'inviteNotify' },
+  'setname': { icon: '✍️', key: 'setname' },
+  'userhost-in-names': { icon: '👥', key: 'userhostInNames' },
+  'draft/chathistory': { icon: '📜', key: 'chathistory' },
+  'draft/event-playback': { icon: '🎬', key: 'eventPlayback' },
+  'draft/message-redaction': { icon: '🗑️', key: 'messageRedaction' },
+  'draft/read-marker': { icon: '✅', key: 'readMarker' },
+  'draft/multiline': { icon: '📝', key: 'multiline' },
+  'draft/metadata-2': { icon: '🖼️', key: 'metadata' },
+  'standard-replies': { icon: '💬', key: 'standardReplies' },
+  'draft/account-registration': { icon: '🆕', key: 'accountRegistration' },
+  'draft/pre-away': { icon: '🚦', key: 'preAway' },
+  'draft/webpush': { icon: '📲', key: 'webpush' },
+};

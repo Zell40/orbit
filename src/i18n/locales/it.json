@@ -566,5 +566,44 @@
     "min": "{{n}} min",
     "hourMin": "{{h}} h {{m}} min",
     "day": "{{n}} g"
+  },
+  "caps": {
+    "navLabel": "IRCv3",
+    "navDesc": "Capacità del protocollo",
+    "title": "Capacità IRCv3",
+    "intro": "Funzionalità del protocollo usate da Orbit e se il tuo server le supporta.",
+    "status": {
+      "enabled": "Attivo",
+      "available": "Disponibile",
+      "unavailable": "Non disponibile",
+      "offline": "Non connesso"
+    },
+    "desc": {
+      "multiPrefix": "Mostra tutti i ruoli di un membro insieme",
+      "awayNotify": "Stato assente/presente in tempo reale",
+      "accountNotify": "Sa quando i membri accedono o escono",
+      "extendedJoin": "Vede gli account all’ingresso dei membri",
+      "chghost": "Segue i cambi di host senza rientrare",
+      "accountTag": "Associa ogni messaggio al suo account",
+      "serverTime": "Orari precisi forniti dal server",
+      "echoMessage": "Conferma i tuoi messaggi inviati",
+      "batch": "Raggruppa i messaggi correlati",
+      "labeledResponse": "Abbina le risposte alle tue richieste",
+      "messageTags": "Trasporta reazioni, risposte e metadati",
+      "sasl": "Accesso sicuro durante la connessione",
+      "inviteNotify": "Vede gli inviti ai canali in diretta",
+      "setname": "Modifiche al nome visualizzato in diretta",
+      "userhostInNames": "user@host completo nella lista membri",
+      "chathistory": "Carica i messaggi passati all’ingresso",
+      "eventPlayback": "Ripete entrate/uscite nella cronologia",
+      "messageRedaction": "Elimina o modifica i messaggi inviati",
+      "readMarker": "Sincronizza la posizione di lettura tra dispositivi",
+      "multiline": "Invia veri messaggi multiriga",
+      "metadata": "Avatar e metadati del profilo",
+      "standardReplies": "Messaggi di errore chiari e strutturati",
+      "accountRegistration": "Crea un account nell’app",
+      "preAway": "Segnato assente appena ti connetti",
+      "webpush": "Notifiche push ad app chiusa"
+    }
   }
 }

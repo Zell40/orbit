@@ -566,5 +566,44 @@
     "min": "{{n}} dk",
     "hourMin": "{{h}} sa {{m}} dk",
     "day": "{{n}} g"
+  },
+  "caps": {
+    "navLabel": "IRCv3",
+    "navDesc": "Protokol yetenekleri",
+    "title": "IRCv3 yetenekleri",
+    "intro": "Orbit’in kullandığı protokol özellikleri ve sunucunun bunları destekleyip desteklemediği.",
+    "status": {
+      "enabled": "Etkin",
+      "available": "Mevcut",
+      "unavailable": "Kullanılamıyor",
+      "offline": "Bağlı değil"
+    },
+    "desc": {
+      "multiPrefix": "Bir üyenin tüm rollerini bir arada gösterir",
+      "awayNotify": "Gerçek zamanlı uzakta/döndü durumu",
+      "accountNotify": "Üyelerin girip çıktığını bilir",
+      "extendedJoin": "Üyeler girerken hesapları görür",
+      "chghost": "Yeniden katılmadan host değişimlerini izler",
+      "accountTag": "Her mesajı hesabıyla etiketler",
+      "serverTime": "Sunucu damgalı doğru zaman bilgisi",
+      "echoMessage": "Gönderdiğin mesajları doğrular",
+      "batch": "İlgili mesajları gruplar",
+      "labeledResponse": "Yanıtları isteklerinle eşleştirir",
+      "messageTags": "Tepkileri, yanıtları ve meta verileri taşır",
+      "sasl": "Bağlantı sırasında güvenli giriş",
+      "inviteNotify": "Kanal davetlerini anında görür",
+      "setname": "Görünen ad değişikliklerini anında yansıtır",
+      "userhostInNames": "Üye listesinde tam user@host",
+      "chathistory": "Katılınca eski mesajları yükler",
+      "eventPlayback": "Geçmişte giriş/çıkışları yeniden oynatır",
+      "messageRedaction": "Gönderilen mesajları sil veya düzenle",
+      "readMarker": "Okuma konumunu cihazlar arası eşitler",
+      "multiline": "Gerçek çok satırlı mesaj gönder",
+      "metadata": "Avatarlar ve profil meta verileri",
+      "standardReplies": "Açık, yapılandırılmış hata mesajları",
+      "accountRegistration": "Uygulama içinde hesap oluştur",
+      "preAway": "Bağlanır bağlanmaz uzakta işaretlenir",
+      "webpush": "Uygulama kapalıyken push bildirimleri"
+    }
   }
 }
