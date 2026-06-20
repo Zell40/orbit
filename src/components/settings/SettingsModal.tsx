@@ -31,6 +31,28 @@ const SEC_KEY: Record<SettingsSection, string> = {
   about: 'about.navLabel',
 };
 
+// IRCv3 has no official drop-in icon — a small chat-bubble "v3" mark (self-
+// contained fill so it reads on the white tile and the green active tile alike).
+function Ircv3Mark({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <defs>
+        <linearGradient id="ircv3g" x1="2" y1="3" x2="22" y2="20" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#3d8bff" />
+          <stop offset="1" stopColor="#1e4fd6" />
+        </linearGradient>
+      </defs>
+      <path d="M6 3h12a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4h-7l-4 3.4V17H6a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Z" fill="url(#ircv3g)" />
+      <text x="12" y="13.6" textAnchor="middle" fontSize="8.5" fontWeight="800"
+        fontFamily="system-ui, -apple-system, sans-serif" fill="#fff">v3</text>
+    </svg>
+  );
+}
+// Most sections use an emoji; IRCv3 gets the inline mark above.
+function SecIcon({ id, icon }: { id: SettingsSection; icon: string }) {
+  return id === 'ircv3' ? <Ircv3Mark /> : <>{icon}</>;
+}
+
 const SEC_DESC: Record<SettingsSection, string> = {
   profil: 'settings.sectionDesc.profile',
   apparence: 'settings.sectionDesc.appearance',
@@ -71,7 +93,7 @@ export function SettingsModal() {
             {SETTINGS_SECTIONS.map((s) => (
               <button key={s.id} className={`settings__navitem ${section === s.id ? 'is-on' : ''}`}
                 onClick={() => { setSection(s.id); setDrilled(true); }}>
-                <span className="settings__navic" aria-hidden>{s.icon}</span>
+                <span className="settings__navic" aria-hidden><SecIcon id={s.id} icon={s.icon} /></span>
                 <span className="settings__navtxt">
                   <span className="settings__navlabel">{t(SEC_KEY[s.id])}</span>
                   <span className="settings__navdesc">{s.id === 'compte' && account ? `@${account}` : t(SEC_DESC[s.id])}</span>
@@ -93,7 +115,7 @@ export function SettingsModal() {
         <section className="settings__pane">
           <header className="settings__top">
             <button className="settings__back" onClick={() => setDrilled(false)} aria-label={t('settings.misc.back')}>‹</button>
-            <span className="settings__top-ic" aria-hidden>{cur.icon}</span>
+            <span className="settings__top-ic" aria-hidden><SecIcon id={cur.id} icon={cur.icon} /></span>
             <h3 className="settings__top-title">{t(SEC_KEY[cur.id])}</h3>
             <button className="settings__close settings__close--pane" onClick={close} aria-label={t('modals.closeButton')}>✕</button>
           </header>
