@@ -25,7 +25,12 @@
     "closeSearch": "Chiudi ricerca",
     "membersCount": "Membri · {{n}}",
     "publicChannel": "Canale pubblico · {{n}} membri",
-    "commonChannels": "Canali in comune"
+    "commonChannels": "Canali in comune",
+    "searchIn": "Cerca in {{label}}…",
+    "serverTerminal": "Terminale server · digita un comando IRC (/list, /whois, /join…)",
+    "muteOn": "Silenzia notifiche",
+    "muteOff": "Riattiva notifiche",
+    "membersTitle": "Membri"
   },
   "connect": {
     "onlineBadge": "{{n}} persone online",
@@ -230,5 +235,25 @@
     "topicTag": "argomento",
     "topicChanged": "ha cambiato l'argomento",
     "topicRemoved": "ha rimosso l'argomento"
+  },
+  "banners": {
+    "reconnecting": "Riconnessione…",
+    "lostRetry": "Connessione persa — nuovo tentativo tra {{n}}s",
+    "lostReconnecting": "Connessione persa — riconnessione…",
+    "kickedTitle": "Sei stato espulso da {{channel}}",
+    "bannedTitle": "Sei bannato da {{channel}}",
+    "cantWriteTitle": "Non puoi scrivere in {{channel}}",
+    "kickedBy": "da {{by}}",
+    "banRefused": "Accesso al canale negato.",
+    "bannedOrModerated": "Sei bannato o il canale è moderato.",
+    "rejoin": "Rientra"
+  },
+  "themes": {
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "orbit": "Orbit",
+    "orbitDark": "Orbit scuro",
+    "yomirc": "yomIRC",
+    "yomircDark": "yomIRC notte"
   }
 }

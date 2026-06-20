@@ -25,7 +25,12 @@
     "closeSearch": "Fermer la recherche",
     "membersCount": "Membres · {{n}}",
     "publicChannel": "Salon public · {{n}} membres",
-    "commonChannels": "Salons communs"
+    "commonChannels": "Salons communs",
+    "searchIn": "Rechercher dans {{label}}…",
+    "serverTerminal": "Terminal serveur · tape une commande IRC (/list, /whois, /join…)",
+    "muteOn": "Couper les notifications",
+    "muteOff": "Réactiver les notifications",
+    "membersTitle": "Membres"
   },
   "connect": {
     "onlineBadge": "{{n}} personnes en ligne",
@@ -230,5 +235,25 @@
     "topicTag": "sujet",
     "topicChanged": "a changé le sujet",
     "topicRemoved": "a retiré le sujet"
+  },
+  "banners": {
+    "reconnecting": "Reconnexion…",
+    "lostRetry": "Connexion perdue — nouvelle tentative dans {{n}} s",
+    "lostReconnecting": "Connexion perdue — reconnexion…",
+    "kickedTitle": "Tu as été expulsé de {{channel}}",
+    "bannedTitle": "Tu es banni de {{channel}}",
+    "cantWriteTitle": "Tu ne peux pas écrire dans {{channel}}",
+    "kickedBy": "par {{by}}",
+    "banRefused": "Accès au salon refusé.",
+    "bannedOrModerated": "Tu es banni ou le salon est modéré.",
+    "rejoin": "Rejoindre"
+  },
+  "themes": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "orbit": "Orbit",
+    "orbitDark": "Orbit sombre",
+    "yomirc": "yomIRC",
+    "yomircDark": "yomIRC nuit"
   }
 }

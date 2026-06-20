@@ -233,12 +233,12 @@ function AppearanceSection() {
   function pickLang(code: string) { setLangState(code); setLang(code); }
 
   const THEME_OPTS: Array<{ id: Theme; icon: string; label: string }> = [
-    { id: 'light', icon: '☀️', label: 'Clair' },
-    { id: 'dark', icon: '🌙', label: 'Sombre' },
-    { id: 'orbit', icon: '🛰️', label: 'Orbit' },
-    { id: 'orbit-dark', icon: '🌑', label: 'Orbit sombre' },
-    { id: 'yomirc', icon: '🖥️', label: 'yomIRC' },
-    { id: 'yomirc-dark', icon: '🌑', label: 'yomIRC nuit' },
+    { id: 'light', icon: '☀️', label: 'themes.light' },
+    { id: 'dark', icon: '🌙', label: 'themes.dark' },
+    { id: 'orbit', icon: '🛰️', label: 'themes.orbit' },
+    { id: 'orbit-dark', icon: '🌑', label: 'themes.orbitDark' },
+    { id: 'yomirc', icon: '🖥️', label: 'themes.yomirc' },
+    { id: 'yomirc-dark', icon: '🌑', label: 'themes.yomircDark' },
   ];
 
   return (
@@ -256,7 +256,7 @@ function AppearanceSection() {
             {THEME_OPTS.map((tm) => (
               <button key={tm.id} className={`theme-opt ${theme === tm.id ? 'is-on' : ''}`} onClick={() => pick(tm.id)}>
                 <span className="theme-opt__ic" aria-hidden>{tm.icon}</span>
-                <span className="theme-opt__label">{tm.label}</span>
+                <span className="theme-opt__label">{t(tm.label)}</span>
               </button>
             ))}
           </div>

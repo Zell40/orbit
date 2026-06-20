@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
 export function ReconnectBanner() {
+  const { t } = useTranslation();
   const status = useChat((s) => s.status);
   const reconnectIn = useChat((s) => s.reconnectIn);
   if (status === 'registered') return null;
-  const label = status === 'connecting' ? 'Reconnexion…'
-    : reconnectIn > 0 ? `Connexion perdue — nouvelle tentative dans ${reconnectIn}s`
-    : 'Connexion perdue — reconnexion…';
+  const label = status === 'connecting' ? t('banners.reconnecting')
+    : reconnectIn > 0 ? t('banners.lostRetry', { n: reconnectIn })
+    : t('banners.lostReconnecting');
   return <div className="reconnect-banner"><span className="reconnect-banner__dot" /> {label}</div>;
 }
 
@@ -14,6 +16,7 @@ export function ReconnectBanner() {
 // closed and gone from the list at this point; this is the heads-up. Rejoining
 // is only offered for a kick (a ban would just refuse the join again).
 export function KickToast() {
+  const { t } = useTranslation();
   const kicked = useChat((s) => s.kicked);
   const dismiss = useChat((s) => s.dismissKick);
   const rejoin = useChat((s) => s.rejoinKicked);
@@ -25,13 +28,13 @@ export function KickToast() {
   if (!kicked) return null;
   const { kind, channel, by, reason } = kicked;
   const title =
-    kind === 'kick' ? `Tu as été expulsé de ${channel}`
-    : kind === 'ban' ? `Tu es banni de ${channel}`
-    : `Tu ne peux pas écrire dans ${channel}`;
+    kind === 'kick' ? t('banners.kickedTitle', { channel })
+    : kind === 'ban' ? t('banners.bannedTitle', { channel })
+    : t('banners.cantWriteTitle', { channel });
   const sub =
-    kind === 'kick' ? `par ${by}${reason ? ` — « ${reason} »` : ''}`
-    : kind === 'ban' ? 'Accès au salon refusé.'
-    : 'Tu es banni ou le salon est modéré.';
+    kind === 'kick' ? t('banners.kickedBy', { by }) + (reason ? ` — « ${reason} »` : '')
+    : kind === 'ban' ? t('banners.banRefused')
+    : t('banners.bannedOrModerated');
   const icon = kind === 'kick' ? '👢' : '⛔';
   return (
     <div className="kicktoast" role="alert">
@@ -40,8 +43,8 @@ export function KickToast() {
         <strong>{title}</strong>
         <span className="kicktoast__sub">{sub}</span>
       </div>
-      {kind === 'kick' && <button className="kicktoast__rejoin" onClick={rejoin}>Rejoindre</button>}
-      <button className="kicktoast__close" onClick={dismiss} aria-label="Fermer">×</button>
+      {kind === 'kick' && <button className="kicktoast__rejoin" onClick={rejoin}>{t('banners.rejoin')}</button>}
+      <button className="kicktoast__close" onClick={dismiss} aria-label={t('profile.close')}>×</button>
     </div>
   );
 }

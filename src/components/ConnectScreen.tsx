@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from '../store';
 import { getConfig } from '../config';
 
@@ -134,6 +135,7 @@ function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) 
 }
 
 export function ConnectScreen() {
+  const { t } = useTranslation();
   const cfg = getConfig();
   const [faq, setFaq] = useState<string | null>(null);
   const connect = useChat((s) => s.connect);
@@ -154,9 +156,9 @@ export function ConnectScreen() {
   const connecting = status === 'connecting';
   const ready = nick.trim().length >= 2;
   const errors: Record<string, string> = {
-    error: 'Connexion impossible. Réessaie dans un instant.',
-    closed: 'La connexion a été fermée.',
-    'sasl-failed': 'Pseudo ou mot de passe incorrect.',
+    error: t('connect.error_error'),
+    closed: t('connect.error_closed'),
+    'sasl-failed': t('connect.error_sasl'),
   };
 
   function go() {
@@ -189,19 +191,19 @@ export function ConnectScreen() {
               maxLength={30}
               autoFocus
               autoComplete="off"
-              placeholder="Écris ton pseudo pour entrer…"
+              placeholder={t('connect.pseudoPlaceholder')}
               aria-label="Pseudo"
               onChange={(e) => setNick(e.target.value)}
             />
-            <button type="submit" className="cjoin__send" disabled={connecting || !ready} aria-label="Entrer">
+            <button type="submit" className="cjoin__send" disabled={connecting || !ready} aria-label={t('connect.enter')}>
               {connecting ? <span className="cjoin__sendspin" /> : <span className="arr">➔</span>}
             </button>
           </div>
 
           <div className="cjoin__row">
-            <span className="cjoin__chip">Tu entres dans&nbsp;<b>{chan}</b></span>
+            <span className="cjoin__chip">{t('connect.joinHint')}&nbsp;<b>{chan}</b></span>
             <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
-              {showPw ? 'Masquer le mot de passe' : 'Pseudo déjà enregistré ?'}
+              {showPw ? t('connect.hidePassword') : t('connect.registered')}
             </button>
           </div>
 
@@ -211,8 +213,8 @@ export function ConnectScreen() {
               type="password"
               name="password"
               value={password}
-              placeholder="Mot de passe (si ton pseudo est enregistré)"
-              aria-label="Mot de passe"
+              placeholder={t('connect.passwordPlaceholder')}
+              aria-label={t('connect.passwordLabel')}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && go()}
             />
@@ -222,17 +224,17 @@ export function ConnectScreen() {
         </form>
 
         <div className="cjoin__links">
-          <button type="button" className="primary" onClick={() => setFaq('register')}>Créer un compte</button>
+          <button type="button" className="primary" onClick={() => setFaq('register')}>{t('connect.createButton')}</button>
           <span className="d">·</span>
-          <button type="button" onClick={() => setFaq('forgot')}>Mot de passe oublié ?</button>
+          <button type="button" onClick={() => setFaq('forgot')}>{t('connect.forgotButton')}</button>
           <span className="d">·</span>
-          <button type="button" onClick={() => setFaq('')}>Aide &amp; FAQ</button>
+          <button type="button" onClick={() => setFaq('')}>{t('connect.helpButton')}</button>
         </div>
 
         <div className="cjoin__trust">
-          <span>🔒 Chiffré de bout en bout</span>
+          <span>🔒 {t('connect.encrypted')}</span>
           <span className="sep">·</span>
-          <span>Aucune inscription</span>
+          <span>{t('connect.noData')}</span>
           <span className="sep">·</span>
           <span>IRCv3</span>
         </div>

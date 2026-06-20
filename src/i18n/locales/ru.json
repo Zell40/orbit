@@ -25,7 +25,12 @@
     "closeSearch": "Закрыть поиск",
     "membersCount": "Участники · {{n}}",
     "publicChannel": "Открытый канал · {{n}} участников",
-    "commonChannels": "Общие каналы"
+    "commonChannels": "Общие каналы",
+    "searchIn": "Поиск в {{label}}…",
+    "serverTerminal": "Терминал сервера · введите команду IRC (/list, /whois, /join…)",
+    "muteOn": "Отключить уведомления",
+    "muteOff": "Включить уведомления",
+    "membersTitle": "Участники"
   },
   "connect": {
     "onlineBadge": "{{n}} человек онлайн",
@@ -230,5 +235,25 @@
     "topicTag": "тема",
     "topicChanged": "изменил тему",
     "topicRemoved": "удалил тему"
+  },
+  "banners": {
+    "reconnecting": "Переподключение…",
+    "lostRetry": "Соединение потеряно — повтор через {{n}} с",
+    "lostReconnecting": "Соединение потеряно — переподключение…",
+    "kickedTitle": "Вас кикнули из {{channel}}",
+    "bannedTitle": "Вы забанены в {{channel}}",
+    "cantWriteTitle": "Вы не можете писать в {{channel}}",
+    "kickedBy": "от {{by}}",
+    "banRefused": "Доступ к каналу запрещён.",
+    "bannedOrModerated": "Вы забанены или канал модерируется.",
+    "rejoin": "Войти снова"
+  },
+  "themes": {
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "orbit": "Orbit",
+    "orbitDark": "Orbit тёмная",
+    "yomirc": "yomIRC",
+    "yomircDark": "yomIRC ночь"
   }
 }

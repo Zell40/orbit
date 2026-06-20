@@ -25,7 +25,12 @@
     "closeSearch": "खोज बन्द गर्नुहोस्",
     "membersCount": "सदस्यहरू · {{n}}",
     "publicChannel": "सार्वजनिक च्यानल · {{n}} सदस्यहरू",
-    "commonChannels": "साझा च्यानलहरू"
+    "commonChannels": "साझा च्यानलहरू",
+    "searchIn": "{{label}} मा खोज्नुहोस्…",
+    "serverTerminal": "सर्भर टर्मिनल · IRC आदेश टाइप गर्नुहोस् (/list, /whois, /join…)",
+    "muteOn": "सूचनाहरू म्युट गर्नुहोस्",
+    "muteOff": "सूचनाहरू सक्रिय गर्नुहोस्",
+    "membersTitle": "सदस्यहरू"
   },
   "connect": {
     "onlineBadge": "{{n}} जना अनलाइन",
@@ -230,5 +235,25 @@
     "topicTag": "विषय",
     "topicChanged": "विषय परिवर्तन गर्‍यो",
     "topicRemoved": "विषय हटायो"
+  },
+  "banners": {
+    "reconnecting": "पुनः जडान हुँदै…",
+    "lostRetry": "जडान टुट्यो — {{n}}से मा पुनः प्रयास",
+    "lostReconnecting": "जडान टुट्यो — पुनः जडान हुँदै…",
+    "kickedTitle": "तपाईंलाई {{channel}} बाट निकालियो",
+    "bannedTitle": "तपाईं {{channel}} मा प्रतिबन्धित हुनुहुन्छ",
+    "cantWriteTitle": "तपाईं {{channel}} मा लेख्न सक्नुहुन्न",
+    "kickedBy": "{{by}} द्वारा",
+    "banRefused": "च्यानल पहुँच अस्वीकृत।",
+    "bannedOrModerated": "तपाईं प्रतिबन्धित हुनुहुन्छ वा च्यानल मध्यस्थ छ।",
+    "rejoin": "पुनः सामेल हुनुहोस्"
+  },
+  "themes": {
+    "light": "उज्यालो",
+    "dark": "अँध्यारो",
+    "orbit": "Orbit",
+    "orbitDark": "Orbit अँध्यारो",
+    "yomirc": "yomIRC",
+    "yomircDark": "yomIRC रात"
   }
 }

@@ -25,7 +25,12 @@
     "closeSearch": "Close search",
     "membersCount": "Members · {{n}}",
     "publicChannel": "Public channel · {{n}} members",
-    "commonChannels": "Common channels"
+    "commonChannels": "Common channels",
+    "searchIn": "Search in {{label}}…",
+    "serverTerminal": "Server terminal · type an IRC command (/list, /whois, /join…)",
+    "muteOn": "Mute notifications",
+    "muteOff": "Unmute notifications",
+    "membersTitle": "Members"
   },
   "connect": {
     "onlineBadge": "{{n}} people online",
@@ -230,5 +235,25 @@
     "topicTag": "topic",
     "topicChanged": "changed the topic",
     "topicRemoved": "removed the topic"
+  },
+  "banners": {
+    "reconnecting": "Reconnecting…",
+    "lostRetry": "Connection lost — retrying in {{n}}s",
+    "lostReconnecting": "Connection lost — reconnecting…",
+    "kickedTitle": "You were kicked from {{channel}}",
+    "bannedTitle": "You are banned from {{channel}}",
+    "cantWriteTitle": "You can't write in {{channel}}",
+    "kickedBy": "by {{by}}",
+    "banRefused": "Channel access denied.",
+    "bannedOrModerated": "You're banned or the channel is moderated.",
+    "rejoin": "Rejoin"
+  },
+  "themes": {
+    "light": "Light",
+    "dark": "Dark",
+    "orbit": "Orbit",
+    "orbitDark": "Orbit dark",
+    "yomirc": "yomIRC",
+    "yomircDark": "yomIRC night"
   }
 }

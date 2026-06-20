@@ -25,7 +25,12 @@
     "closeSearch": "Aramayı kapat",
     "membersCount": "Üyeler · {{n}}",
     "publicChannel": "Herkese açık kanal · {{n}} üye",
-    "commonChannels": "Ortak kanallar"
+    "commonChannels": "Ortak kanallar",
+    "searchIn": "{{label}} içinde ara…",
+    "serverTerminal": "Sunucu terminali · bir IRC komutu yaz (/list, /whois, /join…)",
+    "muteOn": "Bildirimleri sustur",
+    "muteOff": "Bildirimleri aç",
+    "membersTitle": "Üyeler"
   },
   "connect": {
     "onlineBadge": "{{n}} kişi çevrimiçi",
@@ -230,5 +235,25 @@
     "topicTag": "konu",
     "topicChanged": "konuyu değiştirdi",
     "topicRemoved": "konuyu kaldırdı"
+  },
+  "banners": {
+    "reconnecting": "Yeniden bağlanıyor…",
+    "lostRetry": "Bağlantı koptu — {{n}}sn içinde yeniden denenecek",
+    "lostReconnecting": "Bağlantı koptu — yeniden bağlanıyor…",
+    "kickedTitle": "{{channel}} kanalından atıldın",
+    "bannedTitle": "{{channel}} kanalından yasaklandın",
+    "cantWriteTitle": "{{channel}} kanalına yazamazsın",
+    "kickedBy": "{{by}} tarafından",
+    "banRefused": "Kanala erişim reddedildi.",
+    "bannedOrModerated": "Yasaklandın ya da kanal denetimli.",
+    "rejoin": "Tekrar katıl"
+  },
+  "themes": {
+    "light": "Açık",
+    "dark": "Koyu",
+    "orbit": "Orbit",
+    "orbitDark": "Orbit koyu",
+    "yomirc": "yomIRC",
+    "yomircDark": "yomIRC gece"
   }
 }
