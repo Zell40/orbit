@@ -665,5 +665,11 @@
     "mentionsDesc": "Solo il tuo nome e gli evidenziati",
     "mute": "Silenziato",
     "muteDesc": "Nessun avviso né suono"
+  },
+  "a11y": {
+    "skip": "Vai ai messaggi",
+    "messages": "Messaggi",
+    "conversations": "Conversazioni",
+    "members": "Membri"
   }
 }

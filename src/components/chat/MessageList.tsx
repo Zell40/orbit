@@ -129,9 +129,9 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
       </div>
       {!m.redacted && (
         <div className="msg-actions">
-          {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
-          <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
-          {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
+          {QUICK.map((e) => <button key={e} title={t('messages.react')} aria-label={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
+          <button title={t('messages.respond')} aria-label={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
+          {m.self && <button title={t('messages.delete')} aria-label={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
         </div>
       )}
     </div>
@@ -350,7 +350,8 @@ export function MessageList() {
     lastFrom = m.from; lastTs = m.ts; lastKind = m.kind;
   }
   return (
-    <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}>
+    <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
+      role="log" aria-label={t('a11y.messages')}>
       {histLoading && <div className="histload"><span className="histload__spin" /> Chargement de l'historique…</div>}
       {showJump && <button className="jump-unread" onClick={jumpToUnread}>↑ Nouveaux messages</button>}
       {rows}

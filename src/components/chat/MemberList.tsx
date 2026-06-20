@@ -41,7 +41,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
     }));
 
   return (
-    <aside className="members">
+    <aside className="members" aria-label={t('a11y.members')}>
       <div className="members__h">{t('topbar.membersCount', { n: all.length })}</div>
       {all.length > 12 && (
         <div className="members__search">

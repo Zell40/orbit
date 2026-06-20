@@ -1681,3 +1681,17 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* Plugin message decorators (appended inline after a message's text) */
 .msg-deco { display: inline-flex; align-items: center; gap: .25rem; margin-left: .35rem; vertical-align: middle; }
+
+/* ── Accessibility: keyboard focus ring + skip link ─────────────────────── */
+/* A clear, consistent ring for keyboard users only (:focus-visible). Inputs
+   keep their own box-shadow rings; this covers buttons, links and menu items. */
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
+[role="menuitemradio"]:focus-visible, [tabindex]:focus-visible,
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+.skip-link { position: fixed; top: -100px; left: 12px; z-index: 300;
+  background: var(--green); color: #fff; padding: .6rem 1rem; border-radius: 0 0 12px 12px;
+  font-weight: 600; text-decoration: none; transition: top .15s ease; }
+.skip-link:focus { top: 0; }

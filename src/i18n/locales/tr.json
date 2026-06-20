@@ -665,5 +665,11 @@
     "mentionsDesc": "Yalnızca adınız ve vurgular",
     "mute": "Sessize alındı",
     "muteDesc": "Uyarı veya ses yok"
+  },
+  "a11y": {
+    "skip": "Mesajlara geç",
+    "messages": "Mesajlar",
+    "conversations": "Sohbetler",
+    "members": "Üyeler"
   }
 }

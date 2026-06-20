@@ -86,7 +86,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const totalShown = (showChannels ? channels.length : 0) + (showQueries ? queries.length : 0) + (hasServer ? 1 : 0);
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" aria-label={t('a11y.conversations')}>
       <div className="side-top">
         <h2 className="side-title">{t('nav.home')}</h2>
         {sidebarItems.filter((u) => u.slot === 'sidebar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="sidebar_item" />)}
