@@ -4,6 +4,27 @@ All notable changes to Orbit are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and the project aims to follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Keyboard shortcuts** — Ctrl/⌘-K quick switcher, Alt+↑/↓ to cycle
+  conversations, Shift+Esc to mark everything read, and a `?` help sheet that
+  lists them all.
+- **Per-channel notification levels** — All / Mentions / Mute, picked from an
+  accessible popover on the topbar bell (replaces the binary mute; existing
+  muted channels migrate to Mute).
+- **More plugin extension points** — `topbar_item` and `sidebar_item` UI slots,
+  plus `addMessageDecorator()` for per-message UI; two new example plugins
+  (`orbit-clock`, `orbit-copy`).
+- **Subresource Integrity for plugins** — a `plugins` entry may be
+  `{ url, integrity, crossorigin }` to pin off-origin scripts; a sample
+  deployment CSP is documented in `SECURITY.md`.
+
+### Changed
+- **Accessibility** — a clear `:focus-visible` keyboard ring, a skip-to-messages
+  link, landmark labels (message log, sidebar, member list) and aria-labels on
+  the emoji-only message actions.
+
 ## [1.0.0]
 
 A full, production-ready release — Orbit powers tchatou.fr.
