@@ -1,9 +1,10 @@
 # End-to-end tests: the real built client, driven by Playwright, against a live
 # Ergo IRCv3 server over WebSocket (the same transport as production).
 #
-# Forgejo Actions (Codeberg). Needs a runner advertising the "docker" label and
-# an x86_64 host (Ergo ships a linux-x86_64 binary). Enable Actions for the repo
-# in Settings to run this.
+# Forgejo Actions (Codeberg). Codeberg has no shared runners: attach your own
+# Forgejo runner, then set `runs-on` below to a label that runner advertises (the
+# default "docker" matches nothing on Codeberg). Needs an x86_64 host (Ergo ships
+# a linux-x86_64 binary). Copy this file to .forgejo/workflows/e2e.yml to enable.
 name: e2e
 
 on:
@@ -14,7 +15,7 @@ on:
 
 jobs:
   e2e:
-    runs-on: docker
+    runs-on: self-hosted   # set to your runner's label
     container:
       image: node:22-bookworm
     steps:

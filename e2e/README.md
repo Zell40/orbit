@@ -23,4 +23,7 @@ and runs `e2e/*.spec.ts`. Ergo is torn down afterwards.
   rewritten.
 - `install-ergo.sh`: downloads and pins the Ergo version (`ERGO_VERSION`).
 
-CI runs the same flow in [`.forgejo/workflows/e2e.yml`](../.forgejo/workflows/e2e.yml).
+A Forgejo Actions workflow that runs the same flow is provided as
+[`ci-forgejo.yml.example`](./ci-forgejo.yml.example). Codeberg has no shared
+runners, so to run it there: attach your own Forgejo runner, then copy the file
+to `.forgejo/workflows/e2e.yml` and set `runs-on:` to your runner's label.
