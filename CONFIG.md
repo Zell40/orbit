@@ -1,6 +1,6 @@
 # Configuration — `config.json`
 
-The client is configured at **runtime** by `config.json`, webchat-style. It is
+The client is configured at **runtime** by `config.json`. It is
 fetched on startup (before the app renders) and deep-merged over the built-in
 defaults, so you can **re-point the client at another IRC network and fully
 re-brand it without rebuilding** — just edit the deployed file and reload.
@@ -38,6 +38,7 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 | `features.push` | bool | `true` | Show the Web Push notifications setting. |
 | `features.imageUpload` | bool | `true` | Enable the composer image button + paste/drag-drop upload. |
 | `features.register` | bool | `true` | Show the "Créer un compte" (account creation) tab. |
+| `plugins` | string[] | `[]` | Plugin script URLs loaded at startup (operator-controlled). See **[PLUGINS.md](./docs/PLUGINS.md)**. |
 
 > `defaults.*` only seed a user's preferences the **first** time — once someone
 > changes a setting it's stored in their browser and the config no longer

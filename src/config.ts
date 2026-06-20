@@ -1,4 +1,4 @@
-// Runtime configuration, webchat-style.
+// Runtime configuration.
 //
 // A static `config.json` is fetched at startup (before the app renders) and
 // deep-merged over these defaults, so the client can be re-pointed at another
@@ -46,6 +46,8 @@ export interface AppConfig {
     imageUpload: boolean;   // the composer image button + paste/drag upload
     register: boolean;      // account creation (the "Créer un compte" tab)
   };
+  /** Operator-listed plugin scripts (URLs) loaded at startup. See docs/PLUGINS.md. */
+  plugins?: string[];
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -64,6 +66,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   report: { target: '#staff' },
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
   features: { push: true, imageUpload: true, register: true },
+  plugins: [],
 };
 
 let cfg: AppConfig = DEFAULT_CONFIG;

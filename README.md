@@ -22,7 +22,7 @@ TypeScript · React · Vite · zustand — installable as a PWA, re-brandable wi
 
 ---
 
-Orbit is a bespoke IRCv3 web client built from scratch — no webchat, no bridge. It
+Orbit is a bespoke IRCv3 web client built from scratch — no wrappers, no bridge. It
 speaks modern IRCv3 directly over a WebSocket and presents it as a polished,
 app-like chat experience: rich messages, reactions, replies, history, web push,
 themes and full internationalization. It powers [tchatou.fr](https://tchatou.fr)
@@ -54,6 +54,9 @@ by editing a single runtime `config.json` — no rebuild required.
   exactly which capabilities your server supports.
 - **Fully internationalized** — 10 languages, browser-detected and switchable
   live (see [Internationalization](#-internationalization)).
+- **Plugins** — an experimental, operator-controlled plugin API (`window.Orbit`)
+  for events, IRC actions, theming and UI slots. See
+  [docs/PLUGINS.md](./docs/PLUGINS.md).
 
 ## 🔌 IRCv3 capabilities
 

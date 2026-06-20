@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
 import { nickColor, MIRC_PALETTE } from '../../lib/format';
 import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '../../lib/editor';
 import { getConfig } from '../../config';
+import { usePluginRegistry } from '../../plugins/registry';
+
+// Renders one plugin-contributed composer button, isolating render errors so a
+// faulty plugin can't take down the composer.
+function PluginSlot({ render }: { render: () => ReactNode }) {
+  try { return <>{render()}</>; } catch (e) { console.error('[plugins] composer_button render error', e); return null; }
+}
 function TypingIndicator() {
   const { t } = useTranslation();
   const buffer = useChat((s) => s.buffers[s.active]);
@@ -46,6 +53,7 @@ const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', '
 
 export function Composer() {
   const { t } = useTranslation();
+  const pluginButtons = usePluginRegistry((s) => s.ui.filter((u) => u.slot === 'composer_button'));
   const active = useChat((s) => s.active);
   const send = useChat((s) => s.sendInput);
   const notifyTyping = useChat((s) => s.notifyTyping);
@@ -332,6 +340,7 @@ export function Composer() {
               onMouseDown={(e) => e.preventDefault()} onClick={() => setColors((c) => !c)}>🎨</button>
           </div>
         )}
+        {!isConsole && pluginButtons.map((b) => <PluginSlot key={b.id} render={b.render} />)}
         {!isConsole && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
         <button className="composer__send" disabled={empty} onClick={submit} aria-label={t('composer.send')}>{isConsole ? '⏎' : '➤'}</button>
       </div>

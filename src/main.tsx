@@ -14,7 +14,12 @@ initViewport()
 // a rebuild.
 loadConfig().then(async () => {
   applyTheme(getTheme()) // re-apply now that config (default theme) is loaded
-  const { default: App } = await import('./App.tsx')
+  const { default: App } = await import('./App.tsx') // also creates the store
+  // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
+  // then load operator-listed plugins from config. After the store exists,
+  // before render (plugin-contributed UI registers reactively).
+  const { initPlugins } = await import('./plugins')
+  initPlugins()
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />
