@@ -4,6 +4,7 @@ import { useChat, SERVER } from '../../store';
 import { avatarBg } from '../../lib/format';
 import { getConfig } from '../../config';
 import { useTheme } from '../../ui/theme';
+import { NotifyMenu } from './NotifyMenu';
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
   const { t } = useTranslation();
   const buffer = useChat((s) => s.buffers[s.active]);
@@ -12,9 +13,6 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const setModal = useChat((s) => s.setModal);
   const myPrefix = useChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
-  const muted = useChat((s) => s.mutedChannels.includes(s.active));
-  const toggleMute = useChat((s) => s.toggleMute);
-  const activeName = useChat((s) => s.active);
   const mirc = useTheme().startsWith('yomirc');
   const [searching, setSearching] = useState(false);
   if (!buffer) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button></div>;
@@ -53,7 +51,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
             : buffer.isChannel && <span className="topbar__topic topbar__topic--muted">{t('topbar.publicChannel', { n })}</span>}
       </div>
       {!isServer && <button className="topbar__search" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}>🔍</button>}
-      {buffer.isChannel && <button className="topbar__search" title={muted ? t('topbar.muteOff') : t('topbar.muteOn')} aria-label={t('topbar.notifications')} onClick={() => toggleMute(activeName)}>{muted ? '🔕' : '🔔'}</button>}
+      {buffer.isChannel && <NotifyMenu />}
       {buffer.isChannel && amOp && <button className="topbar__search" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}>🛠️</button>}
       {buffer.isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
     </div>

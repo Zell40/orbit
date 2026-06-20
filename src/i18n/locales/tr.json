@@ -655,5 +655,15 @@
     "newline": "Yeni satır",
     "complete": "Otomatik tamamlama",
     "history": "Mesaj geçmişi"
+  },
+  "notify": {
+    "title": "Bildirimler",
+    "aria": "Bildirimler: {{level}}",
+    "all": "Tüm mesajlar",
+    "allDesc": "Her mesajda bildir",
+    "mentions": "Yalnızca anmalar",
+    "mentionsDesc": "Yalnızca adınız ve vurgular",
+    "mute": "Sessize alındı",
+    "muteDesc": "Uyarı veya ses yok"
   }
 }

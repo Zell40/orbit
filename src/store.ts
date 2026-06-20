@@ -9,7 +9,7 @@ import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } 
 import { casefold } from './irc/casemap';
 import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';
-import { MUTED_KEY, HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends } from './store/persistence';
+import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, type NotifyLevel } from './store/persistence';
 
 let localId = 0;
 let lastTypingSent = 0;
@@ -95,8 +95,8 @@ interface ChatState {
   loadBanList: (channel: string) => void;
   setChannelMode: (channel: string, mode: string, add: boolean) => void;
   removeBan: (channel: string, mask: string) => void;
-  mutedChannels: string[];     // lowercased keys of muted salons (no notify/sound)
-  toggleMute: (name: string) => void;
+  notifyLevel: Record<string, NotifyLevel>; // canon key → 'all' | 'mentions' | 'mute' (absent = 'mentions')
+  setNotifyLevel: (name: string, level: NotifyLevel) => void;
   markAllRead: () => void;
   highlightWords: string[];    // extra words (besides your nick) that trigger a highlight
   setHighlightWords: (words: string[]) => void;
@@ -668,19 +668,21 @@ export const useChat = create<ChatState>((set, get) => {
           break;
         }
         addMessage(bufferName, cm);
-        // Notifications: alert when not actively looking at this buffer, unless the
-        // salon is muted. A mention = your nick OR any of your highlight words.
+        // Notifications honour the per-channel level: 'all' alerts on every line,
+        // 'mentions' (default) only on your nick / a highlight word, 'mute' never.
+        // A mention = your nick OR any of your highlight words; PMs always alert.
         if (!self && kind !== 'notice') {
           const isPM = !isChannelName(chanTarget);
-          const muted = !isPM && get().mutedChannels.includes(canon(bufferName));
+          const level = isPM ? 'all' : (get().notifyLevel[canon(bufferName)] || 'mentions');
           const lc = text.toLowerCase();
           const mention = (me.length > 1 && lc.includes(me.toLowerCase()))
             || get().highlightWords.some((w) => lc.includes(w.toLowerCase()));
           const inactive = document.hidden || canon(bufferName) !== get().active;
-          if (mention) patchBuffer(bufferName, (b) => ({ ...b, highlight: true }));
-          if (inactive && !muted) {
-            if (isPM || mention) desktopNotify(isPM ? i18n.t('system.pmNotif', { nick: msg.nick }) : `${msg.nick} · ${bufferName}`, text.slice(0, 120));
-            if ((isPM || mention) && get().prefs.sound) blip();
+          if (mention && level !== 'mute') patchBuffer(bufferName, (b) => ({ ...b, highlight: true }));
+          const wants = level === 'all' || (level === 'mentions' && mention);
+          if (inactive && wants) {
+            desktopNotify(isPM ? i18n.t('system.pmNotif', { nick: msg.nick }) : `${msg.nick} · ${bufferName}`, text.slice(0, 120));
+            if (get().prefs.sound) blip();
           }
         }
         break;
@@ -1159,7 +1161,7 @@ export const useChat = create<ChatState>((set, get) => {
     friends: loadFriends(),
     friendsOnline: {},
     banlists: {},
-    mutedChannels: loadStr(MUTED_KEY),
+    notifyLevel: loadNotify(),
     highlightWords: loadStr(HIGHLIGHT_KEY),
     drafts: {},
     reg: { step: 'idle', account: '', busy: false, error: '', info: '', challengeUrl: '' },
@@ -1306,12 +1308,13 @@ export const useChat = create<ChatState>((set, get) => {
       get().client?.unban(channel, mask);
     },
 
-    toggleMute(name) {
+    setNotifyLevel(name, level) {
       const key = canon(name);
-      const cur = get().mutedChannels;
-      const next = cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key];
-      saveStr(MUTED_KEY, next);
-      set({ mutedChannels: next });
+      const next = { ...get().notifyLevel };
+      // 'mentions' is the default → store nothing, keeping the map small.
+      if (level === 'mentions') delete next[key]; else next[key] = level;
+      saveNotify(next);
+      set({ notifyLevel: next });
     },
     setHighlightWords(words) {
       const clean = words.map((w) => w.trim()).filter(Boolean);

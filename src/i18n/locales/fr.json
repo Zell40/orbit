@@ -655,5 +655,15 @@
     "newline": "Nouvelle ligne",
     "complete": "Autocomplétion",
     "history": "Historique des messages"
+  },
+  "notify": {
+    "title": "Notifications",
+    "aria": "Notifications : {{level}}",
+    "all": "Tous les messages",
+    "allDesc": "Notifier à chaque message",
+    "mentions": "Mentions uniquement",
+    "mentionsDesc": "Seulement votre nom et alertes",
+    "mute": "En sourdine",
+    "muteDesc": "Aucune alerte ni son"
   }
 }

@@ -655,5 +655,15 @@
     "newline": "Neue Zeile",
     "complete": "Autovervollständigen",
     "history": "Nachrichtenverlauf"
+  },
+  "notify": {
+    "title": "Benachrichtigungen",
+    "aria": "Benachrichtigungen: {{level}}",
+    "all": "Alle Nachrichten",
+    "allDesc": "Bei jeder Nachricht benachrichtigen",
+    "mentions": "Nur Erwähnungen",
+    "mentionsDesc": "Nur dein Name und Highlights",
+    "mute": "Stummgeschaltet",
+    "muteDesc": "Keine Hinweise oder Töne"
   }
 }
