@@ -621,5 +621,17 @@
       "maxChannels": "Salons max",
       "advanced": "Avancé · ISUPPORT brut"
     }
+  },
+  "about": {
+    "navLabel": "À propos",
+    "navDesc": "Version & licence",
+    "tagline": "Client web IRCv3 libre",
+    "version": "Version",
+    "build": "Build",
+    "license": "Licence",
+    "source": "Code source",
+    "project": "Page du projet",
+    "running": "Déploiement",
+    "madeWith": "Conçu avec React · IRCv3"
   }
 }

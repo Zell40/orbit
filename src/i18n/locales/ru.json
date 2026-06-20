@@ -621,5 +621,17 @@
       "maxChannels": "Макс. каналов",
       "advanced": "Расширенно · сырой ISUPPORT"
     }
+  },
+  "about": {
+    "navLabel": "О приложении",
+    "navDesc": "Версия и лицензия",
+    "tagline": "Открытый веб-клиент IRCv3",
+    "version": "Версия",
+    "build": "Сборка",
+    "license": "Лицензия",
+    "source": "Исходный код",
+    "project": "Страница проекта",
+    "running": "Развёртывание",
+    "madeWith": "Сделано на React · IRCv3"
   }
 }

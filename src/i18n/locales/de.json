@@ -621,5 +621,17 @@
       "maxChannels": "Max. Kanäle",
       "advanced": "Erweitert · rohes ISUPPORT"
     }
+  },
+  "about": {
+    "navLabel": "Über",
+    "navDesc": "Version & Lizenz",
+    "tagline": "Quelloffener IRCv3-Web-Client",
+    "version": "Version",
+    "build": "Build",
+    "license": "Lizenz",
+    "source": "Quellcode",
+    "project": "Projektseite",
+    "running": "Bereitstellung",
+    "madeWith": "Erstellt mit React · IRCv3"
   }
 }

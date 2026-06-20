@@ -621,5 +621,17 @@
       "maxChannels": "अधिकतम च्यानल",
       "advanced": "उन्नत · कच्चा ISUPPORT"
     }
+  },
+  "about": {
+    "navLabel": "बारेमा",
+    "navDesc": "संस्करण र इजाजतपत्र",
+    "tagline": "खुला स्रोत IRCv3 वेब क्लाइन्ट",
+    "version": "संस्करण",
+    "build": "बिल्ड",
+    "license": "इजाजतपत्र",
+    "source": "स्रोत कोड",
+    "project": "परियोजना पृष्ठ",
+    "running": "डिप्लोयमेन्ट",
+    "madeWith": "React · IRCv3 बाट बनेको"
   }
 }

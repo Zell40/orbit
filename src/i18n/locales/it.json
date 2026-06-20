@@ -621,5 +621,17 @@
       "maxChannels": "Canali max",
       "advanced": "Avanzate · ISUPPORT grezzo"
     }
+  },
+  "about": {
+    "navLabel": "Informazioni",
+    "navDesc": "Versione e licenza",
+    "tagline": "Client web IRCv3 open source",
+    "version": "Versione",
+    "build": "Build",
+    "license": "Licenza",
+    "source": "Codice sorgente",
+    "project": "Pagina del progetto",
+    "running": "Distribuzione",
+    "madeWith": "Creato con React · IRCv3"
   }
 }

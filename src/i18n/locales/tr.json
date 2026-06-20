@@ -621,5 +621,17 @@
       "maxChannels": "Maks. kanal",
       "advanced": "Gelişmiş · ham ISUPPORT"
     }
+  },
+  "about": {
+    "navLabel": "Hakkında",
+    "navDesc": "Sürüm ve lisans",
+    "tagline": "Açık kaynaklı IRCv3 web istemcisi",
+    "version": "Sürüm",
+    "build": "Yapı",
+    "license": "Lisans",
+    "source": "Kaynak kodu",
+    "project": "Proje sayfası",
+    "running": "Dağıtım",
+    "madeWith": "React · IRCv3 ile yapıldı"
   }
 }

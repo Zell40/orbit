@@ -621,5 +621,17 @@
       "maxChannels": "Canais máx.",
       "advanced": "Avançado · ISUPPORT bruto"
     }
+  },
+  "about": {
+    "navLabel": "Sobre",
+    "navDesc": "Versão e licença",
+    "tagline": "Cliente web IRCv3 de código aberto",
+    "version": "Versão",
+    "build": "Build",
+    "license": "Licença",
+    "source": "Código-fonte",
+    "project": "Página do projeto",
+    "running": "Implantação",
+    "madeWith": "Feito com React · IRCv3"
   }
 }

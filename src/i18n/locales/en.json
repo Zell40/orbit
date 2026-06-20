@@ -621,5 +621,17 @@
       "maxChannels": "Max channels",
       "advanced": "Advanced · raw ISUPPORT"
     }
+  },
+  "about": {
+    "navLabel": "About",
+    "navDesc": "Version & license",
+    "tagline": "Open-source IRCv3 web client",
+    "version": "Version",
+    "build": "Build",
+    "license": "License",
+    "source": "Source code",
+    "project": "Project page",
+    "running": "Deployment",
+    "madeWith": "Built with React · IRCv3"
   }
 }
