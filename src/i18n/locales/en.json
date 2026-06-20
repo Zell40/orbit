@@ -671,5 +671,10 @@
     "messages": "Messages",
     "conversations": "Conversations",
     "members": "Members"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "The app hit an unexpected error. Reloading usually fixes it.",
+    "reload": "Reload"
   }
 }

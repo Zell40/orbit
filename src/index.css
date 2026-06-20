@@ -1706,3 +1706,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
    rendering on browsers without content-visibility. */
 .member { content-visibility: auto; contain-intrinsic-size: auto 44px; }
 [data-theme^="yomirc"] .member { contain-intrinsic-size: auto 20px; }
+
+/* Last-resort crash screen (AppErrorBoundary) */
+.crash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 2rem;
+  background: var(--bg, #0b0e13); color: var(--ink, #dde4ee); }
+.crash__box { max-width: 460px; width: 100%; text-align: center; }
+.crash__box h1 { font-size: 1.3rem; margin: 0 0 .5rem; }
+.crash__box p { color: var(--muted, #8b97a8); margin: 0 0 1.2rem; }
+.crash__box pre { text-align: left; background: var(--bg-soft, #10141c); border: 1px solid var(--border, #1f2733);
+  border-radius: 8px; padding: .7rem; font-size: .78rem; line-height: 1.5; overflow: auto; max-height: 30vh;
+  margin: 0 0 1.2rem; color: var(--muted, #8b97a8); white-space: pre-wrap; word-break: break-word; }
+.crash__btn { background: var(--green, #2ea043); color: #fff; border: 0; border-radius: 8px;
+  padding: .6rem 1.4rem; font-weight: 600; font-size: .95rem; cursor: pointer; }
+.crash__btn:hover { filter: brightness(1.08); }

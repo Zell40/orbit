@@ -22,9 +22,12 @@ loadConfig().then(async () => {
   // before render (plugin-contributed UI registers reactively).
   const { initPlugins } = await import('./plugins')
   initPlugins()
+  const { AppErrorBoundary } = await import('./components/AppErrorBoundary')
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </StrictMode>,
   )
 })

@@ -671,5 +671,10 @@
     "messages": "Messages",
     "conversations": "Conversations",
     "members": "Membres"
+  },
+  "error": {
+    "title": "Une erreur est survenue",
+    "body": "L'application a rencontré une erreur inattendue. Recharger règle généralement le problème.",
+    "reload": "Recharger"
   }
 }

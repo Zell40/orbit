@@ -671,5 +671,10 @@
     "messages": "Mesajlar",
     "conversations": "Sohbetler",
     "members": "Üyeler"
+  },
+  "error": {
+    "title": "Bir şeyler ters gitti",
+    "body": "Uygulama beklenmedik bir hatayla karşılaştı. Yeniden yüklemek genellikle düzeltir.",
+    "reload": "Yeniden yükle"
   }
 }

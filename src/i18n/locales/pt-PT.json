@@ -671,5 +671,10 @@
     "messages": "Mensagens",
     "conversations": "Conversas",
     "members": "Membros"
+  },
+  "error": {
+    "title": "Algo correu mal",
+    "body": "A aplicação encontrou um erro inesperado. Recarregar costuma resolver.",
+    "reload": "Recarregar"
   }
 }

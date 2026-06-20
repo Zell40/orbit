@@ -671,5 +671,10 @@
     "messages": "Nachrichten",
     "conversations": "Unterhaltungen",
     "members": "Mitglieder"
+  },
+  "error": {
+    "title": "Etwas ist schiefgelaufen",
+    "body": "Die App hatte einen unerwarteten Fehler. Ein Neuladen behebt das meist.",
+    "reload": "Neu laden"
   }
 }

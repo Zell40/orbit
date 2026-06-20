@@ -671,5 +671,10 @@
     "messages": "Messaggi",
     "conversations": "Conversazioni",
     "members": "Membri"
+  },
+  "error": {
+    "title": "Qualcosa è andato storto",
+    "body": "L'app ha riscontrato un errore imprevisto. Ricaricare di solito risolve.",
+    "reload": "Ricarica"
   }
 }
