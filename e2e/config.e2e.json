@@ -1,0 +1,10 @@
+{
+  "server": { "url": "ws://127.0.0.1:8097/" },
+  "startup": { "channels": ["#e2e"] },
+  "branding": { "name": "Orbit E2E", "tagline": "test", "taglineEm": "build", "subtitle": "End-to-end test instance." },
+  "turnstile": { "enabled": false },
+  "report": { "target": "#e2e" },
+  "defaults": { "theme": "light", "compact": false, "sound": false, "hideJoinQuit": false, "clock24": true, "lang": "en" },
+  "features": { "push": false, "imageUpload": false, "register": true },
+  "plugins": []
+}
