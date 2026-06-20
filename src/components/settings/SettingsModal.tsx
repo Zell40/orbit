@@ -16,7 +16,7 @@ const SETTINGS_SECTIONS = [
   { id: 'notifs',    icon: '🔔' },
   { id: 'compte',    icon: '🔑' },
   { id: 'server',    icon: '🖥️' },
-  { id: 'ircv3',     icon: '🛰️' },
+  { id: 'ircv3',     icon: '🔌' },
   { id: 'about',     icon: 'ℹ️' },
 ] as const;
 type SettingsSection = (typeof SETTINGS_SECTIONS)[number]['id'];
