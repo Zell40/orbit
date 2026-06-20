@@ -14,7 +14,22 @@
     "channels": "Canali",
     "dms": "Diretti",
     "search": "Cerca",
-    "noChannel": "Scegli un canale per iniziare a chattare."
+    "noChannel": "Scegli un canale per iniziare a chattare.",
+    "publicRoom": "Canale pubblico",
+    "system": "Sistema",
+    "privateMessage": "Messaggio diretto",
+    "leaveRoom": "Esci dal canale",
+    "closeConversation": "Chiudi conversazione",
+    "privateMessages": "Messaggi diretti",
+    "noResults": "Nessun risultato",
+    "viewProfile": "Vedi il mio profilo",
+    "online": "Online",
+    "away": "Assente",
+    "markPresent": "Segna presente",
+    "markAway": "Segna assente",
+    "presence": "Presenza",
+    "newChat": "Nuova conversazione",
+    "profileTip": "{{nick}} — vedi il mio profilo"
   },
   "topbar": {
     "search": "Cerca",
@@ -50,7 +65,10 @@
     "faqTitle": "Aiuto & FAQ",
     "error_error": "Impossibile connettersi. Riprova tra poco.",
     "error_closed": "La connessione è stata chiusa.",
-    "error_sasl": "Soprannome sconosciuto o password errata."
+    "error_sasl": "Soprannome sconosciuto o password errata.",
+    "live": "in diretta",
+    "typing": "{{who}} sta scrivendo",
+    "nickAria": "Soprannome"
   },
   "messages": {
     "reply": "In risposta a",
@@ -66,7 +84,13 @@
     "info": "Info",
     "notice": "AVVISO",
     "guest": "Ospite",
-    "poweredBy": "Realizzato con Orbit"
+    "poweredBy": "Realizzato con Orbit",
+    "deleted": "messaggio eliminato",
+    "dmStarted": "Questa chat privata è iniziata nel canale {{chan}}",
+    "profileOf": "Profilo di {{nick}}",
+    "fromChannel": "Dal canale",
+    "searchResults_one": "{{count}} risultato per «{{q}}»",
+    "searchResults_other": "{{count}} risultati per «{{q}}»"
   },
   "modals": {
     "closeButton": "Chiudi",
@@ -74,7 +98,14 @@
       "title": "Esplora canali",
       "search": "Cerca o crea #canale…",
       "loading": "Caricamento canali…",
-      "noResults": "Nessun risultato"
+      "noResults": "Nessun risultato",
+      "sub": "Entra in un canale (inizia con #) o avvia un messaggio diretto con un soprannome.",
+      "placeholder": "#canale o soprannome",
+      "joinRoom": "Entra nel canale",
+      "startDM": "Avvia messaggio diretto",
+      "joinBtn": "Entra",
+      "emptyNone": "Nessun canale. Digita un nome per crearne uno.",
+      "emptyFound": "Nessun canale trovato. Digita un nome per crearne uno."
     },
     "dm": {
       "title": "Nuova conversazione",
@@ -83,7 +114,14 @@
     },
     "friends": {
       "title": "Amici",
-      "noFriends": "Ancora nessun amico."
+      "noFriends": "Ancora nessun amico.",
+      "sub": "Aggiungi soprannomi per essere avvisato quando si collegano. 🔔",
+      "add": "Aggiungi",
+      "online": "online",
+      "offline": "offline",
+      "dm": "Messaggio diretto",
+      "profile": "Profilo",
+      "remove": "Rimuovi"
     },
     "chanadmin": {
       "title": "Gestisci canale",
@@ -98,7 +136,10 @@
       "setTopic": "Imposta",
       "info": "Info",
       "modes": "Modalità del canale",
-      "subject": "Argomento"
+      "subject": "Argomento",
+      "manage": "Gestisci {{chan}}",
+      "settings": "Impostazioni",
+      "by": "da {{by}}"
     }
   },
   "settings": {
@@ -140,18 +181,75 @@
       "join": "Entra",
       "channelHint": "Entra in un canale (inizia con #)",
       "channelPlaceholder": "es. orbit, aiuto",
-      "fromChannel": "Dal canale"
+      "fromChannel": "Dal canale",
+      "accountPlaceholder": "Nome dell’account",
+      "passwordPlaceholder": "Password",
+      "loginIntro": "Accedi al tuo account registrato, qualunque sia il tuo soprannome attuale — ti rinominiamo automaticamente.",
+      "update": "Aggiorna",
+      "updating": "Agg.…",
+      "leaveChat": "Esci dalla chat",
+      "logoutAccount": "Disconnetti l’account",
+      "changeBtn": "Cambia",
+      "guestNotConnected": "Ospite — non connesso",
+      "identifiedPre": "Sei identificato come",
+      "signin": "Accedi",
+      "verifyTitle": "Verifica",
+      "verify": "Conferma",
+      "antiBotDesc": "Completa questa rapida verifica. Il codice ti sarà poi inviato via email.",
+      "challengeLoadError": "La verifica anti-bot non si è caricata. Riprova.",
+      "codeSentHtml": "📧 Un codice è stato inviato a <strong>{{email}}</strong>. Inseriscilo per attivare <strong>{{account}}</strong>.",
+      "yourEmail": "la tua email",
+      "createTitle": "Crea un account",
+      "creating": "Creazione…",
+      "createCta": "Crea il mio account",
+      "registerIntro": "Scegli un soprannome, la tua email e una password. Riceverai un codice per confermare.",
+      "nickLabel": "Soprannome",
+      "nickPlaceholder": "Soprannome",
+      "emailLabel": "Email",
+      "loginTitle": "Accedi"
     },
     "appearance": {
       "theme": "Tema",
       "language": "Lingua",
       "timeFormat": "Formato ora",
       "compact": "Messaggi compatti",
-      "textSize": "Dimensione testo"
+      "textSize": "Dimensione testo",
+      "compactHint": "Messaggi più compatti, più contenuti a schermo."
     },
     "notifications": {
       "browser": "Notifiche del browser",
-      "push": "Notifiche push"
+      "push": "Notifiche push",
+      "browserLabel": "Notifiche del browser",
+      "browserGranted": "Sarai avvisato anche fuori dalla scheda.",
+      "browserDenied": "Bloccate nel tuo browser.",
+      "browserDefault": "Ricevi un avviso anche fuori dalla scheda.",
+      "enabled": "Attivate",
+      "enable": "Attiva",
+      "pushLabel": "Notifiche push",
+      "pushUnsupported": "Non supportate da questo browser.",
+      "pushUnavailable": "Non disponibili su questo server.",
+      "pushDenied": "Autorizzazione negata.",
+      "pushFailed": "Attivazione non riuscita.",
+      "pushActive": "Attive — avvisi anche con app chiusa (meglio se hai effettuato l’accesso).",
+      "pushHint": "Ricevi MP e menzioni anche con l’app chiusa.",
+      "sounds": "Suoni",
+      "soundsHint": "Un bip su menzione o messaggio diretto.",
+      "hideJoins": "Nascondi entrate / uscite",
+      "hideJoinsHint": "Nasconde i «è entrato / è uscito».",
+      "highlightLabel": "Parole chiave di evidenziazione",
+      "highlightPlaceholder": "es.: tchatou, incontro, urgente",
+      "highlightHint": "Oltre al tuo soprannome, queste parole attivano un avviso (separate da virgole)."
+    },
+    "misc": {
+      "back": "Indietro",
+      "poweredBy": "Basato su Orbit",
+      "aboutSub": "client IRCv3 · codice e progetto ↗"
+    },
+    "sectionDesc": {
+      "profile": "Soprannome e avatar",
+      "appearance": "Tema e visualizzazione",
+      "notifications": "Avvisi e suoni",
+      "account": "Accesso e sicurezza"
     }
   },
   "profile": {
@@ -227,7 +325,49 @@
     "join": "{{nick}} è entrato nel canale",
     "part": "{{nick}} ha lasciato il canale",
     "quit": "{{nick}} si è disconnesso",
-    "kick": "{{target}} è stato espulso da {{by}}"
+    "kick": "{{target}} è stato espulso da {{by}}",
+    "nick": "{{nick}} ora è {{newnick}}",
+    "modes": "{{nick}} ha cambiato i modi: {{modes}}",
+    "invitePending": "Invito in sospeso: {{chan}}",
+    "inviteSent": "Invito inviato a {{nick}} per {{chan}}",
+    "awayOff": "Non sei più assente.",
+    "awayOn": "Ora sei segnato come assente.",
+    "cantWriteHere": "Non puoi scrivere qui — sei bannato o il canale è moderato.",
+    "cantWriteTitle": "Impossibile scrivere in {{ch}}",
+    "cantWriteBody": "Sei bannato o il canale è moderato.",
+    "bannedFrom": "Sei bannato da {{ch}} — accesso negato",
+    "bannedTitle": "Bannato da {{ch}}",
+    "bannedBody": "Non puoi entrare in questo canale.",
+    "kickedFrom": "Sei stato espulso da {{ch}} da {{by}}",
+    "kickedTitle": "Espulso da {{ch}}",
+    "kickedByNotif": "da {{by}}",
+    "hostChange": "{{nick}} ha cambiato host: {{old}} → {{new}}",
+    "netsplit": "Interruzione di rete (netsplit) in corso…",
+    "netjoin": "Riconnessione di rete (netjoin)…",
+    "serverErrorDefault": "Connessione chiusa dal server.",
+    "serverError": "Errore del server: {{reason}}",
+    "wallops": "WALLOPS da {{nick}}: {{msg}}",
+    "killed": "Sei stato disconnesso (KILL) da {{nick}}",
+    "killedTitle": "Disconnesso",
+    "killedBody": "KILL da {{nick}}",
+    "inviteYou": "{{nick}} ti invita a entrare in {{chan}}",
+    "inviteTitle": "Invito",
+    "inviteOther": "{{nick}} ha invitato {{target}}",
+    "banned": "{{nick}} ha bannato {{mask}}",
+    "unbanned": "{{nick}} ha rimosso il ban {{mask}}",
+    "bansAdded": "Bannati: {{list}}",
+    "bansRemoved": "Sbannati: {{list}}",
+    "reportSent": "Segnalazione su {{nick}} inviata al team ({{target}}).",
+    "onlyImages": "Sono accettate solo immagini.",
+    "imageTooLarge": "Immagine troppo grande (max 16 MB).",
+    "sendingImage": "Invio di «{{name}}»…",
+    "uploadNeedAccount": "Devi aver effettuato l’accesso a un account per inviare immagini (/msg NickServ IDENTIFY).",
+    "uploadTimeout": "Il server dei file non risponde.",
+    "uploadFailed": "Invio non riuscito ({{msg}}).",
+    "shareImage": "condivide un’immagine: {{url}}",
+    "yourModes": "I tuoi modi: +{{modes}} ({{change}})",
+    "yourModesNamed": "I tuoi modi: +{{modes}} ({{change}} — {{names}})",
+    "pmNotif": "{{nick}} (privato)"
   },
   "modeline": {
     "modeTag": "modalità",
@@ -255,5 +395,176 @@
     "orbitDark": "Orbit scuro",
     "yomirc": "yomIRC",
     "yomircDark": "yomIRC notte"
+  },
+  "chanFlags": {
+    "invite": {
+      "label": "Solo su invito",
+      "desc": "Bisogna essere invitati per entrare (+i)"
+    },
+    "moderated": {
+      "label": "Moderato",
+      "desc": "Solo voice e op possono parlare (+m)"
+    },
+    "noExternal": {
+      "label": "Niente messaggi esterni",
+      "desc": "Solo i membri possono scrivere (+n)"
+    },
+    "topicLock": {
+      "label": "Argomento protetto",
+      "desc": "Solo gli op cambiano l’argomento (+t)"
+    },
+    "secret": {
+      "label": "Segreto",
+      "desc": "Nascosto dalle liste pubbliche (+s)"
+    }
+  },
+  "reg": {
+    "needAccount": "Devi aver effettuato l’accesso a un account.",
+    "passwordUpdated": "Password aggiornata (IRC + sito).",
+    "passwordChangeFailed": "Modifica della password non riuscita.",
+    "serviceUnavailable": "Servizio non disponibile, riprova più tardi.",
+    "codeResent": "È stato richiesto un nuovo codice.",
+    "antibotInfo": "Completa la verifica anti-bot, poi inserisci il codice ricevuto via email.",
+    "challengeOkSent": "Verifica superata — ti abbiamo appena inviato un codice di verifica via email.",
+    "challengeOkCheck": "Verifica superata — controlla la tua email per il codice di verifica.",
+    "challengeFail": "Verifica anti-bot non riuscita. Riprova.",
+    "challengeUnreachable": "Impossibile contattare il servizio di verifica."
+  },
+  "numerics": {
+    "401": "Nessun utente con quel nome.",
+    "402": "Questo server non esiste.",
+    "403": "Questo canale non esiste.",
+    "404": "Impossibile scrivere in questo canale (bannato o moderato).",
+    "405": "Sei entrato in troppi canali.",
+    "406": "Questo soprannome non è mai esistito.",
+    "412": "Nessun testo da inviare.",
+    "417": "Messaggio troppo lungo.",
+    "421": "Comando sconosciuto.",
+    "432": "Soprannome non valido.",
+    "433": "Questo soprannome è già in uso.",
+    "441": "Questo utente non è nel canale.",
+    "442": "Non sei in questo canale.",
+    "443": "Questo utente è già nel canale.",
+    "451": "Devi prima registrarti.",
+    "461": "Parametri mancanti.",
+    "462": "Sei già registrato.",
+    "464": "Password errata.",
+    "465": "Sei bannato da questo server.",
+    "471": "Canale pieno.",
+    "472": "Modo sconosciuto.",
+    "473": "Canale solo su invito.",
+    "474": "Sei bannato da questo canale.",
+    "475": "Chiave del canale errata.",
+    "476": "Maschera del canale non valida.",
+    "481": "Privilegi insufficienti.",
+    "482": "Devi essere operatore del canale.",
+    "491": "Nessun accesso da operatore.",
+    "524": "Aiuto non trovato.",
+    "525": "Chiave non valida."
+  },
+  "faq": {
+    "title": "Aiuto & FAQ",
+    "aria": "Aiuto e FAQ",
+    "close": "Chiudi",
+    "register": {
+      "q": "Come creo un account?",
+      "a": "Non serve registrarsi per chattare — ma un account <b>riserva il tuo soprannome</b> e conserva avatar, 2FA e impostazioni.<ol class=\"cfaq__steps\"><li>Prima entra con il soprannome che vuoi mantenere.</li><li>Apri le <b>Impostazioni</b> (⚙, in basso a sinistra) → scheda <b>Account</b>.</li><li>Scegli <b>«Crea un account»</b>, inserisci la tua email e una password.</li><li>Inserisci il codice ricevuto via email — il tuo soprannome è protetto ✅</li></ol>"
+    },
+    "forgot": {
+      "q": "Ho dimenticato la password",
+      "a": "Se hai <b>ancora la sessione attiva</b>, cambiala in <b>Impostazioni → Account → Sicurezza</b>.<br>Altrimenti chiedi aiuto a un moderatore nel canale, oppure tramite <a href=\"{{url}}\" target=\"_blank\" rel=\"noopener\">{{site}}</a> — il ripristino via email arriverà presto."
+    },
+    "free": {
+      "q": "È davvero gratis?",
+      "a": "Sì, del tutto. Nessun pagamento, nessuna pubblicità. {{name}} è un servizio aperto."
+    },
+    "noaccount": {
+      "q": "Sono obbligato a registrarmi?",
+      "a": "No. Scegli un soprannome e sei nel canale. L’account è <b>opzionale</b>: serve a proteggere la tua identità."
+    },
+    "taken": {
+      "q": "Il mio soprannome è già preso",
+      "a": "Un soprannome protetto appartiene a un account. Se è il tuo, clicca su <b>«Hai già un account?»</b> per identificarti. Altrimenti scegline un altro."
+    },
+    "privacy": {
+      "q": "Le mie conversazioni sono private?",
+      "a": "La connessione è <b>crittografata</b> (TLS) e non c’è alcuna rivendita di dati. I messaggi privati passano solo tra te e l’altra persona."
+    },
+    "mobile": {
+      "q": "Funziona su mobile?",
+      "a": "Sì — è un’app installabile (PWA). Dal browser, «Aggiungi a schermata Home» e la usi come una vera app, notifiche comprese."
+    },
+    "what": {
+      "q": "Cos’è {{name}}?",
+      "a": "Una chat dal vivo basata sul protocollo aperto <b>IRCv3</b> e alimentata da <a href=\"{{project}}\" target=\"_blank\" rel=\"noopener\">Orbit</a>, un client web libero."
+    }
+  },
+  "members": {
+    "roles": {
+      "owner": "Fondatori",
+      "admin": "Amministratori",
+      "proprietors": "Proprietari",
+      "op": "Operatori",
+      "halfop": "Moderatori",
+      "voice": "Con voce",
+      "member": "Membri",
+      "privileged": "Privilegiati"
+    },
+    "away": "{{nick}} — assente",
+    "operTitle": "{{nick}} — Operatore di rete (IRCop)",
+    "viewProfile": "Vedi il profilo di {{nick}}"
+  },
+  "composer": {
+    "typingOne": "{{nick}} sta scrivendo",
+    "typingTwo": "{{a}} e {{b}} stanno scrivendo",
+    "typingMany": "{{n}} persone stanno scrivendo",
+    "consolePlaceholder": "Comando IRC — es.: /list, /whois nick, /join #canale",
+    "placeholder": "Invia un messaggio in {{chan}}",
+    "dropImage": "Trascina qui la tua immagine…",
+    "color": "Colore {{i}}",
+    "clearFormat": "Cancella formattazione",
+    "sendImage": "Invia un’immagine",
+    "bold": "Grassetto",
+    "italic": "Corsivo",
+    "underline": "Sottolineato",
+    "colorBtn": "Colore",
+    "emoji": "Emoji",
+    "send": "Invia",
+    "replyTo": "Rispondi a",
+    "cancelReply": "Annulla risposta"
+  },
+  "media": {
+    "image": "Immagine",
+    "open": "Apri",
+    "show": "Mostra",
+    "hide": "Nascondi",
+    "enlarge": "Ingrandisci",
+    "sharedImage": "immagine condivisa",
+    "openOriginal": "Apri originale ↗",
+    "playVideo": "Riproduci video",
+    "ytPreview": "Anteprima YouTube"
+  },
+  "umodes": {
+    "i": "invisibile",
+    "o": "operatore",
+    "O": "operatore locale",
+    "r": "registrato",
+    "w": "wallops",
+    "s": "avvisi del server",
+    "B": "bot",
+    "Z": "connessione sicura",
+    "x": "host mascherato",
+    "g": "messaggi filtrati",
+    "R": "messaggi solo da registrati",
+    "d": "sordo",
+    "H": "oper nascosto",
+    "I": "invisibile ai canali",
+    "T": "niente CTCP"
+  },
+  "units": {
+    "sec": "{{n}} s",
+    "min": "{{n}} min",
+    "hourMin": "{{h}} h {{m}} min",
+    "day": "{{n}} g"
   }
 }

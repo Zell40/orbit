@@ -5,6 +5,7 @@ import { avatarBg } from '../../lib/format';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 export function Rail() {
+  const { t } = useTranslation();
   const nick = useChat((s) => s.nick);
   const myAccount = useChat((s) => s.account);
   const setModal = useChat((s) => s.setModal);
@@ -14,11 +15,11 @@ export function Rail() {
     <nav className="rail">
       <div className="rail__brand" title="Tchatou"><img src={icon} alt="Tchatou" /></div>
       <div className="rail__sep" />
-      <button className="rail__item is-active" title="Accueil" aria-label="Accueil">🏠</button>
-      <button className="rail__item" title="Explorer les salons" aria-label="Explorer les salons" onClick={() => setModal('explore')}>🧭</button>
+      <button className="rail__item is-active" title={t('nav.home')} aria-label={t('nav.home')}>🏠</button>
+      <button className="rail__item" title={t('nav.explore')} aria-label={t('nav.explore')} onClick={() => setModal('explore')}>🧭</button>
       <RailFriends onOpen={() => setModal('friends')} />
       <div className="rail__spacer" />
-      <button className="rail__me" title={`${nick} — voir mon profil`} aria-label="Mon profil" onClick={() => openUser(nick)}><Avatar nick={nick} size={34} account={myAccount} /></button>
+      <button className="rail__me" title={t('sidebar.profileTip', { nick })} aria-label={t('nav.profile')} onClick={() => openUser(nick)}><Avatar nick={nick} size={34} account={myAccount} /></button>
     </nav>
   );
 }
@@ -63,7 +64,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         </span>
         <span className="room__body">
           <span className="room__name">{label}</span>
-          <span className="room__sub">{b.isChannel ? 'Salon public' : isServer ? 'Système' : 'Message privé'}</span>
+          <span className="room__sub">{b.isChannel ? t('sidebar.publicRoom') : isServer ? t('sidebar.system') : t('sidebar.privateMessage')}</span>
         </span>
         {b.unread > 0 && <span className="room__badge">{b.unread}</span>}
         {!isServer && (
@@ -71,7 +72,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
             className="room__close"
             role="button"
             tabIndex={-1}
-            title={b.isChannel ? 'Quitter le salon' : 'Fermer la conversation'}
+            title={b.isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
             onClick={(e) => { e.stopPropagation(); closeBuffer(name); }}
           >✕</span>
         )}
@@ -84,8 +85,8 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   return (
     <aside className="sidebar">
       <div className="side-top">
-        <h2 className="side-title">Accueil</h2>
-        <button className="side-compose" title="Nouvelle discussion" aria-label="Nouvelle discussion" onClick={() => setModal('join')}>✎</button>
+        <h2 className="side-title">{t('nav.home')}</h2>
+        <button className="side-compose" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => setModal('join')}>✎</button>
       </div>
 
       <div className="side-search">
@@ -103,33 +104,34 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {/* mIRC pins the Status window at the very top of the switchbar */}
         {mirc && hasServer && item(SERVER)}
         {showChannels && channels.map(item)}
-        {showQueries && queries.length > 0 && <div className="rooms-h">Messages privés</div>}
+        {showQueries && queries.length > 0 && <div className="rooms-h">{t('sidebar.privateMessages')}</div>}
         {showQueries && queries.map(item)}
         {!mirc && hasServer && item(SERVER)}
-        {totalShown === 0 && <div className="rooms-empty">Aucun résultat</div>}
+        {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
       </div>
 
       <div className="side-foot">
-        <button className="side-foot__id" title="Voir mon profil" onClick={() => openUser(nick)}>
+        <button className="side-foot__id" title={t('sidebar.viewProfile')} onClick={() => openUser(nick)}>
           <Avatar nick={nick} size={34} account={myAccount} />
           <div className="side-foot__meta">
             <div className="side-foot__name">{nick}</div>
-            <div className="side-foot__status"><i className={`presence ${away ? 'presence--away' : ''}`} />{away ? 'Absent' : 'En ligne'}</div>
+            <div className="side-foot__status"><i className={`presence ${away ? 'presence--away' : ''}`} />{away ? t('sidebar.away') : t('sidebar.online')}</div>
           </div>
         </button>
-        <button className="side-foot__cog" title={away ? 'Marquer présent' : 'Marquer absent'} aria-label="Absence"
-          onClick={() => setAway(away ? '' : 'Absent')}>{away ? '🌙' : '☀️'}</button>
-        <button className="side-foot__cog" title="Réglages" aria-label="Réglages" onClick={() => setModal('settings')}>⚙️</button>
+        <button className="side-foot__cog" title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')}
+          onClick={() => setAway(away ? '' : t('sidebar.away'))}>{away ? '🌙' : '☀️'}</button>
+        <button className="side-foot__cog" title={t('nav.settings')} aria-label={t('nav.settings')} onClick={() => setModal('settings')}>⚙️</button>
       </div>
     </aside>
   );
 }
 function RailFriends({ onOpen }: { onOpen: () => void }) {
+  const { t } = useTranslation();
   const friends = useChat((s) => s.friends);
   const online = useChat((s) => s.friendsOnline);
   const onlineCount = friends.filter((f) => online[f.toLowerCase()]).length;
   return (
-    <button className="rail__item" title="Amis" aria-label="Amis" onClick={onOpen}>
+    <button className="rail__item" title={t('nav.friends')} aria-label={t('nav.friends')} onClick={onOpen}>
       👥{onlineCount > 0 && <span className="rail__badge">{onlineCount}</span>}
     </button>
   );

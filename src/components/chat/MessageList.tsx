@@ -8,6 +8,7 @@ import { Avatar } from '../Avatar';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
 function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
+  const { t } = useTranslation();
   const react = useChat((s) => s.toggleReaction);
   const redact = useChat((s) => s.redact);
   const openUser = useChat((s) => s.openUser);
@@ -46,7 +47,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           {m.kind === 'action' ? `* ${m.from}` : `<${m.from}>`}
         </button>{' '}
         <span className="mircline__txt">
-          {m.redacted ? '⊘ message supprimé' : formatIrc(m.text, m.self)}
+          {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self)}
         </span>
         {m.reactions && m.reactions.length > 0 && (
           <span className="reactions reactions--inline">
@@ -59,9 +60,9 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
         )}
         {!m.redacted && (
           <span className="msg-actions">
-            {QUICK.map((e) => <button key={e} title="Réagir" onClick={() => react(m.id, e)}>{e}</button>)}
-            <button title="Répondre" onClick={() => setReply(m.id)}>↩</button>
-            {m.self && <button title="Supprimer" onClick={() => redact(m.id)}>🗑</button>}
+            {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
+            <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
+            {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
           </span>
         )}
       </div>
@@ -72,7 +73,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
     <div className={`group ${cont ? 'group--cont' : ''}`}>
       {cont
         ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
-        : <button className="group__avbtn" title={`Profil de ${m.from}`} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} /></button>}
+        : <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} /></button>}
       <div className="group__body">
         {!cont && (
           <div className="group__head">
@@ -81,22 +82,22 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           </div>
         )}
         {quoted && (
-          <div className="reply-quote" title="En réponse à">
+          <div className="reply-quote" title={t('messages.reply')}>
             <span className="reply-quote__arrow">↪</span>
             <span className="reply-quote__from" style={{ color: nickColor(quoted.from) }}>{quoted.from}</span>
-            <span className="reply-quote__txt">{quoted.redacted ? 'message supprimé' : quoted.text.slice(0, 90)}</span>
+            <span className="reply-quote__txt">{quoted.redacted ? t('messages.deleted') : quoted.text.slice(0, 90)}</span>
           </div>
         )}
         <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
-          {m.redacted ? '⊘ message supprimé' : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self)}</em> : formatIrc(m.text, m.self))}
+          {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self)}</em> : formatIrc(m.text, m.self))}
         </div>
         {showCtx && (
           <button
             className="ctx-chip"
-            title={`Cette discussion privée a démarré dans le salon ${m.channelContext} — cliquez pour y aller`}
+            title={t('messages.dmStarted', { chan: m.channelContext })}
             onClick={() => setActive(m.channelContext!)}
           >
-            <span className="ctx-chip__ic">↪</span>Depuis le salon&nbsp;<b>{m.channelContext}</b>
+            <span className="ctx-chip__ic">↪</span>{t('messages.fromChannel')}&nbsp;<b>{m.channelContext}</b>
           </button>
         )}
         {m.reactions && m.reactions.length > 0 && (
@@ -111,9 +112,9 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
       </div>
       {!m.redacted && (
         <div className="msg-actions">
-          {QUICK.map((e) => <button key={e} title="Réagir" onClick={() => react(m.id, e)}>{e}</button>)}
-          <button title="Répondre" onClick={() => setReply(m.id)}>↩</button>
-          {m.self && <button title="Supprimer" onClick={() => redact(m.id)}>🗑</button>}
+          {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
+          <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
+          {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
         </div>
       )}
     </div>
@@ -122,13 +123,14 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
 
 
 function SearchResults({ messages, query }: { messages: ChatMessage[]; query: string }) {
+  const { t } = useTranslation();
   const openUser = useChat((s) => s.openUser);
   const q = query.trim().toLowerCase();
   const hits = messages.filter((m) => (m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice')
     && !m.redacted && m.text.toLowerCase().includes(q));
   return (
     <div className="messages messages--search">
-      <div className="search-count">{hits.length} résultat{hits.length !== 1 ? 's' : ''} pour « {query} »</div>
+      <div className="search-count">{t('messages.searchResults', { count: hits.length, q: query })}</div>
       {hits.slice().reverse().map((m) => {
         const i = m.text.toLowerCase().indexOf(q);
         return (
@@ -146,7 +148,7 @@ function SearchResults({ messages, query }: { messages: ChatMessage[]; query: st
 }
 
 export function MessageList() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const active = useChat((s) => s.active);
   const buffer = useChat((s) => s.buffers[s.active]);
   const search = useChat((s) => s.search);
@@ -228,7 +230,7 @@ export function MessageList() {
   for (const m of buffer.messages) {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
     if (hideJoinQuit && !isConsole && (m.kind === 'join' || m.kind === 'part' || m.kind === 'quit')) continue;
-    const day = new Date(m.ts).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const day = new Date(m.ts).toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' });
     if (day !== lastDay) { rows.push(<div key={`d-${m.id}`} className="daysep"><span>{day}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {
       rows.push(<div key={`unread-${m.id}`} ref={dividerRef} className="unread-divider"><span>Nouveaux messages</span></div>);

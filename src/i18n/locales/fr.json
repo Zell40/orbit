@@ -14,7 +14,22 @@
     "channels": "Salons",
     "dms": "Privés",
     "search": "Rechercher",
-    "noChannel": "Choisis un salon pour commencer à discuter."
+    "noChannel": "Choisis un salon pour commencer à discuter.",
+    "publicRoom": "Salon public",
+    "system": "Système",
+    "privateMessage": "Message privé",
+    "leaveRoom": "Quitter le salon",
+    "closeConversation": "Fermer la conversation",
+    "privateMessages": "Messages privés",
+    "noResults": "Aucun résultat",
+    "viewProfile": "Voir mon profil",
+    "online": "En ligne",
+    "away": "Absent",
+    "markPresent": "Marquer présent",
+    "markAway": "Marquer absent",
+    "presence": "Absence",
+    "newChat": "Nouvelle discussion",
+    "profileTip": "{{nick}} — voir mon profil"
   },
   "topbar": {
     "search": "Rechercher",
@@ -50,7 +65,10 @@
     "faqTitle": "Aide & FAQ",
     "error_error": "Connexion impossible. Réessaie dans un instant.",
     "error_closed": "La connexion a été fermée.",
-    "error_sasl": "Pseudo ou mot de passe incorrect."
+    "error_sasl": "Pseudo ou mot de passe incorrect.",
+    "live": "en direct",
+    "typing": "{{who}} écrit",
+    "nickAria": "Pseudo"
   },
   "messages": {
     "reply": "En réponse à",
@@ -66,7 +84,13 @@
     "info": "Info",
     "notice": "NOTICE",
     "guest": "Invité",
-    "poweredBy": "Propulsé par Orbit"
+    "poweredBy": "Propulsé par Orbit",
+    "deleted": "message supprimé",
+    "dmStarted": "Cette discussion privée a démarré dans le salon {{chan}}",
+    "profileOf": "Profil de {{nick}}",
+    "fromChannel": "Depuis le salon",
+    "searchResults_one": "{{count}} résultat pour « {{q}} »",
+    "searchResults_other": "{{count}} résultats pour « {{q}} »"
   },
   "modals": {
     "closeButton": "Fermer",
@@ -74,7 +98,14 @@
       "title": "Explorer les salons",
       "search": "Rechercher ou créer #salon…",
       "loading": "Chargement des salons…",
-      "noResults": "Aucun résultat"
+      "noResults": "Aucun résultat",
+      "sub": "Rejoins un salon (commence par #) ou démarre un message privé avec un pseudo.",
+      "placeholder": "#salon ou pseudo",
+      "joinRoom": "Rejoindre le salon",
+      "startDM": "Démarrer le message privé",
+      "joinBtn": "Rejoindre",
+      "emptyNone": "Aucun salon. Tape un nom pour en créer un.",
+      "emptyFound": "Aucun salon trouvé. Tape un nom pour en créer un."
     },
     "dm": {
       "title": "Nouvelle discussion",
@@ -83,7 +114,14 @@
     },
     "friends": {
       "title": "Amis",
-      "noFriends": "Aucun ami pour l'instant."
+      "noFriends": "Aucun ami pour l'instant.",
+      "sub": "Ajoute des pseudos pour être prévenu quand ils se connectent. 🔔",
+      "add": "Ajouter",
+      "online": "en ligne",
+      "offline": "hors ligne",
+      "dm": "Message privé",
+      "profile": "Profil",
+      "remove": "Retirer"
     },
     "chanadmin": {
       "title": "Gérer le salon",
@@ -98,7 +136,10 @@
       "setTopic": "Définir",
       "info": "Informations",
       "modes": "Modes du salon",
-      "subject": "Sujet"
+      "subject": "Sujet",
+      "manage": "Gérer {{chan}}",
+      "settings": "Réglages",
+      "by": "par {{by}}"
     }
   },
   "settings": {
@@ -140,18 +181,75 @@
       "join": "Rejoindre",
       "channelHint": "Rejoins un salon (commence par #)",
       "channelPlaceholder": "ex : tchatou, rdv, urgent",
-      "fromChannel": "Depuis le salon"
+      "fromChannel": "Depuis le salon",
+      "accountPlaceholder": "Nom du compte",
+      "passwordPlaceholder": "Mot de passe",
+      "loginIntro": "Identifie-toi à ton compte enregistré, quel que soit ton pseudo actuel — on te renomme automatiquement.",
+      "update": "Mettre à jour",
+      "updating": "Maj…",
+      "leaveChat": "Quitter le tchat",
+      "logoutAccount": "Se déconnecter du compte",
+      "changeBtn": "Changer",
+      "guestNotConnected": "Invité — non connecté",
+      "identifiedPre": "Tu es identifié comme",
+      "signin": "Se connecter",
+      "verifyTitle": "Vérification",
+      "verify": "Valider",
+      "antiBotDesc": "Valide ce rapide défi. Ton code te sera ensuite envoyé par e-mail.",
+      "challengeLoadError": "Le défi anti-robot n’a pas pu se charger. Réessaie.",
+      "codeSentHtml": "📧 Un code a été envoyé à <strong>{{email}}</strong>. Saisis-le pour activer <strong>{{account}}</strong>.",
+      "yourEmail": "ton e-mail",
+      "createTitle": "Créer un compte",
+      "creating": "Création…",
+      "createCta": "Créer mon compte",
+      "registerIntro": "Choisis un pseudo, ton e-mail et un mot de passe. Tu recevras un code pour valider.",
+      "nickLabel": "Pseudo",
+      "nickPlaceholder": "Pseudo",
+      "emailLabel": "E-mail",
+      "loginTitle": "Se connecter"
     },
     "appearance": {
       "theme": "Thème",
       "language": "Langue",
       "timeFormat": "Format de l'heure",
       "compact": "Messages compacts",
-      "textSize": "Taille du texte"
+      "textSize": "Taille du texte",
+      "compactHint": "Messages plus denses, plus d’infos à l’écran."
     },
     "notifications": {
       "browser": "Notifications navigateur",
-      "push": "Notifications push"
+      "push": "Notifications push",
+      "browserLabel": "Notifications navigateur",
+      "browserGranted": "Tu seras alerté hors de l’onglet.",
+      "browserDenied": "Bloquées dans ton navigateur.",
+      "browserDefault": "Reçois une alerte même hors de l’onglet.",
+      "enabled": "Activées",
+      "enable": "Activer",
+      "pushLabel": "Notifications push",
+      "pushUnsupported": "Non pris en charge par ce navigateur.",
+      "pushUnavailable": "Indisponible sur ce serveur.",
+      "pushDenied": "Autorisation refusée.",
+      "pushFailed": "Échec de l’activation.",
+      "pushActive": "Actif — alertes même app fermée (au mieux si connecté à ton compte).",
+      "pushHint": "Reçois les MP et mentions même quand l’app est fermée.",
+      "sounds": "Sons",
+      "soundsHint": "Un bip sur mention ou message privé.",
+      "hideJoins": "Masquer entrées / sorties",
+      "hideJoinsHint": "Cache les « a rejoint / a quitté ».",
+      "highlightLabel": "Mots-clés de surbrillance",
+      "highlightPlaceholder": "ex : tchatou, rdv, urgent",
+      "highlightHint": "En plus de ton pseudo, ces mots déclenchent une alerte (séparés par des virgules)."
+    },
+    "misc": {
+      "back": "Retour",
+      "poweredBy": "Propulsé par Orbit",
+      "aboutSub": "client IRCv3 · code & projet ↗"
+    },
+    "sectionDesc": {
+      "profile": "Pseudo & avatar",
+      "appearance": "Thème & affichage",
+      "notifications": "Alertes & sons",
+      "account": "Connexion & sécurité"
     }
   },
   "profile": {
@@ -227,7 +325,49 @@
     "join": "{{nick}} a rejoint le salon",
     "part": "{{nick}} a quitté le salon",
     "quit": "{{nick}} s'est déconnecté",
-    "kick": "{{target}} a été expulsé par {{by}}"
+    "kick": "{{target}} a été expulsé par {{by}}",
+    "nick": "{{nick}} est désormais {{newnick}}",
+    "modes": "{{nick}} a changé les modes : {{modes}}",
+    "invitePending": "Invitation en attente : {{chan}}",
+    "inviteSent": "Invitation envoyée à {{nick}} pour {{chan}}",
+    "awayOff": "Tu n’es plus absent.",
+    "awayOn": "Tu es maintenant marqué absent.",
+    "cantWriteHere": "Tu ne peux pas écrire ici — tu es banni ou le salon est modéré.",
+    "cantWriteTitle": "Impossible d’écrire dans {{ch}}",
+    "cantWriteBody": "Tu es banni ou le salon est modéré.",
+    "bannedFrom": "Tu es banni de {{ch}} — accès refusé",
+    "bannedTitle": "Banni de {{ch}}",
+    "bannedBody": "Tu ne peux pas entrer dans ce salon.",
+    "kickedFrom": "Tu as été expulsé de {{ch}} par {{by}}",
+    "kickedTitle": "Expulsé de {{ch}}",
+    "kickedByNotif": "par {{by}}",
+    "hostChange": "{{nick}} a changé d’hôte : {{old}} → {{new}}",
+    "netsplit": "Coupure réseau (netsplit) en cours…",
+    "netjoin": "Reconnexion réseau (netjoin)…",
+    "serverErrorDefault": "Connexion fermée par le serveur.",
+    "serverError": "Erreur serveur : {{reason}}",
+    "wallops": "WALLOPS de {{nick}} : {{msg}}",
+    "killed": "Tu as été déconnecté (KILL) par {{nick}}",
+    "killedTitle": "Déconnecté",
+    "killedBody": "KILL par {{nick}}",
+    "inviteYou": "{{nick}} t’invite à rejoindre {{chan}}",
+    "inviteTitle": "Invitation",
+    "inviteOther": "{{nick}} a invité {{target}}",
+    "banned": "{{nick}} a banni {{mask}}",
+    "unbanned": "{{nick}} a retiré le ban {{mask}}",
+    "bansAdded": "Bannis : {{list}}",
+    "bansRemoved": "Débannis : {{list}}",
+    "reportSent": "Signalement de {{nick}} envoyé à l’équipe ({{target}}).",
+    "onlyImages": "Seules les images sont acceptées.",
+    "imageTooLarge": "Image trop volumineuse (max 16 Mo).",
+    "sendingImage": "Envoi de « {{name}} »…",
+    "uploadNeedAccount": "Tu dois être connecté à un compte pour envoyer des images (/msg NickServ IDENTIFY).",
+    "uploadTimeout": "Le serveur de fichiers ne répond pas.",
+    "uploadFailed": "Échec de l’envoi ({{msg}}).",
+    "shareImage": "partage une image : {{url}}",
+    "yourModes": "Tes modes : +{{modes}} ({{change}})",
+    "yourModesNamed": "Tes modes : +{{modes}} ({{change}} — {{names}})",
+    "pmNotif": "{{nick}} (privé)"
   },
   "modeline": {
     "modeTag": "mode",
@@ -255,5 +395,176 @@
     "orbitDark": "Orbit sombre",
     "yomirc": "yomIRC",
     "yomircDark": "yomIRC nuit"
+  },
+  "chanFlags": {
+    "invite": {
+      "label": "Sur invitation",
+      "desc": "Il faut être invité pour entrer (+i)"
+    },
+    "moderated": {
+      "label": "Modéré",
+      "desc": "Seuls les voix et ops peuvent parler (+m)"
+    },
+    "noExternal": {
+      "label": "Pas de messages externes",
+      "desc": "Seuls les membres peuvent écrire (+n)"
+    },
+    "topicLock": {
+      "label": "Sujet protégé",
+      "desc": "Seuls les ops changent le sujet (+t)"
+    },
+    "secret": {
+      "label": "Secret",
+      "desc": "Caché des listes publiques (+s)"
+    }
+  },
+  "reg": {
+    "needAccount": "Tu dois être connecté à un compte.",
+    "passwordUpdated": "Mot de passe mis à jour (IRC + site).",
+    "passwordChangeFailed": "Échec du changement de mot de passe.",
+    "serviceUnavailable": "Service indisponible, réessaie plus tard.",
+    "codeResent": "Un nouveau code a été demandé.",
+    "antibotInfo": "Validez le défi anti-robot, puis saisissez le code reçu par e-mail.",
+    "challengeOkSent": "Défi validé — un code de vérification vient de t’être envoyé par e-mail.",
+    "challengeOkCheck": "Défi validé — regarde tes e-mails pour le code de vérification.",
+    "challengeFail": "Échec du défi anti-robot. Réessaie.",
+    "challengeUnreachable": "Impossible de contacter le service de vérification."
+  },
+  "numerics": {
+    "401": "Aucun utilisateur de ce nom.",
+    "402": "Ce serveur n’existe pas.",
+    "403": "Ce salon n’existe pas.",
+    "404": "Impossible d’écrire dans ce salon (banni ou modéré).",
+    "405": "Tu as rejoint trop de salons.",
+    "406": "Ce pseudo n’a jamais existé.",
+    "412": "Aucun texte à envoyer.",
+    "417": "Message trop long.",
+    "421": "Commande inconnue.",
+    "432": "Pseudo invalide.",
+    "433": "Ce pseudo est déjà utilisé.",
+    "441": "Cet utilisateur n’est pas sur le salon.",
+    "442": "Tu n’es pas sur ce salon.",
+    "443": "Cet utilisateur est déjà sur le salon.",
+    "451": "Tu dois d’abord t’enregistrer.",
+    "461": "Paramètres manquants.",
+    "462": "Tu es déjà enregistré.",
+    "464": "Mot de passe incorrect.",
+    "465": "Tu es banni de ce serveur.",
+    "471": "Salon plein.",
+    "472": "Mode inconnu.",
+    "473": "Salon sur invitation uniquement.",
+    "474": "Tu es banni de ce salon.",
+    "475": "Clé de salon incorrecte.",
+    "476": "Masque de salon invalide.",
+    "481": "Privilèges insuffisants.",
+    "482": "Tu dois être opérateur du salon.",
+    "491": "Aucun accès opérateur.",
+    "524": "Aide introuvable.",
+    "525": "Clé invalide."
+  },
+  "faq": {
+    "title": "Aide & FAQ",
+    "aria": "Aide et FAQ",
+    "close": "Fermer",
+    "register": {
+      "q": "Comment créer un compte ?",
+      "a": "Pas besoin de t’inscrire pour discuter — mais un compte <b>réserve ton pseudo</b> et garde ton avatar, ton 2FA et tes réglages.<ol class=\"cfaq__steps\"><li>Entre d’abord avec le pseudo que tu veux garder.</li><li>Ouvre les <b>Réglages</b> (⚙, en bas à gauche) → onglet <b>Compte</b>.</li><li>Choisis <b>« Créer un compte »</b>, indique ton e-mail et un mot de passe.</li><li>Saisis le code reçu par e-mail — ton pseudo est protégé ✅</li></ol>"
+    },
+    "forgot": {
+      "q": "J’ai oublié mon mot de passe",
+      "a": "Si tu es <b>encore connecté</b> à ton compte, change-le dans <b>Réglages → Compte → Sécurité</b>.<br>Sinon, demande de l’aide à un modérateur dans le salon, ou via <a href=\"{{url}}\" target=\"_blank\" rel=\"noopener\">{{site}}</a> — la réinitialisation par e-mail arrive bientôt."
+    },
+    "free": {
+      "q": "C’est vraiment gratuit ?",
+      "a": "Oui, entièrement. Aucun paiement, aucune publicité. {{name}} est un service ouvert."
+    },
+    "noaccount": {
+      "q": "Suis-je obligé de m’inscrire ?",
+      "a": "Non. Choisis un pseudo et tu es dans le salon. Le compte est <b>optionnel</b> : il sert à protéger ton identité."
+    },
+    "taken": {
+      "q": "Mon pseudo est déjà pris",
+      "a": "Un pseudo protégé appartient à un compte. Si c’est le tien, clique <b>« Pseudo déjà enregistré ? »</b> pour t’identifier. Sinon, choisis-en un autre."
+    },
+    "privacy": {
+      "q": "Mes conversations sont-elles privées ?",
+      "a": "La connexion est <b>chiffrée</b> (TLS) et il n’y a aucune revente de données. Les messages privés ne circulent qu’entre toi et ton interlocuteur."
+    },
+    "mobile": {
+      "q": "Ça marche sur mobile ?",
+      "a": "Oui — c’est une appli installable (PWA). Depuis ton navigateur, « Ajouter à l’écran d’accueil » et tu l’as comme une vraie appli, notifications comprises."
+    },
+    "what": {
+      "q": "C’est quoi {{name}} ?",
+      "a": "Un tchat français en direct, bâti sur le protocole ouvert <b>IRCv3</b> et propulsé par <a href=\"{{project}}\" target=\"_blank\" rel=\"noopener\">Orbit</a>, un client web libre."
+    }
+  },
+  "members": {
+    "roles": {
+      "owner": "Fondateurs",
+      "admin": "Administrateurs",
+      "proprietors": "Propriétaires",
+      "op": "Opérateurs",
+      "halfop": "Modérateurs",
+      "voice": "Voix",
+      "member": "Membres",
+      "privileged": "Privilégiés"
+    },
+    "away": "{{nick}} — absent",
+    "operTitle": "{{nick}} — Opérateur réseau (IRCop)",
+    "viewProfile": "Voir le profil de {{nick}}"
+  },
+  "composer": {
+    "typingOne": "{{nick}} est en train d’écrire",
+    "typingTwo": "{{a}} et {{b}} écrivent",
+    "typingMany": "{{n}} personnes écrivent",
+    "consolePlaceholder": "Commande IRC — ex : /list, /whois pseudo, /join #salon",
+    "placeholder": "Envoyer un message dans {{chan}}",
+    "dropImage": "Dépose ton image ici…",
+    "color": "Couleur {{i}}",
+    "clearFormat": "Effacer le format",
+    "sendImage": "Envoyer une image",
+    "bold": "Gras",
+    "italic": "Italique",
+    "underline": "Souligné",
+    "colorBtn": "Couleur",
+    "emoji": "Emoji",
+    "send": "Envoyer",
+    "replyTo": "Réponse à",
+    "cancelReply": "Annuler la réponse"
+  },
+  "media": {
+    "image": "Image",
+    "open": "Ouvrir",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "enlarge": "Agrandir",
+    "sharedImage": "image partagée",
+    "openOriginal": "Ouvrir l’original ↗",
+    "playVideo": "Lire la vidéo",
+    "ytPreview": "Aperçu YouTube"
+  },
+  "umodes": {
+    "i": "invisible",
+    "o": "opérateur",
+    "O": "opérateur local",
+    "r": "enregistré",
+    "w": "wallops",
+    "s": "notices serveur",
+    "B": "bot",
+    "Z": "connexion sécurisée",
+    "x": "hôte masqué",
+    "g": "messages filtrés",
+    "R": "messages des enregistrés uniquement",
+    "d": "sourd",
+    "H": "oper masqué",
+    "I": "invisible aux salons",
+    "T": "pas de CTCP"
+  },
+  "units": {
+    "sec": "{{n}} s",
+    "min": "{{n}} min",
+    "hourMin": "{{h}} h {{m}} min",
+    "day": "{{n}} j"
   }
 }

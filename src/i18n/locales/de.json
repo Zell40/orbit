@@ -14,7 +14,22 @@
     "channels": "Kanäle",
     "dms": "Direkt",
     "search": "Suchen",
-    "noChannel": "Wähle einen Kanal, um zu chatten."
+    "noChannel": "Wähle einen Kanal, um zu chatten.",
+    "publicRoom": "Öffentlicher Kanal",
+    "system": "System",
+    "privateMessage": "Direktnachricht",
+    "leaveRoom": "Kanal verlassen",
+    "closeConversation": "Unterhaltung schließen",
+    "privateMessages": "Direktnachrichten",
+    "noResults": "Keine Ergebnisse",
+    "viewProfile": "Mein Profil ansehen",
+    "online": "Online",
+    "away": "Abwesend",
+    "markPresent": "Als anwesend markieren",
+    "markAway": "Als abwesend markieren",
+    "presence": "Anwesenheit",
+    "newChat": "Neue Unterhaltung",
+    "profileTip": "{{nick}} — mein Profil ansehen"
   },
   "topbar": {
     "search": "Suchen",
@@ -50,7 +65,10 @@
     "faqTitle": "Hilfe & FAQ",
     "error_error": "Verbindung fehlgeschlagen. Bitte erneut versuchen.",
     "error_closed": "Die Verbindung wurde getrennt.",
-    "error_sasl": "Unbekannter Spitzname oder falsches Passwort."
+    "error_sasl": "Unbekannter Spitzname oder falsches Passwort.",
+    "live": "live",
+    "typing": "{{who}} schreibt",
+    "nickAria": "Spitzname"
   },
   "messages": {
     "reply": "Als Antwort auf",
@@ -66,7 +84,13 @@
     "info": "Info",
     "notice": "HINWEIS",
     "guest": "Gast",
-    "poweredBy": "Betrieben von Orbit"
+    "poweredBy": "Betrieben von Orbit",
+    "deleted": "Nachricht gelöscht",
+    "dmStarted": "Dieser private Chat begann im Kanal {{chan}}",
+    "profileOf": "Profil von {{nick}}",
+    "fromChannel": "Aus Kanal",
+    "searchResults_one": "{{count}} Ergebnis für „{{q}}“",
+    "searchResults_other": "{{count}} Ergebnisse für „{{q}}“"
   },
   "modals": {
     "closeButton": "Schließen",
@@ -74,7 +98,14 @@
       "title": "Kanäle erkunden",
       "search": "Kanal suchen oder erstellen…",
       "loading": "Kanäle werden geladen…",
-      "noResults": "Keine Ergebnisse"
+      "noResults": "Keine Ergebnisse",
+      "sub": "Tritt einem Kanal bei (beginnt mit #) oder starte eine Direktnachricht mit einem Spitznamen.",
+      "placeholder": "#kanal oder Spitzname",
+      "joinRoom": "Kanal beitreten",
+      "startDM": "Direktnachricht starten",
+      "joinBtn": "Beitreten",
+      "emptyNone": "Keine Kanäle. Gib einen Namen ein, um einen zu erstellen.",
+      "emptyFound": "Kein Kanal gefunden. Gib einen Namen ein, um einen zu erstellen."
     },
     "dm": {
       "title": "Neue Unterhaltung",
@@ -83,7 +114,14 @@
     },
     "friends": {
       "title": "Freunde",
-      "noFriends": "Noch keine Freunde."
+      "noFriends": "Noch keine Freunde.",
+      "sub": "Füge Spitznamen hinzu, um benachrichtigt zu werden, wenn sie online kommen. 🔔",
+      "add": "Hinzufügen",
+      "online": "online",
+      "offline": "offline",
+      "dm": "Direktnachricht",
+      "profile": "Profil",
+      "remove": "Entfernen"
     },
     "chanadmin": {
       "title": "Kanal verwalten",
@@ -98,7 +136,10 @@
       "setTopic": "Festlegen",
       "info": "Info",
       "modes": "Kanalmodi",
-      "subject": "Thema"
+      "subject": "Thema",
+      "manage": "{{chan}} verwalten",
+      "settings": "Einstellungen",
+      "by": "von {{by}}"
     }
   },
   "settings": {
@@ -140,18 +181,75 @@
       "join": "Beitreten",
       "channelHint": "Kanal beitreten (beginnt mit #)",
       "channelPlaceholder": "z.B. orbit, hilfe",
-      "fromChannel": "Vom Kanal"
+      "fromChannel": "Vom Kanal",
+      "accountPlaceholder": "Kontoname",
+      "passwordPlaceholder": "Passwort",
+      "loginIntro": "Melde dich bei deinem registrierten Konto an, egal mit welchem Spitznamen — wir benennen dich automatisch um.",
+      "update": "Aktualisieren",
+      "updating": "Aktual.…",
+      "leaveChat": "Chat verlassen",
+      "logoutAccount": "Vom Konto abmelden",
+      "changeBtn": "Ändern",
+      "guestNotConnected": "Gast — nicht angemeldet",
+      "identifiedPre": "Du bist identifiziert als",
+      "signin": "Anmelden",
+      "verifyTitle": "Bestätigung",
+      "verify": "Bestätigen",
+      "antiBotDesc": "Löse diese kurze Prüfung. Dein Code wird dir anschließend per E-Mail gesendet.",
+      "challengeLoadError": "Die Anti-Bot-Prüfung konnte nicht geladen werden. Versuche es erneut.",
+      "codeSentHtml": "📧 Ein Code wurde an <strong>{{email}}</strong> gesendet. Gib ihn ein, um <strong>{{account}}</strong> zu aktivieren.",
+      "yourEmail": "deine E-Mail",
+      "createTitle": "Konto erstellen",
+      "creating": "Wird erstellt…",
+      "createCta": "Mein Konto erstellen",
+      "registerIntro": "Wähle einen Spitznamen, deine E-Mail und ein Passwort. Du erhältst einen Code zur Bestätigung.",
+      "nickLabel": "Spitzname",
+      "nickPlaceholder": "Spitzname",
+      "emailLabel": "E-Mail",
+      "loginTitle": "Anmelden"
     },
     "appearance": {
       "theme": "Design",
       "language": "Sprache",
       "timeFormat": "Zeitformat",
       "compact": "Kompakte Nachrichten",
-      "textSize": "Textgröße"
+      "textSize": "Textgröße",
+      "compactHint": "Dichtere Nachrichten, mehr auf dem Bildschirm."
     },
     "notifications": {
       "browser": "Browser-Benachrichtigungen",
-      "push": "Push-Benachrichtigungen"
+      "push": "Push-Benachrichtigungen",
+      "browserLabel": "Browser-Benachrichtigungen",
+      "browserGranted": "Du wirst außerhalb des Tabs benachrichtigt.",
+      "browserDenied": "In deinem Browser blockiert.",
+      "browserDefault": "Werde auch außerhalb des Tabs benachrichtigt.",
+      "enabled": "Aktiviert",
+      "enable": "Aktivieren",
+      "pushLabel": "Push-Benachrichtigungen",
+      "pushUnsupported": "Von diesem Browser nicht unterstützt.",
+      "pushUnavailable": "Auf diesem Server nicht verfügbar.",
+      "pushDenied": "Berechtigung verweigert.",
+      "pushFailed": "Aktivierung fehlgeschlagen.",
+      "pushActive": "Aktiv — Hinweise auch bei geschlossener App (am besten, wenn im Konto angemeldet).",
+      "pushHint": "Erhalte DMs und Erwähnungen auch bei geschlossener App.",
+      "sounds": "Töne",
+      "soundsHint": "Ein Piep bei Erwähnung oder Direktnachricht.",
+      "hideJoins": "Beitritte / Verlassen ausblenden",
+      "hideJoinsHint": "Blendet „beigetreten / verlassen“ aus.",
+      "highlightLabel": "Hervorhebungs-Schlüsselwörter",
+      "highlightPlaceholder": "z. B. tchatou, treffen, dringend",
+      "highlightHint": "Neben deinem Spitznamen lösen diese Wörter einen Hinweis aus (kommagetrennt)."
+    },
+    "misc": {
+      "back": "Zurück",
+      "poweredBy": "Betrieben von Orbit",
+      "aboutSub": "IRCv3-Client · Code & Projekt ↗"
+    },
+    "sectionDesc": {
+      "profile": "Spitzname & Avatar",
+      "appearance": "Thema & Anzeige",
+      "notifications": "Hinweise & Töne",
+      "account": "Anmeldung & Sicherheit"
     }
   },
   "profile": {
@@ -227,7 +325,49 @@
     "join": "{{nick}} hat den Kanal betreten",
     "part": "{{nick}} hat den Kanal verlassen",
     "quit": "{{nick}} hat die Verbindung getrennt",
-    "kick": "{{target}} wurde von {{by}} rausgeworfen"
+    "kick": "{{target}} wurde von {{by}} rausgeworfen",
+    "nick": "{{nick}} heißt jetzt {{newnick}}",
+    "modes": "{{nick}} hat die Modi geändert: {{modes}}",
+    "invitePending": "Ausstehende Einladung: {{chan}}",
+    "inviteSent": "Einladung an {{nick}} für {{chan}} gesendet",
+    "awayOff": "Du bist nicht mehr abwesend.",
+    "awayOn": "Du bist jetzt als abwesend markiert.",
+    "cantWriteHere": "Du kannst hier nicht schreiben — du bist gebannt oder der Kanal ist moderiert.",
+    "cantWriteTitle": "Schreiben in {{ch}} nicht möglich",
+    "cantWriteBody": "Du bist gebannt oder der Kanal ist moderiert.",
+    "bannedFrom": "Du bist aus {{ch}} gebannt — Zugriff verweigert",
+    "bannedTitle": "Aus {{ch}} gebannt",
+    "bannedBody": "Du kannst diesen Kanal nicht betreten.",
+    "kickedFrom": "Du wurdest von {{by}} aus {{ch}} gekickt",
+    "kickedTitle": "Aus {{ch}} gekickt",
+    "kickedByNotif": "von {{by}}",
+    "hostChange": "{{nick}} hat den Host geändert: {{old}} → {{new}}",
+    "netsplit": "Netzwerktrennung (netsplit) im Gange…",
+    "netjoin": "Netzwerk-Wiederverbindung (netjoin)…",
+    "serverErrorDefault": "Verbindung vom Server geschlossen.",
+    "serverError": "Serverfehler: {{reason}}",
+    "wallops": "WALLOPS von {{nick}}: {{msg}}",
+    "killed": "Du wurdest getrennt (KILL) von {{nick}}",
+    "killedTitle": "Getrennt",
+    "killedBody": "KILL von {{nick}}",
+    "inviteYou": "{{nick}} lädt dich ein, {{chan}} beizutreten",
+    "inviteTitle": "Einladung",
+    "inviteOther": "{{nick}} hat {{target}} eingeladen",
+    "banned": "{{nick}} hat {{mask}} gebannt",
+    "unbanned": "{{nick}} hat den Bann {{mask}} aufgehoben",
+    "bansAdded": "Gebannt: {{list}}",
+    "bansRemoved": "Entbannt: {{list}}",
+    "reportSent": "Meldung über {{nick}} an das Team gesendet ({{target}}).",
+    "onlyImages": "Nur Bilder werden akzeptiert.",
+    "imageTooLarge": "Bild zu groß (max. 16 MB).",
+    "sendingImage": "Sende „{{name}}“…",
+    "uploadNeedAccount": "Du musst in einem Konto angemeldet sein, um Bilder zu senden (/msg NickServ IDENTIFY).",
+    "uploadTimeout": "Der Dateiserver antwortet nicht.",
+    "uploadFailed": "Upload fehlgeschlagen ({{msg}}).",
+    "shareImage": "teilt ein Bild: {{url}}",
+    "yourModes": "Deine Modi: +{{modes}} ({{change}})",
+    "yourModesNamed": "Deine Modi: +{{modes}} ({{change}} — {{names}})",
+    "pmNotif": "{{nick}} (privat)"
   },
   "modeline": {
     "modeTag": "Modus",
@@ -255,5 +395,176 @@
     "orbitDark": "Orbit dunkel",
     "yomirc": "yomIRC",
     "yomircDark": "yomIRC Nacht"
+  },
+  "chanFlags": {
+    "invite": {
+      "label": "Nur auf Einladung",
+      "desc": "Eintritt nur mit Einladung (+i)"
+    },
+    "moderated": {
+      "label": "Moderiert",
+      "desc": "Nur Voice und Ops dürfen schreiben (+m)"
+    },
+    "noExternal": {
+      "label": "Keine externen Nachrichten",
+      "desc": "Nur Mitglieder dürfen schreiben (+n)"
+    },
+    "topicLock": {
+      "label": "Geschütztes Thema",
+      "desc": "Nur Ops ändern das Thema (+t)"
+    },
+    "secret": {
+      "label": "Geheim",
+      "desc": "In öffentlichen Listen verborgen (+s)"
+    }
+  },
+  "reg": {
+    "needAccount": "Du musst in einem Konto angemeldet sein.",
+    "passwordUpdated": "Passwort aktualisiert (IRC + Website).",
+    "passwordChangeFailed": "Passwortänderung fehlgeschlagen.",
+    "serviceUnavailable": "Dienst nicht verfügbar, versuche es später erneut.",
+    "codeResent": "Ein neuer Code wurde angefordert.",
+    "antibotInfo": "Löse die Anti-Bot-Prüfung und gib dann den per E-Mail erhaltenen Code ein.",
+    "challengeOkSent": "Prüfung bestanden — ein Bestätigungscode wurde dir gerade per E-Mail gesendet.",
+    "challengeOkCheck": "Prüfung bestanden — sieh in deine E-Mails für den Bestätigungscode.",
+    "challengeFail": "Anti-Bot-Prüfung fehlgeschlagen. Versuche es erneut.",
+    "challengeUnreachable": "Der Bestätigungsdienst ist nicht erreichbar."
+  },
+  "numerics": {
+    "401": "Kein Benutzer mit diesem Namen.",
+    "402": "Dieser Server existiert nicht.",
+    "403": "Dieser Kanal existiert nicht.",
+    "404": "Schreiben in diesem Kanal nicht möglich (gebannt oder moderiert).",
+    "405": "Du bist zu vielen Kanälen beigetreten.",
+    "406": "Diesen Spitznamen gab es nie.",
+    "412": "Kein Text zum Senden.",
+    "417": "Nachricht zu lang.",
+    "421": "Unbekannter Befehl.",
+    "432": "Ungültiger Spitzname.",
+    "433": "Dieser Spitzname wird bereits verwendet.",
+    "441": "Dieser Benutzer ist nicht im Kanal.",
+    "442": "Du bist nicht in diesem Kanal.",
+    "443": "Dieser Benutzer ist bereits im Kanal.",
+    "451": "Du musst dich zuerst registrieren.",
+    "461": "Fehlende Parameter.",
+    "462": "Du bist bereits registriert.",
+    "464": "Falsches Passwort.",
+    "465": "Du bist von diesem Server gebannt.",
+    "471": "Kanal ist voll.",
+    "472": "Unbekannter Modus.",
+    "473": "Nur-auf-Einladung-Kanal.",
+    "474": "Du bist aus diesem Kanal gebannt.",
+    "475": "Falscher Kanalschlüssel.",
+    "476": "Ungültige Kanalmaske.",
+    "481": "Unzureichende Rechte.",
+    "482": "Du musst Kanaloperator sein.",
+    "491": "Kein Operatorzugang.",
+    "524": "Hilfe nicht gefunden.",
+    "525": "Ungültiger Schlüssel."
+  },
+  "faq": {
+    "title": "Hilfe & FAQ",
+    "aria": "Hilfe und FAQ",
+    "close": "Schließen",
+    "register": {
+      "q": "Wie erstelle ich ein Konto?",
+      "a": "Zum Chatten brauchst du keine Anmeldung — aber ein Konto <b>reserviert deinen Spitznamen</b> und bewahrt Avatar, 2FA und Einstellungen.<ol class=\"cfaq__steps\"><li>Tritt zuerst mit dem Spitznamen ein, den du behalten willst.</li><li>Öffne die <b>Einstellungen</b> (⚙, unten links) → Reiter <b>Konto</b>.</li><li>Wähle <b>„Konto erstellen“</b>, gib deine E-Mail und ein Passwort ein.</li><li>Gib den per E-Mail erhaltenen Code ein — dein Spitzname ist geschützt ✅</li></ol>"
+    },
+    "forgot": {
+      "q": "Ich habe mein Passwort vergessen",
+      "a": "Wenn du <b>noch angemeldet</b> bist, ändere es unter <b>Einstellungen → Konto → Sicherheit</b>.<br>Andernfalls bitte einen Moderator im Kanal um Hilfe oder über <a href=\"{{url}}\" target=\"_blank\" rel=\"noopener\">{{site}}</a> — das Zurücksetzen per E-Mail kommt bald."
+    },
+    "free": {
+      "q": "Ist es wirklich kostenlos?",
+      "a": "Ja, völlig. Keine Zahlung, keine Werbung. {{name}} ist ein offener Dienst."
+    },
+    "noaccount": {
+      "q": "Muss ich mich anmelden?",
+      "a": "Nein. Wähle einen Spitznamen und du bist im Kanal. Ein Konto ist <b>optional</b>: Es schützt deine Identität."
+    },
+    "taken": {
+      "q": "Mein Spitzname ist bereits vergeben",
+      "a": "Ein geschützter Spitzname gehört zu einem Konto. Wenn es deiner ist, klicke auf <b>„Hast du schon ein Konto?“</b>, um dich zu identifizieren. Sonst wähle einen anderen."
+    },
+    "privacy": {
+      "q": "Sind meine Gespräche privat?",
+      "a": "Die Verbindung ist <b>verschlüsselt</b> (TLS) und es gibt keinen Datenverkauf. Private Nachrichten laufen nur zwischen dir und deinem Gegenüber."
+    },
+    "mobile": {
+      "q": "Funktioniert es auf dem Handy?",
+      "a": "Ja — es ist eine installierbare App (PWA). Über deinen Browser „Zum Startbildschirm hinzufügen“ und du hast sie wie eine echte App, inklusive Benachrichtigungen."
+    },
+    "what": {
+      "q": "Was ist {{name}}?",
+      "a": "Ein Live-Chat auf dem offenen <b>IRCv3</b>-Protokoll, betrieben von <a href=\"{{project}}\" target=\"_blank\" rel=\"noopener\">Orbit</a>, einem freien Web-Client."
+    }
+  },
+  "members": {
+    "roles": {
+      "owner": "Gründer",
+      "admin": "Administratoren",
+      "proprietors": "Eigentümer",
+      "op": "Operatoren",
+      "halfop": "Moderatoren",
+      "voice": "Voice",
+      "member": "Mitglieder",
+      "privileged": "Privilegiert"
+    },
+    "away": "{{nick}} — abwesend",
+    "operTitle": "{{nick}} — Netzwerk-Operator (IRCop)",
+    "viewProfile": "Profil von {{nick}} ansehen"
+  },
+  "composer": {
+    "typingOne": "{{nick}} schreibt gerade",
+    "typingTwo": "{{a}} und {{b}} schreiben",
+    "typingMany": "{{n}} Personen schreiben",
+    "consolePlaceholder": "IRC-Befehl — z. B. /list, /whois nick, /join #kanal",
+    "placeholder": "Nachricht senden in {{chan}}",
+    "dropImage": "Lege dein Bild hier ab…",
+    "color": "Farbe {{i}}",
+    "clearFormat": "Formatierung löschen",
+    "sendImage": "Bild senden",
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "underline": "Unterstrichen",
+    "colorBtn": "Farbe",
+    "emoji": "Emoji",
+    "send": "Senden",
+    "replyTo": "Antwort an",
+    "cancelReply": "Antwort abbrechen"
+  },
+  "media": {
+    "image": "Bild",
+    "open": "Öffnen",
+    "show": "Anzeigen",
+    "hide": "Verbergen",
+    "enlarge": "Vergrößern",
+    "sharedImage": "geteiltes Bild",
+    "openOriginal": "Original öffnen ↗",
+    "playVideo": "Video abspielen",
+    "ytPreview": "YouTube-Vorschau"
+  },
+  "umodes": {
+    "i": "unsichtbar",
+    "o": "Operator",
+    "O": "lokaler Operator",
+    "r": "registriert",
+    "w": "Wallops",
+    "s": "Server-Hinweise",
+    "B": "Bot",
+    "Z": "sichere Verbindung",
+    "x": "maskierter Host",
+    "g": "gefilterte Nachrichten",
+    "R": "nur von Registrierten",
+    "d": "taub",
+    "H": "versteckter Oper",
+    "I": "unsichtbar in Kanälen",
+    "T": "kein CTCP"
+  },
+  "units": {
+    "sec": "{{n}} s",
+    "min": "{{n}} Min",
+    "hourMin": "{{h}} Std {{m}} Min",
+    "day": "{{n}} T"
   }
 }

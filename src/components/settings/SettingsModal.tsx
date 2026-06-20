@@ -8,11 +8,12 @@ import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../..
 import { Avatar } from '../Avatar';
 import { Turnstile } from '../Turnstile';
 
+// Labels & descriptions are resolved via i18n (SEC_KEY / SEC_DESC).
 const SETTINGS_SECTIONS = [
-  { id: 'profil',    icon: '👤', label: 'Profil',        desc: 'Pseudo & avatar' },
-  { id: 'apparence', icon: '🎨', label: 'Apparence',     desc: 'Thème & affichage' },
-  { id: 'notifs',    icon: '🔔', label: 'Notifications', desc: 'Alertes & sons' },
-  { id: 'compte',    icon: '🔑', label: 'Compte',        desc: 'Connexion & sécurité' },
+  { id: 'profil',    icon: '👤' },
+  { id: 'apparence', icon: '🎨' },
+  { id: 'notifs',    icon: '🔔' },
+  { id: 'compte',    icon: '🔑' },
 ] as const;
 type SettingsSection = (typeof SETTINGS_SECTIONS)[number]['id'];
 
@@ -21,6 +22,13 @@ const SEC_KEY: Record<SettingsSection, string> = {
   apparence: 'settings.sections.appearance',
   notifs: 'settings.sections.notifications',
   compte: 'settings.sections.account',
+};
+
+const SEC_DESC: Record<SettingsSection, string> = {
+  profil: 'settings.sectionDesc.profile',
+  apparence: 'settings.sectionDesc.appearance',
+  notifs: 'settings.sectionDesc.notifications',
+  compte: 'settings.sectionDesc.account',
 };
 
 export function SettingsModal() {
@@ -47,7 +55,7 @@ export function SettingsModal() {
         <aside className="settings__nav">
           <div className="settings__brand">
             <span className="settings__brand-title">{t('settings.title')}</span>
-            <button className="settings__close" onClick={close} aria-label="Fermer">✕</button>
+            <button className="settings__close" onClick={close} aria-label={t('modals.closeButton')}>✕</button>
           </div>
           <nav className="settings__navlist">
             {SETTINGS_SECTIONS.map((s) => (
@@ -56,7 +64,7 @@ export function SettingsModal() {
                 <span className="settings__navic" aria-hidden>{s.icon}</span>
                 <span className="settings__navtxt">
                   <span className="settings__navlabel">{t(SEC_KEY[s.id])}</span>
-                  <span className="settings__navdesc">{s.id === 'compte' && account ? `@${account}` : s.desc}</span>
+                  <span className="settings__navdesc">{s.id === 'compte' && account ? `@${account}` : t(SEC_DESC[s.id])}</span>
                 </span>
                 <span className="settings__navchev" aria-hidden>›</span>
               </button>
@@ -65,8 +73,8 @@ export function SettingsModal() {
           <a className="settings__about" href={getConfig().branding.projectUrl} target="_blank" rel="noopener noreferrer">
             <span className="settings__about-mark" aria-hidden>◐</span>
             <span className="settings__about-txt">
-              <span className="settings__about-name">Propulsé par Orbit</span>
-              <span className="settings__about-sub">client IRCv3 · code & projet ↗</span>
+              <span className="settings__about-name">{t('settings.misc.poweredBy')}</span>
+              <span className="settings__about-sub">{t('settings.misc.aboutSub')}</span>
             </span>
           </a>
         </aside>
@@ -74,10 +82,10 @@ export function SettingsModal() {
         {/* content pane */}
         <section className="settings__pane">
           <header className="settings__top">
-            <button className="settings__back" onClick={() => setDrilled(false)} aria-label="Retour">‹</button>
+            <button className="settings__back" onClick={() => setDrilled(false)} aria-label={t('settings.misc.back')}>‹</button>
             <span className="settings__top-ic" aria-hidden>{cur.icon}</span>
             <h3 className="settings__top-title">{t(SEC_KEY[cur.id])}</h3>
-            <button className="settings__close settings__close--pane" onClick={close} aria-label="Fermer">✕</button>
+            <button className="settings__close settings__close--pane" onClick={close} aria-label={t('modals.closeButton')}>✕</button>
           </header>
           <div className="settings__content" key={section}>
             {section === 'profil' && <ProfileSection />}
@@ -93,6 +101,7 @@ export function SettingsModal() {
 
 // One toggle row: icon · label/hint · switch.
 function PushRow() {
+  const { t } = useTranslation();
   const client = useChat((s) => s.client);
   const supported = isPushSupported();
   const [on, setOn] = useState(pushEnabledPref());
@@ -109,27 +118,27 @@ function PushRow() {
     } else {
       const r = await enablePush(client);
       if (r.ok) setOn(true);
-      else setErr(r.reason === 'denied' ? 'Autorisation refusée.' : r.reason === 'no-vapid' ? 'Indisponible sur ce serveur.' : 'Échec de l’activation.');
+      else setErr(r.reason === 'denied' ? t('settings.notifications.pushDenied') : r.reason === 'no-vapid' ? t('settings.notifications.pushUnavailable') : t('settings.notifications.pushFailed'));
     }
     setBusy(false);
   }
 
-  const hint = !supported ? 'Non pris en charge par ce navigateur.'
-    : !hasVapid ? 'Indisponible sur ce serveur.'
+  const hint = !supported ? t('settings.notifications.pushUnsupported')
+    : !hasVapid ? t('settings.notifications.pushUnavailable')
     : err ? err
-    : on ? 'Actif — alertes même app fermée (au mieux si connecté à ton compte).'
-    : 'Reçois les MP et mentions même quand l’app est fermée.';
+    : on ? t('settings.notifications.pushActive')
+    : t('settings.notifications.pushHint');
 
   return (
     <div className="srow">
       <span className="srow__ic" aria-hidden>📲</span>
       <div className="srow__txt">
-        <div className="srow__label">Notifications push</div>
+        <div className="srow__label">{t('settings.notifications.pushLabel')}</div>
         <div className="srow__hint" style={err ? { color: 'var(--danger, #d33)' } : undefined}>{hint}</div>
       </div>
       {supported && hasVapid
         ? <button className={`switch ${on ? 'is-on' : ''} ${busy ? 'is-busy' : ''}`} role="switch" aria-checked={on}
-            aria-label="Notifications push" disabled={busy} onClick={toggle}><span className="switch__dot" /></button>
+            aria-label={t('settings.notifications.pushLabel')} disabled={busy} onClick={toggle}><span className="switch__dot" /></button>
         : <span className="srow__hint">—</span>}
     </div>
   );
@@ -152,23 +161,25 @@ function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string
 }
 
 function HighlightWordsRow() {
+  const { t } = useTranslation();
   const words = useChat((s) => s.highlightWords);
   const setWords = useChat((s) => s.setHighlightWords);
   const [val, setVal] = useState(words.join(', '));
   const save = () => setWords(val.split(',').map((w) => w.trim()).filter(Boolean));
   return (
     <div className="sfield">
-      <label className="sfield__label">🔆 Mots-clés de surbrillance</label>
+      <label className="sfield__label">🔆 {t('settings.notifications.highlightLabel')}</label>
       <div className="sfield__row">
-        <input className="modal__input" value={val} placeholder="ex : tchatou, rdv, urgent"
+        <input className="modal__input" value={val} placeholder={t('settings.notifications.highlightPlaceholder')}
           onChange={(e) => setVal(e.target.value)} onBlur={save} onKeyDown={(e) => e.key === 'Enter' && save()} />
       </div>
-      <div className="srow__hint" style={{ marginTop: '.3rem' }}>En plus de ton pseudo, ces mots déclenchent une alerte (séparés par des virgules).</div>
+      <div className="srow__hint" style={{ marginTop: '.3rem' }}>{t('settings.notifications.highlightHint')}</div>
     </div>
   );
 }
 
 function ProfileSection() {
+  const { t } = useTranslation();
   const client = useChat((s) => s.client);
   const nick = useChat((s) => s.nick);
   const account = useChat((s) => s.account);
@@ -181,13 +192,13 @@ function ProfileSection() {
             <span className="srow__ic" style={{ background: 'transparent', padding: 0 }}><Avatar nick={nick} size={42} account={account} /></span>
             <div className="srow__txt">
               <div className="srow__label">{nick}</div>
-              <div className="srow__hint">{account ? <>Connecté · <strong style={{ color: 'var(--green-d)' }}>@{account}</strong></> : 'Invité — non connecté'}</div>
+              <div className="srow__hint">{account ? <>{t('settings.account.loggedIn')} · <strong style={{ color: 'var(--green-d)' }}>@{account}</strong></> : t('settings.account.guestNotConnected')}</div>
             </div>
           </div>
         </div>
       </div>
 
-      <button className="set-leave" onClick={() => { client?.disconnect(); location.reload(); }}>Quitter le tchat</button>
+      <button className="set-leave" onClick={() => { client?.disconnect(); location.reload(); }}>{t('settings.account.leaveChat')}</button>
     </>
   );
 }
@@ -195,6 +206,7 @@ function ProfileSection() {
 // Change the current IRC nick — lives in the Compte section so you can align
 // your pseudo with your account name BEFORE identifying.
 function ChangeNickField({ hint }: { hint: string }) {
+  const { t } = useTranslation();
   const client = useChat((s) => s.client);
   const nick = useChat((s) => s.nick);
   const [newNick, setNewNick] = useState(nick);
@@ -210,11 +222,11 @@ function ChangeNickField({ hint }: { hint: string }) {
     <div className="scard">
       <div className="scard__body">
         <div className="sfield">
-          <label className="sfield__label">Changer de pseudo</label>
+          <label className="sfield__label">{t('settings.account.changeNick')}</label>
           <div className="sfield__row">
             <input className="modal__input" value={newNick} maxLength={30}
               onChange={(e) => setNewNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyNick()} />
-            <button className="upbtn" onClick={applyNick} disabled={!newNick.trim() || newNick.trim() === nick}>Changer</button>
+            <button className="upbtn" onClick={applyNick} disabled={!newNick.trim() || newNick.trim() === nick}>{t('settings.account.changeBtn')}</button>
           </div>
           <div className="srow__hint" style={{ marginTop: '.3rem' }}>{hint}</div>
         </div>
@@ -261,7 +273,7 @@ function AppearanceSection() {
             ))}
           </div>
         </div>
-        <ToggleRow icon="🗜️" label={t('settings.appearance.compact')} hint="Messages plus denses, plus d’infos à l’écran." prefKey="compact" />
+        <ToggleRow icon="🗜️" label={t('settings.appearance.compact')} hint={t('settings.appearance.compactHint')} prefKey="compact" />
         <div className="srow">
           <span className="srow__ic" aria-hidden>🕓</span>
           <div className="srow__txt"><div className="srow__label">{t('settings.appearance.timeFormat')}</div></div>
@@ -276,6 +288,7 @@ function AppearanceSection() {
 }
 
 function NotificationsSection() {
+  const { t } = useTranslation();
   const [notif, setNotif] = useState<NotificationPermission | 'unsupported'>(
     'Notification' in window ? Notification.permission : 'unsupported');
   function askNotif() {
@@ -288,18 +301,18 @@ function NotificationsSection() {
         <div className="srow">
           <span className="srow__ic" aria-hidden>🔔</span>
           <div className="srow__txt">
-            <div className="srow__label">Notifications navigateur</div>
-            <div className="srow__hint">{notif === 'granted' ? 'Tu seras alerté hors de l’onglet.' : notif === 'denied' ? 'Bloquées dans ton navigateur.' : 'Reçois une alerte même hors de l’onglet.'}</div>
+            <div className="srow__label">{t('settings.notifications.browserLabel')}</div>
+            <div className="srow__hint">{notif === 'granted' ? t('settings.notifications.browserGranted') : notif === 'denied' ? t('settings.notifications.browserDenied') : t('settings.notifications.browserDefault')}</div>
           </div>
           <div className="srow__ctrl">
-            {notif === 'granted' ? <span className="sbadge-ok">✓ Activées</span>
+            {notif === 'granted' ? <span className="sbadge-ok">✓ {t('settings.notifications.enabled')}</span>
               : notif === 'unsupported' || notif === 'denied' ? <span className="srow__hint">—</span>
-              : <button className="upbtn upbtn--sm" onClick={askNotif}>Activer</button>}
+              : <button className="upbtn upbtn--sm" onClick={askNotif}>{t('settings.notifications.enable')}</button>}
           </div>
         </div>
         {getConfig().features.push && <PushRow />}
-        <ToggleRow icon="🔊" label="Sons" hint="Un bip sur mention ou message privé." prefKey="sound" />
-        <ToggleRow icon="🙈" label="Masquer entrées / sorties" hint="Cache les « a rejoint / a quitté »." prefKey="hideJoinQuit" />
+        <ToggleRow icon="🔊" label={t('settings.notifications.sounds')} hint={t('settings.notifications.soundsHint')} prefKey="sound" />
+        <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
         <HighlightWordsRow />
       </div>
     </div>
@@ -307,6 +320,7 @@ function NotificationsSection() {
 }
 
 function LoginTab() {
+  const { t } = useTranslation();
   const client = useChat((s) => s.client);
   const account = useChat((s) => s.account);
   const nick = useChat((s) => s.nick);
@@ -362,12 +376,12 @@ function LoginTab() {
           <div className="login-card__check" aria-hidden>
             <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" /><path d="M14 27 l8 8 l16 -18" /></svg>
           </div>
-          <div className="login-card__title">Connecté</div>
-          <div className="login-card__sub">Tu es identifié comme <strong>{account}</strong></div>
+          <div className="login-card__title">{t('settings.account.loggedIn')}</div>
+          <div className="login-card__sub">{t('settings.account.identifiedPre')} <strong>{account}</strong></div>
         </div>
-        <ChangeNickField hint="Change le pseudo affiché dans les salons." />
+        <ChangeNickField hint={t('settings.account.nickHint')} />
         <ChangePassword />
-        <button className="set-leave" onClick={logout}>Se déconnecter du compte</button>
+        <button className="set-leave" onClick={logout}>{t('settings.account.logoutAccount')}</button>
       </>
     );
   }
@@ -378,37 +392,37 @@ function LoginTab() {
     <>
       {canRegister && (
         <div className="login-switch">
-          <button className={mode === 'login' ? 'is-on' : ''} onClick={() => setMode('login')}>Se connecter</button>
-          <button className={mode === 'register' ? 'is-on' : ''} onClick={() => setMode('register')}>Créer un compte</button>
+          <button className={mode === 'login' ? 'is-on' : ''} onClick={() => setMode('login')}>{t('settings.account.signin')}</button>
+          <button className={mode === 'register' ? 'is-on' : ''} onClick={() => setMode('register')}>{t('settings.account.createTitle')}</button>
         </div>
       )}
 
       {(mode === 'login' || !canRegister) ? (
         <div className="scard">
-          <div className="scard__h">🔑 Se connecter</div>
+          <div className="scard__h">🔑 {t('settings.account.signin')}</div>
           <div className="scard__body">
             <div className="sfield">
-              <div className="sfield__intro">Identifie-toi à ton compte enregistré, quel que soit ton pseudo actuel — on te renomme automatiquement.</div>
+              <div className="sfield__intro">{t('settings.account.loginIntro')}</div>
             </div>
             <div className="sfield">
-              <label className="sfield__label">Compte</label>
-              <input className="modal__input" autoComplete="username" placeholder="Nom du compte" value={acct} maxLength={30}
+              <label className="sfield__label">{t('settings.sections.account')}</label>
+              <input className="modal__input" autoComplete="username" placeholder={t('settings.account.accountPlaceholder')} value={acct} maxLength={30}
                 onChange={(e) => { setAcct(e.target.value); if (phase === 'error') setPhase('idle'); }}
                 onKeyDown={(e) => e.key === 'Enter' && login()} />
             </div>
             <div className="sfield">
-              <label className="sfield__label">Mot de passe</label>
+              <label className="sfield__label">{t('settings.account.password')}</label>
               <div className="sfield__row">
                 <input className="modal__input" type="password" autoComplete="current-password"
-                  placeholder="Mot de passe" value={pw}
+                  placeholder={t('settings.account.passwordPlaceholder')} value={pw}
                   onChange={(e) => { setPw(e.target.value); if (phase === 'error') setPhase('idle'); }}
                   onKeyDown={(e) => e.key === 'Enter' && login()} />
                 <button className={`upbtn upbtn--primary ${phase === 'pending' ? 'is-loading' : ''}`}
                   onClick={login} disabled={!acct.trim() || !pw.trim() || phase === 'pending'}>
-                  {phase === 'pending' ? 'Connexion…' : 'Se connecter'}
+                  {phase === 'pending' ? t('settings.account.connecting') : t('settings.account.signin')}
                 </button>
               </div>
-              {phase === 'error' && <div className="sfield__err">Compte inconnu ou mot de passe incorrect.</div>}
+              {phase === 'error' && <div className="sfield__err">{t('settings.account.unknownError')}</div>}
             </div>
           </div>
         </div>
@@ -421,6 +435,7 @@ function LoginTab() {
 
 // Change the account password — updates BOTH Anope (IRC) and Django (site).
 function ChangePassword() {
+  const { t } = useTranslation();
   const change = useChat((s) => s.accountChangePassword);
   const [cur, setCur] = useState('');
   const [np, setNp] = useState('');
@@ -439,24 +454,24 @@ function ChangePassword() {
 
   return (
     <div className="scard">
-      <div className="scard__h">🔒 Sécurité</div>
+      <div className="scard__h">🔒 {t('settings.account.security')}</div>
       <div className="scard__body">
         <div className="sfield">
-          <label className="sfield__label">Mot de passe actuel</label>
+          <label className="sfield__label">{t('settings.account.currentPassword')}</label>
           <input className="modal__input" type="password" autoComplete="current-password"
-            placeholder="Mot de passe actuel" value={cur}
+            placeholder={t('settings.account.currentPassword')} value={cur}
             onChange={(e) => { setCur(e.target.value); setMsg(null); }} />
         </div>
         <div className="sfield">
-          <label className="sfield__label">Nouveau mot de passe</label>
+          <label className="sfield__label">{t('settings.account.newPassword')}</label>
           <div className="sfield__row">
             <input className="modal__input" type="password" autoComplete="new-password"
-              placeholder="Min. 6 caractères" value={np}
+              placeholder={t('settings.account.minPassword')} value={np}
               onChange={(e) => { setNp(e.target.value); setMsg(null); }}
               onKeyDown={(e) => e.key === 'Enter' && go()} />
             <button className={`upbtn upbtn--primary ${busy ? 'is-loading' : ''}`} onClick={go}
               disabled={busy || cur.length < 1 || np.trim().length < 6}>
-              {busy ? 'Maj…' : 'Mettre à jour'}
+              {busy ? t('settings.account.updating') : t('settings.account.update')}
             </button>
           </div>
           {msg && (msg.ok ? <div className="sfield__ok">✓ {msg.text}</div> : <div className="sfield__err">{msg.text}</div>)}
@@ -469,6 +484,7 @@ function ChangePassword() {
 // Create a Tchatou account via IRCv3 draft/account-registration (REGISTER → e-mail
 // code → VERIFY → the server auto-logs you in).
 function RegisterForm() {
+  const { t } = useTranslation();
   const nick = useChat((s) => s.nick);
   const reg = useChat((s) => s.reg);
   const doRegister = useChat((s) => s.accountRegister);
@@ -486,7 +502,7 @@ function RegisterForm() {
   if (reg.step === 'code') {
     return (
       <div className="scard">
-        <div className="scard__h">📧 Vérification</div>
+        <div className="scard__h">📧 {t('settings.account.verifyTitle')}</div>
         <div className="scard__body">
           {reg.challengeUrl ? (
             <div className="sfield">
@@ -494,36 +510,36 @@ function RegisterForm() {
                 <div className="challenge__head">
                   <span className="challenge__icon" aria-hidden>🛡️</span>
                   <div>
-                    <div className="challenge__title">Vérification anti-robot</div>
-                    <div className="challenge__txt">Valide ce rapide défi. Ton code te sera ensuite envoyé par e-mail.</div>
+                    <div className="challenge__title">{t('settings.account.antiBot')}</div>
+                    <div className="challenge__txt">{t('settings.account.antiBotDesc')}</div>
                   </div>
                 </div>
                 <Turnstile sitekey={getConfig().turnstile.sitekey} theme={getTheme().includes('dark') ? 'dark' : 'light'}
-                  onVerify={(t) => challengeComplete(t)}
-                  onError={() => useChat.setState((s) => ({ reg: { ...s.reg, error: 'Le défi anti-robot n’a pas pu se charger. Réessaie.' } }))} />
-                {reg.busy && <div className="challenge__busy">Validation…</div>}
+                  onVerify={(tok) => challengeComplete(tok)}
+                  onError={() => useChat.setState((s) => ({ reg: { ...s.reg, error: t('settings.account.challengeLoadError') } }))} />
+                {reg.busy && <div className="challenge__busy">{t('settings.account.validating')}</div>}
               </div>
             </div>
           ) : (
             <div className="sfield"><div className="sfield__intro">
-              {reg.info ? reg.info : <>📧 Un code a été envoyé à <strong>{email || 'ton e-mail'}</strong>. Saisis-le pour activer <strong>{reg.account}</strong>.</>}
+              {reg.info ? reg.info : <span dangerouslySetInnerHTML={{ __html: t('settings.account.codeSentHtml', { email: email || t('settings.account.yourEmail'), account: reg.account }) }} />}
             </div></div>
           )}
           <div className="sfield">
-            <label className="sfield__label">Code de vérification</label>
+            <label className="sfield__label">{t('settings.account.verificationCode')}</label>
             <div className="sfield__row">
-              <input className="modal__input" inputMode="numeric" placeholder="Ex : 123456" value={code}
+              <input className="modal__input" inputMode="numeric" placeholder={t('settings.account.totpCode')} value={code}
                 onChange={(e) => setCode(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && code.trim() && doVerify(code.trim())} />
               <button className={`upbtn upbtn--primary ${reg.busy ? 'is-loading' : ''}`}
                 onClick={() => doVerify(code.trim())} disabled={!code.trim() || reg.busy}>
-                {reg.busy ? 'Vérification…' : 'Valider'}
+                {reg.busy ? t('settings.account.validating') : t('settings.account.verify')}
               </button>
             </div>
             {reg.error && <div className="sfield__err">{reg.error}</div>}
             <div className="reg-foot">
-              <button className="linkbtn" onClick={() => doResend()}>Renvoyer le code</button>
-              <button className="linkbtn" onClick={() => reset()}>Recommencer</button>
+              <button className="linkbtn" onClick={() => doResend()}>{t('settings.account.resend')}</button>
+              <button className="linkbtn" onClick={() => reset()}>{t('settings.account.restart')}</button>
             </div>
           </div>
         </div>
@@ -534,29 +550,29 @@ function RegisterForm() {
   // Step 1: account / email / password.
   return (
     <div className="scard">
-      <div className="scard__h">✨ Créer un compte</div>
+      <div className="scard__h">✨ {t('settings.account.createTitle')}</div>
       <div className="scard__body">
-        <div className="sfield"><div className="sfield__intro">Choisis un pseudo, ton e-mail et un mot de passe. Tu recevras un code pour valider.</div></div>
+        <div className="sfield"><div className="sfield__intro">{t('settings.account.registerIntro')}</div></div>
         <div className="sfield">
-          <label className="sfield__label">Pseudo</label>
-          <input className="modal__input" placeholder="Pseudo" value={account} maxLength={30}
+          <label className="sfield__label">{t('settings.account.nickLabel')}</label>
+          <input className="modal__input" placeholder={t('settings.account.nickPlaceholder')} value={account} maxLength={30}
             onChange={(e) => setAccount(e.target.value)} />
         </div>
         <div className="sfield">
-          <label className="sfield__label">E-mail</label>
-          <input className="modal__input" type="email" autoComplete="email" placeholder="toi@exemple.fr"
+          <label className="sfield__label">{t('settings.account.emailLabel')}</label>
+          <input className="modal__input" type="email" autoComplete="email" placeholder={t('settings.account.emailPlaceholder')}
             value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="sfield">
-          <label className="sfield__label">Mot de passe</label>
+          <label className="sfield__label">{t('settings.account.password')}</label>
           <input className="modal__input" type="password" autoComplete="new-password"
-            placeholder="Min. 6 caractères" value={password}
+            placeholder={t('settings.account.minPassword')} value={password}
             onChange={(e) => setPassword(e.target.value)} />
           {reg.error && <div className="sfield__err">{reg.error}</div>}
           <button className={`upbtn upbtn--primary ${reg.busy ? 'is-loading' : ''}`} style={{ marginTop: '.2rem' }}
             onClick={() => doRegister(account.trim(), email.trim(), password)}
             disabled={reg.busy || !account.trim() || !email.trim() || password.length < 6}>
-            {reg.busy ? 'Création…' : 'Créer mon compte'}
+            {reg.busy ? t('settings.account.creating') : t('settings.account.createCta')}
           </button>
         </div>
       </div>

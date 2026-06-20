@@ -14,7 +14,22 @@
     "channels": "Kanallar",
     "dms": "Direkt",
     "search": "Ara",
-    "noChannel": "Sohbet başlatmak için bir kanal seçin."
+    "noChannel": "Sohbet başlatmak için bir kanal seçin.",
+    "publicRoom": "Herkese açık kanal",
+    "system": "Sistem",
+    "privateMessage": "Özel mesaj",
+    "leaveRoom": "Kanaldan ayrıl",
+    "closeConversation": "Sohbeti kapat",
+    "privateMessages": "Özel mesajlar",
+    "noResults": "Sonuç yok",
+    "viewProfile": "Profilimi gör",
+    "online": "Çevrimiçi",
+    "away": "Uzakta",
+    "markPresent": "Müsait olarak işaretle",
+    "markAway": "Uzakta olarak işaretle",
+    "presence": "Durum",
+    "newChat": "Yeni sohbet",
+    "profileTip": "{{nick}} — profilimi gör"
   },
   "topbar": {
     "search": "Ara",
@@ -50,7 +65,10 @@
     "faqTitle": "Yardım & SSS",
     "error_error": "Bağlanılamıyor. Lütfen tekrar deneyin.",
     "error_closed": "Bağlantı kesildi.",
-    "error_sasl": "Bilinmeyen takma ad veya yanlış şifre."
+    "error_sasl": "Bilinmeyen takma ad veya yanlış şifre.",
+    "live": "canlı",
+    "typing": "{{who}} yazıyor",
+    "nickAria": "Takma ad"
   },
   "messages": {
     "reply": "Yanıt:",
@@ -66,7 +84,13 @@
     "info": "Bilgi",
     "notice": "DUYURU",
     "guest": "Misafir",
-    "poweredBy": "Orbit ile desteklenmektedir"
+    "poweredBy": "Orbit ile desteklenmektedir",
+    "deleted": "mesaj silindi",
+    "dmStarted": "Bu özel sohbet {{chan}} kanalında başladı",
+    "profileOf": "{{nick}} profili",
+    "fromChannel": "Kanaldan",
+    "searchResults_one": "«{{q}}» için {{count}} sonuç",
+    "searchResults_other": "«{{q}}» için {{count}} sonuç"
   },
   "modals": {
     "closeButton": "Kapat",
@@ -74,7 +98,14 @@
       "title": "Kanalları keşfet",
       "search": "Kanal ara veya oluştur…",
       "loading": "Kanallar yükleniyor…",
-      "noResults": "Sonuç yok"
+      "noResults": "Sonuç yok",
+      "sub": "Bir kanala katıl (# ile başlar) veya bir takma adla özel mesaj başlat.",
+      "placeholder": "#kanal veya takma ad",
+      "joinRoom": "Kanala katıl",
+      "startDM": "Özel mesaj başlat",
+      "joinBtn": "Katıl",
+      "emptyNone": "Kanal yok. Bir tane oluşturmak için isim yaz.",
+      "emptyFound": "Kanal bulunamadı. Bir tane oluşturmak için isim yaz."
     },
     "dm": {
       "title": "Yeni sohbet",
@@ -83,7 +114,14 @@
     },
     "friends": {
       "title": "Arkadaşlar",
-      "noFriends": "Henüz arkadaş yok."
+      "noFriends": "Henüz arkadaş yok.",
+      "sub": "Çevrimiçi olduklarında haberdar olmak için takma adlar ekle. 🔔",
+      "add": "Ekle",
+      "online": "çevrimiçi",
+      "offline": "çevrimdışı",
+      "dm": "Özel mesaj",
+      "profile": "Profil",
+      "remove": "Kaldır"
     },
     "chanadmin": {
       "title": "Kanalı yönet",
@@ -98,7 +136,10 @@
       "setTopic": "Ayarla",
       "info": "Bilgi",
       "modes": "Kanal modları",
-      "subject": "Konu"
+      "subject": "Konu",
+      "manage": "{{chan}} yönet",
+      "settings": "Ayarlar",
+      "by": "{{by}} tarafından"
     }
   },
   "settings": {
@@ -140,18 +181,75 @@
       "join": "Katıl",
       "channelHint": "Bir kanala katıl (# ile başlar)",
       "channelPlaceholder": "örn. orbit, yardım",
-      "fromChannel": "Kanaldan"
+      "fromChannel": "Kanaldan",
+      "accountPlaceholder": "Hesap adı",
+      "passwordPlaceholder": "Parola",
+      "loginIntro": "Mevcut takma adın ne olursa olsun kayıtlı hesabına giriş yap — seni otomatik olarak yeniden adlandırırız.",
+      "update": "Güncelle",
+      "updating": "Günc.…",
+      "leaveChat": "Sohbetten çık",
+      "logoutAccount": "Hesaptan çık",
+      "changeBtn": "Değiştir",
+      "guestNotConnected": "Misafir — giriş yapılmadı",
+      "identifiedPre": "Şu kimlikle tanındın:",
+      "signin": "Giriş yap",
+      "verifyTitle": "Doğrulama",
+      "verify": "Onayla",
+      "antiBotDesc": "Bu kısa doğrulamayı tamamla. Kodun ardından e-postayla gönderilecek.",
+      "challengeLoadError": "Anti-bot doğrulaması yüklenemedi. Tekrar dene.",
+      "codeSentHtml": "📧 <strong>{{email}}</strong> adresine bir kod gönderildi. <strong>{{account}}</strong> etkinleştirmek için gir.",
+      "yourEmail": "e-postan",
+      "createTitle": "Hesap oluştur",
+      "creating": "Oluşturuluyor…",
+      "createCta": "Hesabımı oluştur",
+      "registerIntro": "Bir takma ad, e-postanı ve bir parola seç. Onaylamak için bir kod alacaksın.",
+      "nickLabel": "Takma ad",
+      "nickPlaceholder": "Takma ad",
+      "emailLabel": "E-posta",
+      "loginTitle": "Giriş yap"
     },
     "appearance": {
       "theme": "Tema",
       "language": "Dil",
       "timeFormat": "Saat biçimi",
       "compact": "Kompakt mesajlar",
-      "textSize": "Metin boyutu"
+      "textSize": "Metin boyutu",
+      "compactHint": "Daha sık mesajlar, ekranda daha fazlası."
     },
     "notifications": {
       "browser": "Tarayıcı bildirimleri",
-      "push": "Anlık bildirimler"
+      "push": "Anlık bildirimler",
+      "browserLabel": "Tarayıcı bildirimleri",
+      "browserGranted": "Sekme dışındayken uyarılırsın.",
+      "browserDenied": "Tarayıcında engellendi.",
+      "browserDefault": "Sekme dışındayken bile uyarı al.",
+      "enabled": "Etkin",
+      "enable": "Etkinleştir",
+      "pushLabel": "Push bildirimleri",
+      "pushUnsupported": "Bu tarayıcı desteklemiyor.",
+      "pushUnavailable": "Bu sunucuda kullanılamıyor.",
+      "pushDenied": "İzin reddedildi.",
+      "pushFailed": "Etkinleştirme başarısız.",
+      "pushActive": "Etkin — uygulama kapalıyken bile uyarılar (hesaba girişliyken en iyisi).",
+      "pushHint": "Uygulama kapalıyken bile özel mesaj ve bahsetmeleri al.",
+      "sounds": "Sesler",
+      "soundsHint": "Bahsedildiğinde veya özel mesajda bip.",
+      "hideJoins": "Girişleri / çıkışları gizle",
+      "hideJoinsHint": "«katıldı / ayrıldı» satırlarını gizler.",
+      "highlightLabel": "Vurgulama anahtar kelimeleri",
+      "highlightPlaceholder": "örn.: tchatou, buluşma, acil",
+      "highlightHint": "Takma adının yanı sıra bu kelimeler uyarı tetikler (virgülle ayrılmış)."
+    },
+    "misc": {
+      "back": "Geri",
+      "poweredBy": "Orbit ile çalışır",
+      "aboutSub": "IRCv3 istemcisi · kod ve proje ↗"
+    },
+    "sectionDesc": {
+      "profile": "Takma ad ve avatar",
+      "appearance": "Tema ve görünüm",
+      "notifications": "Uyarılar ve sesler",
+      "account": "Giriş ve güvenlik"
     }
   },
   "profile": {
@@ -227,7 +325,49 @@
     "join": "{{nick}} kanala katıldı",
     "part": "{{nick}} kanaldan ayrıldı",
     "quit": "{{nick}} bağlantısını kesti",
-    "kick": "{{target}}, {{by}} tarafından atıldı"
+    "kick": "{{target}}, {{by}} tarafından atıldı",
+    "nick": "{{nick}} artık {{newnick}}",
+    "modes": "{{nick}} modları değiştirdi: {{modes}}",
+    "invitePending": "Bekleyen davet: {{chan}}",
+    "inviteSent": "{{chan}} için {{nick}} kişisine davet gönderildi",
+    "awayOff": "Artık uzakta değilsin.",
+    "awayOn": "Şimdi uzakta olarak işaretlendin.",
+    "cantWriteHere": "Buraya yazamazsın — yasaklandın veya kanal denetimli.",
+    "cantWriteTitle": "{{ch}} kanalına yazılamıyor",
+    "cantWriteBody": "Yasaklandın veya kanal denetimli.",
+    "bannedFrom": "{{ch}} kanalından yasaklısın — erişim reddedildi",
+    "bannedTitle": "{{ch}} kanalından yasaklı",
+    "bannedBody": "Bu kanala giremezsin.",
+    "kickedFrom": "{{by}} tarafından {{ch}} kanalından atıldın",
+    "kickedTitle": "{{ch}} kanalından atıldın",
+    "kickedByNotif": "{{by}} tarafından",
+    "hostChange": "{{nick}} host değiştirdi: {{old}} → {{new}}",
+    "netsplit": "Ağ kopması (netsplit) sürüyor…",
+    "netjoin": "Ağ yeniden bağlanıyor (netjoin)…",
+    "serverErrorDefault": "Bağlantı sunucu tarafından kapatıldı.",
+    "serverError": "Sunucu hatası: {{reason}}",
+    "wallops": "{{nick}} kişisinden WALLOPS: {{msg}}",
+    "killed": "{{nick}} tarafından bağlantın kesildi (KILL)",
+    "killedTitle": "Bağlantı kesildi",
+    "killedBody": "{{nick}} tarafından KILL",
+    "inviteYou": "{{nick}} seni {{chan}} kanalına davet ediyor",
+    "inviteTitle": "Davet",
+    "inviteOther": "{{nick}}, {{target}} kişisini davet etti",
+    "banned": "{{nick}}, {{mask}} yasakladı",
+    "unbanned": "{{nick}}, {{mask}} yasağını kaldırdı",
+    "bansAdded": "Yasaklananlar: {{list}}",
+    "bansRemoved": "Yasağı kalkanlar: {{list}}",
+    "reportSent": "{{nick}} hakkındaki şikâyet ekibe gönderildi ({{target}}).",
+    "onlyImages": "Yalnızca görseller kabul edilir.",
+    "imageTooLarge": "Görsel çok büyük (en fazla 16 MB).",
+    "sendingImage": "«{{name}}» gönderiliyor…",
+    "uploadNeedAccount": "Görsel göndermek için bir hesaba giriş yapmalısın (/msg NickServ IDENTIFY).",
+    "uploadTimeout": "Dosya sunucusu yanıt vermiyor.",
+    "uploadFailed": "Gönderme başarısız ({{msg}}).",
+    "shareImage": "bir görsel paylaşıyor: {{url}}",
+    "yourModes": "Modların: +{{modes}} ({{change}})",
+    "yourModesNamed": "Modların: +{{modes}} ({{change}} — {{names}})",
+    "pmNotif": "{{nick}} (özel)"
   },
   "modeline": {
     "modeTag": "mod",
@@ -255,5 +395,176 @@
     "orbitDark": "Orbit koyu",
     "yomirc": "yomIRC",
     "yomircDark": "yomIRC gece"
+  },
+  "chanFlags": {
+    "invite": {
+      "label": "Yalnızca davetle",
+      "desc": "Girmek için davet edilmen gerekir (+i)"
+    },
+    "moderated": {
+      "label": "Denetimli",
+      "desc": "Yalnızca voice ve op konuşabilir (+m)"
+    },
+    "noExternal": {
+      "label": "Dış mesaj yok",
+      "desc": "Yalnızca üyeler yazabilir (+n)"
+    },
+    "topicLock": {
+      "label": "Korumalı konu",
+      "desc": "Konuyu yalnızca op değiştirir (+t)"
+    },
+    "secret": {
+      "label": "Gizli",
+      "desc": "Herkese açık listelerden gizli (+s)"
+    }
+  },
+  "reg": {
+    "needAccount": "Bir hesaba giriş yapmalısın.",
+    "passwordUpdated": "Parola güncellendi (IRC + site).",
+    "passwordChangeFailed": "Parola değiştirilemedi.",
+    "serviceUnavailable": "Hizmet kullanılamıyor, sonra tekrar dene.",
+    "codeResent": "Yeni bir kod istendi.",
+    "antibotInfo": "Anti-bot doğrulamasını tamamla, ardından e-postayla gelen kodu gir.",
+    "challengeOkSent": "Doğrulama geçildi — az önce sana e-postayla bir doğrulama kodu gönderildi.",
+    "challengeOkCheck": "Doğrulama geçildi — doğrulama kodu için e-postanı kontrol et.",
+    "challengeFail": "Anti-bot doğrulaması başarısız. Tekrar dene.",
+    "challengeUnreachable": "Doğrulama hizmetine ulaşılamadı."
+  },
+  "numerics": {
+    "401": "Bu adda kullanıcı yok.",
+    "402": "Bu sunucu yok.",
+    "403": "Bu kanal yok.",
+    "404": "Bu kanala yazılamıyor (yasaklı veya denetimli).",
+    "405": "Çok fazla kanala katıldın.",
+    "406": "Bu takma ad hiç var olmadı.",
+    "412": "Gönderilecek metin yok.",
+    "417": "Mesaj çok uzun.",
+    "421": "Bilinmeyen komut.",
+    "432": "Geçersiz takma ad.",
+    "433": "Bu takma ad zaten kullanımda.",
+    "441": "Bu kullanıcı kanalda değil.",
+    "442": "Bu kanalda değilsin.",
+    "443": "Bu kullanıcı zaten kanalda.",
+    "451": "Önce kayıt olmalısın.",
+    "461": "Eksik parametre.",
+    "462": "Zaten kayıtlısın.",
+    "464": "Yanlış parola.",
+    "465": "Bu sunucudan yasaklısın.",
+    "471": "Kanal dolu.",
+    "472": "Bilinmeyen mod.",
+    "473": "Yalnızca davetli kanal.",
+    "474": "Bu kanaldan yasaklısın.",
+    "475": "Yanlış kanal anahtarı.",
+    "476": "Geçersiz kanal maskesi.",
+    "481": "Yetersiz ayrıcalık.",
+    "482": "Kanal operatörü olmalısın.",
+    "491": "Operatör erişimi yok.",
+    "524": "Yardım bulunamadı.",
+    "525": "Geçersiz anahtar."
+  },
+  "faq": {
+    "title": "Yardım & SSS",
+    "aria": "Yardım ve SSS",
+    "close": "Kapat",
+    "register": {
+      "q": "Nasıl hesap oluştururum?",
+      "a": "Sohbet için kayıt gerekmez — ama bir hesap <b>takma adını ayırtır</b> ve avatarını, 2FA’nı ve ayarlarını saklar.<ol class=\"cfaq__steps\"><li>Önce, korumak istediğin takma adla gir.</li><li><b>Ayarlar</b>’ı aç (⚙, sol alt) → <b>Hesap</b> sekmesi.</li><li><b>«Hesap oluştur»</b>u seç, e-postanı ve bir parola gir.</li><li>E-postayla gelen kodu gir — takma adın korunur ✅</li></ol>"
+    },
+    "forgot": {
+      "q": "Parolamı unuttum",
+      "a": "<b>Hâlâ oturum açıksan</b>, <b>Ayarlar → Hesap → Güvenlik</b>’ten değiştir.<br>Aksi hâlde kanaldaki bir moderatörden yardım iste ya da <a href=\"{{url}}\" target=\"_blank\" rel=\"noopener\">{{site}}</a> üzerinden — e-postayla sıfırlama yakında geliyor."
+    },
+    "free": {
+      "q": "Gerçekten ücretsiz mi?",
+      "a": "Evet, tamamen. Ödeme yok, reklam yok. {{name}} açık bir hizmettir."
+    },
+    "noaccount": {
+      "q": "Kayıt olmak zorunda mıyım?",
+      "a": "Hayır. Bir takma ad seç ve kanaldasın. Hesap <b>isteğe bağlıdır</b>: kimliğini korumak içindir."
+    },
+    "taken": {
+      "q": "Takma adım zaten alınmış",
+      "a": "Korumalı bir takma ad bir hesaba aittir. Senin ise, kimliğini doğrulamak için <b>«Zaten hesabın var mı?»</b>ya tıkla. Değilse başka bir tane seç."
+    },
+    "privacy": {
+      "q": "Konuşmalarım gizli mi?",
+      "a": "Bağlantı <b>şifrelidir</b> (TLS) ve veri satışı yoktur. Özel mesajlar yalnızca sen ve karşı taraf arasında gider."
+    },
+    "mobile": {
+      "q": "Mobilde çalışıyor mu?",
+      "a": "Evet — kurulabilir bir uygulamadır (PWA). Tarayıcından «Ana ekrana ekle» de, bildirimler dâhil gerçek bir uygulama gibi kullan."
+    },
+    "what": {
+      "q": "{{name}} nedir?",
+      "a": "Açık <b>IRCv3</b> protokolü üzerine kurulu, özgür bir web istemcisi olan <a href=\"{{project}}\" target=\"_blank\" rel=\"noopener\">Orbit</a> ile çalışan canlı bir sohbet."
+    }
+  },
+  "members": {
+    "roles": {
+      "owner": "Kurucular",
+      "admin": "Yöneticiler",
+      "proprietors": "Sahipler",
+      "op": "Operatörler",
+      "halfop": "Moderatörler",
+      "voice": "Sesli",
+      "member": "Üyeler",
+      "privileged": "Ayrıcalıklı"
+    },
+    "away": "{{nick}} — uzakta",
+    "operTitle": "{{nick}} — Ağ operatörü (IRCop)",
+    "viewProfile": "{{nick}} profilini gör"
+  },
+  "composer": {
+    "typingOne": "{{nick}} yazıyor",
+    "typingTwo": "{{a}} ve {{b}} yazıyor",
+    "typingMany": "{{n}} kişi yazıyor",
+    "consolePlaceholder": "IRC komutu — örn.: /list, /whois nick, /join #kanal",
+    "placeholder": "{{chan}} içine mesaj gönder",
+    "dropImage": "Görselini buraya bırak…",
+    "color": "Renk {{i}}",
+    "clearFormat": "Biçimlendirmeyi temizle",
+    "sendImage": "Görsel gönder",
+    "bold": "Kalın",
+    "italic": "İtalik",
+    "underline": "Altı çizili",
+    "colorBtn": "Renk",
+    "emoji": "Emoji",
+    "send": "Gönder",
+    "replyTo": "Yanıt:",
+    "cancelReply": "Yanıtı iptal et"
+  },
+  "media": {
+    "image": "Görsel",
+    "open": "Aç",
+    "show": "Göster",
+    "hide": "Gizle",
+    "enlarge": "Büyüt",
+    "sharedImage": "paylaşılan görsel",
+    "openOriginal": "Orijinali aç ↗",
+    "playVideo": "Videoyu oynat",
+    "ytPreview": "YouTube önizleme"
+  },
+  "umodes": {
+    "i": "görünmez",
+    "o": "operatör",
+    "O": "yerel operatör",
+    "r": "kayıtlı",
+    "w": "wallops",
+    "s": "sunucu bildirimleri",
+    "B": "bot",
+    "Z": "güvenli bağlantı",
+    "x": "maskeli host",
+    "g": "filtrelenmiş mesajlar",
+    "R": "yalnızca kayıtlılardan",
+    "d": "sağır",
+    "H": "gizli oper",
+    "I": "kanallarda görünmez",
+    "T": "CTCP yok"
+  },
+  "units": {
+    "sec": "{{n}} sn",
+    "min": "{{n}} dk",
+    "hourMin": "{{h}} sa {{m}} dk",
+    "day": "{{n}} g"
   }
 }

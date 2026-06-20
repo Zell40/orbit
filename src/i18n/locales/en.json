@@ -14,7 +14,22 @@
     "channels": "Channels",
     "dms": "Direct",
     "search": "Search",
-    "noChannel": "Choose a channel to start chatting."
+    "noChannel": "Choose a channel to start chatting.",
+    "publicRoom": "Public channel",
+    "system": "System",
+    "privateMessage": "Direct message",
+    "leaveRoom": "Leave channel",
+    "closeConversation": "Close conversation",
+    "privateMessages": "Direct messages",
+    "noResults": "No results",
+    "viewProfile": "View my profile",
+    "online": "Online",
+    "away": "Away",
+    "markPresent": "Mark as present",
+    "markAway": "Mark as away",
+    "presence": "Presence",
+    "newChat": "New chat",
+    "profileTip": "{{nick}} — view my profile"
   },
   "topbar": {
     "search": "Search",
@@ -50,7 +65,10 @@
     "faqTitle": "Help & FAQ",
     "error_error": "Cannot connect. Please try again in a moment.",
     "error_closed": "The connection was closed.",
-    "error_sasl": "Unknown nick or incorrect password."
+    "error_sasl": "Unknown nick or incorrect password.",
+    "live": "live",
+    "typing": "{{who}} is typing",
+    "nickAria": "Nickname"
   },
   "messages": {
     "reply": "In reply to",
@@ -66,7 +84,13 @@
     "info": "Info",
     "notice": "NOTICE",
     "guest": "Guest",
-    "poweredBy": "Powered by Orbit"
+    "poweredBy": "Powered by Orbit",
+    "deleted": "message deleted",
+    "dmStarted": "This private chat started in channel {{chan}}",
+    "profileOf": "{{nick}}’s profile",
+    "fromChannel": "From channel",
+    "searchResults_one": "{{count}} result for “{{q}}”",
+    "searchResults_other": "{{count}} results for “{{q}}”"
   },
   "modals": {
     "closeButton": "Close",
@@ -74,7 +98,14 @@
       "title": "Explore channels",
       "search": "Search or create #channel…",
       "loading": "Loading channels…",
-      "noResults": "No results"
+      "noResults": "No results",
+      "sub": "Join a channel (starts with #) or start a direct message with a nickname.",
+      "placeholder": "#channel or nickname",
+      "joinRoom": "Join channel",
+      "startDM": "Start direct message",
+      "joinBtn": "Join",
+      "emptyNone": "No channels. Type a name to create one.",
+      "emptyFound": "No channel found. Type a name to create one."
     },
     "dm": {
       "title": "New conversation",
@@ -83,7 +114,14 @@
     },
     "friends": {
       "title": "Friends",
-      "noFriends": "No friends yet."
+      "noFriends": "No friends yet.",
+      "sub": "Add nicknames to be notified when they come online. 🔔",
+      "add": "Add",
+      "online": "online",
+      "offline": "offline",
+      "dm": "Direct message",
+      "profile": "Profile",
+      "remove": "Remove"
     },
     "chanadmin": {
       "title": "Manage channel",
@@ -98,7 +136,10 @@
       "setTopic": "Set",
       "info": "Info",
       "modes": "Channel modes",
-      "subject": "Topic"
+      "subject": "Topic",
+      "manage": "Manage {{chan}}",
+      "settings": "Settings",
+      "by": "by {{by}}"
     }
   },
   "settings": {
@@ -140,18 +181,75 @@
       "join": "Join",
       "channelHint": "Join a channel (starts with #)",
       "channelPlaceholder": "e.g. orbit, help, offtopic",
-      "fromChannel": "From channel"
+      "fromChannel": "From channel",
+      "accountPlaceholder": "Account name",
+      "passwordPlaceholder": "Password",
+      "loginIntro": "Log in to your registered account, whatever your current nickname — we rename you automatically.",
+      "update": "Update",
+      "updating": "Updating…",
+      "leaveChat": "Leave chat",
+      "logoutAccount": "Log out of account",
+      "changeBtn": "Change",
+      "guestNotConnected": "Guest — not logged in",
+      "identifiedPre": "You are identified as",
+      "signin": "Log in",
+      "verifyTitle": "Verification",
+      "verify": "Confirm",
+      "antiBotDesc": "Complete this quick challenge. Your code will then be emailed to you.",
+      "challengeLoadError": "The anti-bot challenge couldn’t load. Try again.",
+      "codeSentHtml": "📧 A code was sent to <strong>{{email}}</strong>. Enter it to activate <strong>{{account}}</strong>.",
+      "yourEmail": "your email",
+      "createTitle": "Create an account",
+      "creating": "Creating…",
+      "createCta": "Create my account",
+      "registerIntro": "Choose a nickname, your email and a password. You’ll get a code to confirm.",
+      "nickLabel": "Nickname",
+      "nickPlaceholder": "Nickname",
+      "emailLabel": "Email",
+      "loginTitle": "Log in"
     },
     "appearance": {
       "theme": "Theme",
       "language": "Language",
       "timeFormat": "Time format",
       "compact": "Compact messages",
-      "textSize": "Text size"
+      "textSize": "Text size",
+      "compactHint": "Denser messages, more on screen."
     },
     "notifications": {
       "browser": "Browser notifications",
-      "push": "Push notifications"
+      "push": "Push notifications",
+      "browserLabel": "Browser notifications",
+      "browserGranted": "You’ll be alerted outside the tab.",
+      "browserDenied": "Blocked in your browser.",
+      "browserDefault": "Get alerted even outside the tab.",
+      "enabled": "Enabled",
+      "enable": "Enable",
+      "pushLabel": "Push notifications",
+      "pushUnsupported": "Not supported by this browser.",
+      "pushUnavailable": "Unavailable on this server.",
+      "pushDenied": "Permission denied.",
+      "pushFailed": "Failed to enable.",
+      "pushActive": "Active — alerts even when the app is closed (best when logged into your account).",
+      "pushHint": "Get DMs and mentions even when the app is closed.",
+      "sounds": "Sounds",
+      "soundsHint": "A beep on mention or direct message.",
+      "hideJoins": "Hide joins / parts",
+      "hideJoinsHint": "Hides “joined / left” lines.",
+      "highlightLabel": "Highlight keywords",
+      "highlightPlaceholder": "e.g. tchatou, meet, urgent",
+      "highlightHint": "Besides your nickname, these words trigger an alert (comma-separated)."
+    },
+    "misc": {
+      "back": "Back",
+      "poweredBy": "Powered by Orbit",
+      "aboutSub": "IRCv3 client · code & project ↗"
+    },
+    "sectionDesc": {
+      "profile": "Nickname & avatar",
+      "appearance": "Theme & display",
+      "notifications": "Alerts & sounds",
+      "account": "Login & security"
     }
   },
   "profile": {
@@ -227,7 +325,49 @@
     "join": "{{nick}} joined the channel",
     "part": "{{nick}} left the channel",
     "quit": "{{nick}} disconnected",
-    "kick": "{{target}} was kicked by {{by}}"
+    "kick": "{{target}} was kicked by {{by}}",
+    "nick": "{{nick}} is now {{newnick}}",
+    "modes": "{{nick}} changed the modes: {{modes}}",
+    "invitePending": "Pending invite: {{chan}}",
+    "inviteSent": "Invite sent to {{nick}} for {{chan}}",
+    "awayOff": "You are no longer away.",
+    "awayOn": "You are now marked away.",
+    "cantWriteHere": "You can’t write here — you’re banned or the channel is moderated.",
+    "cantWriteTitle": "Can’t write in {{ch}}",
+    "cantWriteBody": "You’re banned or the channel is moderated.",
+    "bannedFrom": "You’re banned from {{ch}} — access denied",
+    "bannedTitle": "Banned from {{ch}}",
+    "bannedBody": "You can’t enter this channel.",
+    "kickedFrom": "You were kicked from {{ch}} by {{by}}",
+    "kickedTitle": "Kicked from {{ch}}",
+    "kickedByNotif": "by {{by}}",
+    "hostChange": "{{nick}} changed host: {{old}} → {{new}}",
+    "netsplit": "Network split (netsplit) in progress…",
+    "netjoin": "Network rejoin (netjoin)…",
+    "serverErrorDefault": "Connection closed by the server.",
+    "serverError": "Server error: {{reason}}",
+    "wallops": "WALLOPS from {{nick}}: {{msg}}",
+    "killed": "You were disconnected (KILL) by {{nick}}",
+    "killedTitle": "Disconnected",
+    "killedBody": "KILL by {{nick}}",
+    "inviteYou": "{{nick}} invites you to join {{chan}}",
+    "inviteTitle": "Invitation",
+    "inviteOther": "{{nick}} invited {{target}}",
+    "banned": "{{nick}} banned {{mask}}",
+    "unbanned": "{{nick}} removed the ban {{mask}}",
+    "bansAdded": "Banned: {{list}}",
+    "bansRemoved": "Unbanned: {{list}}",
+    "reportSent": "Report on {{nick}} sent to the team ({{target}}).",
+    "onlyImages": "Only images are accepted.",
+    "imageTooLarge": "Image too large (max 16 MB).",
+    "sendingImage": "Sending “{{name}}”…",
+    "uploadNeedAccount": "You must be logged into an account to send images (/msg NickServ IDENTIFY).",
+    "uploadTimeout": "The file server is not responding.",
+    "uploadFailed": "Upload failed ({{msg}}).",
+    "shareImage": "shares an image: {{url}}",
+    "yourModes": "Your modes: +{{modes}} ({{change}})",
+    "yourModesNamed": "Your modes: +{{modes}} ({{change}} — {{names}})",
+    "pmNotif": "{{nick}} (private)"
   },
   "modeline": {
     "modeTag": "mode",
@@ -255,5 +395,176 @@
     "orbitDark": "Orbit dark",
     "yomirc": "yomIRC",
     "yomircDark": "yomIRC night"
+  },
+  "chanFlags": {
+    "invite": {
+      "label": "Invite only",
+      "desc": "You must be invited to enter (+i)"
+    },
+    "moderated": {
+      "label": "Moderated",
+      "desc": "Only voiced users and ops can talk (+m)"
+    },
+    "noExternal": {
+      "label": "No external messages",
+      "desc": "Only members can write (+n)"
+    },
+    "topicLock": {
+      "label": "Protected topic",
+      "desc": "Only ops change the topic (+t)"
+    },
+    "secret": {
+      "label": "Secret",
+      "desc": "Hidden from public lists (+s)"
+    }
+  },
+  "reg": {
+    "needAccount": "You must be logged into an account.",
+    "passwordUpdated": "Password updated (IRC + site).",
+    "passwordChangeFailed": "Failed to change password.",
+    "serviceUnavailable": "Service unavailable, try again later.",
+    "codeResent": "A new code has been requested.",
+    "antibotInfo": "Complete the anti-bot challenge, then enter the code sent by email.",
+    "challengeOkSent": "Challenge passed — a verification code was just emailed to you.",
+    "challengeOkCheck": "Challenge passed — check your email for the verification code.",
+    "challengeFail": "Anti-bot challenge failed. Try again.",
+    "challengeUnreachable": "Could not reach the verification service."
+  },
+  "numerics": {
+    "401": "No user by that name.",
+    "402": "That server does not exist.",
+    "403": "That channel does not exist.",
+    "404": "Can’t write in this channel (banned or moderated).",
+    "405": "You’ve joined too many channels.",
+    "406": "That nickname never existed.",
+    "412": "No text to send.",
+    "417": "Message too long.",
+    "421": "Unknown command.",
+    "432": "Invalid nickname.",
+    "433": "That nickname is already in use.",
+    "441": "That user is not in the channel.",
+    "442": "You’re not in this channel.",
+    "443": "That user is already in the channel.",
+    "451": "You must register first.",
+    "461": "Missing parameters.",
+    "462": "You’re already registered.",
+    "464": "Incorrect password.",
+    "465": "You’re banned from this server.",
+    "471": "Channel is full.",
+    "472": "Unknown mode.",
+    "473": "Invite-only channel.",
+    "474": "You’re banned from this channel.",
+    "475": "Incorrect channel key.",
+    "476": "Invalid channel mask.",
+    "481": "Insufficient privileges.",
+    "482": "You must be a channel operator.",
+    "491": "No operator access.",
+    "524": "Help not found.",
+    "525": "Invalid key."
+  },
+  "faq": {
+    "title": "Help & FAQ",
+    "aria": "Help and FAQ",
+    "close": "Close",
+    "register": {
+      "q": "How do I create an account?",
+      "a": "You don’t need to sign up to chat — but an account <b>reserves your nickname</b> and keeps your avatar, 2FA and settings.<ol class=\"cfaq__steps\"><li>First, enter with the nickname you want to keep.</li><li>Open <b>Settings</b> (⚙, bottom left) → <b>Account</b> tab.</li><li>Choose <b>“Create an account”</b>, enter your email and a password.</li><li>Enter the code sent by email — your nickname is protected ✅</li></ol>"
+    },
+    "forgot": {
+      "q": "I forgot my password",
+      "a": "If you’re <b>still logged in</b> to your account, change it in <b>Settings → Account → Security</b>.<br>Otherwise, ask a moderator in the channel for help, or via <a href=\"{{url}}\" target=\"_blank\" rel=\"noopener\">{{site}}</a> — email reset is coming soon."
+    },
+    "free": {
+      "q": "Is it really free?",
+      "a": "Yes, completely. No payment, no ads. {{name}} is an open service."
+    },
+    "noaccount": {
+      "q": "Do I have to sign up?",
+      "a": "No. Pick a nickname and you’re in the channel. An account is <b>optional</b>: it’s there to protect your identity."
+    },
+    "taken": {
+      "q": "My nickname is already taken",
+      "a": "A protected nickname belongs to an account. If it’s yours, click <b>“Already have an account?”</b> to identify. Otherwise, pick another one."
+    },
+    "privacy": {
+      "q": "Are my conversations private?",
+      "a": "The connection is <b>encrypted</b> (TLS) and there’s no data resale. Private messages travel only between you and the other person."
+    },
+    "mobile": {
+      "q": "Does it work on mobile?",
+      "a": "Yes — it’s an installable app (PWA). From your browser, “Add to Home Screen” and you get it like a real app, notifications included."
+    },
+    "what": {
+      "q": "What is {{name}}?",
+      "a": "A live chat built on the open <b>IRCv3</b> protocol and powered by <a href=\"{{project}}\" target=\"_blank\" rel=\"noopener\">Orbit</a>, a free web client."
+    }
+  },
+  "members": {
+    "roles": {
+      "owner": "Founders",
+      "admin": "Administrators",
+      "proprietors": "Owners",
+      "op": "Operators",
+      "halfop": "Moderators",
+      "voice": "Voiced",
+      "member": "Members",
+      "privileged": "Privileged"
+    },
+    "away": "{{nick}} — away",
+    "operTitle": "{{nick}} — Network operator (IRCop)",
+    "viewProfile": "View {{nick}}’s profile"
+  },
+  "composer": {
+    "typingOne": "{{nick}} is typing",
+    "typingTwo": "{{a}} and {{b}} are typing",
+    "typingMany": "{{n}} people are typing",
+    "consolePlaceholder": "IRC command — e.g. /list, /whois nick, /join #channel",
+    "placeholder": "Send a message in {{chan}}",
+    "dropImage": "Drop your image here…",
+    "color": "Color {{i}}",
+    "clearFormat": "Clear formatting",
+    "sendImage": "Send an image",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "colorBtn": "Color",
+    "emoji": "Emoji",
+    "send": "Send",
+    "replyTo": "Reply to",
+    "cancelReply": "Cancel reply"
+  },
+  "media": {
+    "image": "Image",
+    "open": "Open",
+    "show": "Show",
+    "hide": "Hide",
+    "enlarge": "Enlarge",
+    "sharedImage": "shared image",
+    "openOriginal": "Open original ↗",
+    "playVideo": "Play video",
+    "ytPreview": "YouTube preview"
+  },
+  "umodes": {
+    "i": "invisible",
+    "o": "operator",
+    "O": "local operator",
+    "r": "registered",
+    "w": "wallops",
+    "s": "server notices",
+    "B": "bot",
+    "Z": "secure connection",
+    "x": "masked host",
+    "g": "filtered messages",
+    "R": "registered-only messages",
+    "d": "deaf",
+    "H": "hidden oper",
+    "I": "invisible to channels",
+    "T": "no CTCP"
+  },
+  "units": {
+    "sec": "{{n}}s",
+    "min": "{{n}}m",
+    "hourMin": "{{h}}h {{m}}m",
+    "day": "{{n}}d"
   }
 }

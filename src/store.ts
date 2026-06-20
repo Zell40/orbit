@@ -4,8 +4,8 @@ import { IrcClient } from './irc/client';
 import { initNotify, desktopNotify, blip } from './services/notify';
 import { getPrefs, savePrefs, applyPrefs, type Prefs } from './ui/prefs';
 import type { Buffer, ChatMessage, ConnectOptions, IrcMessage, Member, MessageKind, WhoisInfo } from './irc/types';
-import { NUMERICS, ERROR_NUMERICS, ERROR_FR } from './irc/numerics';
-import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes, USER_MODE_NAMES } from './irc/modes';
+import { NUMERICS, ERROR_NUMERICS } from './irc/numerics';
+import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from './irc/modes';
 import { casefold } from './irc/casemap';
 import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';
@@ -269,11 +269,11 @@ export const useChat = create<ChatState>((set, get) => {
         else if (msg.command === 'PART') { text = i18n.t('system.part', { nick: msg.nick }); kind = 'part'; }
         else if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
         else if (msg.command === 'KICK') { text = i18n.t('system.kick', { target: msg.params[1], by: msg.nick }); kind = 'system'; }
-        else if (msg.command === 'NICK') { text = `${msg.nick} est désormais ${msg.params[0]}`; kind = 'nick'; }
+        else if (msg.command === 'NICK') { text = i18n.t('system.nick', { nick: msg.nick, newnick: msg.params[0] }); kind = 'nick'; }
         else if (msg.command === 'TOPIC') { text = msg.params[1] || ''; kind = 'topic'; }
         else if (msg.command === 'MODE') {
           const modestr = [msg.params[1], ...msg.params.slice(2)].filter(Boolean).join(' ');
-          text = `${msg.nick} a changé les modes : ${modestr}`; kind = 'system';
+          text = i18n.t('system.modes', { nick: msg.nick, modes: modestr }); kind = 'system';
         }
         // Deterministic id so the same historical event dedups across re-fetches
         // (events carry no msgid, so newId() would duplicate them on every reconnect).
@@ -466,16 +466,16 @@ export const useChat = create<ChatState>((set, get) => {
       case '337': // RPL_ENDOFINVITELIST
         return; // list terminators — nothing to show
       case '336': // RPL_INVITELIST (a channel you're invited to)
-        if (msg.params[1]) serverLine(`Invitation en attente : ${msg.params[1]}`);
+        if (msg.params[1]) serverLine(i18n.t('system.invitePending', { chan: msg.params[1] }));
         return;
       case '341': // RPL_INVITING: <me> <nick> <channel> — confirm our invite was sent
-        serverLine(`Invitation envoyée à ${msg.params[1]} pour ${msg.params[2]}`);
+        serverLine(i18n.t('system.inviteSent', { nick: msg.params[1], chan: msg.params[2] }));
         return;
       case '305': // RPL_UNAWAY
-        set({ away: false }); serverLine('Tu n’es plus absent.');
+        set({ away: false }); serverLine(i18n.t('system.awayOff'));
         return;
       case '306': // RPL_NOWAWAY
-        set({ away: true }); serverLine('Tu es maintenant marqué absent.');
+        set({ away: true }); serverLine(i18n.t('system.awayOn'));
         return;
       case '730': { // RPL_MONONLINE: <me> :<target>[,<target>…] came online
         const targets = (msg.params[1] || '').split(',').map((t) => t.split('!')[0]).filter(Boolean);
@@ -517,8 +517,8 @@ export const useChat = create<ChatState>((set, get) => {
         const now = Date.now();
         if (now - (lastCantSend[ch] || 0) < 12000) return; // already told them recently — don't spam
         lastCantSend[ch] = now;
-        sysLine(ch, '⛔ Tu ne peux pas écrire ici — tu es banni ou le salon est modéré.', 'system');
-        desktopNotify(`Impossible d'écrire dans ${ch}`, 'Tu es banni ou le salon est modéré.');
+        sysLine(ch, `⛔ ${i18n.t('system.cantWriteHere')}`, 'system');
+        desktopNotify(i18n.t('system.cantWriteTitle', { ch }), i18n.t('system.cantWriteBody'));
         if (get().prefs.sound) blip();
         set({ kicked: { channel: ch, by: '', reason: '', kind: 'mute' } });
         return;
@@ -526,8 +526,8 @@ export const useChat = create<ChatState>((set, get) => {
       case '474': { // ERR_BANNEDFROMCHAN: join refused — we're banned from the channel
         const ch = msg.params[1];
         if (!isChannelName(ch)) return;
-        sysLine(SERVER, `Tu es banni de ${ch} — accès refusé`, 'system');
-        desktopNotify(`Banni de ${ch}`, 'Tu ne peux pas entrer dans ce salon.');
+        sysLine(SERVER, i18n.t('system.bannedFrom', { ch }), 'system');
+        desktopNotify(i18n.t('system.bannedTitle', { ch }), i18n.t('system.bannedBody'));
         if (get().prefs.sound) blip();
         closedChannels.add(canon(ch)); // a failed join may have opened a buffer — drop it
         dropBuffer(ch);
@@ -546,7 +546,7 @@ export const useChat = create<ChatState>((set, get) => {
         const ctx = msg.params[1];
         const dest = ctx && isChannelName(ctx) && get().buffers[canon(ctx)] ? ctx
           : isChannelName(get().active) ? get().active : SERVER;
-        sysLine(dest, `⚠ ${ERROR_FR[code] || serverText}`, 'system');
+        sysLine(dest, `⚠ ${i18n.t(`numerics.${code}`, '') || serverText}`, 'system');
         if (get().prefs.sound) blip();
         return;
       }
@@ -589,7 +589,7 @@ export const useChat = create<ChatState>((set, get) => {
           const challenge = text.match(/(https?:\/\/\S+\/cloudflare\/verify\/\S+)/i);
           if (challenge && /ctx=register/i.test(challenge[1])) {
             set({ reg: { ...get().reg, step: 'code', busy: false, error: '', challengeUrl: challenge[1],
-              info: 'Validez le défi anti-robot, puis saisissez le code reçu par e-mail.' } });
+              info: i18n.t('reg.antibotInfo') } });
             break; // swallow — shown as a button in the Connexion tab
           }
           if (inReg && /défi anti-robot|code de vérification vous sera envoyé/i.test(text)) {
@@ -678,7 +678,7 @@ export const useChat = create<ChatState>((set, get) => {
           const inactive = document.hidden || canon(bufferName) !== get().active;
           if (mention) patchBuffer(bufferName, (b) => ({ ...b, highlight: true }));
           if (inactive && !muted) {
-            if (isPM || mention) desktopNotify(isPM ? `${msg.nick} (privé)` : `${msg.nick} · ${bufferName}`, text.slice(0, 120));
+            if (isPM || mention) desktopNotify(isPM ? i18n.t('system.pmNotif', { nick: msg.nick }) : `${msg.nick} · ${bufferName}`, text.slice(0, 120));
             if ((isPM || mention) && get().prefs.sound) blip();
           }
         }
@@ -721,8 +721,8 @@ export const useChat = create<ChatState>((set, get) => {
           // We got kicked out. Tell the user, then close the salon and drop it
           // from the list (closedChannels stops a late stray line resurrecting it).
           const tail = reason ? ` (${reason})` : '';
-          sysLine(SERVER, `Tu as été expulsé de ${ch} par ${msg.nick}${tail}`, 'system');
-          desktopNotify(`Expulsé de ${ch}`, `par ${msg.nick}${tail}`);
+          sysLine(SERVER, `${i18n.t('system.kickedFrom', { ch, by: msg.nick })}${tail}`, 'system');
+          desktopNotify(i18n.t('system.kickedTitle', { ch }), `${i18n.t('system.kickedByNotif', { by: msg.nick })}${tail}`);
           if (get().prefs.sound) blip();
           closedChannels.add(canon(ch));
           dropBuffer(ch);
@@ -763,7 +763,7 @@ export const useChat = create<ChatState>((set, get) => {
               delete members[msg.nick];
               return { ...bb, members };
             });
-            sysLine(name, `${msg.nick} est désormais ${nn}`, 'nick');
+            sysLine(name, i18n.t('system.nick', { nick: msg.nick, newnick: nn }), 'nick');
           }
         }
         break;
@@ -787,7 +787,7 @@ export const useChat = create<ChatState>((set, get) => {
             if (!mm) return bb;
             return { ...bb, members: { ...bb.members, [msg.nick]: { ...mm, user: newUser, host: newHost } } };
           });
-          if (oldId !== newId2) sysLine(name, `${msg.nick} a changé d'hôte : ${oldId} → ${newId2}`, 'system');
+          if (oldId !== newId2) sysLine(name, i18n.t('system.hostChange', { nick: msg.nick, old: oldId, new: newId2 }), 'system');
         }
         // Keep an open WHOIS/profile panel in sync.
         if (get().whois[msg.nick]) patchWhois(msg.nick, (w) => ({ ...w, user: newUser, host: newHost }));
@@ -819,8 +819,8 @@ export const useChat = create<ChatState>((set, get) => {
           const quiet = type === 'netsplit' || type === 'netjoin';
           openBatches[id] = { type, quiet, target: msg.params[2] };
           if (type === 'chathistory') historyCollect[id] = [];
-          else if (type === 'netsplit') serverLine('📡 Coupure réseau (netsplit) en cours…', 'info');
-          else if (type === 'netjoin') serverLine('📡 Reconnexion réseau (netjoin)…', 'info');
+          else if (type === 'netsplit') serverLine(`📡 ${i18n.t('system.netsplit')}`, 'info');
+          else if (type === 'netjoin') serverLine(`📡 ${i18n.t('system.netjoin')}`, 'info');
         } else if (ref[0] === '-') {
           const b = openBatches[id];
           if (b?.type === 'chathistory' && b.target) {
@@ -876,21 +876,21 @@ export const useChat = create<ChatState>((set, get) => {
         break;
       }
       case 'ERROR': { // server is closing the link — show why
-        const reason = msg.params[msg.params.length - 1] || 'Connexion fermée par le serveur.';
-        sysLine(SERVER, `⛔ Erreur serveur : ${reason}`, 'system');
+        const reason = msg.params[msg.params.length - 1] || i18n.t('system.serverErrorDefault');
+        sysLine(SERVER, `⛔ ${i18n.t('system.serverError', { reason })}`, 'system');
         set({ serverError: reason });
         break;
       }
       case 'WALLOPS': { // :src WALLOPS :message — network-wide oper broadcast
-        sysLine(SERVER, `📣 WALLOPS de ${msg.nick} : ${msg.params[0] ?? ''}`, 'info');
+        sysLine(SERVER, `📣 ${i18n.t('system.wallops', { nick: msg.nick, msg: msg.params[0] ?? '' })}`, 'info');
         if (get().prefs.sound) blip();
         break;
       }
       case 'KILL': { // :src KILL <target> :reason
         if (msg.params[0] === me) {
           const reason = msg.params[1] || '';
-          sysLine(SERVER, `⛔ Tu as été déconnecté (KILL) par ${msg.nick}${reason ? ` : ${reason}` : ''}`, 'system');
-          desktopNotify('Déconnecté', `KILL par ${msg.nick}`);
+          sysLine(SERVER, `⛔ ${i18n.t('system.killed', { nick: msg.nick })}${reason ? ` : ${reason}` : ''}`, 'system');
+          desktopNotify(i18n.t('system.killedTitle'), i18n.t('system.killedBody', { nick: msg.nick }));
         }
         break;
       }
@@ -899,13 +899,13 @@ export const useChat = create<ChatState>((set, get) => {
         const target = msg.params[0];
         const chan = msg.params[1] ?? '';
         if (target === me) {
-          sysLine(SERVER, `📨 ${msg.nick} t'invite à rejoindre ${chan}`, 'info');
-          if (isChannelName(get().active)) sysLine(get().active, `📨 ${msg.nick} t'invite à rejoindre ${chan}`, 'info');
-          desktopNotify('Invitation', `${msg.nick} t'invite à rejoindre ${chan}`);
+          sysLine(SERVER, `📨 ${i18n.t('system.inviteYou', { nick: msg.nick, chan })}`, 'info');
+          if (isChannelName(get().active)) sysLine(get().active, `📨 ${i18n.t('system.inviteYou', { nick: msg.nick, chan })}`, 'info');
+          desktopNotify(i18n.t('system.inviteTitle'), i18n.t('system.inviteYou', { nick: msg.nick, chan }));
           if (get().prefs.sound) blip();
         } else if (isChannelName(chan) && get().buffers[canon(chan)]) {
           // invite-notify: someone invited another user to a channel we're in.
-          sysLine(chan, `📨 ${msg.nick} a invité ${target}`, 'info');
+          sysLine(chan, `📨 ${i18n.t('system.inviteOther', { nick: msg.nick, target })}`, 'info');
         }
         break;
       }
@@ -942,8 +942,10 @@ export const useChat = create<ChatState>((set, get) => {
             const change = msg.params[1] ?? '';
             const next = applyUserModes(get().umodes, change);
             set({ umodes: next });
-            const named = change.replace(/[+-]/g, '').split('').map((c) => USER_MODE_NAMES[c]).filter(Boolean);
-            serverLine(`Tes modes : +${next}${named.length ? ` (${change} — ${named.join(', ')})` : ` (${change})`}`);
+            const named = change.replace(/[+-]/g, '').split('').map((c) => i18n.t(`umodes.${c}`, '')).filter(Boolean);
+            serverLine(named.length
+              ? i18n.t('system.yourModesNamed', { modes: next, change, names: named.join(', ') })
+              : i18n.t('system.yourModes', { modes: next, change }));
           }
           break;
         }
@@ -974,12 +976,12 @@ export const useChat = create<ChatState>((set, get) => {
             // other list modes (+e/+I) ride along in the combined line.
             if (c.mode === 'b' && c.param) {
               const mask = c.param;
-              banLines.push(c.add ? `🔨 ${msg.nick} a banni ${mask}` : `♻️ ${msg.nick} a retiré le ban ${mask}`);
+              banLines.push(c.add ? `🔨 ${i18n.t('system.banned', { nick: msg.nick, mask })}` : `♻️ ${i18n.t('system.unbanned', { nick: msg.nick, mask })}`);
               const members = get().buffers[canon(chan)]?.members ?? {};
               const hit = Object.values(members)
                 .filter((m) => maskMatches(mask, `${m.nick}!${m.user || '*'}@${m.host || '*'}`))
                 .map((m) => m.nick);
-              if (hit.length) banLines.push(`${c.add ? 'Bannis' : 'Débannis'} : ${hit.join(', ')}`);
+              if (hit.length) banLines.push(i18n.t(c.add ? 'system.bansAdded' : 'system.bansRemoved', { list: hit.join(', ') }));
             } else showCombined = true;
           } else {
             // type B/C param mode or type D flag → maintain the channel mode string
@@ -1497,7 +1499,7 @@ export const useChat = create<ChatState>((set, get) => {
       const { client, active } = get();
       const target = getConfig().report.target;
       client?.privmsg(target, `⚠ Signalement : ${nick} (dans ${active}) par ${get().nick}`);
-      sysLine(active, `Signalement de ${nick} envoyé à l'équipe (${target}).`, 'system');
+      sysLine(active, i18n.t('system.reportSent', { nick, target }), 'system');
     },
     refreshChannels() {
       set({ channels: [], listLoading: true });
@@ -1517,10 +1519,10 @@ export const useChat = create<ChatState>((set, get) => {
     async uploadImage(file) {
       const { client, active } = get();
       if (!client || !active || active === SERVER) return;
-      if (!file.type.startsWith('image/')) { sysLine(active, '⚠ Seules les images sont acceptées.', 'system'); return; }
-      if (file.size > 16 * 1024 * 1024) { sysLine(active, '⚠ Image trop volumineuse (max 16 Mo).', 'system'); return; }
+      if (!file.type.startsWith('image/')) { sysLine(active, `⚠ ${i18n.t('system.onlyImages')}`, 'system'); return; }
+      if (file.size > 16 * 1024 * 1024) { sysLine(active, `⚠ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
 
-      sysLine(active, `📤 Envoi de « ${file.name} »…`, 'system');
+      sysLine(active, `📤 ${i18n.t('system.sendingImage', { name: file.name })}`, 'system');
       try {
         // 1) Ask the server for a one-time upload token via /FILEHOST.
         const token = await new Promise<string>((resolve, reject) => {
@@ -1540,7 +1542,7 @@ export const useChat = create<ChatState>((set, get) => {
         const data = await res.json() as { url: string };
         // 3) Share it as a CTCP ACTION so it reads as an action everywhere —
         //    "* Mik 📷 partage une image : <url>" (mIRC/irssi etc.); web renders the card.
-        const caption = `📷 partage une image : ${data.url}`;
+        const caption = `📷 ${i18n.t('system.shareImage', { url: data.url })}`;
         client.action(active, caption);
         if (!client.hasCap('echo-message')) {
           addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
@@ -1548,8 +1550,8 @@ export const useChat = create<ChatState>((set, get) => {
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         const human = msg === 'not_identified'
-          ? "Tu dois être connecté à un compte pour envoyer des images (/msg NickServ IDENTIFY)."
-          : msg === 'timeout' ? 'Le serveur de fichiers ne répond pas.' : `Échec de l'envoi (${msg}).`;
+          ? i18n.t('system.uploadNeedAccount')
+          : msg === 'timeout' ? i18n.t('system.uploadTimeout') : i18n.t('system.uploadFailed', { msg });
         sysLine(active, `⚠ ${human}`, 'system');
       }
     },
@@ -1570,7 +1572,7 @@ export const useChat = create<ChatState>((set, get) => {
     accountResend() {
       const { client, reg } = get();
       if (!client || !reg.account) return;
-      set({ reg: { ...reg, error: '', info: 'Un nouveau code a été demandé.' } });
+      set({ reg: { ...reg, error: '', info: i18n.t('reg.codeResent') } });
       client.resend(reg.account);
     },
     // Change the account password via Django (same-origin proxy → swaygo). The
@@ -1578,7 +1580,7 @@ export const useChat = create<ChatState>((set, get) => {
     // drift — NOT a raw NickServ SET PASSWORD, which would only touch Anope.
     async accountChangePassword(currentPassword, newPassword) {
       const account = get().account;
-      if (!account) return { ok: false, message: 'Tu dois être connecté à un compte.' };
+      if (!account) return { ok: false, message: i18n.t('reg.needAccount') };
       try {
         const res = await fetch('/accounts/api/change_password/', {
           method: 'POST',
@@ -1587,11 +1589,11 @@ export const useChat = create<ChatState>((set, get) => {
         });
         const data = await res.json().catch(() => ({} as Record<string, unknown>));
         if (data.status === 'success') {
-          return { ok: true, message: (data.message as string) || 'Mot de passe mis à jour (IRC + site).' };
+          return { ok: true, message: (data.message as string) || i18n.t('reg.passwordUpdated') };
         }
-        return { ok: false, message: (data.message as string) || 'Échec du changement de mot de passe.' };
+        return { ok: false, message: (data.message as string) || i18n.t('reg.passwordChangeFailed') };
       } catch {
-        return { ok: false, message: 'Service indisponible, réessaie plus tard.' };
+        return { ok: false, message: i18n.t('reg.serviceUnavailable') };
       }
     },
     // Native Turnstile solved in-app → tell Django (same-origin via the
@@ -1612,14 +1614,14 @@ export const useChat = create<ChatState>((set, get) => {
         if (res.ok && data.success) {
           set({ reg: { ...get().reg, busy: false, challengeUrl: '', error: '',
             info: data.registration === 'sent'
-              ? '✅ Défi validé — un code de vérification vient de t’être envoyé par e-mail.'
-              : '✅ Défi validé — regarde tes e-mails pour le code de vérification.' } });
+              ? `✅ ${i18n.t('reg.challengeOkSent')}`
+              : `✅ ${i18n.t('reg.challengeOkCheck')}` } });
         } else {
           set({ reg: { ...get().reg, busy: false,
-            error: (data.message as string) || 'Échec du défi anti-robot. Réessaie.' } });
+            error: (data.message as string) || i18n.t('reg.challengeFail') } });
         }
       } catch {
-        set({ reg: { ...get().reg, busy: false, error: 'Impossible de contacter le service de vérification.' } });
+        set({ reg: { ...get().reg, busy: false, error: i18n.t('reg.challengeUnreachable') } });
       }
     },
     resetReg() {

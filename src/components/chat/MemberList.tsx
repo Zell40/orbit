@@ -1,18 +1,20 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
 import type { Member } from '../../irc/types';
 import { Avatar } from '../Avatar';
-const ROLES: Record<string, { label: string; cls: string }> = {
-  '~': { label: 'Fondateurs', cls: 'owner' },
-  '&': { label: 'Administrateurs', cls: 'admin' },
-  '!': { label: 'Propriétaires', cls: 'owner' },
-  '@': { label: 'Opérateurs', cls: 'op' },
-  '%': { label: 'Modérateurs', cls: 'halfop' },
-  '+': { label: 'Voix', cls: 'voice' },
-  '': { label: 'Membres', cls: 'member' },
+const ROLES: Record<string, { key: string; cls: string }> = {
+  '~': { key: 'owner', cls: 'owner' },
+  '&': { key: 'admin', cls: 'admin' },
+  '!': { key: 'proprietors', cls: 'owner' },
+  '@': { key: 'op', cls: 'op' },
+  '%': { key: 'halfop', cls: 'halfop' },
+  '+': { key: 'voice', cls: 'voice' },
+  '': { key: 'member', cls: 'member' },
 };
 
 export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
+  const { t } = useTranslation();
   const buffer = useChat((s) => s.buffers[s.active]);
   const openUser = useChat((s) => s.openUser);
   const prefixOrder = useChat((s) => s.client?.prefixModes ?? '~&@%+');
@@ -34,28 +36,28 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
     .sort((a, b) => rank(a[0]) - rank(b[0]))
     .map(([p, list]) => ({
       p,
-      role: ROLES[p] ?? { label: 'Privilégiés', cls: 'op' },
+      role: ROLES[p] ?? { key: 'privileged', cls: 'op' },
       list: list.sort((a, b) => a.nick.localeCompare(b.nick, 'fr', { sensitivity: 'base' })),
     }));
 
   return (
     <aside className="members">
-      <div className="members__h">Membres · {all.length}</div>
+      <div className="members__h">{t('topbar.membersCount', { n: all.length })}</div>
       {all.length > 12 && (
         <div className="members__search">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrer les membres" aria-label="Filtrer les membres" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('profile.filterMembers')} aria-label={t('profile.filterMembers')} />
         </div>
       )}
       <div className="members__list">
         {groups.map((g) => (
           <div className="mgroup" key={g.p || 'none'}>
-            <div className={`mgroup__h role-${g.role.cls}`}>{g.role.label}<span className="mgroup__n">{g.list.length}</span></div>
+            <div className={`mgroup__h role-${g.role.cls}`}>{t(`members.roles.${g.role.key}`)}<span className="mgroup__n">{g.list.length}</span></div>
             {g.list.map((m) => (
               <button
                 type="button"
                 className={`member ${m.oper ? 'member--oper' : ''} ${m.away ? 'is-away' : ''}`}
                 key={m.nick}
-                title={m.away ? `${m.nick} — absent` : m.oper ? `${m.nick} — Opérateur réseau (IRCop)` : `Voir le profil de ${m.nick}`}
+                title={m.away ? t('members.away', { nick: m.nick }) : m.oper ? t('members.operTitle', { nick: m.nick }) : t('members.viewProfile', { nick: m.nick })}
                 onClick={() => { openUser(m.nick); onNavigate?.(); }}
               >
                 <Avatar nick={m.nick} size={30} account={m.account} />
@@ -68,7 +70,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
             ))}
           </div>
         ))}
-        {members.length === 0 && <div className="rooms-empty">Aucun membre</div>}
+        {members.length === 0 && <div className="rooms-empty">{t('profile.noMembers')}</div>}
       </div>
     </aside>
   );

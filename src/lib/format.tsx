@@ -1,11 +1,12 @@
 // Presentation helpers shared across the chat UI: timestamps, hashed colours,
 // link/image/YouTube rendering, and the mIRC/IRC formatting → React renderer.
 import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from '../store';
-import { USER_MODE_NAMES } from '../irc/modes';
+import i18n from '../i18n';
 
 export const fmtTime = (ts: number) =>
-  new Date(ts).toLocaleTimeString('fr-FR', {
+  new Date(ts).toLocaleTimeString(i18n.language || 'fr', {
     hour: '2-digit', minute: '2-digit', hour12: !useChat.getState().prefs.clock24,
   });
 
@@ -27,6 +28,7 @@ const isImageUrl = (u: string) => /\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(u);
 
 /* Element-style image attachment: friendly caption bar + collapsible thumbnail + lightbox. */
 function ImageAttachment({ url, defaultShown = false }: { url: string; defaultShown?: boolean }) {
+  const { t } = useTranslation();
   const [shown, setShown] = useState(defaultShown);
   const [zoom, setZoom] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -50,22 +52,22 @@ function ImageAttachment({ url, defaultShown = false }: { url: string; defaultSh
     <div className="imgcard" ref={ref}>
       <div className="imgcard__bar">
         <span className="imgcard__ic">🖼️</span>
-        <span className="imgcard__label">Image</span>
-        <a className="imgcard__act" href={url} target="_blank" rel="noopener noreferrer">Ouvrir</a>
+        <span className="imgcard__label">{t('media.image')}</span>
+        <a className="imgcard__act" href={url} target="_blank" rel="noopener noreferrer">{t('media.open')}</a>
         <button className="imgcard__act imgcard__toggle" onClick={() => { setShown((s) => !s); snapIfStuck(); }}>
-          {shown ? 'Masquer' : 'Afficher'}
+          {shown ? t('media.hide') : t('media.show')}
         </button>
       </div>
       {shown && (
-        <button className="imgcard__thumb" onClick={() => setZoom(true)} title="Agrandir">
-          <img className="msg-img" src={url} alt="image partagée" loading="lazy" onLoad={snapIfStuck} />
+        <button className="imgcard__thumb" onClick={() => setZoom(true)} title={t('media.enlarge')}>
+          <img className="msg-img" src={url} alt={t('media.sharedImage')} loading="lazy" onLoad={snapIfStuck} />
         </button>
       )}
       {zoom && (
         <div className="lightbox" onClick={() => setZoom(false)}>
-          <img className="lightbox__img" src={url} alt="image partagée" onClick={(e) => e.stopPropagation()} />
-          <a className="lightbox__open" href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Ouvrir l'original ↗</a>
-          <button className="lightbox__x" onClick={() => setZoom(false)} aria-label="Fermer">✕</button>
+          <img className="lightbox__img" src={url} alt={t('media.sharedImage')} onClick={(e) => e.stopPropagation()} />
+          <a className="lightbox__open" href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{t('media.openOriginal')}</a>
+          <button className="lightbox__x" onClick={() => setZoom(false)} aria-label={t('modals.closeButton')}>✕</button>
         </div>
       )}
     </div>
@@ -79,6 +81,7 @@ function youtubeId(u: string): string | null {
 }
 
 function YouTubeEmbed({ id, url }: { id: string; url: string }) {
+  const { t } = useTranslation();
   const [play, setPlay] = useState(false);
   return (
     <div className="ytcard">
@@ -86,8 +89,8 @@ function YouTubeEmbed({ id, url }: { id: string; url: string }) {
         <iframe className="ytcard__frame" src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1`}
           title="YouTube" allow="accelerator;autoplay;encrypted-media;picture-in-picture" allowFullScreen />
       ) : (
-        <button className="ytcard__thumb" onClick={() => setPlay(true)} title="Lire la vidéo">
-          <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="Aperçu YouTube" loading="lazy" />
+        <button className="ytcard__thumb" onClick={() => setPlay(true)} title={t('media.playVideo')}>
+          <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt={t('media.ytPreview')} loading="lazy" />
           <span className="ytcard__play">▶</span>
           <span className="ytcard__badge">YouTube</span>
         </button>
@@ -193,16 +196,16 @@ export function formatIrc(text: string, selfMsg: boolean): ReactNode {
 }
 
 export function fmtDuration(sec: number): string {
-  if (sec < 60) return `${sec} s`;
-  if (sec < 3600) return `${Math.floor(sec / 60)} min`;
-  if (sec < 86400) return `${Math.floor(sec / 3600)} h ${Math.floor((sec % 3600) / 60)} min`;
-  return `${Math.floor(sec / 86400)} j`;
+  if (sec < 60) return i18n.t('units.sec', { n: sec });
+  if (sec < 3600) return i18n.t('units.min', { n: Math.floor(sec / 60) });
+  if (sec < 86400) return i18n.t('units.hourMin', { h: Math.floor(sec / 3600), m: Math.floor((sec % 3600) / 60) });
+  return i18n.t('units.day', { n: Math.floor(sec / 86400) });
 }
 
-// "+iwx" → "+iwx · invisible, wallops, hôte masqué" (named where we know them).
+// "+iwx" → "+iwx · invisible, wallops, masked host" (named where we know them).
 export function formatUserModes(modes: string): string {
   const letters = modes.replace(/^\+/, '').split('').filter(Boolean);
   if (!letters.length) return '+';
-  const named = letters.map((c) => USER_MODE_NAMES[c]).filter(Boolean);
+  const named = letters.map((c) => i18n.t(`umodes.${c}`, '')).filter(Boolean);
   return `+${letters.join('')}${named.length ? ` · ${named.join(', ')}` : ''}`;
 }

@@ -62,37 +62,6 @@ export const ERROR_NUMERICS = new Set([
   '502', '524', '525', '691', '696', '723', '734', '902', '904', '905', '906', '907',
 ]);
 
-// Friendly French text for the errors a normal user can hit (falls back to the
-// server's own trailing message when not listed here).
-export const ERROR_FR: Record<string, string> = {
-  '401': "Aucun utilisateur de ce nom.",
-  '402': "Ce serveur n'existe pas.",
-  '403': "Ce salon n'existe pas.",
-  '404': "Impossible d'écrire dans ce salon (banni ou modéré).",
-  '405': "Tu as rejoint trop de salons.",
-  '406': "Ce pseudo n'a jamais existé.",
-  '412': "Aucun texte à envoyer.",
-  '417': "Message trop long.",
-  '421': "Commande inconnue.",
-  '432': "Pseudo invalide.",
-  '433': "Ce pseudo est déjà utilisé.",
-  '441': "Cet utilisateur n'est pas sur le salon.",
-  '442': "Tu n'es pas sur ce salon.",
-  '443': "Cet utilisateur est déjà sur le salon.",
-  '451': "Tu dois d'abord t'enregistrer.",
-  '461': "Paramètres manquants.",
-  '462': "Tu es déjà enregistré.",
-  '464': "Mot de passe incorrect.",
-  '465': "Tu es banni de ce serveur.",
-  '471': "Salon plein.",
-  '472': "Mode inconnu.",
-  '473': "Salon sur invitation uniquement.",
-  '474': "Tu es banni de ce salon.",
-  '475': "Clé de salon incorrecte.",
-  '476': "Masque de salon invalide.",
-  '481': "Privilèges insuffisants.",
-  '482': "Tu dois être opérateur du salon.",
-  '491': "Aucun accès opérateur.",
-  '524': "Aide introuvable.",
-  '525': "Clé invalide.",
-};
+// Friendly text for the errors a normal user can hit is resolved at runtime via
+// i18n (the `numerics.<code>` keys), falling back to the server's own trailing
+// message when the code isn't translated. See store.ts.

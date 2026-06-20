@@ -89,13 +89,8 @@ export function applyUserModes(current: string, modestring: string): string {
   return [...set].sort().join('');
 }
 
-// Friendly names for the common user modes (display only).
-export const USER_MODE_NAMES: Record<string, string> = {
-  i: 'invisible', o: 'opérateur', O: 'opérateur local', r: 'enregistré',
-  w: 'wallops', s: 'notices serveur', B: 'bot', Z: 'connexion sécurisée',
-  x: 'hôte masqué', g: 'messages filtrés', R: 'messages des enregistrés only',
-  d: 'sourd', H: 'oper masqué', I: 'invisible aux salons', T: 'pas de CTCP',
-};
+// Friendly names for the common user modes are resolved via i18n (umodes.*) in
+// lib/format → formatUserModes.
 
 // Apply a type B/C/D channel-flag change to the stored mode letters + params.
 // Type B/C carry a param (key +k, limit +l) which we keep; type D are bare flags.

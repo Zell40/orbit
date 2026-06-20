@@ -1,9 +1,11 @@
 import { useState, useEffect, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
 import { Avatar } from '../Avatar';
 import { SettingsModal } from '../settings/SettingsModal';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const { t } = useTranslation();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
@@ -14,7 +16,7 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
       <div className={`modal ${wide ? 'modal--wide' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="modal__head">
           <h3>{title}</h3>
-          <button className="modal__x" onClick={onClose} aria-label="Fermer">✕</button>
+          <button className="modal__x" onClick={onClose} aria-label={t('modals.closeButton')}>✕</button>
         </div>
         {children}
       </div>
@@ -23,6 +25,7 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
 }
 
 function JoinDialog() {
+  const { t } = useTranslation();
   const setModal = useChat((s) => s.setModal);
   const client = useChat((s) => s.client);
   const setActive = useChat((s) => s.setActive);
@@ -38,14 +41,14 @@ function JoinDialog() {
     setModal('');
   }
   return (
-    <Modal title="Nouvelle discussion" onClose={() => setModal('')}>
-      <p className="modal__sub">Rejoins un salon (commence par <b>#</b>) ou démarre un message privé avec un pseudo.</p>
+    <Modal title={t('sidebar.newChat')} onClose={() => setModal('')}>
+      <p className="modal__sub">{t('modals.join.sub')}</p>
       <input className="modal__input" autoFocus value={val} onChange={(e) => setVal(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && go()} placeholder="#salon ou pseudo" />
+        onKeyDown={(e) => e.key === 'Enter' && go()} placeholder={t('modals.join.placeholder')} />
       <div className="modal__actions">
-        <button className="upbtn" onClick={() => setModal('')}>Annuler</button>
+        <button className="upbtn" onClick={() => setModal('')}>{t('profile.cancel')}</button>
         <button className="upbtn upbtn--primary" onClick={go}>
-          {isChan ? 'Rejoindre le salon' : 'Démarrer le message privé'}
+          {isChan ? t('modals.join.joinRoom') : t('modals.join.startDM')}
         </button>
       </div>
     </Modal>
@@ -53,6 +56,7 @@ function JoinDialog() {
 }
 
 function ExploreModal() {
+  const { t } = useTranslation();
   const setModal = useChat((s) => s.setModal);
   const client = useChat((s) => s.client);
   const setActive = useChat((s) => s.setActive);
@@ -76,16 +80,16 @@ function ExploreModal() {
   }
 
   return (
-    <Modal title="Explorer les salons" onClose={() => setModal('')}>
+    <Modal title={t('modals.join.title')} onClose={() => setModal('')}>
       <div className="set-inline" style={{ marginBottom: '.7rem' }}>
-        <input className="modal__input" name="channel-search" type="search" autoComplete="off" placeholder="Rechercher ou créer #salon…" value={q}
+        <input className="modal__input" name="channel-search" type="search" autoComplete="off" placeholder={t('modals.join.search')} value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && q.trim()) join(q); }} autoFocus />
-        <button className="upbtn upbtn--primary" onClick={() => join(q)} disabled={!q.trim()}>Rejoindre</button>
+        <button className="upbtn upbtn--primary" onClick={() => join(q)} disabled={!q.trim()}>{t('modals.join.joinBtn')}</button>
       </div>
       <div className="explore-list">
-        {loading && rows.length === 0 && <div className="explore-empty">Chargement des salons…</div>}
-        {!loading && rows.length === 0 && <div className="explore-empty">Aucun salon{needle ? ' trouvé' : ''}. Tape un nom pour en créer un.</div>}
+        {loading && rows.length === 0 && <div className="explore-empty">{t('modals.join.loading')}</div>}
+        {!loading && rows.length === 0 && <div className="explore-empty">{needle ? t('modals.join.emptyFound') : t('modals.join.emptyNone')}</div>}
         {rows.map((c) => (
           <button key={c.name} className="explore-row" onClick={() => join(c.name)}>
             <span className="explore-row__av">#</span>
@@ -102,6 +106,7 @@ function ExploreModal() {
 }
 
 function FriendsModal() {
+  const { t } = useTranslation();
   const friends = useChat((s) => s.friends);
   const online = useChat((s) => s.friendsOnline);
   const add = useChat((s) => s.addFriend);
@@ -114,15 +119,15 @@ function FriendsModal() {
   const sorted = [...friends].sort((a, b) =>
     Number(!!online[b.toLowerCase()]) - Number(!!online[a.toLowerCase()]) || a.localeCompare(b, 'fr'));
   return (
-    <Modal title="Amis" onClose={() => setModal('')}>
-      <p className="modal__sub">Ajoute des pseudos pour être prévenu quand ils se connectent. 🔔</p>
+    <Modal title={t('modals.friends.title')} onClose={() => setModal('')}>
+      <p className="modal__sub">{t('modals.friends.sub')}</p>
       <div className="modal__actions">
-        <input className="modal__input" autoFocus value={nick} placeholder="Ajouter un pseudo…"
+        <input className="modal__input" autoFocus value={nick} placeholder={t('modals.dm.search')}
           onChange={(e) => setNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} />
-        <button className="upbtn upbtn--primary" onClick={submit}>Ajouter</button>
+        <button className="upbtn upbtn--primary" onClick={submit}>{t('modals.friends.add')}</button>
       </div>
       {sorted.length === 0
-        ? <div className="empty" style={{ padding: '1.5rem 0' }}>Aucun ami pour l'instant.</div>
+        ? <div className="empty" style={{ padding: '1.5rem 0' }}>{t('modals.friends.noFriends')}</div>
         : <ul className="friends-list">
             {sorted.map((f) => {
               const on = !!online[f.toLowerCase()];
@@ -131,10 +136,10 @@ function FriendsModal() {
                   <Avatar nick={f} size={32} />
                   <span className="friend__name">{f}</span>
                   <span className={`friend__dot friend__dot--${on ? 'on' : 'off'}`} />
-                  <span className="friend__state">{on ? 'en ligne' : 'hors ligne'}</span>
-                  <button className="friend__act" title="Message privé" onClick={() => { openQuery(f); setModal(''); }}>💬</button>
-                  <button className="friend__act" title="Profil" onClick={() => { openUser(f); setModal(''); }}>👤</button>
-                  <button className="friend__act friend__act--rm" title="Retirer" onClick={() => remove(f)}>✕</button>
+                  <span className="friend__state">{on ? t('modals.friends.online') : t('modals.friends.offline')}</span>
+                  <button className="friend__act" title={t('modals.friends.dm')} onClick={() => { openQuery(f); setModal(''); }}>💬</button>
+                  <button className="friend__act" title={t('modals.friends.profile')} onClick={() => { openUser(f); setModal(''); }}>👤</button>
+                  <button className="friend__act friend__act--rm" title={t('modals.friends.remove')} onClick={() => remove(f)}>✕</button>
                 </li>
               );
             })}
@@ -143,15 +148,17 @@ function FriendsModal() {
   );
 }
 
-const CHAN_FLAGS: { m: string; label: string; desc: string }[] = [
-  { m: 'i', label: 'Sur invitation', desc: 'Il faut être invité pour entrer (+i)' },
-  { m: 'm', label: 'Modéré', desc: 'Seuls les voix et ops peuvent parler (+m)' },
-  { m: 'n', label: 'Pas de messages externes', desc: 'Seuls les membres peuvent écrire (+n)' },
-  { m: 't', label: 'Sujet protégé', desc: 'Seuls les ops changent le sujet (+t)' },
-  { m: 's', label: 'Secret', desc: 'Caché des listes publiques (+s)' },
+// Stable keys → labels/descriptions are resolved via i18n (chanFlags.*).
+const CHAN_FLAGS: { m: string; key: string }[] = [
+  { m: 'i', key: 'invite' },
+  { m: 'm', key: 'moderated' },
+  { m: 'n', key: 'noExternal' },
+  { m: 't', key: 'topicLock' },
+  { m: 's', key: 'secret' },
 ];
 
 function ChanAdminModal() {
+  const { t } = useTranslation();
   const setModal = useChat((s) => s.setModal);
   const buffer = useChat((s) => s.buffers[s.active]);
   const banlist = useChat((s) => s.banlists[s.active] || []);
@@ -172,40 +179,40 @@ function ChanAdminModal() {
     setNewban(''); setTimeout(() => loadBanList(chan), 500);
   };
   return (
-    <Modal title={`Gérer ${chan}`} wide onClose={() => setModal('')}>
+    <Modal title={t('modals.chanadmin.manage', { chan })} wide onClose={() => setModal('')}>
       <div className="ca-sec">
-        <h4 className="ca-h">Sujet</h4>
+        <h4 className="ca-h">{t('modals.chanadmin.subject')}</h4>
         <div className="modal__actions">
-          <input className="modal__input" value={topic} placeholder="Sujet du salon…" onChange={(e) => setTopicVal(e.target.value)} />
-          <button className="upbtn upbtn--primary" onClick={() => modTopic(topic)}>Définir</button>
+          <input className="modal__input" value={topic} placeholder={t('modals.chanadmin.topic')} onChange={(e) => setTopicVal(e.target.value)} />
+          <button className="upbtn upbtn--primary" onClick={() => modTopic(topic)}>{t('modals.chanadmin.setTopic')}</button>
         </div>
       </div>
       <div className="ca-sec">
-        <h4 className="ca-h">Réglages</h4>
+        <h4 className="ca-h">{t('modals.chanadmin.settings')}</h4>
         {CHAN_FLAGS.map((f) => {
           const on = modes.includes(f.m);
           return (
             <label key={f.m} className="ca-flag">
               <input type="checkbox" checked={on} onChange={() => setChannelMode(chan, f.m, !on)} />
-              <span className="ca-flag__txt"><b>{f.label}</b><span className="ca-flag__desc">{f.desc}</span></span>
+              <span className="ca-flag__txt"><b>{t(`chanFlags.${f.key}.label`)}</b><span className="ca-flag__desc">{t(`chanFlags.${f.key}.desc`)}</span></span>
             </label>
           );
         })}
       </div>
       <div className="ca-sec">
-        <h4 className="ca-h">Bannissements ({banlist.length})</h4>
+        <h4 className="ca-h">{t('modals.chanadmin.bans', { n: banlist.length })}</h4>
         <div className="modal__actions">
-          <input className="modal__input" value={newban} placeholder="*!*@masque ou pseudo…"
+          <input className="modal__input" value={newban} placeholder={t('modals.chanadmin.maskPlaceholder')}
             onChange={(e) => setNewban(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addBan()} />
-          <button className="upbtn upbtn--primary" onClick={addBan}>Bannir</button>
+          <button className="upbtn upbtn--primary" onClick={addBan}>{t('modals.chanadmin.ban')}</button>
         </div>
         <ul className="ca-bans">
-          {banlist.length === 0 && <li className="ca-bans__empty">Aucun bannissement.</li>}
+          {banlist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noBans')}</li>}
           {banlist.map((b) => (
             <li key={b.mask} className="ca-ban">
               <span className="ca-ban__mask">{b.mask}</span>
-              {b.by && <span className="ca-ban__by">par {b.by}</span>}
-              <button className="friend__act friend__act--rm" title="Lever le bannissement"
+              {b.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: b.by })}</span>}
+              <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
                 onClick={() => { removeBan(chan, b.mask); setTimeout(() => loadBanList(chan), 500); }}>✕</button>
             </li>
           ))}

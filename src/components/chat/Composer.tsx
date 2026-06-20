@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
 import { nickColor, MIRC_PALETTE } from '../../lib/format';
 import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '../../lib/editor';
 import { getConfig } from '../../config';
 function TypingIndicator() {
+  const { t } = useTranslation();
   const buffer = useChat((s) => s.buffers[s.active]);
   if (!buffer) return null;
   const now = Date.now();
   const who = Object.entries(buffer.typing).filter(([, exp]) => exp > now).map(([n]) => n);
   if (!who.length) return <div className="typing" />;
   const label = who.length === 1
-    ? `${who[0]} est en train d'écrire`
+    ? t('composer.typingOne', { nick: who[0] })
     : who.length === 2
-      ? `${who[0]} et ${who[1]} écrivent`
-      : `${who.length} personnes écrivent`;
+      ? t('composer.typingTwo', { a: who[0], b: who[1] })
+      : t('composer.typingMany', { n: who.length });
   return (
     <div className="typing">
       <span className="typing__dots"><i /><i /><i /></span>{label}…
@@ -43,6 +45,7 @@ const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', '
 // codes at the edges: serialize() on send, ircToHtml() when restoring a draft.
 
 export function Composer() {
+  const { t } = useTranslation();
   const active = useChat((s) => s.active);
   const send = useChat((s) => s.sendInput);
   const notifyTyping = useChat((s) => s.notifyTyping);
@@ -243,8 +246,8 @@ export function Composer() {
   }
 
   const placeholder = isConsole
-    ? 'Commande IRC — ex : /list, /whois pseudo, /join #salon'
-    : `Envoyer un message dans ${active || '…'}`;
+    ? t('composer.consolePlaceholder')
+    : t('composer.placeholder', { chan: active || '…' });
 
   return (
     <div className={`composer ${isConsole ? 'composer--console' : ''}`}>
@@ -263,10 +266,10 @@ export function Composer() {
           <div className="emoji-backdrop" onClick={() => setColors(false)} />
           <div className="color-pop" onMouseDown={(e) => e.preventDefault()}>
             {MIRC_PALETTE.slice(0, 16).map((hex, i) => (
-              <button key={i} title={`Couleur ${i}`} style={{ background: hex }}
+              <button key={i} title={t('composer.color', { i })} style={{ background: hex }}
                 onClick={() => applyColor(i)} />
             ))}
-            <button className="color-pop__reset" title="Effacer le format"
+            <button className="color-pop__reset" title={t('composer.clearFormat')}
               onClick={clearFmt}>⌫</button>
           </div>
         </>
@@ -278,7 +281,7 @@ export function Composer() {
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { setDragOver(false); if (uploadFrom(e.dataTransfer.files)) e.preventDefault(); }}>
         {canUpload && !isConsole && (
-          <button className="composer__add" title="Envoyer une image" aria-label="Envoyer une image" onClick={() => fileRef.current?.click()}>
+          <button className="composer__add" title={t('composer.sendImage')} aria-label={t('composer.sendImage')} onClick={() => fileRef.current?.click()}>
             <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
               stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="4" />
@@ -295,7 +298,7 @@ export function Composer() {
           role="textbox"
           aria-multiline="true"
           spellCheck={!isConsole}
-          data-ph={dragOver ? 'Dépose ton image ici…' : placeholder}
+          data-ph={dragOver ? t('composer.dropImage') : placeholder}
           onInput={changed}
           onPaste={(e) => {
             if (uploadFrom(e.clipboardData?.files)) { e.preventDefault(); return; }
@@ -319,24 +322,25 @@ export function Composer() {
         />
         {!isConsole && (
           <div className="composer__fmt">
-            <button className={`composer__fmtbtn ${fmt.b ? 'is-on' : ''}`} title="Gras" aria-label="Gras" aria-pressed={fmt.b}
+            <button className={`composer__fmtbtn ${fmt.b ? 'is-on' : ''}`} title={t('composer.bold')} aria-label={t('composer.bold')} aria-pressed={fmt.b}
               onMouseDown={(e) => e.preventDefault()} onClick={() => exec('bold')}><b>G</b></button>
-            <button className={`composer__fmtbtn ${fmt.i ? 'is-on' : ''}`} title="Italique" aria-label="Italique" aria-pressed={fmt.i}
+            <button className={`composer__fmtbtn ${fmt.i ? 'is-on' : ''}`} title={t('composer.italic')} aria-label={t('composer.italic')} aria-pressed={fmt.i}
               onMouseDown={(e) => e.preventDefault()} onClick={() => exec('italic')}><i>I</i></button>
-            <button className={`composer__fmtbtn ${fmt.u ? 'is-on' : ''}`} title="Souligné" aria-label="Souligné" aria-pressed={fmt.u}
+            <button className={`composer__fmtbtn ${fmt.u ? 'is-on' : ''}`} title={t('composer.underline')} aria-label={t('composer.underline')} aria-pressed={fmt.u}
               onMouseDown={(e) => e.preventDefault()} onClick={() => exec('underline')}><u>S</u></button>
-            <button className={`composer__fmtbtn composer__fmtbtn--color ${colors ? 'is-on' : ''}`} title="Couleur" aria-label="Couleur"
+            <button className={`composer__fmtbtn composer__fmtbtn--color ${colors ? 'is-on' : ''}`} title={t('composer.colorBtn')} aria-label={t('composer.colorBtn')}
               onMouseDown={(e) => e.preventDefault()} onClick={() => setColors((c) => !c)}>🎨</button>
           </div>
         )}
-        {!isConsole && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title="Emoji" aria-label="Emoji" onClick={() => setPicker((p) => !p)}>😊</button>}
-        <button className="composer__send" disabled={empty} onClick={submit} aria-label="Envoyer">{isConsole ? '⏎' : '➤'}</button>
+        {!isConsole && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
+        <button className="composer__send" disabled={empty} onClick={submit} aria-label={t('composer.send')}>{isConsole ? '⏎' : '➤'}</button>
       </div>
     </div>
   );
 }
 
 function ReplyBar() {
+  const { t } = useTranslation();
   const reply = useChat((s) => s.replyTarget);
   const clear = useChat((s) => s.clearReply);
   if (!reply) return null;
@@ -344,9 +348,9 @@ function ReplyBar() {
     <div className="replybar">
       <span className="replybar__icon">↩</span>
       <span className="replybar__txt">
-        Réponse à <b style={{ color: nickColor(reply.from) }}>{reply.from}</b> — {reply.text}
+        {t('composer.replyTo')} <b style={{ color: nickColor(reply.from) }}>{reply.from}</b> — {reply.text}
       </span>
-      <button className="replybar__x" onClick={clear} aria-label="Annuler la réponse">✕</button>
+      <button className="replybar__x" onClick={clear} aria-label={t('composer.cancelReply')}>✕</button>
     </div>
   );
 }
