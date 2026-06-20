@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { usePluginRegistry, type DecoratorInfo } from './registry';
+import { usePluginRegistry, type MessageInfo } from './registry';
 
-const reset = () => usePluginRegistry.setState({ ui: [], decorators: [] });
+const reset = () => usePluginRegistry.setState({ ui: [], decorators: [], actions: [] });
 
 describe('plugin registry', () => {
   beforeEach(reset);
@@ -23,13 +23,24 @@ describe('plugin registry', () => {
   });
 
   it('registers a message decorator and passes it the message info', () => {
-    let seen: DecoratorInfo | null = null;
+    let seen: MessageInfo | null = null;
     const remove = usePluginRegistry.getState().addDecorator('p', (m) => { seen = m; return null; });
     const dec = usePluginRegistry.getState().decorators[0];
-    const info: DecoratorInfo = { id: '1', nick: 'bob', text: 'hi', kind: 'privmsg', ts: 0, mine: false };
+    const info: MessageInfo = { id: '1', nick: 'bob', text: 'hi', kind: 'privmsg', ts: 0, mine: false };
     dec.render(info);
     expect(seen).toEqual(info);
     remove();
     expect(usePluginRegistry.getState().decorators).toHaveLength(0);
+  });
+
+  it('registers a message action and passes it the message info', () => {
+    let seen: MessageInfo | null = null;
+    const remove = usePluginRegistry.getState().addAction('p', (m) => { seen = m; return null; });
+    const act = usePluginRegistry.getState().actions[0];
+    const info: MessageInfo = { id: '2', nick: 'amy', text: 'yo', kind: 'privmsg', ts: 0, mine: true };
+    act.render(info);
+    expect(seen).toEqual(info);
+    remove();
+    expect(usePluginRegistry.getState().actions).toHaveLength(0);
   });
 });

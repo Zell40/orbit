@@ -5,22 +5,33 @@ import type { ChatMessage } from '../../irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
-import { usePluginRegistry, type DecoratorInfo } from '../../plugins/registry';
+import { usePluginRegistry, type MessageInfo } from '../../plugins/registry';
 import { PluginBoundary } from '../PluginBoundary';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
 
-// Renders every plugin-contributed message decorator for one message. Each runs
-// inside its own error boundary so a crashing plugin can't take down the list.
+const msgInfo = (m: ChatMessage): MessageInfo =>
+  ({ id: m.id, nick: m.from, text: m.text, kind: m.kind, ts: m.ts, mine: !!m.self });
+
+// Plugin-contributed inline decorators (badges/chips after the message text).
+// Each runs inside its own error boundary so a crashing plugin can't take down the list.
 function MsgDecorations({ m }: { m: ChatMessage }) {
   const decs = usePluginRegistry((s) => s.decorators);
   if (!decs.length) return null;
-  const info: DecoratorInfo = { id: m.id, nick: m.from, text: m.text, kind: m.kind, ts: m.ts, mine: !!m.self };
+  const info = msgInfo(m);
   return (
     <span className="msg-deco">
       {decs.map((d) => <PluginBoundary key={d.id} render={() => d.render(info)} label="message_decorator" />)}
     </span>
   );
+}
+
+// Plugin-contributed buttons for the hover action toolbar (next to reply/react).
+function MsgActions({ m }: { m: ChatMessage }) {
+  const acts = usePluginRegistry((s) => s.actions);
+  if (!acts.length) return null;
+  const info = msgInfo(m);
+  return <>{acts.map((a) => <PluginBoundary key={a.id} render={() => a.render(info)} label="message_action" />)}</>;
 }
 function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   const { t } = useTranslation();
@@ -131,6 +142,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
         <div className="msg-actions">
           {QUICK.map((e) => <button key={e} title={t('messages.react')} aria-label={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
           <button title={t('messages.respond')} aria-label={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
+          <MsgActions m={m} />
           {m.self && <button title={t('messages.delete')} aria-label={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
         </div>
       )}

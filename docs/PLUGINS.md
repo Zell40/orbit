@@ -77,7 +77,8 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `orbit.storage.get(key, def)/set(key, val)` | namespaced persistence |
 | `orbit.addUi(slot, render)` | add UI to a slot (returns a remover) |
 | `orbit.addSettingsSection({label, icon?, render})` | add a whole Settings section |
-| `orbit.addMessageDecorator(m => …)` | append UI to every message; `m` = `{id, nick, text, kind, ts, mine}` |
+| `orbit.addMessageDecorator(m => …)` | inline UI after every message's text; `m` = `{id, nick, text, kind, ts, mine}` |
+| `orbit.addMessageAction(m => …)` | a button in every message's hover action toolbar (next to reply/react) |
 | `orbit.h / orbit.html` | render helpers |
 | `log(…)` | namespaced console logger |
 
@@ -94,10 +95,13 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `sidebar_item` | an item in the conversation sidebar header (next to the compose button) |
 | `settings_section` | a whole section in Settings (own nav entry + pane) — use `orbit.addSettingsSection()` |
 
-Message decorators are added with `orbit.addMessageDecorator(m => …)` rather than
-a slot — the callback runs for every rendered message and receives a read-only
-view of it. Every contributed slot and decorator renders inside its own error
-boundary, so a crashing plugin renders nothing instead of taking down the app.
+Two per-message hooks (added by callback, not slot name) run for every rendered
+message and receive a read-only view of it: `orbit.addMessageDecorator(m => …)`
+appends inline UI after the text (badges/chips), while
+`orbit.addMessageAction(m => …)` adds a button to the hover action toolbar next
+to reply/react (it inherits the toolbar styling). Every contributed slot, action
+and decorator renders inside its own error boundary, so a crashing plugin renders
+nothing instead of taking down the app.
 
 ## Compiled plugins (write real React)
 
@@ -136,4 +140,4 @@ a hook that isn't here.
 |---|---|
 | [`orbit-demo.js`](../public/plugins/orbit-demo.js) | events, a `composer_button`, an IRC action |
 | [`orbit-clock.js`](../public/plugins/orbit-clock.js) | a `topbar_item` with live React-hook state |
-| [`orbit-copy.js`](../public/plugins/orbit-copy.js) | a `message_decorator` (per-message copy button) |
+| [`orbit-copy.js`](../public/plugins/orbit-copy.js) | a `message_action` (toolbar copy button with copied-confirmation) |

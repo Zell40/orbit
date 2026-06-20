@@ -1,23 +1,25 @@
 /*
- * Orbit copy-message plugin — appends a tiny "copy" button after every message.
- * Clicking copies the text and briefly flips the icon to a green check, then
- * reverts — the familiar "copied!" confirmation pattern.
+ * Orbit copy-message plugin — adds a copy button to each message's hover action
+ * toolbar (next to reply / react). Clicking copies the text and briefly flips the
+ * icon to a green check, then reverts — the familiar "copied!" confirmation.
  *
- * Demonstrates the `message_decorator` hook, which runs for each rendered
- * message and receives a read-only view of it: { id, nick, text, kind, ts, mine }.
- * Because the button has its own state, it's a real component rendered via
- * orbit.h(...), so each row keeps its own copied/not-copied state. Each decorator
- * runs inside its own error boundary, so a throw here can never take down the list.
+ * Demonstrates the `message_action` hook, which adds a button to every message's
+ * action toolbar and receives a read-only view of the message:
+ * { id, nick, text, kind, ts, mine }. The button inherits the toolbar's styling,
+ * so it sits cleanly beside the built-in actions. Each contribution runs inside
+ * its own error boundary, so a throw here can never take down the message list.
+ *
+ * (For inline badges/chips after the text instead, see `addMessageDecorator`.)
  *
  * Load via config.json:  "plugins": ["/app/plugins/orbit-copy.js"]
  */
 Orbit.plugin('orbit-copy', (orbit, log) => {
   const { useState, useRef, useEffect } = orbit.React;
 
-  function CopyButton({ text }) {
+  function CopyAction({ text }) {
     const [copied, setCopied] = useState(false);
     const timer = useRef(0);
-    // Clear the pending revert if the row unmounts mid-animation.
+    // Cancel a pending revert if the row unmounts mid-animation.
     useEffect(() => () => clearTimeout(timer.current), []);
 
     const copy = () => {
@@ -31,27 +33,17 @@ Orbit.plugin('orbit-copy', (orbit, log) => {
       }
     };
 
+    // No layout styles — inherit the toolbar button look; only tint green when copied.
     return orbit.html`
       <button
-        title=${copied ? 'Copied!' : 'Copy message text'}
-        aria-label=${copied ? 'Copied' : 'Copy message text'}
+        title=${copied ? 'Copied!' : 'Copy message'}
+        aria-label=${copied ? 'Copied' : 'Copy message'}
         onClick=${copy}
-        style=${{
-          border: 0,
-          background: 'transparent',
-          cursor: 'pointer',
-          padding: 0,
-          fontSize: '.78rem',
-          lineHeight: 1,
-          color: copied ? '#2ea043' : 'inherit',
-          opacity: copied ? 1 : 0.45,
-          transform: copied ? 'scale(1.15)' : 'scale(1)',
-          transition: 'opacity .15s ease, color .15s ease, transform .15s ease',
-        }}
+        style=${{ color: copied ? '#2ea043' : undefined }}
       >${copied ? '✓' : '⧉'}</button>
     `;
   }
 
-  orbit.addMessageDecorator((m) => orbit.h(CopyButton, { text: m.text }));
-  log('copy decorator ready');
+  orbit.addMessageAction((m) => orbit.h(CopyAction, { text: m.text }));
+  log('copy action ready');
 });

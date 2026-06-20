@@ -16,9 +16,9 @@ export interface PluginUi {
   meta?: { label?: string; icon?: string };
 }
 
-// A stable, plugin-facing subset of a message handed to message decorators —
+// A stable, plugin-facing subset of a message handed to per-message hooks —
 // intentionally NOT the internal ChatMessage shape, so plugins don't couple to it.
-export interface DecoratorInfo {
+export interface MessageInfo {
   id: string;
   nick: string;
   text: string;
@@ -26,23 +26,30 @@ export interface DecoratorInfo {
   ts: number;
   mine: boolean;
 }
+/** @deprecated use MessageInfo */
+export type DecoratorInfo = MessageInfo;
 
-export interface PluginDecorator {
+// Per-message contributions. A decorator renders inline after the text (badges,
+// chips); an action renders in the hover action toolbar (next to reply/react).
+export interface PluginPerMessage {
   id: string;
   plugin: string;
-  render: (m: DecoratorInfo) => ReactNode;
+  render: (m: MessageInfo) => ReactNode;
 }
 
 interface RegistryState {
   ui: PluginUi[];
-  decorators: PluginDecorator[];
+  decorators: PluginPerMessage[];
+  actions: PluginPerMessage[];
   addUi: (slot: UiSlot, plugin: string, render: () => ReactNode, meta?: PluginUi['meta']) => () => void;
-  addDecorator: (plugin: string, render: (m: DecoratorInfo) => ReactNode) => () => void;
+  addDecorator: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
+  addAction: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
 }
 
 export const usePluginRegistry = create<RegistryState>((set) => ({
   ui: [],
   decorators: [],
+  actions: [],
   addUi: (slot, plugin, render, meta) => {
     const id = `${plugin}:${slot}:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ ui: [...s.ui, { id, plugin, slot, render, meta }] }));
@@ -52,5 +59,10 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
     const id = `${plugin}:dec:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ decorators: [...s.decorators, { id, plugin, render }] }));
     return () => set((s) => ({ decorators: s.decorators.filter((d) => d.id !== id) }));
+  },
+  addAction: (plugin, render) => {
+    const id = `${plugin}:act:${Math.random().toString(36).slice(2, 8)}`;
+    set((s) => ({ actions: [...s.actions, { id, plugin, render }] }));
+    return () => set((s) => ({ actions: s.actions.filter((a) => a.id !== id) }));
   },
 }));
