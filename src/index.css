@@ -957,48 +957,6 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* ============ ORBIT-DARK — mirrors tchatou.fr (near-black, monochrome white accent, Geist) ============ */
 [data-theme="orbit-dark"] {
-  --green: #f2f2f4; --green-d: #8ab0ff; --green-soft: rgba(255,255,255,.10);
-  --online: #2ec27e; --online-d: #2ec27e; --online-soft: rgba(46,194,126,.16);
-  --ink: #f5f5f6; --ink-2: #cdcdd2; --muted: #9b9ba3; --faint: #63636c;
-  --bg: #0d0d10; --bg-soft: #16161a; --bg-soft-2: #1c1c21; --bg-active: #232329; --rail-bg: #060607;
-  --border: rgba(255,255,255,.10); --border-2: rgba(255,255,255,.17);
-  --danger: #ff5a5f;
-  --shadow-pop: 0 16px 42px -12px rgba(0,0,0,.82), 0 2px 8px -2px rgba(0,0,0,.6);
-  --av-s1: 30%; --av-l1: 52%; --av-s2: 28%; --av-l2: 42%;
-  --font: "Geist", "Hanken Grotesk", system-ui, -apple-system, sans-serif;
-  --display: "Geist", "Hanken Grotesk", system-ui, sans-serif;
-  color-scheme: dark;
-}
-[data-theme="orbit-dark"] body { background: #08080a; }
-/* white accent -> dark text (Grok-style primary buttons / badges / pills) */
-[data-theme="orbit-dark"] .composer__send,
-[data-theme="orbit-dark"] .room__badge,
-[data-theme="orbit-dark"] .pill.is-on,
-[data-theme="orbit-dark"] .upbtn--primary,
-[data-theme="orbit-dark"] .pm-btn--primary,
-[data-theme="orbit-dark"] .sseg button.is-on,
-[data-theme="orbit-dark"] .pm-check { color: #0a0a0c; }
-/* neutralise the hardcoded blue accent glows -> quiet dark shadows + white focus ring */
-[data-theme="orbit-dark"] .composer__send { box-shadow: 0 6px 16px -8px rgba(0,0,0,.7); }
-[data-theme="orbit-dark"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(255,255,255,.12); }
-[data-theme="orbit-dark"] .room.is-active::before { box-shadow: none; }
-[data-theme="orbit-dark"] .room__badge { box-shadow: none; }
-[data-theme="orbit-dark"] .pill.is-on { box-shadow: none; }
-[data-theme="orbit-dark"] .sseg button.is-on { box-shadow: none; }
-[data-theme="orbit-dark"] .pm-btn--primary { box-shadow: 0 10px 24px -10px rgba(0,0,0,.7); }
-[data-theme="orbit-dark"] .pm-btn--primary:hover { box-shadow: 0 14px 30px -12px rgba(0,0,0,.8); }
-/* profile banner + avatar ring: monochrome, not the per-nick hue */
-[data-theme="orbit-dark"] .pm-cover {
-  background:
-    radial-gradient(130% 150% at 18% 0%, rgba(255,255,255,.10), transparent 60%),
-    linear-gradient(135deg, #1a1a1f, #0d0d10);
-}
-[data-theme="orbit-dark"] .pm-avring {
-  background: conic-gradient(from 130deg, #3a3a42, #1c1c21, #2a2a30, #3a3a42);
-}
-
-/* ============ ORBIT-DARK — mirrors tchatou.fr: near-black, monochrome white accent ============ */
-[data-theme="orbit-dark"] {
   --ink: #f3f4f6; --ink-2: #c9cace; --muted: #8b8c95; --faint: #5c5d66;
   --bg: #0d0d0f; --bg-soft: #141416; --bg-soft-2: #1b1b1e; --bg-active: #212126; --rail-bg: #060607;
   --border: #232327; --border-2: #34343a;
@@ -1006,10 +964,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   --online: #2ec27e; --online-d: #25a76c; --online-soft: rgba(46,194,126,.16);
   --danger: #f0556e;
   --shadow-pop: 0 14px 44px -14px rgba(0,0,0,.8), 0 2px 8px -2px rgba(0,0,0,.6);
+  /* muted hash avatars + tchatou's Geist face */
+  --av-s1: 30%; --av-l1: 52%; --av-s2: 28%; --av-l2: 42%;
+  --font: "Geist", "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --display: "Geist", "Hanken Grotesk", system-ui, sans-serif;
   color-scheme: dark;
 }
 [data-theme="orbit-dark"] body { background: #060607; }
-/* white accent → dark text on the accent-filled controls (Grok-style white buttons) */
+/* white accent -> dark text on accent-filled controls (Grok-style white buttons) */
 [data-theme="orbit-dark"] .composer__send,
 [data-theme="orbit-dark"] .cjoin__send,
 [data-theme="orbit-dark"] .pill.is-on,
@@ -1028,12 +990,21 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme="orbit-dark"] .sseg button.is-on { box-shadow: 0 2px 12px -3px rgba(0,0,0,.6); }
 [data-theme="orbit-dark"] .room.is-active::before { box-shadow: none; }
 [data-theme="orbit-dark"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(255,255,255,.12); }
-/* connect/welcome screen → near-black monochrome (not the green cosmic) */
+/* connect/welcome screen -> near-black monochrome (not the green cosmic) */
 [data-theme="orbit-dark"] .connect {
   color: var(--ink);
   background: radial-gradient(70% 55% at 50% -8%, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, #0c0c0e, #08080a 62%, #050506);
 }
 [data-theme="orbit-dark"] .cjoin__composer:focus-within { border-color: rgba(255,255,255,.5); box-shadow: 0 0 0 4px rgba(255,255,255,.1); }
+/* profile banner + avatar ring: monochrome, not the per-nick hue */
+[data-theme="orbit-dark"] .pm-cover {
+  background:
+    radial-gradient(130% 150% at 18% 0%, rgba(255,255,255,.10), transparent 60%),
+    linear-gradient(135deg, #1a1a1f, #0d0d10);
+}
+[data-theme="orbit-dark"] .pm-avring {
+  background: conic-gradient(from 130deg, #3a3a42, #1c1c21, #2a2a30, #3a3a42);
+}
 
 /* ============ PROFILE MODAL (stunning centered card) ============ */
 .pm-backdrop {
