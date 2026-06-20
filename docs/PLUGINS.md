@@ -1,9 +1,9 @@
 # Plugins
 
-Orbit has a small, **operator-controlled** plugin system inspired by webchat's
-`window.kiwi`. A deployment lists plugin scripts in `config.json`; each is loaded
-at startup and registers against a global `Orbit` object to hook events, read
-state, send IRC, theme the UI, and add UI in predefined slots.
+Orbit has a small, **operator-controlled** plugin system. A deployment lists
+plugin scripts in `config.json`; each is loaded at startup and registers against
+a global `Orbit` object to hook events, read state, send IRC, theme the UI, and
+add UI in predefined slots.
 
 > **Status: experimental.** Orbit is a work in progress and this API may change
 > between releases. Plugins are deployment-controlled (same trust level as the
@@ -85,10 +85,10 @@ the core grows stable homes for them.
 
 ## Intentionally not exposed
 
-Unlike webchat, Orbit does **not** offer `require()`/`replaceModule()`-style
-access to internal modules or component replacement. Those couple plugins to
-internals that are still moving; the API above is the deliberately stable
-surface. Ask (or open an issue) if you need a hook that isn't here.
+Orbit does **not** offer access to internal modules or runtime component
+replacement. Those would couple plugins to internals that are still moving; the
+API above is the deliberately stable surface. Ask (or open an issue) if you need
+a hook that isn't here.
 
 See [`public/plugins/orbit-demo.js`](../public/plugins/orbit-demo.js) for a
 complete working example.

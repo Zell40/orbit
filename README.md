@@ -83,7 +83,7 @@ npm run test       # Vitest
 
 ## ⚙️ Configuration
 
-Orbit is configured at **runtime** by `config.json` (webchat-style), fetched on
+Orbit is configured at **runtime** by `config.json`, fetched on
 startup and deep-merged over built-in defaults. Point it at another IRC network
 and fully re-brand it **without rebuilding** — just edit the deployed file and
 reload (the service worker serves it network-first).
