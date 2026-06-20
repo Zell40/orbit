@@ -4,6 +4,7 @@ import { useChat } from '../../store';
 import { Avatar } from '../Avatar';
 import { SettingsModal } from '../settings/SettingsModal';
 import { QuickSwitcher } from '../QuickSwitcher';
+import { Shortcuts } from '../Shortcuts';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const { t } = useTranslation();
@@ -231,5 +232,6 @@ export function Modals() {
   if (modal === 'friends') return <FriendsModal />;
   if (modal === 'chanadmin') return <ChanAdminModal />;
   if (modal === 'switcher') return <QuickSwitcher />;
+  if (modal === 'shortcuts') return <Shortcuts />;
   return null;
 }

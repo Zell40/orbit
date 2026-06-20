@@ -1639,3 +1639,25 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .qswitch__kind { flex: none; font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .qswitch__empty { padding: 1.3rem; text-align: center; color: var(--muted); font-size: .85rem; }
 .qswitch__foot { padding: .5rem 1rem; border-top: 1px solid var(--border); font-size: .72rem; color: var(--muted); }
+
+/* Keyboard-shortcuts help sheet (?) */
+.ksheet-scrim { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.4);
+  display: flex; justify-content: center; align-items: flex-start; padding: 10vh 1rem 1rem;
+  animation: fade .12s ease both; }
+.ksheet { width: min(460px, 94vw); max-height: 80vh; display: flex; flex-direction: column;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.35); overflow: hidden; }
+.ksheet__head { display: flex; align-items: center; justify-content: space-between;
+  padding: .9rem 1.1rem; border-bottom: 1px solid var(--border); }
+.ksheet__head h3 { margin: 0; font-size: 1rem; }
+.ksheet__x { border: 0; background: transparent; color: var(--muted); font-size: 1rem; cursor: pointer; line-height: 1; }
+.ksheet__x:hover { color: var(--ink); }
+.ksheet__list { list-style: none; margin: 0; padding: .4rem .6rem .7rem; overflow-y: auto; }
+.ksheet__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .5rem .5rem; border-radius: 8px; }
+.ksheet__row:hover { background: var(--green-soft); }
+.ksheet__desc { color: var(--ink); font-size: .9rem; min-width: 0; }
+.ksheet__keys { flex: none; display: flex; align-items: center; gap: .3rem; }
+.ksheet__kbd { font: 600 .74rem/1 var(--font, system-ui); color: var(--ink);
+  background: var(--panel, var(--bg)); border: 1px solid var(--border);
+  border-bottom-width: 2px; border-radius: 6px; padding: .22rem .42rem; min-width: 1.2rem; text-align: center; }

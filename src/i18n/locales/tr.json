@@ -642,5 +642,18 @@
     "kind_dm": "özel mesaj",
     "kind_person": "kişi",
     "kind_join": "katıl"
+  },
+  "shortcuts": {
+    "title": "Klavye kısayolları",
+    "switcher": "Hızlı geçiş",
+    "prev": "Önceki sohbet",
+    "next": "Sonraki sohbet",
+    "markRead": "Tümünü okundu işaretle",
+    "help": "Bu yardım",
+    "close": "Kapat",
+    "send": "Mesaj gönder",
+    "newline": "Yeni satır",
+    "complete": "Otomatik tamamlama",
+    "history": "Mesaj geçmişi"
   }
 }

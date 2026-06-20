@@ -642,5 +642,18 @@
     "kind_dm": "message privé",
     "kind_person": "personne",
     "kind_join": "rejoindre"
+  },
+  "shortcuts": {
+    "title": "Raccourcis clavier",
+    "switcher": "Navigateur rapide",
+    "prev": "Conversation précédente",
+    "next": "Conversation suivante",
+    "markRead": "Tout marquer comme lu",
+    "help": "Cette aide",
+    "close": "Fermer",
+    "send": "Envoyer le message",
+    "newline": "Nouvelle ligne",
+    "complete": "Autocomplétion",
+    "history": "Historique des messages"
   }
 }

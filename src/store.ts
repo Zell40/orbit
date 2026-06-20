@@ -65,7 +65,7 @@ function canon(name: string): string {
   return casefold(name, casemapping);
 }
 
-export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'switcher';
+export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'switcher' | 'shortcuts';
 export interface ChannelInfo { name: string; users: number; topic: string }
 export interface KickInfo { channel: string; by: string; reason: string; kind: 'kick' | 'ban' | 'mute' }
 
@@ -97,6 +97,7 @@ interface ChatState {
   removeBan: (channel: string, mask: string) => void;
   mutedChannels: string[];     // lowercased keys of muted salons (no notify/sound)
   toggleMute: (name: string) => void;
+  markAllRead: () => void;
   highlightWords: string[];    // extra words (besides your nick) that trigger a highlight
   setHighlightWords: (words: string[]) => void;
   drafts: Record<string, string>; // buffer key → unsent composer text
@@ -1351,6 +1352,26 @@ export const useChat = create<ChatState>((set, get) => {
       }
       patchBuffer(key, (b) => ({ ...b, unread: 0, highlight: false }));
       set({ active: key });
+    },
+    markAllRead() {
+      const s = get();
+      // Advance the server-side read marker for every buffer with new messages…
+      for (const name of s.order) {
+        const b = s.buffers[name];
+        if (b?.messages.length) {
+          const latest = b.messages[b.messages.length - 1].ts;
+          if (latest > b.readTs) s.client?.markRead(b.name, new Date(latest).toISOString());
+        }
+      }
+      // …then clear unread/highlight everywhere in one update.
+      set((st) => {
+        const buffers: typeof st.buffers = {};
+        for (const [name, b] of Object.entries(st.buffers)) {
+          const latest = b.messages.length ? b.messages[b.messages.length - 1].ts : b.readTs;
+          buffers[name] = { ...b, unread: 0, highlight: false, readTs: Math.max(b.readTs, latest) };
+        }
+        return { buffers };
+      });
     },
 
     notifyTyping() {

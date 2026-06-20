@@ -642,5 +642,18 @@
     "kind_dm": "messaggio diretto",
     "kind_person": "persona",
     "kind_join": "entra"
+  },
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "switcher": "Cambio rapido",
+    "prev": "Conversazione precedente",
+    "next": "Conversazione successiva",
+    "markRead": "Segna tutto come letto",
+    "help": "Questo aiuto",
+    "close": "Chiudi",
+    "send": "Invia messaggio",
+    "newline": "Nuova riga",
+    "complete": "Completamento automatico",
+    "history": "Cronologia messaggi"
   }
 }

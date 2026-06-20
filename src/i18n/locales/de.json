@@ -642,5 +642,18 @@
     "kind_dm": "Direktnachricht",
     "kind_person": "Person",
     "kind_join": "beitreten"
+  },
+  "shortcuts": {
+    "title": "Tastenkürzel",
+    "switcher": "Schnellwechsler",
+    "prev": "Vorheriges Gespräch",
+    "next": "Nächstes Gespräch",
+    "markRead": "Alle als gelesen markieren",
+    "help": "Diese Hilfe",
+    "close": "Schließen",
+    "send": "Nachricht senden",
+    "newline": "Neue Zeile",
+    "complete": "Autovervollständigen",
+    "history": "Nachrichtenverlauf"
   }
 }

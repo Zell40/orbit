@@ -318,7 +318,8 @@ export function Composer() {
             if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); document.execCommand('insertLineBreak'); changed(); return; }
             // mIRC-style recall: ↑ at the first line goes back through sent
             // messages, ↓ at the last line walks forward to the live draft.
-            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            // Alt+↑/↓ is reserved for switching conversations (handled globally).
+            if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !e.altKey) {
               const root = ed.current; if (!root) return;
               const edge = caretAtEdge(root);
               if (e.key === 'ArrowUp' && edge.top) { e.preventDefault(); historyPrev(); }

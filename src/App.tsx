@@ -24,14 +24,35 @@ export default function App() {
     if (client) void refreshPush(client);
   }, [status]);
 
-  // Ctrl/⌘-K opens the quick switcher (toggles it closed if already open).
+  // Global keyboard shortcuts (chat view only). See the Shortcuts help sheet (?).
   useEffect(() => {
+    const isTyping = () => {
+      const a = document.activeElement as HTMLElement | null;
+      return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+    };
     const onKey = (e: KeyboardEvent) => {
+      const st = useChat.getState();
+      if (st.status !== 'registered' && !st.everRegistered) return; // chat view only
+      // Ctrl/⌘-K — quick switcher
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
-        const st = useChat.getState();
-        if (st.status !== 'registered' && !st.everRegistered) return; // chat view only
-        e.preventDefault();
-        st.setModal(st.modal === 'switcher' ? '' : 'switcher');
+        e.preventDefault(); st.setModal(st.modal === 'switcher' ? '' : 'switcher'); return;
+      }
+      // Alt+↑ / Alt+↓ — previous / next conversation
+      if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        const order = st.order;
+        if (order.length) {
+          e.preventDefault();
+          const i = Math.max(0, order.indexOf(st.active));
+          const n = order.length;
+          st.setActive(order[e.key === 'ArrowUp' ? (i - 1 + n) % n : (i + 1) % n]);
+        }
+        return;
+      }
+      // Shift+Esc — mark all conversations read
+      if (e.key === 'Escape' && e.shiftKey) { e.preventDefault(); st.markAllRead(); return; }
+      // ? — keyboard shortcuts help (ignored while typing)
+      if (e.key === '?' && !isTyping()) {
+        e.preventDefault(); st.setModal(st.modal === 'shortcuts' ? '' : 'shortcuts'); return;
       }
     };
     window.addEventListener('keydown', onKey);
