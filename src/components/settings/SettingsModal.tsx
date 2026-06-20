@@ -288,8 +288,13 @@ function ChangeNickField({ hint }: { hint: string }) {
   );
 }
 
+const TEXT_SIZES: Array<{ v: number; label: string }> = [
+  { v: 0.9, label: 'S' }, { v: 1, label: 'M' }, { v: 1.1, label: 'L' }, { v: 1.25, label: 'XL' },
+];
+
 function AppearanceSection() {
   const clock24 = useChat((s) => s.prefs.clock24);
+  const textScale = useChat((s) => s.prefs.textScale);
   const setPref = useChat((s) => s.setPref);
   const { t } = useTranslation();
   const [theme, setT] = useState<Theme>(getTheme());
@@ -333,6 +338,16 @@ function AppearanceSection() {
           <div className="srow__ctrl"><div className="sseg">
             <button className={clock24 ? 'is-on' : ''} onClick={() => setPref('clock24', true)}>24 h</button>
             <button className={!clock24 ? 'is-on' : ''} onClick={() => setPref('clock24', false)}>12 h</button>
+          </div></div>
+        </div>
+        <div className="srow">
+          <span className="srow__ic" aria-hidden>🔠</span>
+          <div className="srow__txt"><div className="srow__label">{t('settings.appearance.textSize')}</div></div>
+          <div className="srow__ctrl"><div className="sseg">
+            {TEXT_SIZES.map((s) => (
+              <button key={s.label} className={(textScale ?? 1) === s.v ? 'is-on' : ''}
+                onClick={() => setPref('textScale', s.v)} aria-label={`${t('settings.appearance.textSize')} ${s.label}`}>{s.label}</button>
+            ))}
           </div></div>
         </div>
       </div>

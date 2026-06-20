@@ -46,6 +46,7 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | Member | Description |
 |---|---|
 | `Orbit.version` / `Orbit.commit` | app version + git commit (build-time) |
+| `Orbit.apiVersion` | plugin API contract version (bumped on breaking changes) — guard with `if (Orbit.apiVersion < N) …` |
 | `Orbit.plugin(name, fn)` | register a plugin; `fn(orbit, log)` |
 | `Orbit.on/once/off/emit(event, …)` | the app event bus |
 | `Orbit.config()` | the resolved runtime config |

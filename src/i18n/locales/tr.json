@@ -147,9 +147,7 @@
     "sections": {
       "account": "Hesap",
       "appearance": "Görünüm",
-      "notifications": "Bildirimler",
-      "privacy": "Gizlilik",
-      "advanced": "Gelişmiş"
+      "notifications": "Bildirimler"
     },
     "account": {
       "login": "Giriş yap",

@@ -147,9 +147,7 @@
     "sections": {
       "account": "खाता",
       "appearance": "स्वरूप",
-      "notifications": "सूचनाहरू",
-      "privacy": "गोपनीयता",
-      "advanced": "उन्नत"
+      "notifications": "सूचनाहरू"
     },
     "account": {
       "login": "लगइन गर्नुहोस्",

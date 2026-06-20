@@ -147,9 +147,7 @@
     "sections": {
       "account": "Account",
       "appearance": "Aspetto",
-      "notifications": "Notifiche",
-      "privacy": "Privacy",
-      "advanced": "Avanzate"
+      "notifications": "Notifiche"
     },
     "account": {
       "login": "Accedi",

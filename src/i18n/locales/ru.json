@@ -147,9 +147,7 @@
     "sections": {
       "account": "Аккаунт",
       "appearance": "Оформление",
-      "notifications": "Уведомления",
-      "privacy": "Конфиденциальность",
-      "advanced": "Дополнительно"
+      "notifications": "Уведомления"
     },
     "account": {
       "login": "Войти",

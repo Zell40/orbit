@@ -18,6 +18,10 @@ import { usePluginRegistry, type UiSlot } from './registry';
 const html = htm.bind(React.createElement);
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
 
+// Plugin API contract version. Bumped on a breaking change to the surface below
+// so plugins can guard (e.g. `if (Orbit.apiVersion < 2) …`). Still experimental.
+const API_VERSION = 1;
+
 const registered = new Map<string, OrbitPluginApi>();
 
 export interface OrbitPluginApi {
@@ -26,6 +30,8 @@ export interface OrbitPluginApi {
   /** App build version + git commit. */
   version: string;
   commit: string;
+  /** Plugin API contract version (bumped on breaking changes). */
+  apiVersion: number;
   /** The app's React instance + render helpers (single instance — nodes interop).
    *  Compiled plugins externalize `react`/`react-dom`/`react/jsx-runtime` to these
    *  so they share Orbit's React (never bundle their own — see docs/PLUGINS.md). */
@@ -75,6 +81,7 @@ function makeApi(name: string): OrbitPluginApi {
     name,
     version: __APP_VERSION__,
     commit: __GIT_COMMIT__,
+    apiVersion: API_VERSION,
     React, ReactDOM, jsxRuntime: ReactJSXRuntime, Fragment: React.Fragment, h: React.createElement, html,
     log: (...a) => console.log(`%c[plugin:${name}]`, 'color:#2ea043', ...a),
     on: bus.on, once: bus.once, off: bus.off, emit: bus.emit,
@@ -111,6 +118,7 @@ function makeApi(name: string): OrbitPluginApi {
 export const Orbit = {
   version: __APP_VERSION__,
   commit: __GIT_COMMIT__,
+  apiVersion: API_VERSION,
   // Render primitives — compiled plugins externalize react/react-dom/jsx-runtime
   // to these (one shared React instance). See plugin-template/ + docs/PLUGINS.md.
   React, ReactDOM, jsxRuntime: ReactJSXRuntime, Fragment: React.Fragment, h: React.createElement, html,
