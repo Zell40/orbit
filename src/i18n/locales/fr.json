@@ -604,6 +604,19 @@
       "accountRegistration": "Crée un compte dans l’app",
       "preAway": "Marqué absent dès la connexion",
       "webpush": "Notifications push quand l’app est fermée"
+    },
+    "server": {
+      "title": "Serveur",
+      "network": "Réseau",
+      "software": "Logiciel",
+      "connection": "Connexion",
+      "secure": "Chiffrée (TLS)",
+      "users": "Utilisateurs en ligne",
+      "casemapping": "Casse des noms",
+      "channelTypes": "Types de salons",
+      "roles": "Rôles",
+      "limits": "Limites",
+      "limitsValue": "pseudo {{nick}} · salon {{chan}} · sujet {{topic}}"
     }
   }
 }

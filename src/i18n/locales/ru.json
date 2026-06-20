@@ -604,6 +604,19 @@
       "accountRegistration": "Создание аккаунта в приложении",
       "preAway": "Отмечает «отошёл» сразу при подключении",
       "webpush": "Push-уведомления при закрытом приложении"
+    },
+    "server": {
+      "title": "Сервер",
+      "network": "Сеть",
+      "software": "ПО",
+      "connection": "Соединение",
+      "secure": "Шифровано (TLS)",
+      "users": "Пользователей онлайн",
+      "casemapping": "Регистр имён",
+      "channelTypes": "Типы каналов",
+      "roles": "Роли",
+      "limits": "Ограничения",
+      "limitsValue": "ник {{nick}} · канал {{chan}} · тема {{topic}}"
     }
   }
 }

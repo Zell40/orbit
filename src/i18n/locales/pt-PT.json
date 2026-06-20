@@ -604,6 +604,19 @@
       "accountRegistration": "Cria uma conta na app",
       "preAway": "Marcado ausente assim que te ligas",
       "webpush": "Notificações push com a app fechada"
+    },
+    "server": {
+      "title": "Servidor",
+      "network": "Rede",
+      "software": "Software",
+      "connection": "Ligação",
+      "secure": "Encriptada (TLS)",
+      "users": "Utilizadores online",
+      "casemapping": "Maiúsculas/minúsculas",
+      "channelTypes": "Tipos de canal",
+      "roles": "Funções",
+      "limits": "Limites",
+      "limitsValue": "alcunha {{nick}} · canal {{chan}} · tópico {{topic}}"
     }
   }
 }

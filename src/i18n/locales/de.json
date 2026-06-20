@@ -604,6 +604,19 @@
       "accountRegistration": "Konto in der App erstellen",
       "preAway": "Sofort beim Verbinden als abwesend markiert",
       "webpush": "Push-Benachrichtigungen bei geschlossener App"
+    },
+    "server": {
+      "title": "Server",
+      "network": "Netzwerk",
+      "software": "Software",
+      "connection": "Verbindung",
+      "secure": "Verschlüsselt (TLS)",
+      "users": "Benutzer online",
+      "casemapping": "Groß-/Kleinschreibung",
+      "channelTypes": "Kanaltypen",
+      "roles": "Rollen",
+      "limits": "Limits",
+      "limitsValue": "Spitzname {{nick}} · Kanal {{chan}} · Thema {{topic}}"
     }
   }
 }

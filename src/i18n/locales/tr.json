@@ -604,6 +604,19 @@
       "accountRegistration": "Uygulama içinde hesap oluştur",
       "preAway": "Bağlanır bağlanmaz uzakta işaretlenir",
       "webpush": "Uygulama kapalıyken push bildirimleri"
+    },
+    "server": {
+      "title": "Sunucu",
+      "network": "Ağ",
+      "software": "Yazılım",
+      "connection": "Bağlantı",
+      "secure": "Şifreli (TLS)",
+      "users": "Çevrimiçi kullanıcılar",
+      "casemapping": "Harf eşlemesi",
+      "channelTypes": "Kanal türleri",
+      "roles": "Roller",
+      "limits": "Sınırlar",
+      "limitsValue": "takma ad {{nick}} · kanal {{chan}} · konu {{topic}}"
     }
   }
 }

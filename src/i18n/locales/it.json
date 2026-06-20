@@ -604,6 +604,19 @@
       "accountRegistration": "Crea un account nell’app",
       "preAway": "Segnato assente appena ti connetti",
       "webpush": "Notifiche push ad app chiusa"
+    },
+    "server": {
+      "title": "Server",
+      "network": "Rete",
+      "software": "Software",
+      "connection": "Connessione",
+      "secure": "Crittografata (TLS)",
+      "users": "Utenti online",
+      "casemapping": "Maiuscole/minuscole",
+      "channelTypes": "Tipi di canale",
+      "roles": "Ruoli",
+      "limits": "Limiti",
+      "limitsValue": "soprannome {{nick}} · canale {{chan}} · argomento {{topic}}"
     }
   }
 }

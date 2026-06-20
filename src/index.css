@@ -694,7 +694,12 @@ input, textarea { font-family: inherit; }
 .sfield__intro strong { color: var(--ink); }
 .sfield__row { display: flex; gap: .5rem; }
 
-/* ── IRCv3 capabilities panel ─────────────────────────────────────────────── */
+/* ── Server info + IRCv3 capabilities panel ───────────────────────────────── */
+.srv-info { margin: 0; padding: 0; display: flex; flex-direction: column; }
+.srv-row { display: flex; align-items: baseline; gap: .75rem; padding: .42rem .15rem; border-top: 1px solid var(--border); }
+.srv-row:first-child { border-top: 0; }
+.srv-row__k { flex: none; width: 8.5rem; margin: 0; font-size: .8rem; color: var(--muted); }
+.srv-row__v { margin: 0; flex: 1; min-width: 0; font-size: .82rem; color: var(--ink); font-weight: 600; word-break: break-word; }
 .caps-count { margin: .55rem 0 .3rem; font-size: .8rem; color: var(--muted); }
 .caps-count b { color: var(--green-d); }
 /* Responsive grid: ~2 columns on the wide desktop modal, 1 on mobile — so the

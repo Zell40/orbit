@@ -604,6 +604,19 @@
       "accountRegistration": "Create an account in-app",
       "preAway": "Marked away the moment you connect",
       "webpush": "Push notifications when the app is closed"
+    },
+    "server": {
+      "title": "Server",
+      "network": "Network",
+      "software": "Software",
+      "connection": "Connection",
+      "secure": "Encrypted (TLS)",
+      "users": "Users online",
+      "casemapping": "Case mapping",
+      "channelTypes": "Channel types",
+      "roles": "Roles",
+      "limits": "Limits",
+      "limitsValue": "nick {{nick}} · channel {{chan}} · topic {{topic}}"
     }
   }
 }

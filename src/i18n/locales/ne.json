@@ -604,6 +604,19 @@
       "accountRegistration": "एपभित्रै खाता बनाउनुहोस्",
       "preAway": "जडान हुनासाथ टाढा चिन्ह",
       "webpush": "एप बन्द हुँदा पुस सूचना"
+    },
+    "server": {
+      "title": "सर्भर",
+      "network": "नेटवर्क",
+      "software": "सफ्टवेयर",
+      "connection": "जडान",
+      "secure": "इन्क्रिप्टेड (TLS)",
+      "users": "अनलाइन प्रयोगकर्ता",
+      "casemapping": "केस म्यापिङ",
+      "channelTypes": "च्यानल प्रकार",
+      "roles": "भूमिका",
+      "limits": "सीमा",
+      "limitsValue": "उपनाम {{nick}} · च्यानल {{chan}} · विषय {{topic}}"
     }
   }
 }

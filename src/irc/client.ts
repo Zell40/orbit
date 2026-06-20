@@ -40,6 +40,9 @@ export class IrcClient {
   nicklen = 30;            // ISUPPORT NICKLEN
   channellen = 50;         // ISUPPORT CHANNELLEN
   topiclen = 390;          // ISUPPORT TOPICLEN
+  serverName = '';         // RPL_MYINFO (004) — the ircd's own hostname
+  serverVersion = '';      // RPL_MYINFO (004) — the ircd software/version string
+  users = 0;               // RPL_GLOBALUSERS (266) / RPL_LUSERCLIENT (251) — users online
 
   // Fold a nick/channel to its canonical form per the server's CASEMAPPING.
   casefold(name: string): string { return casefold(name, this.casemapping); }
@@ -372,6 +375,27 @@ export class IrcClient {
       case '005':
         this.handleISupport(msg);
         break;
+      case '004': // RPL_MYINFO: <me> <servername> <version> <usermodes> <chanmodes> …
+        this.serverName = msg.params[1] || this.serverName;
+        this.serverVersion = msg.params[2] || this.serverVersion;
+        break;
+      case '002': { // RPL_YOURHOST fallback: "Your host is X, running version Y"
+        if (!this.serverVersion) {
+          const m = (msg.params[msg.params.length - 1] || '').match(/running version (\S+)/i);
+          if (m) this.serverVersion = m[1];
+        }
+        break;
+      }
+      case '251': { // RPL_LUSERCLIENT: "There are N users and M invisible on K servers"
+        const m = (msg.params[msg.params.length - 1] || '').match(/(\d+)\D+(\d+)\s+invisible/i);
+        if (m && !this.users) this.users = parseInt(m[1], 10) + parseInt(m[2], 10);
+        break;
+      }
+      case '266': { // RPL_GLOBALUSERS: explicit current global user count (more precise)
+        const cur = parseInt(msg.params[1], 10);
+        if (Number.isFinite(cur)) this.users = cur;
+        break;
+      }
       case '001':
         this.registered = true;
         this.reconnectAttempts = 0; // healthy connection — reset backoff

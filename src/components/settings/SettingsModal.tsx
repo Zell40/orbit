@@ -334,7 +334,40 @@ function CapabilitiesSection() {
   const caps = client ? client.listCaps() : CAP_KEYS.map((name) => ({ name, available: false, enabled: false }));
   const active = caps.filter((c) => c.enabled).length;
 
+  // ── Server facts, pulled live from registration numerics + ISUPPORT ──────────
+  const dash = '—';
+  let host = '', secure = false;
+  try { const u = new URL(getConfig().server.url); host = u.host; secure = u.protocol === 'wss:'; } catch { /* bad url */ }
+  const software = client && (client.serverName || client.serverVersion)
+    ? [client.serverName, client.serverVersion].filter(Boolean).join(' · ') : dash;
+  const roles = client ? client.prefixModes.split('').join(' ') : dash;
+  const srv: { label: string; value: string }[] = [
+    { label: t('caps.server.network'), value: (connected && client?.network) || dash },
+    { label: t('caps.server.software'), value: connected ? software : dash },
+    { label: t('caps.server.connection'), value: host ? (secure ? `🔒 ${t('caps.server.secure')} · ${host}` : host) : dash },
+    { label: t('caps.server.users'), value: connected && client && client.users > 0 ? client.users.toLocaleString() : dash },
+    { label: t('caps.server.casemapping'), value: (connected && client?.casemapping) || dash },
+    { label: t('caps.server.channelTypes'), value: (connected && client?.chantypes) || dash },
+    { label: t('caps.server.roles'), value: connected ? roles : dash },
+    { label: t('caps.server.limits'), value: connected && client
+      ? t('caps.server.limitsValue', { nick: client.nicklen, chan: client.channellen, topic: client.topiclen }) : dash },
+  ];
+
   return (
+    <>
+    <div className="scard">
+      <div className="scard__h">🖥️ {t('caps.server.title')}</div>
+      <div className="scard__body">
+        <dl className="srv-info">
+          {srv.map((r) => (
+            <div className="srv-row" key={r.label}>
+              <dt className="srv-row__k">{r.label}</dt>
+              <dd className="srv-row__v">{r.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
     <div className="scard">
       <div className="scard__body">
         <div className="sfield"><div className="sfield__intro">{t('caps.intro')}</div></div>
@@ -358,6 +391,7 @@ function CapabilitiesSection() {
         </ul>
       </div>
     </div>
+    </>
   );
 }
 const CAP_KEYS = Object.keys(CAP_INFO);
