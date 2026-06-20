@@ -88,8 +88,8 @@ stable homes for them.
 ## Compiled plugins (write real React)
 
 The example above is an *uncompiled* `.js` plugin. For anything substantial,
-build a plugin like a normal project and compile it to one droppable file — the
-same model as webchat's webpack plugins.
+build a plugin like a normal project and compile it to one droppable file — a
+compiled, externalized-React plugin model.
 
 The trick: mark `react`, `react-dom` and `react/jsx-runtime` **external** and map
 them to `Orbit.React` / `Orbit.ReactDOM` / `Orbit.jsxRuntime`, so your bundle

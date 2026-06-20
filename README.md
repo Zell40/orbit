@@ -135,4 +135,4 @@ Licensed under the **GNU Affero General Public License v3.0 or later**
 (AGPL-3.0). If you run a modified version of Orbit as a network service, you must
 make your modified source available to its users. See [LICENSE](./LICENSE).
 
-<div align="center"><sub>Built with React · IRCv3 — <a href="https://orbit.tchatou.fr">orbit.tchatou.fr</a></sub></div>
+<div align="center"><sub>Built with React · Cutting Edge IRCv3 cap- <a href="https://orbit.tchatou.fr">orbit.tchatou.fr</a></sub></div>

@@ -1,8 +1,8 @@
 # Orbit plugin template
 
 A starter for a **compiled** Orbit plugin — write real React/TSX with hooks and
-build it down to a single droppable `.js` file (the same model as webchat's
-webpack plugins, in React/Vite).
+build it down to a single droppable `.js` file (a compiled, externalized-React
+plugin model, in React/Vite).
 
 ## Build
 
