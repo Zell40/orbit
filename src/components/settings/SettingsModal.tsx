@@ -7,13 +7,9 @@ import { getTheme, setTheme, type Theme } from '../../ui/theme';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../services/push';
 import { CAP_INFO } from '../../irc/cap-info';
 import { usePluginRegistry } from '../../plugins/registry';
+import { PluginBoundary } from '../PluginBoundary';
 import { Avatar } from '../Avatar';
 import { Turnstile } from '../Turnstile';
-
-// Renders one plugin-contributed settings section, isolating render errors.
-function PluginSettingsSlot({ render }: { render: () => ReactNode }) {
-  try { return <>{render()}</>; } catch (e) { console.error('[plugins] settings_section render error', e); return null; }
-}
 
 // Labels & descriptions are resolved via i18n (SEC_KEY / SEC_DESC).
 const SETTINGS_SECTIONS = [
@@ -148,7 +144,7 @@ export function SettingsModal() {
             {section === 'server' && <ServerSection />}
             {section === 'ircv3' && <CapabilitiesSection />}
             {section === 'about' && <AboutSection />}
-            {curPlugin && <PluginSettingsSlot render={curPlugin.render} />}
+            {curPlugin && <PluginBoundary render={curPlugin.render} label="settings_section" />}
           </div>
         </section>
       </div>
