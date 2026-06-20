@@ -69,6 +69,7 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `orbit.storage.get(key, def)/set(key, val)` | namespaced persistence |
 | `orbit.addUi(slot, render)` | add UI to a slot (returns a remover) |
 | `orbit.addSettingsSection({label, icon?, render})` | add a whole Settings section |
+| `orbit.addMessageDecorator(m => …)` | append UI to every message; `m` = `{id, nick, text, kind, ts, mine}` |
 | `orbit.h / orbit.html` | render helpers |
 | `log(…)` | namespaced console logger |
 
@@ -81,10 +82,14 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | Slot | Where |
 |---|---|
 | `composer_button` | a button in the message composer toolbar |
+| `topbar_item` | an item in the channel topbar action row (next to search / notifications) |
+| `sidebar_item` | an item in the conversation sidebar header (next to the compose button) |
 | `settings_section` | a whole section in Settings (own nav entry + pane) — use `orbit.addSettingsSection()` |
 
-More slots (message decorators, side panels) will be added as the core grows
-stable homes for them.
+Message decorators are added with `orbit.addMessageDecorator(m => …)` rather than
+a slot — the callback runs for every rendered message and receives a read-only
+view of it. Every contributed slot and decorator renders inside its own error
+boundary, so a crashing plugin renders nothing instead of taking down the app.
 
 ## Compiled plugins (write real React)
 
@@ -117,5 +122,10 @@ replacement. Those would couple plugins to internals that are still moving; the
 API above is the deliberately stable surface. Ask (or open an issue) if you need
 a hook that isn't here.
 
-See [`public/plugins/orbit-demo.js`](../public/plugins/orbit-demo.js) for a
-complete working example.
+## Working examples
+
+| File | Shows |
+|---|---|
+| [`orbit-demo.js`](../public/plugins/orbit-demo.js) | events, a `composer_button`, an IRC action |
+| [`orbit-clock.js`](../public/plugins/orbit-clock.js) | a `topbar_item` with live React-hook state |
+| [`orbit-copy.js`](../public/plugins/orbit-copy.js) | a `message_decorator` (per-message copy button) |

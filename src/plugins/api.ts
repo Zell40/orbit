@@ -13,7 +13,7 @@ import { useChat } from '../store';
 import { getTheme, setTheme, type Theme } from '../ui/theme';
 import { getConfig } from '../config';
 import { bus } from './bus';
-import { usePluginRegistry, type UiSlot } from './registry';
+import { usePluginRegistry, type UiSlot, type DecoratorInfo } from './registry';
 
 const html = htm.bind(React.createElement);
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
@@ -73,6 +73,8 @@ export interface OrbitPluginApi {
   addUi: (slot: UiSlot, render: () => ReactNode) => () => void;
   /** Add a whole section to Settings (own nav entry + pane). */
   addSettingsSection: (opts: { label: string; icon?: string; render: () => ReactNode }) => () => void;
+  /** Decorate every rendered message (e.g. a badge appended after the text). */
+  addMessageDecorator: (render: (m: DecoratorInfo) => ReactNode) => () => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -111,6 +113,7 @@ function makeApi(name: string): OrbitPluginApi {
     addUi: (slot, render) => usePluginRegistry.getState().addUi(slot, name, render),
     addSettingsSection: (opts) =>
       usePluginRegistry.getState().addUi('settings_section', name, opts.render, { label: opts.label, icon: opts.icon }),
+    addMessageDecorator: (render) => usePluginRegistry.getState().addDecorator(name, render),
   };
 }
 

@@ -4,6 +4,8 @@ import { useChat, SERVER } from '../../store';
 import { avatarBg } from '../../lib/format';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
+import { usePluginRegistry } from '../../plugins/registry';
+import { PluginBoundary } from '../PluginBoundary';
 export function Rail() {
   const { t } = useTranslation();
   const nick = useChat((s) => s.nick);
@@ -37,6 +39,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const setModal = useChat((s) => s.setModal);
   const openUser = useChat((s) => s.openUser);
   const closeBuffer = useChat((s) => s.closeBuffer);
+  const sidebarItems = usePluginRegistry((s) => s.ui);
   const away = useChat((s) => s.away);
   const setAway = useChat((s) => s.setAway);
   const [q, setQ] = useState('');
@@ -86,6 +89,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
     <aside className="sidebar">
       <div className="side-top">
         <h2 className="side-title">{t('nav.home')}</h2>
+        {sidebarItems.filter((u) => u.slot === 'sidebar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="sidebar_item" />)}
         <button className="side-compose" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => setModal('join')}>✎</button>
       </div>
 

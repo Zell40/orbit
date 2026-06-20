@@ -1678,3 +1678,6 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .nmenu__txt b { font-size: .88rem; font-weight: 600; }
 .nmenu__txt span { font-size: .73rem; color: var(--muted); }
 .nmenu__check { flex: none; color: var(--green-d); font-weight: 700; }
+
+/* Plugin message decorators (appended inline after a message's text) */
+.msg-deco { display: inline-flex; align-items: center; gap: .25rem; margin-left: .35rem; vertical-align: middle; }

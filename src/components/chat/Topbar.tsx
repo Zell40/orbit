@@ -5,6 +5,8 @@ import { avatarBg } from '../../lib/format';
 import { getConfig } from '../../config';
 import { useTheme } from '../../ui/theme';
 import { NotifyMenu } from './NotifyMenu';
+import { usePluginRegistry } from '../../plugins/registry';
+import { PluginBoundary } from '../PluginBoundary';
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
   const { t } = useTranslation();
   const buffer = useChat((s) => s.buffers[s.active]);
@@ -14,6 +16,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const myPrefix = useChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
   const mirc = useTheme().startsWith('yomirc');
+  const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
   if (!buffer) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button></div>;
   const n = Object.keys(buffer.members).length;
@@ -50,6 +53,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
             ? <span className="topbar__topic">{buffer.topic}</span>
             : buffer.isChannel && <span className="topbar__topic topbar__topic--muted">{t('topbar.publicChannel', { n })}</span>}
       </div>
+      {topbarItems.filter((u) => u.slot === 'topbar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}
       {!isServer && <button className="topbar__search" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}>🔍</button>}
       {buffer.isChannel && <NotifyMenu />}
       {buffer.isChannel && amOp && <button className="topbar__search" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}>🛠️</button>}

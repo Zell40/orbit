@@ -5,8 +5,23 @@ import type { ChatMessage } from '../../irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
+import { usePluginRegistry, type DecoratorInfo } from '../../plugins/registry';
+import { PluginBoundary } from '../PluginBoundary';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
+
+// Renders every plugin-contributed message decorator for one message. Each runs
+// inside its own error boundary so a crashing plugin can't take down the list.
+function MsgDecorations({ m }: { m: ChatMessage }) {
+  const decs = usePluginRegistry((s) => s.decorators);
+  if (!decs.length) return null;
+  const info: DecoratorInfo = { id: m.id, nick: m.from, text: m.text, kind: m.kind, ts: m.ts, mine: !!m.self };
+  return (
+    <span className="msg-deco">
+      {decs.map((d) => <PluginBoundary key={d.id} render={() => d.render(info)} label="message_decorator" />)}
+    </span>
+  );
+}
 function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   const { t } = useTranslation();
   const react = useChat((s) => s.toggleReaction);
@@ -48,6 +63,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
         </button>{' '}
         <span className="mircline__txt">
           {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self)}
+          {!m.redacted && <MsgDecorations m={m} />}
         </span>
         {m.reactions && m.reactions.length > 0 && (
           <span className="reactions reactions--inline">
@@ -90,6 +106,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
         )}
         <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self)}</em> : formatIrc(m.text, m.self))}
+          {!m.redacted && <MsgDecorations m={m} />}
         </div>
         {showCtx && (
           <button
