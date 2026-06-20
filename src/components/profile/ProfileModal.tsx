@@ -1,12 +1,15 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
 import { IRCOP_COLOR, hashHue, fmtDuration, formatUserModes } from '../../lib/format';
 import { Avatar } from '../Avatar';
 
-const PM_WIDE_KEYS = new Set(['Identifiant', 'Serveur', 'Salons en commun', 'Empreinte du certificat', 'Info', 'Modes utilisateur']);
+// Which info rows take the full width — keyed by stable id (not the translated label).
+const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes']);
 
 /* Wide horizontal profile card — pops over a blurred "nebula" of the app */
 export function ProfileModal() {
+  const { t } = useTranslation();
   const nick = useChat((s) => s.profileUser);
   const info = useChat((s) => s.whois[s.profileUser]);
   const me = useChat((s) => s.nick);
@@ -51,43 +54,44 @@ export function ProfileModal() {
   const targetIsOp = /[~&@]/.test(targetMember?.prefixes || targetMember?.prefix || '');
   const canModerate = !isMe && amOp && !!targetMember && (active.startsWith('#') || active.startsWith('&'));
 
+  // [icon, stable key id, value] — the label is translated from the key at render.
   const rows: Array<[string, string, ReactNode]> = [];
-  if (info?.realname) rows.push(['📝', 'Nom affiché', info.realname]);
-  if (info?.user || info?.host) rows.push(['🪪', 'Identifiant', `${info?.user ?? '?'}@${info?.host ?? '?'}`]);
-  if (info?.server) rows.push(['🛰️', 'Serveur', info.server + (info.serverInfo ? ` · ${info.serverInfo}` : '')]);
-  if (info?.channels) rows.push(['#️⃣', 'Salons en commun', info.channels]);
-  if (info?.signon) rows.push(['🕓', 'Connecté depuis', new Date(info.signon * 1000).toLocaleString('fr-FR')]);
-  if (info?.idle != null) rows.push(['💤', 'Inactif depuis', fmtDuration(info.idle)]);
-  if (info?.secure) rows.push(['🔒', 'Connexion', 'Sécurisée (TLS)']);
+  if (info?.realname) rows.push(['📝', 'realname', info.realname]);
+  if (info?.user || info?.host) rows.push(['🪪', 'identifier', `${info?.user ?? '?'}@${info?.host ?? '?'}`]);
+  if (info?.server) rows.push(['🛰️', 'server', info.server + (info.serverInfo ? ` · ${info.serverInfo}` : '')]);
+  if (info?.channels) rows.push(['#️⃣', 'channels', info.channels]);
+  if (info?.signon) rows.push(['🕓', 'signon', new Date(info.signon * 1000).toLocaleString()]);
+  if (info?.idle != null) rows.push(['💤', 'idle', fmtDuration(info.idle)]);
+  if (info?.secure) rows.push(['🔒', 'connection', t('whois.secureTls')]);
   const shownModes = info?.modes || (isMe ? myUmodes : '');
-  if (shownModes) rows.push(['⚙️', 'Modes utilisateur', formatUserModes(shownModes)]);
-  if (info?.certfp) rows.push(['🔑', 'Empreinte du certificat', <code className="pm-fp">{info.certfp}</code>]);
+  if (shownModes) rows.push(['⚙️', 'umodes', formatUserModes(shownModes)]);
+  if (info?.certfp) rows.push(['🔑', 'certfp', <code className="pm-fp">{info.certfp}</code>]);
   for (const line of info?.special ?? []) {
     const verif = line.match(/verified\s+(\S+)\s+account\s*\(([^)]+)\)/i);
     const groups = line.match(/security groups?:?\s*(.+)/i);
     const score = line.match(/score:?\s*([\d.]+)/i);
     if (verif) {
-      rows.push(['✅', 'Compte vérifié',
+      rows.push(['✅', 'verified',
         <span className="pm-verif"><span className="pm-check pm-check--inline">✓</span>{verif[2]}<span className="pm-verif__net"> · {verif[1]}</span></span>]);
     } else if (groups) {
-      rows.push(['🛡️', 'Groupes',
+      rows.push(['🛡️', 'groups',
         <span className="pm-groups">{groups[1].split(/[\s,]+/).filter(Boolean).map((g) => <span className="pm-grouptag" key={g}>{g}</span>)}</span>]);
     } else if (score) {
-      rows.push(['📊', 'Score', score[1]]);
+      rows.push(['📊', 'score', score[1]]);
     } else {
-      rows.push(['ℹ️', 'Info', line]);
+      rows.push(['ℹ️', 'info', line]);
     }
   }
 
-  const status = info?.offline ? 'hors ligne' : info?.away ? 'absent' : 'en ligne';
-  const statusKey = status === 'en ligne' ? 'on' : 'away';
+  const statusText = info?.offline ? t('whois.offline') : info?.away ? t('whois.away') : t('whois.online');
+  const statusKey = !info?.offline && !info?.away ? 'on' : 'away';
   const chCount = info?.channels?.trim() ? info.channels.trim().split(/\s+/).length : null;
 
   return (
     <div className="pm-backdrop" onClick={close}>
       <div className="pm-neb pm-neb--1" /><div className="pm-neb pm-neb--2" />
       <div className="pm-card" style={{ ['--hue' as string]: String(hue) } as CSSProperties} onClick={(e) => e.stopPropagation()}>
-        <button className="pm-x" onClick={close} aria-label="Fermer">✕</button>
+        <button className="pm-x" onClick={close} aria-label={t('profile.close')}>✕</button>
         <div className="pm-cover"><span className="pm-cover__glow" /></div>
         <div className="pm-hero">
         <div className="pm-avwrap">
@@ -98,20 +102,20 @@ export function ProfileModal() {
         <div className="pm-id">
           <div className="pm-name" style={info?.oper ? { color: IRCOP_COLOR } : undefined}>
             {nick}
-            {info?.account && <span className="pm-check" title={`Enregistré : ${info.account}`}>✓</span>}
+            {info?.account && <span className="pm-check" title={t('whois.registeredTitle', { account: info.account })}>✓</span>}
           </div>
-          <div className="pm-handle">{info?.loading && !info?.user ? 'chargement du profil…' : (info?.account ? `@${info.account}` : 'visiteur')}</div>
+          <div className="pm-handle">{info?.loading && !info?.user ? t('whois.loading') : (info?.account ? `@${info.account}` : t('whois.visitor'))}</div>
         </div>
         </div>
 
         <div className="pm-meta">
           <div className="pm-badges">
-            <span className={`pm-status pm-status--${status === 'en ligne' ? 'on' : 'away'}`}>● {status}</span>
+            <span className={`pm-status pm-status--${statusKey}`}>● {statusText}</span>
             {info?.bot && <span className="pm-badge pm-badge--bot">🤖 BOT</span>}
-            {info?.oper && <span className="pm-badge pm-badge--op">🛡 Opérateur</span>}
+            {info?.oper && <span className="pm-badge pm-badge--op">🛡 {t('whois.badgeOp')}</span>}
             {info?.account
-              ? <span className="pm-badge pm-badge--ok">✓ Enregistré</span>
-              : <span className="pm-badge">Invité</span>}
+              ? <span className="pm-badge pm-badge--ok">✓ {t('whois.badgeRegistered')}</span>
+              : <span className="pm-badge">{t('whois.badgeGuest')}</span>}
             {info?.secure && <span className="pm-badge">🔒 TLS</span>}
           </div>
           {info?.away && <div className="pm-away">💤 {info.away}</div>}
@@ -119,68 +123,67 @@ export function ProfileModal() {
 
         <div className="pm-stats">
           <div className="pm-stat">
-            <span className="pm-stat__val"><i className={`pm-dot pm-dot--${statusKey}`} />{status}</span>
-            <span className="pm-stat__key">Statut</span>
+            <span className="pm-stat__val"><i className={`pm-dot pm-dot--${statusKey}`} />{statusText}</span>
+            <span className="pm-stat__key">{t('whois.statStatus')}</span>
           </div>
           <div className="pm-stat">
             <span className="pm-stat__val">{chCount ?? '—'}</span>
-            <span className="pm-stat__key">Salons communs</span>
+            <span className="pm-stat__key">{t('whois.statCommon')}</span>
           </div>
           <div className="pm-stat">
             <span className="pm-stat__val">{info?.secure ? '🔒' : info?.loading ? '…' : '—'}</span>
-            <span className="pm-stat__key">{info?.secure ? 'Sécurisé' : 'Connexion'}</span>
+            <span className="pm-stat__key">{info?.secure ? t('whois.statSecure') : t('whois.connection')}</span>
           </div>
         </div>
 
         {!isMe && (
           <div className="pm-actions">
-            <button className="pm-btn pm-btn--primary" onClick={() => { openQuery(nick, activeChan.startsWith('#') ? activeChan : undefined); close(); }}>💬 Message privé</button>
-            <button className={`pm-btn pm-btn--icon ${spinning ? 'is-spinning' : ''}`} onClick={doRefresh} disabled={spinning} title="Actualiser" aria-label="Actualiser"><span className="pm-spin">↻</span></button>
+            <button className="pm-btn pm-btn--primary" onClick={() => { openQuery(nick, activeChan.startsWith('#') ? activeChan : undefined); close(); }}>💬 {t('whois.dm')}</button>
+            <button className={`pm-btn pm-btn--icon ${spinning ? 'is-spinning' : ''}`} onClick={doRefresh} disabled={spinning} title={t('profile.refresh')} aria-label={t('profile.refresh')}><span className="pm-spin">↻</span></button>
           </div>
         )}
 
         {!isMe && (
           <div className="pm-modrow">
             <button className={`pm-chip ${isFriend ? 'is-on' : ''}`} onClick={() => isFriend ? removeFriend(nick) : addFriend(nick)}>
-              {isFriend ? '⭐ Ami' : '☆ Ajouter en ami'}
+              {isFriend ? `⭐ ${t('whois.friend')}` : `☆ ${t('whois.friendAdd')}`}
             </button>
             <button className={`pm-chip ${isIgnored ? 'is-on' : ''}`} onClick={() => toggleIgnore(nick)}>
-              {isIgnored ? '🔔 Ne plus ignorer' : '🔕 Ignorer'}
+              {isIgnored ? `🔔 ${t('whois.unignore')}` : `🔕 ${t('whois.ignore')}`}
             </button>
-            <button className="pm-chip pm-chip--warn" onClick={() => { reportUser(nick); close(); }}>🚩 Signaler</button>
+            <button className="pm-chip pm-chip--warn" onClick={() => { reportUser(nick); close(); }}>🚩 {t('whois.report')}</button>
           </div>
         )}
 
         {canModerate && (
           <div className="pm-modrow pm-modrow--ops">
-            <span className="pm-modrow__lbl">🛡 Modération</span>
+            <span className="pm-modrow__lbl">🛡 {t('whois.moderation')}</span>
             <div className="pm-modbtns">
-              <button className="pm-chip" onClick={() => modKick(nick)}>👢 Expulser</button>
-              <button className="pm-chip pm-chip--warn" onClick={() => modBan(nick)}>🚫 Bannir</button>
-              <button className="pm-chip" onClick={() => modSetMode(nick, 'o', !targetIsOp)}>{targetIsOp ? '➖ Retirer op' : '➕ Op'}</button>
-              <button className="pm-chip" onClick={() => modSetMode(nick, 'v', true)}>🔊 Voix</button>
+              <button className="pm-chip" onClick={() => modKick(nick)}>👢 {t('whois.kick')}</button>
+              <button className="pm-chip pm-chip--warn" onClick={() => modBan(nick)}>🚫 {t('whois.ban')}</button>
+              <button className="pm-chip" onClick={() => modSetMode(nick, 'o', !targetIsOp)}>{targetIsOp ? `➖ ${t('whois.opRemove')}` : `➕ ${t('whois.opAdd')}`}</button>
+              <button className="pm-chip" onClick={() => modSetMode(nick, 'v', true)}>🔊 {t('whois.voice')}</button>
             </div>
           </div>
         )}
 
         <div className="pm-info">
-          {rows.length > 0 && <div className="pm-section">Informations</div>}
+          {rows.length > 0 && <div className="pm-section">{t('whois.section')}</div>}
           {info?.loading && rows.length === 0 && (
             <div className="pm-skeleton"><i /><i /><i /></div>
           )}
-          {rows.map(([icon, k, v]) => (
-            <div className={`pm-row ${PM_WIDE_KEYS.has(k) ? 'pm-row--wide' : ''}`} key={k}>
+          {rows.map(([icon, k, v], i) => (
+            <div className={`pm-row ${PM_WIDE_KEYS.has(k) ? 'pm-row--wide' : ''}`} key={`${k}-${i}`}>
               <span className="pm-row__ic">{icon}</span>
               <div className="pm-row__txt">
-                <div className="pm-row__k">{k}</div>
+                <div className="pm-row__k">{t('whois.' + k)}</div>
                 <div className="pm-row__v">{v}</div>
               </div>
             </div>
           ))}
-          {!info?.loading && rows.length === 0 && <div className="pm-empty">Aucune information publique disponible.</div>}
+          {!info?.loading && rows.length === 0 && <div className="pm-empty">{t('profile.noInfo')}</div>}
         </div>
       </div>
     </div>
   );
 }
-

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import i18n from './i18n';
 import { IrcClient } from './irc/client';
 import { initNotify, desktopNotify, blip } from './services/notify';
 import { getPrefs, savePrefs, applyPrefs, type Prefs } from './ui/prefs';
@@ -1435,7 +1436,7 @@ export const useChat = create<ChatState>((set, get) => {
       if (leak && !isService(active)) {
         client.privmsg(leak.service, leak.command);
         sysLine(active,
-          `On a intercepté ta commande d’identification : envoyée telle quelle ici, ton mot de passe aurait été visible par tout le monde dans ${active}. Pas d’inquiétude — on l’a transmise à ${leak.service} en privé, rien n’a été divulgué. La prochaine fois, connecte-toi depuis Réglages › Compte.`,
+          i18n.t('security.leakGuard', { channel: active, service: leak.service }),
           'warning');
         ensureBuffer(leak.service);
         if (!client.hasCap('echo-message')) {

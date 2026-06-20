@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
 import type { ChatMessage } from '../../irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
@@ -145,6 +146,7 @@ function SearchResults({ messages, query }: { messages: ChatMessage[]; query: st
 }
 
 export function MessageList() {
+  const { t } = useTranslation();
   const active = useChat((s) => s.active);
   const buffer = useChat((s) => s.buffers[s.active]);
   const search = useChat((s) => s.search);
@@ -272,7 +274,7 @@ export function MessageList() {
         <div key={m.id} className="warnline">
           <span className="warnline__ic" aria-hidden>🛡️</span>
           <div className="warnline__body">
-            <span className="warnline__tag">Sécurité</span>
+            <span className="warnline__tag">{t('security.tag')}</span>
             <span className="warnline__txt">{m.text}</span>
           </div>
         </div>,
