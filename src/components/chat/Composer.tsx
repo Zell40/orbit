@@ -53,7 +53,10 @@ const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', '
 
 export function Composer() {
   const { t } = useTranslation();
-  const pluginButtons = usePluginRegistry((s) => s.ui.filter((u) => u.slot === 'composer_button'));
+  // Select the stable array ref (zustand v5 would loop on a new array each render);
+  // filter in the body.
+  const pluginUi = usePluginRegistry((s) => s.ui);
+  const pluginButtons = pluginUi.filter((u) => u.slot === 'composer_button');
   const active = useChat((s) => s.active);
   const send = useChat((s) => s.sendInput);
   const notifyTyping = useChat((s) => s.notifyTyping);
