@@ -1695,3 +1695,14 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   background: var(--green); color: #fff; padding: .6rem 1rem; border-radius: 0 0 12px 12px;
   font-weight: 600; text-decoration: none; transition: top .15s ease; }
 .skip-link:focus { top: 0; }
+
+/* ── Large-channel virtualization (browser-native) ──────────────────────────
+   Member rows skip layout & paint while off-screen, so a 2,000-member panel
+   only does real rendering work for the handful of visible rows — the rest cost
+   ~nothing until scrolled into view. contain-intrinsic-size gives off-screen
+   rows a placeholder height (so the scrollbar is right); `auto` makes the
+   browser remember each row's real height after it first renders. Visible rows
+   render exactly as before, so small channels are unchanged. Degrades to normal
+   rendering on browsers without content-visibility. */
+.member { content-visibility: auto; contain-intrinsic-size: auto 44px; }
+[data-theme^="yomirc"] .member { contain-intrinsic-size: auto 20px; }
