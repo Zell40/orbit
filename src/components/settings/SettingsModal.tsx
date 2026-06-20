@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LANGS, setLang, getLang } from '../../i18n';
 import { useChat } from '../../store';
 import { getConfig } from '../../config';
 import { getTheme, setTheme, type Theme } from '../../ui/theme';
@@ -14,7 +16,15 @@ const SETTINGS_SECTIONS = [
 ] as const;
 type SettingsSection = (typeof SETTINGS_SECTIONS)[number]['id'];
 
+const SEC_KEY: Record<SettingsSection, string> = {
+  profil: 'profile.openProfile',
+  apparence: 'settings.sections.appearance',
+  notifs: 'settings.sections.notifications',
+  compte: 'settings.sections.account',
+};
+
 export function SettingsModal() {
+  const { t } = useTranslation();
   const setModal = useChat((s) => s.setModal);
   const account = useChat((s) => s.account);
   const [section, setSection] = useState<SettingsSection>('profil');
@@ -36,7 +46,7 @@ export function SettingsModal() {
         {/* left rail (desktop) / section list (mobile) */}
         <aside className="settings__nav">
           <div className="settings__brand">
-            <span className="settings__brand-title">Réglages</span>
+            <span className="settings__brand-title">{t('settings.title')}</span>
             <button className="settings__close" onClick={close} aria-label="Fermer">✕</button>
           </div>
           <nav className="settings__navlist">
@@ -45,7 +55,7 @@ export function SettingsModal() {
                 onClick={() => { setSection(s.id); setDrilled(true); }}>
                 <span className="settings__navic" aria-hidden>{s.icon}</span>
                 <span className="settings__navtxt">
-                  <span className="settings__navlabel">{s.label}</span>
+                  <span className="settings__navlabel">{t(SEC_KEY[s.id])}</span>
                   <span className="settings__navdesc">{s.id === 'compte' && account ? `@${account}` : s.desc}</span>
                 </span>
                 <span className="settings__navchev" aria-hidden>›</span>
@@ -66,7 +76,7 @@ export function SettingsModal() {
           <header className="settings__top">
             <button className="settings__back" onClick={() => setDrilled(false)} aria-label="Retour">‹</button>
             <span className="settings__top-ic" aria-hidden>{cur.icon}</span>
-            <h3 className="settings__top-title">{cur.label}</h3>
+            <h3 className="settings__top-title">{t(SEC_KEY[cur.id])}</h3>
             <button className="settings__close settings__close--pane" onClick={close} aria-label="Fermer">✕</button>
           </header>
           <div className="settings__content" key={section}>
@@ -216,8 +226,11 @@ function ChangeNickField({ hint }: { hint: string }) {
 function AppearanceSection() {
   const clock24 = useChat((s) => s.prefs.clock24);
   const setPref = useChat((s) => s.setPref);
+  const { t } = useTranslation();
   const [theme, setT] = useState<Theme>(getTheme());
-  function pick(t: Theme) { setT(t); setTheme(t); }
+  const [lang, setLangState] = useState(getLang());
+  function pick(tm: Theme) { setT(tm); setTheme(tm); }
+  function pickLang(code: string) { setLangState(code); setLang(code); }
 
   const THEME_OPTS: Array<{ id: Theme; icon: string; label: string }> = [
     { id: 'light', icon: '☀️', label: 'Clair' },
@@ -232,20 +245,26 @@ function AppearanceSection() {
     <div className="scard">
       <div className="scard__body">
         <div className="sfield">
-          <label className="sfield__label">Thème</label>
+          <label className="sfield__label">{t('settings.appearance.language')}</label>
+          <select className="modal__input lang-select" value={lang} onChange={(e) => pickLang(e.target.value)} aria-label={t('settings.appearance.language')}>
+            {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+          </select>
+        </div>
+        <div className="sfield">
+          <label className="sfield__label">{t('settings.appearance.theme')}</label>
           <div className="theme-grid">
-            {THEME_OPTS.map((t) => (
-              <button key={t.id} className={`theme-opt ${theme === t.id ? 'is-on' : ''}`} onClick={() => pick(t.id)}>
-                <span className="theme-opt__ic" aria-hidden>{t.icon}</span>
-                <span className="theme-opt__label">{t.label}</span>
+            {THEME_OPTS.map((tm) => (
+              <button key={tm.id} className={`theme-opt ${theme === tm.id ? 'is-on' : ''}`} onClick={() => pick(tm.id)}>
+                <span className="theme-opt__ic" aria-hidden>{tm.icon}</span>
+                <span className="theme-opt__label">{tm.label}</span>
               </button>
             ))}
           </div>
         </div>
-        <ToggleRow icon="🗜️" label="Mode compact" hint="Messages plus denses, plus d’infos à l’écran." prefKey="compact" />
+        <ToggleRow icon="🗜️" label={t('settings.appearance.compact')} hint="Messages plus denses, plus d’infos à l’écran." prefKey="compact" />
         <div className="srow">
           <span className="srow__ic" aria-hidden>🕓</span>
-          <div className="srow__txt"><div className="srow__label">Format de l’heure</div></div>
+          <div className="srow__txt"><div className="srow__label">{t('settings.appearance.timeFormat')}</div></div>
           <div className="srow__ctrl"><div className="sseg">
             <button className={clock24 ? 'is-on' : ''} onClick={() => setPref('clock24', true)}>24 h</button>
             <button className={!clock24 ? 'is-on' : ''} onClick={() => setPref('clock24', false)}>12 h</button>

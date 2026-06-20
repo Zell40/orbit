@@ -1,0 +1,176 @@
+{
+  "nav": {
+    "home": "Home",
+    "settings": "Settings",
+    "profile": "My profile",
+    "friends": "Friends",
+    "explore": "Explore channels",
+    "newDM": "New conversation",
+    "away": "Away",
+    "quit": "Leave chat"
+  },
+  "sidebar": {
+    "all": "All",
+    "channels": "Channels",
+    "dms": "Direct",
+    "search": "Search",
+    "noChannel": "Choose a channel to start chatting."
+  },
+  "topbar": {
+    "search": "Search",
+    "members": "View members",
+    "manage": "Manage channel",
+    "modes": "Channel modes",
+    "notifications": "Notifications",
+    "closeSearch": "Close search",
+    "membersCount": "Members · {{n}}",
+    "publicChannel": "Public channel · {{n}} members",
+    "commonChannels": "Common channels"
+  },
+  "connect": {
+    "onlineBadge": "{{n}} people online",
+    "pseudoPlaceholder": "Choose your nickname…",
+    "enter": "Enter",
+    "joinHint": "You're joining",
+    "registered": "Already have an account?",
+    "hidePassword": "Hide password",
+    "passwordPlaceholder": "Password (if your nick is registered)",
+    "passwordLabel": "Password",
+    "noData": "No sign-up required",
+    "encrypted": "End-to-end encrypted",
+    "ircv3": "IRCv3",
+    "helpButton": "Help & FAQ",
+    "forgotButton": "Forgot password?",
+    "createButton": "Create an account",
+    "faqTitle": "Help & FAQ",
+    "error_error": "Cannot connect. Please try again in a moment.",
+    "error_closed": "The connection was closed.",
+    "error_sasl": "Unknown nick or incorrect password."
+  },
+  "messages": {
+    "reply": "In reply to",
+    "react": "React",
+    "respond": "Reply",
+    "delete": "Delete",
+    "hideJoins": "Hide joins/parts",
+    "unread": "New messages",
+    "jumpUnread": "New messages",
+    "loadHistory": "Load history",
+    "copyLink": "Copy link",
+    "copyText": "Copy text",
+    "info": "Info",
+    "notice": "NOTICE",
+    "guest": "Guest",
+    "poweredBy": "Powered by Orbit"
+  },
+  "modals": {
+    "closeButton": "Close",
+    "join": {
+      "title": "Explore channels",
+      "search": "Search or create #channel…",
+      "loading": "Loading channels…",
+      "noResults": "No results"
+    },
+    "dm": {
+      "title": "New conversation",
+      "search": "Add a nickname…",
+      "noResults": "No results"
+    },
+    "friends": {
+      "title": "Friends",
+      "noFriends": "No friends yet."
+    },
+    "chanadmin": {
+      "title": "Manage channel",
+      "topic": "Channel topic…",
+      "bans": "Bans ({{n}})",
+      "noBans": "No bans.",
+      "ban": "Ban",
+      "unban": "Remove ban",
+      "kick": "Kick",
+      "maskPlaceholder": "*!*@mask or nickname…",
+      "channelSearch": "#channel or nickname",
+      "setTopic": "Set",
+      "info": "Info",
+      "modes": "Channel modes",
+      "subject": "Topic"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "account": "Account",
+      "appearance": "Appearance",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "advanced": "Advanced"
+    },
+    "account": {
+      "login": "Log in",
+      "register": "Create an account",
+      "logout": "Log out",
+      "accountName": "Account name",
+      "password": "Password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "minPassword": "Min. 6 characters",
+      "changeNick": "Change nickname",
+      "nickHint": "Changes the nickname shown in channels.",
+      "emailPlaceholder": "you@example.com",
+      "totpCode": "e.g. 123456",
+      "verificationCode": "Verification code",
+      "resend": "Resend code",
+      "restart": "Start over",
+      "connecting": "Connecting…",
+      "validating": "Validating…",
+      "security": "Security",
+      "status": "Status",
+      "loggedIn": "Connected",
+      "loggedInAs": "Connected · {{nick}}",
+      "identifiedAs": "You are logged in as {{nick}}",
+      "unknownError": "Unknown account or incorrect password.",
+      "saslFailed": "Incorrect nickname or password.",
+      "antiBot": "Anti-bot verification",
+      "wrongPassword": "Incorrect password.",
+      "join": "Join",
+      "channelHint": "Join a channel (starts with #)",
+      "channelPlaceholder": "e.g. orbit, help, offtopic",
+      "fromChannel": "From channel"
+    },
+    "appearance": {
+      "theme": "Theme",
+      "language": "Language",
+      "timeFormat": "Time format",
+      "compact": "Compact messages",
+      "textSize": "Text size"
+    },
+    "notifications": {
+      "browser": "Browser notifications",
+      "push": "Push notifications"
+    }
+  },
+  "profile": {
+    "refresh": "Refresh",
+    "close": "Close",
+    "away": "Away",
+    "noInfo": "No public information available.",
+    "noMembers": "No members",
+    "filterMembers": "Filter members",
+    "openDM": "Direct message",
+    "openProfile": "Profile",
+    "cancel": "Cancel"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "tr": "Türkçe",
+    "ne": "नेपाली",
+    "es": "Español",
+    "ru": "Русский",
+    "it": "Italiano",
+    "pt-PT": "Português (Portugal)",
+    "pt-BR": "Português (Brasil)"
+  }
+}

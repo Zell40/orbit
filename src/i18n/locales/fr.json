@@ -1,0 +1,176 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "settings": "Réglages",
+    "profile": "Mon profil",
+    "friends": "Amis",
+    "explore": "Explorer les salons",
+    "newDM": "Nouvelle discussion",
+    "away": "Absence",
+    "quit": "Quitter le tchat"
+  },
+  "sidebar": {
+    "all": "Tous",
+    "channels": "Salons",
+    "dms": "Privés",
+    "search": "Rechercher",
+    "noChannel": "Choisis un salon pour commencer à discuter."
+  },
+  "topbar": {
+    "search": "Rechercher",
+    "members": "Voir les membres",
+    "manage": "Gérer le salon",
+    "modes": "Modes du salon",
+    "notifications": "Notifications",
+    "closeSearch": "Fermer la recherche",
+    "membersCount": "Membres · {{n}}",
+    "publicChannel": "Salon public · {{n}} membres",
+    "commonChannels": "Salons communs"
+  },
+  "connect": {
+    "onlineBadge": "{{n}} personnes en ligne",
+    "pseudoPlaceholder": "Écris ton pseudo pour entrer…",
+    "enter": "Entrer",
+    "joinHint": "Tu entres dans",
+    "registered": "Pseudo déjà enregistré ?",
+    "hidePassword": "Masquer le mot de passe",
+    "passwordPlaceholder": "Mot de passe (si ton pseudo est enregistré)",
+    "passwordLabel": "Mot de passe",
+    "noData": "Aucune inscription",
+    "encrypted": "Chiffré de bout en bout",
+    "ircv3": "IRCv3",
+    "helpButton": "Aide & FAQ",
+    "forgotButton": "Mot de passe oublié ?",
+    "createButton": "Créer un compte",
+    "faqTitle": "Aide & FAQ",
+    "error_error": "Connexion impossible. Réessaie dans un instant.",
+    "error_closed": "La connexion a été fermée.",
+    "error_sasl": "Pseudo ou mot de passe incorrect."
+  },
+  "messages": {
+    "reply": "En réponse à",
+    "react": "Réagir",
+    "respond": "Répondre",
+    "delete": "Supprimer",
+    "hideJoins": "Masquer les entrées/sorties",
+    "unread": "Nouveaux messages",
+    "jumpUnread": "Nouveaux messages",
+    "loadHistory": "Charger l'historique",
+    "copyLink": "Copier le lien",
+    "copyText": "Copier le texte",
+    "info": "Info",
+    "notice": "NOTICE",
+    "guest": "Invité",
+    "poweredBy": "Propulsé par Orbit"
+  },
+  "modals": {
+    "closeButton": "Fermer",
+    "join": {
+      "title": "Explorer les salons",
+      "search": "Rechercher ou créer #salon…",
+      "loading": "Chargement des salons…",
+      "noResults": "Aucun résultat"
+    },
+    "dm": {
+      "title": "Nouvelle discussion",
+      "search": "Ajouter un pseudo…",
+      "noResults": "Aucun résultat"
+    },
+    "friends": {
+      "title": "Amis",
+      "noFriends": "Aucun ami pour l'instant."
+    },
+    "chanadmin": {
+      "title": "Gérer le salon",
+      "topic": "Sujet du salon…",
+      "bans": "Bannissements ({{n}})",
+      "noBans": "Aucun bannissement.",
+      "ban": "Bannir",
+      "unban": "Lever le bannissement",
+      "kick": "Retirer",
+      "maskPlaceholder": "*!*@masque ou pseudo…",
+      "channelSearch": "#salon ou pseudo",
+      "setTopic": "Définir",
+      "info": "Informations",
+      "modes": "Modes du salon",
+      "subject": "Sujet"
+    }
+  },
+  "settings": {
+    "title": "Réglages",
+    "sections": {
+      "account": "Compte",
+      "appearance": "Apparence",
+      "notifications": "Notifications",
+      "privacy": "Confidentialité",
+      "advanced": "Avancé"
+    },
+    "account": {
+      "login": "Se connecter",
+      "register": "Créer un compte",
+      "logout": "Se déconnecter du compte",
+      "accountName": "Nom du compte",
+      "password": "Mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "minPassword": "Min. 6 caractères",
+      "changeNick": "Changer de pseudo",
+      "nickHint": "Change le pseudo affiché dans les salons.",
+      "emailPlaceholder": "toi@exemple.fr",
+      "totpCode": "Ex : 123456",
+      "verificationCode": "Code de vérification",
+      "resend": "Renvoyer le code",
+      "restart": "Recommencer",
+      "connecting": "Connexion…",
+      "validating": "Validation…",
+      "security": "Sécurité",
+      "status": "Statut",
+      "loggedIn": "Connecté",
+      "loggedInAs": "Connecté · {{nick}}",
+      "identifiedAs": "Tu es identifié comme {{nick}}",
+      "unknownError": "Compte inconnu ou mot de passe incorrect.",
+      "saslFailed": "Pseudo ou mot de passe incorrect.",
+      "antiBot": "Vérification anti-robot",
+      "wrongPassword": "Mot de passe incorrect.",
+      "join": "Rejoindre",
+      "channelHint": "Rejoins un salon (commence par #)",
+      "channelPlaceholder": "ex : tchatou, rdv, urgent",
+      "fromChannel": "Depuis le salon"
+    },
+    "appearance": {
+      "theme": "Thème",
+      "language": "Langue",
+      "timeFormat": "Format de l'heure",
+      "compact": "Messages compacts",
+      "textSize": "Taille du texte"
+    },
+    "notifications": {
+      "browser": "Notifications navigateur",
+      "push": "Notifications push"
+    }
+  },
+  "profile": {
+    "refresh": "Actualiser",
+    "close": "Fermer",
+    "away": "Absent",
+    "noInfo": "Aucune information publique disponible.",
+    "noMembers": "Aucun membre",
+    "filterMembers": "Filtrer les membres",
+    "openDM": "Message privé",
+    "openProfile": "Profil",
+    "cancel": "Annuler"
+  },
+  "language": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français",
+    "de": "Deutsch",
+    "tr": "Türkçe",
+    "ne": "नेपाली",
+    "es": "Español",
+    "ru": "Русский",
+    "it": "Italiano",
+    "pt-PT": "Português (Portugal)",
+    "pt-BR": "Português (Brasil)"
+  }
+}

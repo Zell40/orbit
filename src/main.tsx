@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { applyTheme, getTheme } from './ui/theme.ts'
+import './i18n'
 import './index.css'
 import { initViewport } from './ui/viewport.ts'
 import { loadConfig } from './config.ts'

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
 import { avatarBg } from '../../lib/format';
 import { useTheme } from '../../ui/theme';
@@ -25,6 +26,7 @@ export function Rail() {
 type Filter = 'all' | 'rooms' | 'people';
 
 export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
+  const { t } = useTranslation();
   const order = useChat((s) => s.order);
   const active = useChat((s) => s.active);
   const buffers = useChat((s) => s.buffers);
@@ -88,13 +90,13 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
 
       <div className="side-search">
         <span className="side-search__icon">🔍</span>
-        <input name="room-filter" type="search" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher" aria-label="Rechercher" />
+        <input name="room-filter" type="search" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('sidebar.search')} aria-label={t('sidebar.search')} />
       </div>
 
       <div className="pills">
-        <button className={`pill ${filter === 'all' ? 'is-on' : ''}`} onClick={() => setFilter('all')}>Tous</button>
-        <button className={`pill ${filter === 'rooms' ? 'is-on' : ''}`} onClick={() => setFilter('rooms')}>Salons</button>
-        <button className={`pill ${filter === 'people' ? 'is-on' : ''}`} onClick={() => setFilter('people')}>Privés</button>
+        <button className={`pill ${filter === 'all' ? 'is-on' : ''}`} onClick={() => setFilter('all')}>{t('sidebar.all')}</button>
+        <button className={`pill ${filter === 'rooms' ? 'is-on' : ''}`} onClick={() => setFilter('rooms')}>{t('sidebar.channels')}</button>
+        <button className={`pill ${filter === 'people' ? 'is-on' : ''}`} onClick={() => setFilter('people')}>{t('sidebar.dms')}</button>
       </div>
 
       <div className="rooms">
