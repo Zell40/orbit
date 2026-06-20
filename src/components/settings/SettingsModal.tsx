@@ -6,8 +6,14 @@ import { getConfig } from '../../config';
 import { getTheme, setTheme, type Theme } from '../../ui/theme';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../services/push';
 import { CAP_INFO } from '../../irc/cap-info';
+import { usePluginRegistry } from '../../plugins/registry';
 import { Avatar } from '../Avatar';
 import { Turnstile } from '../Turnstile';
+
+// Renders one plugin-contributed settings section, isolating render errors.
+function PluginSettingsSlot({ render }: { render: () => ReactNode }) {
+  try { return <>{render()}</>; } catch (e) { console.error('[plugins] settings_section render error', e); return null; }
+}
 
 // Labels & descriptions are resolved via i18n (SEC_KEY / SEC_DESC).
 const SETTINGS_SECTIONS = [
@@ -67,7 +73,10 @@ export function SettingsModal() {
   const { t } = useTranslation();
   const setModal = useChat((s) => s.setModal);
   const account = useChat((s) => s.account);
-  const [section, setSection] = useState<SettingsSection>('profil');
+  // Stable-ref selector (zustand v5 loops on a new array each render); filter in body.
+  const pluginUi = usePluginRegistry((s) => s.ui);
+  const pluginSections = pluginUi.filter((u) => u.slot === 'settings_section');
+  const [section, setSection] = useState<string>('profil');
   const [drilled, setDrilled] = useState(false); // mobile: are we inside a section?
   const close = () => setModal('');
 
@@ -78,7 +87,8 @@ export function SettingsModal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const cur = SETTINGS_SECTIONS.find((s) => s.id === section)!;
+  const curFixed = SETTINGS_SECTIONS.find((s) => s.id === section);
+  const curPlugin = pluginSections.find((p) => p.id === section);
 
   return (
     <div className="settings-backdrop" onClick={close}>
@@ -101,6 +111,17 @@ export function SettingsModal() {
                 <span className="settings__navchev" aria-hidden>›</span>
               </button>
             ))}
+            {pluginSections.map((ps) => (
+              <button key={ps.id} className={`settings__navitem ${section === ps.id ? 'is-on' : ''}`}
+                onClick={() => { setSection(ps.id); setDrilled(true); }}>
+                <span className="settings__navic" aria-hidden>{ps.meta?.icon ?? '🧩'}</span>
+                <span className="settings__navtxt">
+                  <span className="settings__navlabel">{ps.meta?.label ?? ps.plugin}</span>
+                  <span className="settings__navdesc">{ps.plugin}</span>
+                </span>
+                <span className="settings__navchev" aria-hidden>›</span>
+              </button>
+            ))}
           </nav>
           <a className="settings__about" href={getConfig().branding.projectUrl} target="_blank" rel="noopener noreferrer">
             <span className="settings__about-mark" aria-hidden>◐</span>
@@ -115,8 +136,8 @@ export function SettingsModal() {
         <section className="settings__pane">
           <header className="settings__top">
             <button className="settings__back" onClick={() => setDrilled(false)} aria-label={t('settings.misc.back')}>‹</button>
-            <span className="settings__top-ic" aria-hidden><SecIcon id={cur.id} icon={cur.icon} /></span>
-            <h3 className="settings__top-title">{t(SEC_KEY[cur.id])}</h3>
+            <span className="settings__top-ic" aria-hidden>{curFixed ? <SecIcon id={curFixed.id} icon={curFixed.icon} /> : (curPlugin?.meta?.icon ?? '🧩')}</span>
+            <h3 className="settings__top-title">{curFixed ? t(SEC_KEY[curFixed.id]) : (curPlugin?.meta?.label ?? '')}</h3>
             <button className="settings__close settings__close--pane" onClick={close} aria-label={t('modals.closeButton')}>✕</button>
           </header>
           <div className="settings__content" key={section}>
@@ -127,6 +148,7 @@ export function SettingsModal() {
             {section === 'server' && <ServerSection />}
             {section === 'ircv3' && <CapabilitiesSection />}
             {section === 'about' && <AboutSection />}
+            {curPlugin && <PluginSettingsSlot render={curPlugin.render} />}
           </div>
         </section>
       </div>

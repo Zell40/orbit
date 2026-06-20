@@ -6,6 +6,8 @@
 // change. UI authoring uses HTM (htm.bind to the app's React) so plugins write
 // template-literal markup at runtime, with no build step.
 import React, { type ReactNode } from 'react';
+import * as ReactJSXRuntime from 'react/jsx-runtime';
+import * as ReactDOM from 'react-dom';
 import htm from 'htm';
 import { useChat } from '../store';
 import { getTheme, setTheme, type Theme } from '../ui/theme';
@@ -24,8 +26,13 @@ export interface OrbitPluginApi {
   /** App build version + git commit. */
   version: string;
   commit: string;
-  /** The app's React instance + render helpers (single instance — nodes interop). */
+  /** The app's React instance + render helpers (single instance — nodes interop).
+   *  Compiled plugins externalize `react`/`react-dom`/`react/jsx-runtime` to these
+   *  so they share Orbit's React (never bundle their own — see docs/PLUGINS.md). */
   React: typeof React;
+  ReactDOM: typeof ReactDOM;
+  jsxRuntime: typeof ReactJSXRuntime;
+  Fragment: typeof React.Fragment;
   h: typeof React.createElement;
   /** Tagged-template markup, e.g. html`<button onClick=${fn}>Hi</button>`. */
   html: typeof html;
@@ -58,6 +65,8 @@ export interface OrbitPluginApi {
   storage: { get: <T>(key: string, fallback?: T) => T | undefined; set: (key: string, value: unknown) => void };
   // ── UI extension (named slots — see registry.ts) ─────────────────────────
   addUi: (slot: UiSlot, render: () => ReactNode) => () => void;
+  /** Add a whole section to Settings (own nav entry + pane). */
+  addSettingsSection: (opts: { label: string; icon?: string; render: () => ReactNode }) => () => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -66,7 +75,7 @@ function makeApi(name: string): OrbitPluginApi {
     name,
     version: __APP_VERSION__,
     commit: __GIT_COMMIT__,
-    React, h: React.createElement, html,
+    React, ReactDOM, jsxRuntime: ReactJSXRuntime, Fragment: React.Fragment, h: React.createElement, html,
     log: (...a) => console.log(`%c[plugin:${name}]`, 'color:#2ea043', ...a),
     on: bus.on, once: bus.once, off: bus.off, emit: bus.emit,
     state: {
@@ -93,6 +102,8 @@ function makeApi(name: string): OrbitPluginApi {
       set: (key, value) => { try { localStorage.setItem(ns + key, JSON.stringify(value)); } catch { /* quota */ } },
     },
     addUi: (slot, render) => usePluginRegistry.getState().addUi(slot, name, render),
+    addSettingsSection: (opts) =>
+      usePluginRegistry.getState().addUi('settings_section', name, opts.render, { label: opts.label, icon: opts.icon }),
   };
 }
 
@@ -100,7 +111,9 @@ function makeApi(name: string): OrbitPluginApi {
 export const Orbit = {
   version: __APP_VERSION__,
   commit: __GIT_COMMIT__,
-  React, h: React.createElement, html,
+  // Render primitives — compiled plugins externalize react/react-dom/jsx-runtime
+  // to these (one shared React instance). See plugin-template/ + docs/PLUGINS.md.
+  React, ReactDOM, jsxRuntime: ReactJSXRuntime, Fragment: React.Fragment, h: React.createElement, html,
   on: bus.on, once: bus.once, off: bus.off, emit: bus.emit,
   config: () => getConfig(),
   plugin(name: string, fn: (orbit: OrbitPluginApi, log: OrbitPluginApi['log']) => void): void {

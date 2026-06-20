@@ -49,7 +49,7 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `Orbit.plugin(name, fn)` | register a plugin; `fn(orbit, log)` |
 | `Orbit.on/once/off/emit(event, …)` | the app event bus |
 | `Orbit.config()` | the resolved runtime config |
-| `Orbit.React` / `Orbit.h` / `Orbit.html` | render primitives |
+| `Orbit.React` / `Orbit.ReactDOM` / `Orbit.jsxRuntime` / `Orbit.Fragment` / `Orbit.h` / `Orbit.html` | render primitives (externalization targets for compiled plugins) |
 
 ### Inside `Orbit.plugin(name, (orbit) => …)`
 | Member | Description |
@@ -67,6 +67,7 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `orbit.themes.current()/list()/set(id)` | read/set the theme |
 | `orbit.storage.get(key, def)/set(key, val)` | namespaced persistence |
 | `orbit.addUi(slot, render)` | add UI to a slot (returns a remover) |
+| `orbit.addSettingsSection({label, icon?, render})` | add a whole Settings section |
 | `orbit.h / orbit.html` | render helpers |
 | `log(…)` | namespaced console logger |
 
@@ -79,9 +80,34 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | Slot | Where |
 |---|---|
 | `composer_button` | a button in the message composer toolbar |
+| `settings_section` | a whole section in Settings (own nav entry + pane) — use `orbit.addSettingsSection()` |
 
-More slots (settings panel, message decorators, side panels) will be added as
-the core grows stable homes for them.
+More slots (message decorators, side panels) will be added as the core grows
+stable homes for them.
+
+## Compiled plugins (write real React)
+
+The example above is an *uncompiled* `.js` plugin. For anything substantial,
+build a plugin like a normal project and compile it to one droppable file — the
+same model as webchat's webpack plugins.
+
+The trick: mark `react`, `react-dom` and `react/jsx-runtime` **external** and map
+them to `Orbit.React` / `Orbit.ReactDOM` / `Orbit.jsxRuntime`, so your bundle
+shares Orbit's single React instance and never carries its own. (Bundling your
+own React breaks hooks with "invalid hook call".) Then author normal TSX with
+hooks/state and render it into a slot:
+
+```tsx
+import { useState } from 'react';
+Orbit.plugin('my-plugin', (orbit) => {
+  orbit.addSettingsSection({ label: 'My plugin', icon: '🧩', render: () => <Panel orbit={orbit} /> });
+});
+```
+
+A ready-to-copy starter (Vite config with the externals already set up, tsconfig,
+ambient types and an example) lives in [`plugin-template/`](../plugin-template).
+`npm install && npm run build` → one `dist/*.js` you drop in and list in
+`config.json`.
 
 ## Intentionally not exposed
 
