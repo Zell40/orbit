@@ -65,6 +65,18 @@ void i18n.use(initReactI18next).init({
 
 document.documentElement.lang = i18n.language;
 
+// Apply a deployment's default UI language (config.defaults.lang) — but only for
+// users who haven't explicitly picked one (setLang writes KEY). Called after the
+// runtime config loads, so it can override the browser-detected language.
+export function applyConfigDefaultLang(code?: string): void {
+  if (!code) return;
+  if (localStorage.getItem(KEY)) return;        // explicit user choice — honour it
+  if (!CODES.includes(code)) return;            // unknown language — ignore
+  if (i18n.language === code) return;
+  void i18n.changeLanguage(code);
+  document.documentElement.lang = code;
+}
+
 export function getLang(): string {
   return i18n.language;
 }

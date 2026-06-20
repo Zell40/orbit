@@ -39,6 +39,7 @@ export interface AppConfig {
     sound: boolean;         // blip on mention / PM
     hideJoinQuit: boolean;  // hide join/part/quit noise
     clock24: boolean;       // 24h timestamps
+    lang?: string;          // force a default UI language (e.g. 'en'); omit to auto-detect from the browser
   };
   /** Feature switches — turn whole features off for a deployment. */
   features: {

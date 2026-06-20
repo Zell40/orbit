@@ -2,9 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { applyTheme, getTheme } from './ui/theme.ts'
 import './i18n'
+import { applyConfigDefaultLang } from './i18n'
 import './index.css'
 import { initViewport } from './ui/viewport.ts'
-import { loadConfig } from './config.ts'
+import { loadConfig, getConfig } from './config.ts'
 
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()
@@ -14,6 +15,7 @@ initViewport()
 // a rebuild.
 loadConfig().then(async () => {
   applyTheme(getTheme()) // re-apply now that config (default theme) is loaded
+  applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
   const { default: App } = await import('./App.tsx') // also creates the store
   // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
   // then load operator-listed plugins from config. After the store exists,
