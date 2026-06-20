@@ -14,7 +14,7 @@ TypeScript · React · Vite · zustand — installable as a PWA, re-brandable wi
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white)](#)
 [![i18n](https://img.shields.io/badge/i18n-10_languages-0ea5e9?style=flat-square)](#-internationalization)
 
-[**Live demo**](https://tchatou.fr/app/) · [**Project page**](https://orbit.tchatou.fr) · [**Configuration**](./CONFIG.md) · [**License**](./LICENSE)
+[**Live demo**](https://tchatou.fr/app/) · [**Documentation**](https://orbit.tchatou.fr/docs/) · [**Project page**](https://orbit.tchatou.fr) · [**License**](./LICENSE)
 
 <img src="docs/screenshot.png" width="820" alt="Orbit screenshot">
 
@@ -55,8 +55,26 @@ by editing a single runtime `config.json` — no rebuild required.
 - **Fully internationalized** — 10 languages, browser-detected and switchable
   live (see [Internationalization](#-internationalization)).
 - **Plugins** — an experimental, operator-controlled plugin API (`window.Orbit`)
-  for events, IRC actions, theming and UI slots. See
-  [docs/PLUGINS.md](./docs/PLUGINS.md).
+  for events, IRC actions, theming and UI slots. See the
+  [plugin docs](https://orbit.tchatou.fr/docs/plugins/).
+
+## 📚 Documentation
+
+Full docs are hosted at **[orbit.tchatou.fr/docs](https://orbit.tchatou.fr/docs/)**:
+
+| | |
+|---|---|
+| [Overview](https://orbit.tchatou.fr/docs/overview/) | what Orbit is, and why |
+| [Quick start](https://orbit.tchatou.fr/docs/quick-start/) | run your own in a minute |
+| [Configuration](https://orbit.tchatou.fr/docs/config/) | every `config.json` option |
+| [Branding & themes](https://orbit.tchatou.fr/docs/branding/) | re-brand without a rebuild |
+| [Plugin system](https://orbit.tchatou.fr/docs/plugins/) | the `window.Orbit` API |
+| [Compiled plugins](https://orbit.tchatou.fr/docs/compiled-plugins/) | real React plugins |
+| [Build & deploy](https://orbit.tchatou.fr/docs/deploy/) | self-hosting |
+| [IRCv3 capabilities](https://orbit.tchatou.fr/docs/ircv3/) | the protocol features |
+| [Architecture](https://orbit.tchatou.fr/docs/architecture/) | how it's built |
+
+There's also a [user wiki](https://orbit.tchatou.fr/wiki/) and an [FAQ](https://orbit.tchatou.fr/faq/).
 
 ## 🔌 IRCv3 capabilities
 
@@ -88,7 +106,8 @@ startup and deep-merged over built-in defaults. Point it at another IRC network
 and fully re-brand it **without rebuilding** — just edit the deployed file and
 reload (the service worker serves it network-first).
 
-→ **See [CONFIG.md](./CONFIG.md)** for every option, merge rules, and examples.
+→ **[Configuration docs](https://orbit.tchatou.fr/docs/config/)** cover every
+option, merge rules, and examples (source: [CONFIG.md](./CONFIG.md)).
 
 ```jsonc
 {
@@ -102,7 +121,7 @@ reload (the service worker serves it network-first).
 
 Static output — copy `dist/*` (including `config.json`) to the web root served at
 `/app/`. To change only the config later, edit the deployed `/app/config.json`
-and reload. Full steps in [CONFIG.md → Deploy](./CONFIG.md#deploy).
+and reload. Full steps in the [Build & deploy guide](https://orbit.tchatou.fr/docs/deploy/).
 
 ## 🗂️ Project structure
 
@@ -135,4 +154,4 @@ Licensed under the **GNU Affero General Public License v3.0 or later**
 (AGPL-3.0). If you run a modified version of Orbit as a network service, you must
 make your modified source available to its users. See [LICENSE](./LICENSE).
 
-<div align="center"><sub>Built with React · Cutting Edge IRCv3 cap- <a href="https://orbit.tchatou.fr">orbit.tchatou.fr</a></sub></div>
+<div align="center"><sub>Built with React · Cutting-Edge IRCv3 Capabilities <a href="https://orbit.tchatou.fr">orbit.tchatou.fr</a></sub></div>
