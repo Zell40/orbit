@@ -21,6 +21,9 @@ const registered = new Map<string, OrbitPluginApi>();
 export interface OrbitPluginApi {
   /** This plugin's name. */
   name: string;
+  /** App build version + git commit. */
+  version: string;
+  commit: string;
   /** The app's React instance + render helpers (single instance — nodes interop). */
   React: typeof React;
   h: typeof React.createElement;
@@ -61,6 +64,8 @@ function makeApi(name: string): OrbitPluginApi {
   const ns = `orbit-plugin:${name}:`;
   return {
     name,
+    version: __APP_VERSION__,
+    commit: __GIT_COMMIT__,
     React, h: React.createElement, html,
     log: (...a) => console.log(`%c[plugin:${name}]`, 'color:#2ea043', ...a),
     on: bus.on, once: bus.once, off: bus.off, emit: bus.emit,
