@@ -18,7 +18,15 @@ Add script URLs to `plugins` in [`config.json`](../CONFIG.md):
 ```
 
 They load in order, after the app boots. Host them anywhere the page can reach
-(same-origin recommended).
+(same-origin recommended). For a third-party origin, pin the file with
+Subresource Integrity by giving an object instead of a URL:
+
+```json
+{ "plugins": [{ "url": "https://cdn.example/x.js", "integrity": "sha384-…" }] }
+```
+
+(`crossorigin` defaults to `anonymous` when an `integrity` hash is set.) See
+[SECURITY.md](../SECURITY.md) for generating the hash and a sample CSP header.
 
 ## Writing a plugin
 

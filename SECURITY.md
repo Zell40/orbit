@@ -29,3 +29,56 @@ A few things that are intentional, not bugs:
 Things we *do* want to hear about: ways a remote party (a malicious message,
 channel, or server response) could run code, steal a session, or break out of
 the intended sandbox in the client.
+
+## Hardening a deployment
+
+### Subresource Integrity for plugins
+
+Pin any plugin served from a third-party origin with an SRI hash, so a
+compromised host can't silently swap the file. A `plugins` entry may be an
+object instead of a bare URL:
+
+```json
+{
+  "plugins": [
+    "/app/plugins/orbit-clock.js",
+    { "url": "https://cdn.example/orbit-x.js", "integrity": "sha384-…" }
+  ]
+}
+```
+
+Generate the hash with: `openssl dgst -sha384 -binary file.js | openssl base64 -A`
+(prefix the result with `sha384-`). Same-origin plugins don't strictly need it.
+
+### Content-Security-Policy
+
+Orbit ships no `<meta>` CSP because the right policy depends on your deployment
+(IRC WebSocket host, whether you use the Turnstile challenge, where plugins are
+hosted). Set it as a response header at your edge. A good starting point, with
+the parts you must adjust marked:
+
+```nginx
+# Replace wss://YOUR-IRC-HOST with config.json → server.url's origin.
+# Add any off-origin plugin hosts to script-src. Drop the challenges.cloudflare.com
+# lines if you don't use the Turnstile challenge.
+add_header Content-Security-Policy "
+  default-src 'self';
+  script-src 'self' https://challenges.cloudflare.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data: blob: https:;
+  connect-src 'self' wss://YOUR-IRC-HOST;
+  frame-src https://challenges.cloudflare.com;
+  worker-src 'self';
+  manifest-src 'self';
+  base-uri 'self';
+  form-action 'self';
+  object-src 'none';
+  frame-ancestors 'self';
+" always;
+```
+
+Roll it out with `Content-Security-Policy-Report-Only` first and watch the
+browser console / `report-to` for violations, then switch to the enforcing
+header once it's clean. Self-hosting the Google Fonts CSS/woff2 files lets you
+drop the `fonts.googleapis.com` / `fonts.gstatic.com` origins entirely.

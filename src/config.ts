@@ -46,9 +46,17 @@ export interface AppConfig {
     imageUpload: boolean;   // the composer image button + paste/drag upload
     register: boolean;      // account creation (the "Créer un compte" tab)
   };
-  /** Operator-listed plugin scripts (URLs) loaded at startup. See docs/PLUGINS.md. */
-  plugins?: string[];
+  /**
+   * Operator-listed plugin scripts loaded at startup. Each entry is a URL, or an
+   * object adding Subresource Integrity (recommended for off-origin plugins):
+   *   "plugins": ["/app/plugins/x.js", { "url": "https://cdn/y.js", "integrity": "sha384-…" }]
+   * See docs/PLUGINS.md.
+   */
+  plugins?: PluginEntry[];
 }
+
+/** A plugin to load: a bare URL, or a URL with an SRI hash (and optional crossorigin). */
+export type PluginEntry = string | { url: string; integrity?: string; crossorigin?: string };
 
 export const DEFAULT_CONFIG: AppConfig = {
   server: { url: 'wss://www.swaygo.fr/irc/' },
