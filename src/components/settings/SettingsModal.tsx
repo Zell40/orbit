@@ -413,7 +413,7 @@ function AboutSection() {
     <div className="scard">
       <div className="scard__body">
         <div className="about-hero">
-          <span className="about-hero__mark"><img src={cfg.branding.icon} alt="" width={44} height={44} /></span>
+          <span className="about-hero__mark"><img src={`${import.meta.env.BASE_URL}orbit-icon.svg`} alt="Orbit" width={44} height={44} /></span>
           <div className="about-hero__txt">
             <div className="about-hero__name">Orbit <span className="about-hero__ver">v{__APP_VERSION__}</span></div>
             <div className="about-hero__tag">{t('about.tagline')}</div>

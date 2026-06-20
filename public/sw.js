@@ -1,7 +1,7 @@
 // Tchatou service worker — installable PWA + offline app shell.
 // Scope: /app/. Only handles same-origin /app/ GETs; the IRC websocket and all
 // API calls (cloudflare, change_password, upload) pass straight through.
-const CACHE = 'tchatou-v30';
+const CACHE = 'tchatou-v31';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
