@@ -33,5 +33,5 @@
     "imageUpload": true,
     "register": true
   },
-  "plugins": ["/app/plugins/orbit-demo.js"]
+  "plugins": []
 }
