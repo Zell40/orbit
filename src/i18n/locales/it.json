@@ -217,5 +217,18 @@
   "security": {
     "tag": "Sicurezza",
     "leakGuard": "Abbiamo intercettato il tuo comando di identificazione: inviato così com'è qui, la tua password sarebbe stata visibile a tutti in {{channel}}. Tranquillo — l'abbiamo inoltrato a {{service}} in privato, nulla è trapelato. La prossima volta, accedi da Impostazioni › Account."
+  },
+  "system": {
+    "join": "{{nick}} è entrato nel canale",
+    "part": "{{nick}} ha lasciato il canale",
+    "quit": "{{nick}} si è disconnesso",
+    "kick": "{{target}} è stato espulso da {{by}}"
+  },
+  "modeline": {
+    "modeTag": "modalità",
+    "modeVerb": "applica",
+    "topicTag": "argomento",
+    "topicChanged": "ha cambiato l'argomento",
+    "topicRemoved": "ha rimosso l'argomento"
   }
 }

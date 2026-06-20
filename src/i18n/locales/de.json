@@ -217,5 +217,18 @@
   "security": {
     "tag": "Sicherheit",
     "leakGuard": "Wir haben deinen Identify-Befehl abgefangen: So gesendet wäre dein Passwort für alle in {{channel}} sichtbar gewesen. Keine Sorge — wir haben ihn privat an {{service}} weitergeleitet, nichts wurde preisgegeben. Melde dich nächstes Mal über Einstellungen › Konto an."
+  },
+  "system": {
+    "join": "{{nick}} hat den Kanal betreten",
+    "part": "{{nick}} hat den Kanal verlassen",
+    "quit": "{{nick}} hat die Verbindung getrennt",
+    "kick": "{{target}} wurde von {{by}} rausgeworfen"
+  },
+  "modeline": {
+    "modeTag": "Modus",
+    "modeVerb": "setzt",
+    "topicTag": "Thema",
+    "topicChanged": "hat das Thema geändert",
+    "topicRemoved": "hat das Thema entfernt"
   }
 }

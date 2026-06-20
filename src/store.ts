@@ -265,10 +265,10 @@ export const useChat = create<ChatState>((set, get) => {
       const chan = openBatches[epRef].target;
       if (chan) {
         let text = '', kind: MessageKind = 'system';
-        if (msg.command === 'JOIN') { text = `${msg.nick} a rejoint le salon`; kind = 'join'; }
-        else if (msg.command === 'PART') { text = `${msg.nick} a quitté le salon`; kind = 'part'; }
-        else if (msg.command === 'QUIT') { text = `${msg.nick} s'est déconnecté`; kind = 'quit'; }
-        else if (msg.command === 'KICK') { text = `${msg.params[1]} a été expulsé par ${msg.nick}`; kind = 'system'; }
+        if (msg.command === 'JOIN') { text = i18n.t('system.join', { nick: msg.nick }); kind = 'join'; }
+        else if (msg.command === 'PART') { text = i18n.t('system.part', { nick: msg.nick }); kind = 'part'; }
+        else if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
+        else if (msg.command === 'KICK') { text = i18n.t('system.kick', { target: msg.params[1], by: msg.nick }); kind = 'system'; }
         else if (msg.command === 'NICK') { text = `${msg.nick} est désormais ${msg.params[0]}`; kind = 'nick'; }
         else if (msg.command === 'TOPIC') { text = msg.params[1] || ''; kind = 'topic'; }
         else if (msg.command === 'MODE') {
@@ -701,7 +701,7 @@ export const useChat = create<ChatState>((set, get) => {
         const joinAcct = msg.params[1] && msg.params[1] !== '*' && msg.params[1] !== '0' ? msg.params[1] : undefined;
         const joinReal = msg.params[2] || undefined;
         patchBuffer(ch, (b) => ({ ...b, members: { ...b.members, [msg.nick]: { nick: msg.nick, user: msg.user || undefined, host: msg.host || undefined, prefix: '', account: joinAcct, realname: joinReal } } }));
-        if (!inQuietBatch(msg)) sysLine(ch, `${msg.nick} a rejoint le salon`, 'join', msg.nick, hostmask(msg));
+        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg));
         break;
       }
       case 'PART': {
@@ -710,7 +710,7 @@ export const useChat = create<ChatState>((set, get) => {
           const members = { ...b.members }; delete members[msg.nick];
           return { ...b, members };
         });
-        if (!inQuietBatch(msg)) sysLine(ch, `${msg.nick} a quitté le salon`, 'part', msg.nick, hostmask(msg));
+        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg));
         break;
       }
       case 'KICK': {
@@ -733,7 +733,7 @@ export const useChat = create<ChatState>((set, get) => {
             const members = { ...b.members }; delete members[target];
             return { ...b, members };
           });
-          sysLine(ch, `${target} a été expulsé par ${msg.nick}${reason ? ` (${reason})` : ''}`, 'system');
+          sysLine(ch, i18n.t('system.kick', { target, by: msg.nick }) + (reason ? ` (${reason})` : ''), 'system');
         }
         break;
       }
@@ -745,7 +745,7 @@ export const useChat = create<ChatState>((set, get) => {
               const members = { ...b.members }; delete members[msg.nick];
               return { ...b, members };
             });
-            if (!inQuietBatch(msg)) sysLine(name, `${msg.nick} s'est déconnecté`, 'quit', msg.nick, hostmask(msg));
+            if (!inQuietBatch(msg)) sysLine(name, i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg));
           }
         }
         break;

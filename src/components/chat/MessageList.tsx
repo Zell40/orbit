@@ -217,7 +217,7 @@ export function MessageList() {
   };
   const jumpToUnread = () => dividerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-  if (!buffer) return <div className="empty">Choisis un salon pour commencer à discuter.</div>;
+  if (!buffer) return <div className="empty">{t('sidebar.noChannel')}</div>;
   if (search.trim()) return <SearchResults messages={buffer.messages} query={search.trim()} />;
 
   const isConsole = buffer.name === SERVER;
@@ -286,9 +286,9 @@ export function MessageList() {
       const segs = modes.split(/(?=[+-])/).filter(Boolean);
       rows.push(
         <div key={m.id} className="sysline sysline--mode">
-          <span className="modeline__tag">mode</span>
+          <span className="modeline__tag">{t('modeline.modeTag')}</span>
           <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
-          <span className="modeline__verb">applique</span>
+          <span className="modeline__verb">{t('modeline.modeVerb')}</span>
           <span className="modeline__chg">[{segs.map((p, i) => (
             <span key={i} className={p[0] === '+' ? 'mode-add' : 'mode-rm'}>{p}</span>
           ))}{margs.length ? ' ' + margs.join(' ') : ''}]</span>
@@ -303,9 +303,9 @@ export function MessageList() {
     if (m.kind === 'topic') {
       rows.push(
         <div key={m.id} className="sysline sysline--mode">
-          <span className="modeline__tag modeline__tag--topic">sujet</span>
+          <span className="modeline__tag modeline__tag--topic">{t('modeline.topicTag')}</span>
           <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
-          <span className="modeline__verb">{m.text ? 'a changé le sujet' : 'a retiré le sujet'}</span>
+          <span className="modeline__verb">{m.text ? t('modeline.topicChanged') : t('modeline.topicRemoved')}</span>
           {m.text && <span className="topicline__txt">{formatIrc(m.text, false)}</span>}
         </div>,
       );

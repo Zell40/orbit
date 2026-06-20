@@ -217,5 +217,18 @@
   "security": {
     "tag": "Güvenlik",
     "leakGuard": "Kimlik doğrulama komutunu yakaladık: buraya olduğu gibi gönderilseydi, şifren {{channel}} kanalındaki herkese görünür olurdu. Endişelenme — bunu {{service}} hizmetine gizlice ilettik, hiçbir şey sızmadı. Bir dahaki sefere Ayarlar › Hesap'tan giriş yap."
+  },
+  "system": {
+    "join": "{{nick}} kanala katıldı",
+    "part": "{{nick}} kanaldan ayrıldı",
+    "quit": "{{nick}} bağlantısını kesti",
+    "kick": "{{target}}, {{by}} tarafından atıldı"
+  },
+  "modeline": {
+    "modeTag": "mod",
+    "modeVerb": "uyguladı",
+    "topicTag": "konu",
+    "topicChanged": "konuyu değiştirdi",
+    "topicRemoved": "konuyu kaldırdı"
   }
 }

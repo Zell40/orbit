@@ -217,5 +217,18 @@
   "security": {
     "tag": "Sécurité",
     "leakGuard": "On a intercepté ta commande d’identification : envoyée telle quelle ici, ton mot de passe aurait été visible par tout le monde dans {{channel}}. Pas d’inquiétude — on l’a transmise à {{service}} en privé, rien n’a été divulgué. La prochaine fois, connecte-toi depuis Réglages › Compte."
+  },
+  "system": {
+    "join": "{{nick}} a rejoint le salon",
+    "part": "{{nick}} a quitté le salon",
+    "quit": "{{nick}} s'est déconnecté",
+    "kick": "{{target}} a été expulsé par {{by}}"
+  },
+  "modeline": {
+    "modeTag": "mode",
+    "modeVerb": "applique",
+    "topicTag": "sujet",
+    "topicChanged": "a changé le sujet",
+    "topicRemoved": "a retiré le sujet"
   }
 }

@@ -217,5 +217,18 @@
   "security": {
     "tag": "Security",
     "leakGuard": "We intercepted your identify command: sent as-is here, your password would have been visible to everyone in {{channel}}. Don't worry — we forwarded it to {{service}} privately, nothing was leaked. Next time, log in from Settings › Account."
+  },
+  "system": {
+    "join": "{{nick}} joined the channel",
+    "part": "{{nick}} left the channel",
+    "quit": "{{nick}} disconnected",
+    "kick": "{{target}} was kicked by {{by}}"
+  },
+  "modeline": {
+    "modeTag": "mode",
+    "modeVerb": "set",
+    "topicTag": "topic",
+    "topicChanged": "changed the topic",
+    "topicRemoved": "removed the topic"
   }
 }

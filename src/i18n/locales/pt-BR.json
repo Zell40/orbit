@@ -217,5 +217,18 @@
   "security": {
     "tag": "Segurança",
     "leakGuard": "Interceptamos seu comando de identificação: enviado assim aqui, sua senha teria ficado visível para todos em {{channel}}. Não se preocupe — encaminhamos para {{service}} em privado, nada vazou. Da próxima vez, faça login em Configurações › Conta."
+  },
+  "system": {
+    "join": "{{nick}} entrou no canal",
+    "part": "{{nick}} saiu do canal",
+    "quit": "{{nick}} desconectou",
+    "kick": "{{target}} foi expulso por {{by}}"
+  },
+  "modeline": {
+    "modeTag": "modo",
+    "modeVerb": "aplica",
+    "topicTag": "tópico",
+    "topicChanged": "mudou o tópico",
+    "topicRemoved": "removeu o tópico"
   }
 }
