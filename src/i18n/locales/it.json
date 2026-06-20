@@ -617,7 +617,9 @@
       "roles": "Ruoli",
       "limits": "Limiti",
       "limitsValue": "soprannome {{nick}} · canale {{chan}} · argomento {{topic}}",
-      "navDesc": "Rete e connessione"
+      "navDesc": "Rete e connessione",
+      "maxChannels": "Canali max",
+      "advanced": "Avanzate · ISUPPORT grezzo"
     }
   }
 }

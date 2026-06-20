@@ -341,6 +341,11 @@ function ServerSection() {
   const software = client && (client.serverName || client.serverVersion)
     ? [client.serverName, client.serverVersion].filter(Boolean).join(' · ') : dash;
   const roles = client ? client.prefixModes.split('').join(' ') : dash;
+  // CHANLIMIT is "#:100" / "#&:50" — surface the join cap as a plain number.
+  const maxChans = (() => {
+    const m = (client?.isupport?.['CHANLIMIT'] || '').match(/(\d+)/);
+    return m ? m[1] : dash;
+  })();
   const srv: { label: string; value: string }[] = [
     { label: t('caps.server.network'), value: (connected && client?.network) || dash },
     { label: t('caps.server.software'), value: connected ? software : dash },
@@ -349,9 +354,14 @@ function ServerSection() {
     { label: t('caps.server.casemapping'), value: (connected && client?.casemapping) || dash },
     { label: t('caps.server.channelTypes'), value: (connected && client?.chantypes) || dash },
     { label: t('caps.server.roles'), value: connected ? roles : dash },
+    { label: t('caps.server.maxChannels'), value: connected ? maxChans : dash },
     { label: t('caps.server.limits'), value: connected && client
       ? t('caps.server.limitsValue', { nick: client.nicklen, chan: client.channellen, topic: client.topiclen }) : dash },
   ];
+
+  // Everything the server advertised in ISUPPORT (005), for the curious.
+  const raw = connected && client
+    ? Object.entries(client.isupport).sort((a, b) => a[0].localeCompare(b[0])) : [];
 
   return (
     <div className="scard">
@@ -364,6 +374,16 @@ function ServerSection() {
             </div>
           ))}
         </dl>
+        {raw.length > 0 && (
+          <details className="srv-adv">
+            <summary>{t('caps.server.advanced')} · {raw.length}</summary>
+            <div className="srv-adv__grid">
+              {raw.map(([k, v]) => (
+                <code className="srv-tok" key={k}>{k}{v ? <span className="srv-tok__v">={v}</span> : null}</code>
+              ))}
+            </div>
+          </details>
+        )}
       </div>
     </div>
   );

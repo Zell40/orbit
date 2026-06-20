@@ -700,6 +700,15 @@ input, textarea { font-family: inherit; }
 .srv-row:first-child { border-top: 0; }
 .srv-row__k { flex: none; width: 8.5rem; margin: 0; font-size: .8rem; color: var(--muted); }
 .srv-row__v { margin: 0; flex: 1; min-width: 0; font-size: .82rem; color: var(--ink); font-weight: 600; word-break: break-word; }
+.srv-adv { margin-top: .5rem; border-top: 1px solid var(--border); padding-top: .55rem; }
+.srv-adv > summary { cursor: pointer; font-size: .76rem; font-weight: 700; color: var(--muted); list-style: none; user-select: none; }
+.srv-adv > summary::-webkit-details-marker { display: none; }
+.srv-adv > summary::before { content: '▸'; display: inline-block; margin-right: .4rem; transition: transform .15s; }
+.srv-adv[open] > summary::before { transform: rotate(90deg); }
+.srv-adv > summary:hover { color: var(--ink-2); }
+.srv-adv__grid { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .6rem; }
+.srv-tok { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .7rem; color: var(--green-d); background: var(--bg-soft-2); border: 1px solid var(--border); border-radius: 7px; padding: .14rem .4rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srv-tok__v { color: var(--muted); }
 .caps-count { margin: .55rem 0 .3rem; font-size: .8rem; color: var(--muted); }
 .caps-count b { color: var(--green-d); }
 /* Responsive grid: ~2 columns on the wide desktop modal, 1 on mobile — so the

@@ -617,7 +617,9 @@
       "roles": "Roller",
       "limits": "Sınırlar",
       "limitsValue": "takma ad {{nick}} · kanal {{chan}} · konu {{topic}}",
-      "navDesc": "Ağ ve bağlantı"
+      "navDesc": "Ağ ve bağlantı",
+      "maxChannels": "Maks. kanal",
+      "advanced": "Gelişmiş · ham ISUPPORT"
     }
   }
 }

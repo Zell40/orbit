@@ -617,7 +617,9 @@
       "roles": "Роли",
       "limits": "Ограничения",
       "limitsValue": "ник {{nick}} · канал {{chan}} · тема {{topic}}",
-      "navDesc": "Сеть и соединение"
+      "navDesc": "Сеть и соединение",
+      "maxChannels": "Макс. каналов",
+      "advanced": "Расширенно · сырой ISUPPORT"
     }
   }
 }

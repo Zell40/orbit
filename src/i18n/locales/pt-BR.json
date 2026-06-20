@@ -617,7 +617,9 @@
       "roles": "Funções",
       "limits": "Limites",
       "limitsValue": "apelido {{nick}} · canal {{chan}} · tópico {{topic}}",
-      "navDesc": "Rede e conexão"
+      "navDesc": "Rede e conexão",
+      "maxChannels": "Canais máx.",
+      "advanced": "Avançado · ISUPPORT bruto"
     }
   }
 }

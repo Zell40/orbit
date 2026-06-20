@@ -617,7 +617,9 @@
       "roles": "Roles",
       "limits": "Limits",
       "limitsValue": "nick {{nick}} · channel {{chan}} · topic {{topic}}",
-      "navDesc": "Network & connection"
+      "navDesc": "Network & connection",
+      "maxChannels": "Max channels",
+      "advanced": "Advanced · raw ISUPPORT"
     }
   }
 }

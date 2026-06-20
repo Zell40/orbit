@@ -617,7 +617,9 @@
       "roles": "भूमिका",
       "limits": "सीमा",
       "limitsValue": "उपनाम {{nick}} · च्यानल {{chan}} · विषय {{topic}}",
-      "navDesc": "नेटवर्क र जडान"
+      "navDesc": "नेटवर्क र जडान",
+      "maxChannels": "अधिकतम च्यानल",
+      "advanced": "उन्नत · कच्चा ISUPPORT"
     }
   }
 }
