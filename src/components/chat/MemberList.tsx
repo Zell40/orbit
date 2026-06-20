@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
 import type { Member } from '../../irc/types';
@@ -15,30 +15,37 @@ const ROLES: Record<string, { key: string; cls: string }> = {
 
 export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
-  const buffer = useChat((s) => s.buffers[s.active]);
+  // Subscribe to the members map BY REFERENCE (it's replaced immutably on
+  // join/part/mode/away/nick) — NOT the whole buffer, so ordinary incoming
+  // messages don't re-render and re-sort the list. Critical for large channels.
+  const membersMap = useChat((s) => s.buffers[s.active]?.members);
+  const isChannel = useChat((s) => !!s.buffers[s.active]?.isChannel);
   const openUser = useChat((s) => s.openUser);
   const prefixOrder = useChat((s) => s.client?.prefixModes ?? '~&@%+');
   const [q, setQ] = useState('');
-  if (!buffer || !buffer.isChannel) return <aside className="members" />;
-
-  const rank = (p: string) => (!p ? 99 : prefixOrder.indexOf(p) === -1 ? 98 : prefixOrder.indexOf(p));
-  const all = Object.values(buffer.members);
   const needle = q.trim().toLowerCase();
-  const members = needle ? all.filter((m) => m.nick.toLowerCase().includes(needle)) : all;
 
-  // Group by prefix (role), order groups by rank, sort names within each.
-  const byPrefix = new Map<string, Member[]>();
-  for (const m of members) {
-    const p = m.prefix || '';
-    (byPrefix.get(p) ?? byPrefix.set(p, []).get(p)!).push(m);
-  }
-  const groups = [...byPrefix.entries()]
-    .sort((a, b) => rank(a[0]) - rank(b[0]))
-    .map(([p, list]) => ({
-      p,
-      role: ROLES[p] ?? { key: 'privileged', cls: 'op' },
-      list: list.sort((a, b) => a.nick.localeCompare(b.nick, 'fr', { sensitivity: 'base' })),
-    }));
+  const all = useMemo(() => (membersMap ? Object.values(membersMap) : []), [membersMap]);
+  // Group by role + sort names — recomputed only when membership, the filter, or
+  // the prefix order changes (memoised), never on every incoming message.
+  const groups = useMemo(() => {
+    const rank = (p: string) => (!p ? 99 : prefixOrder.indexOf(p) === -1 ? 98 : prefixOrder.indexOf(p));
+    const members = needle ? all.filter((m) => m.nick.toLowerCase().includes(needle)) : all;
+    const byPrefix = new Map<string, Member[]>();
+    for (const m of members) {
+      const p = m.prefix || '';
+      (byPrefix.get(p) ?? byPrefix.set(p, []).get(p)!).push(m);
+    }
+    return [...byPrefix.entries()]
+      .sort((a, b) => rank(a[0]) - rank(b[0]))
+      .map(([p, list]) => ({
+        p,
+        role: ROLES[p] ?? { key: 'privileged', cls: 'op' },
+        list: list.sort((a, b) => a.nick.localeCompare(b.nick, 'fr', { sensitivity: 'base' })),
+      }));
+  }, [all, needle, prefixOrder]);
+
+  if (!isChannel || !membersMap) return <aside className="members" />;
 
   return (
     <aside className="members" aria-label={t('a11y.members')}>
@@ -70,7 +77,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
             ))}
           </div>
         ))}
-        {members.length === 0 && <div className="rooms-empty">{t('profile.noMembers')}</div>}
+        {groups.length === 0 && <div className="rooms-empty">{t('profile.noMembers')}</div>}
       </div>
     </aside>
   );
