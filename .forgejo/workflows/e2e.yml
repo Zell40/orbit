@@ -1,0 +1,47 @@
+# End-to-end tests: the real built client, driven by Playwright, against a live
+# Ergo IRCv3 server over WebSocket (the same transport as production).
+#
+# Forgejo Actions (Codeberg). Needs a runner advertising the "docker" label and
+# an x86_64 host (Ergo ships a linux-x86_64 binary). Enable Actions for the repo
+# in Settings to run this.
+name: e2e
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: docker
+    container:
+      image: node:22-bookworm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: System deps (curl for the Ergo download)
+        run: apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Fetch Ergo IRCd
+        run: bash e2e/install-ergo.sh
+
+      - name: Run E2E
+        run: npx playwright test
+        env:
+          CI: "true"
+
+      - name: Upload report on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
