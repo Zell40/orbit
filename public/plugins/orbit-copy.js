@@ -5,7 +5,8 @@
  *
  * Demonstrates the `message_action` hook, which adds a button to every message's
  * action toolbar and receives a read-only view of the message:
- * { id, nick, text, kind, ts, mine }. The button inherits the toolbar's styling,
+ * { id, nick, text, raw, kind, ts, mine } — `text` is formatting-stripped (so the
+ * copy is clean), `raw` keeps the mIRC codes. The button inherits the toolbar styling,
  * so it sits cleanly beside the built-in actions. Each contribution runs inside
  * its own error boundary, so a throw here can never take down the message list.
  *

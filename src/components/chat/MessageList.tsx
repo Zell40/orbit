@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
 import type { ChatMessage } from '../../irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
+import { stripFormatting } from '../../store/text';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry, type MessageInfo } from '../../plugins/registry';
@@ -11,7 +12,7 @@ import { PluginBoundary } from '../PluginBoundary';
 const QUICK = ['👍', '😂', '❤️', '🔥'];
 
 const msgInfo = (m: ChatMessage): MessageInfo =>
-  ({ id: m.id, nick: m.from, text: m.text, kind: m.kind, ts: m.ts, mine: !!m.self });
+  ({ id: m.id, nick: m.from, text: stripFormatting(m.text), raw: m.text, kind: m.kind, ts: m.ts, mine: !!m.self });
 
 // Plugin-contributed inline decorators (badges/chips after the message text).
 // Each runs inside its own error boundary so a crashing plugin can't take down the list.

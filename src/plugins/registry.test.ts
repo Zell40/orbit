@@ -26,7 +26,7 @@ describe('plugin registry', () => {
     let seen: MessageInfo | null = null;
     const remove = usePluginRegistry.getState().addDecorator('p', (m) => { seen = m; return null; });
     const dec = usePluginRegistry.getState().decorators[0];
-    const info: MessageInfo = { id: '1', nick: 'bob', text: 'hi', kind: 'privmsg', ts: 0, mine: false };
+    const info: MessageInfo = { id: '1', nick: 'bob', text: 'hi', raw: 'hi', kind: 'privmsg', ts: 0, mine: false };
     dec.render(info);
     expect(seen).toEqual(info);
     remove();
@@ -37,7 +37,7 @@ describe('plugin registry', () => {
     let seen: MessageInfo | null = null;
     const remove = usePluginRegistry.getState().addAction('p', (m) => { seen = m; return null; });
     const act = usePluginRegistry.getState().actions[0];
-    const info: MessageInfo = { id: '2', nick: 'amy', text: 'yo', kind: 'privmsg', ts: 0, mine: true };
+    const info: MessageInfo = { id: '2', nick: 'amy', text: 'yo', raw: 'yo', kind: 'privmsg', ts: 0, mine: true };
     act.render(info);
     expect(seen).toEqual(info);
     remove();

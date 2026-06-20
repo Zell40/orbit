@@ -21,7 +21,8 @@ export interface PluginUi {
 export interface MessageInfo {
   id: string;
   nick: string;
-  text: string;
+  text: string; // human-readable: mIRC formatting/colour codes stripped
+  raw: string;  // original text, including any mIRC formatting/colour codes
   kind: string;
   ts: number;
   mine: boolean;

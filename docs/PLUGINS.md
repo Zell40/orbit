@@ -77,8 +77,8 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `orbit.storage.get(key, def)/set(key, val)` | namespaced persistence |
 | `orbit.addUi(slot, render)` | add UI to a slot (returns a remover) |
 | `orbit.addSettingsSection({label, icon?, render})` | add a whole Settings section |
-| `orbit.addMessageDecorator(m => …)` | inline UI after every message's text; `m` = `{id, nick, text, kind, ts, mine}` |
-| `orbit.addMessageAction(m => …)` | a button in every message's hover action toolbar (next to reply/react) |
+| `orbit.addMessageDecorator(m => …)` | inline UI after every message's text; `m` = `{id, nick, text, raw, kind, ts, mine}` (`text` is formatting-stripped, `raw` keeps mIRC codes) |
+| `orbit.addMessageAction(m => …)` | a button in every message's hover action toolbar (next to reply/react); same `m` |
 | `orbit.h / orbit.html` | render helpers |
 | `log(…)` | namespaced console logger |
 
