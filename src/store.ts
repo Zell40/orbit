@@ -635,15 +635,23 @@ export const useChat = create<ChatState>((set, get) => {
           chanTarget = target.slice(1);
           statusTag = lvl === '+' ? '🔉 voix+ · ' : lvl === '%' ? '🛡 halfops+ · ' : '🔒 ops · ';
         }
+        // The report service (ReportServ) is not a conversation: route both our own
+        // "REPORT …" command echo and its replies to the Status window, so filing a
+        // report never spawns a ReportServ PM buffer.
+        const reportSvc = (getConfig().report.service || '').toLowerCase();
+        const otherParty = (self ? chanTarget : msg.nick) || '';
+        const toReportSvc = !!reportSvc && !isChannelName(chanTarget) && otherParty.toLowerCase() === reportSvc;
         // A NOTICE is not a conversation: a user/service NOTICE addressed to us must
         // never open or land in a PM query. Per convention it shows in the buffer the
         // user currently has open (active window), falling back to the console.
-        const noticeToActive = kind === 'notice' && !isChannelName(chanTarget);
+        const noticeToActive = kind === 'notice' && !isChannelName(chanTarget) && !toReportSvc;
         const bufferName = isChannelName(chanTarget)
           ? chanTarget
-          : noticeToActive
-            ? (get().active || SERVER)
-            : (self ? chanTarget : msg.nick);
+          : toReportSvc
+            ? SERVER
+            : noticeToActive
+              ? (get().active || SERVER)
+              : (self ? chanTarget : msg.nick);
         // +draft/channel-context: this DM relates to a channel. Only meaningful on PMs.
         const chanCtx = !noticeToActive && !isChannelName(chanTarget) ? msg.tags['+draft/channel-context'] : undefined;
         // A notice we send shows the recipient; one we receive shows the sender.
@@ -1555,7 +1563,7 @@ export const useChat = create<ChatState>((set, get) => {
       } else {
         client.privmsg(channel, `⚠ Signalement : ${t}${where ? ` (dans ${where})` : ''} par ${get().nick} — ${r}`);
       }
-      sysLine(where || SERVER, i18n.t('system.reportFiled', { target: t }), 'system');
+      sysLine(SERVER, i18n.t('system.reportFiled', { target: t }), 'system');
     },
     refreshChannels() {
       set({ channels: [], listLoading: true });
