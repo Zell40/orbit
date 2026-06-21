@@ -82,6 +82,7 @@ interface ChatState {
   serverError: string;   // last ERROR reason from the server (for the connect screen)
   reconnectIn: number;   // seconds until the next auto-reconnect (0 = not reconnecting)
   everRegistered: boolean; // true after the first successful registration (keeps the chat UI mounted during reconnects)
+  autoConnecting: boolean; // a handoff (e.g. the site entry form) is connecting for us; show a splash, not the join form
   historyLoading: Record<string, boolean>; // buffer key → chathistory request in flight
   historyDone: Record<string, boolean>;    // buffer key → no more older history
   loadMoreHistory: (name: string) => void;
@@ -1155,6 +1156,7 @@ export const useChat = create<ChatState>((set, get) => {
     serverError: '',
     reconnectIn: 0,
     everRegistered: false,
+    autoConnecting: false,
     historyLoading: {},
     historyDone: {},
     away: false,
@@ -1183,6 +1185,10 @@ export const useChat = create<ChatState>((set, get) => {
       set({ client, nick: opts.nick, status: 'connecting' });
       client.on('status', (st) => {
         set({ status: st as ChatState['status'], nick: client.nick });
+        // Once we leave 'connecting' (registered, or an auth/connection failure),
+        // a handoff is no longer in flight: drop the splash so failures fall back
+        // to the join form (with the nick/channel still prefilled from the URL).
+        if (st !== 'connecting') set({ autoConnecting: false });
         if (st === 'registered') {
           const wasReconnect = get().everRegistered;
           set({ reconnectIn: 0, serverError: '', everRegistered: true, friendsOnline: {} });

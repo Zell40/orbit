@@ -23,6 +23,23 @@ loadConfig().then(async () => {
   // before render (plugin-contributed UI registers reactively).
   const { initPlugins } = await import('./plugins')
   initPlugins()
+
+  // Site handoff: if the entry form sent us here, auto-connect with the nick and
+  // channels from the URL plus any SASL password parked in sessionStorage, and
+  // mark the store so the first paint is a "connecting" splash, not the join
+  // form. Direct visits (no marker) fall through to the normal join screen.
+  const { takeHandoff } = await import('./handoff')
+  const handoff = takeHandoff()
+  const nick = new URLSearchParams(window.location.search).get('nick')?.trim()
+  if (handoff && nick) {
+    const { useChat } = await import('./store')
+    const cfg = getConfig()
+    const channels = (new URLSearchParams(window.location.search).get('channel') || cfg.startup.channels.join(','))
+      .split(',').map((c) => c.trim()).filter(Boolean)
+    useChat.setState({ autoConnecting: true })
+    useChat.getState().connect({ url: cfg.server.url, nick, password: handoff.password, channels })
+  }
+
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <AppErrorBoundary>

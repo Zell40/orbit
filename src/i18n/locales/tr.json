@@ -51,6 +51,7 @@
     "onlineBadge": "{{n}} kişi çevrimiçi",
     "pseudoPlaceholder": "Takma adını seç…",
     "enter": "Gir",
+    "connecting": "Bağlanılıyor…",
     "joinHint": "Katılıyorsunuz:",
     "registered": "Zaten hesabınız var mı?",
     "hidePassword": "Şifreyi gizle",

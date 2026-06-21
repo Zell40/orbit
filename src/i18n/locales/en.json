@@ -51,6 +51,7 @@
     "onlineBadge": "{{n}} people online",
     "pseudoPlaceholder": "Choose your nickname…",
     "enter": "Enter",
+    "connecting": "Connecting…",
     "joinHint": "You're joining",
     "registered": "Already have an account?",
     "hidePassword": "Hide password",

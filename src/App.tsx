@@ -1,14 +1,28 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useChat } from './store';
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { refreshPush } from './services/push';
+
+// Shown while a site handoff connects, so visitors who already chose a pseudo
+// never see the join form. A failure clears autoConnecting and falls back to it.
+function ConnectingSplash() {
+  const { t } = useTranslation();
+  return (
+    <div className="splash" role="status" aria-live="polite">
+      <div className="splash__spin" aria-hidden="true" />
+      <p className="splash__txt">{t('connect.connecting')}</p>
+    </div>
+  );
+}
 
 export default function App() {
   const status = useChat((s) => s.status);
   // Once we've registered once, keep the chat UI mounted through reconnects
   // (auto-reconnect restores the session) instead of bouncing to the connect screen.
   const everRegistered = useChat((s) => s.everRegistered);
+  const autoConnecting = useChat((s) => s.autoConnecting);
   const unread = useChat((s) =>
     Object.values(s.buffers).reduce((acc, b) => acc + b.unread, 0));
 
@@ -76,7 +90,9 @@ export default function App() {
   return (
     <>
       <div className="aurora" />
-      {status === 'registered' || everRegistered ? <Chat /> : <ConnectScreen />}
+      {status === 'registered' || everRegistered
+        ? <Chat />
+        : autoConnecting ? <ConnectingSplash /> : <ConnectScreen />}
     </>
   );
 }

@@ -51,6 +51,7 @@
     "onlineBadge": "{{n}} personnes en ligne",
     "pseudoPlaceholder": "Écris ton pseudo pour entrer…",
     "enter": "Entrer",
+    "connecting": "Connexion au tchat…",
     "joinHint": "Tu entres dans",
     "registered": "Pseudo déjà enregistré ?",
     "hidePassword": "Masquer le mot de passe",

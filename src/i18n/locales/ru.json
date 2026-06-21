@@ -51,6 +51,7 @@
     "onlineBadge": "{{n}} человек онлайн",
     "pseudoPlaceholder": "Выберите псевдоним…",
     "enter": "Войти",
+    "connecting": "Подключение…",
     "joinHint": "Вы заходите в",
     "registered": "Уже есть аккаунт?",
     "hidePassword": "Скрыть пароль",
