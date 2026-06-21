@@ -1,8 +1,24 @@
-import { test, expect, connect } from './fixtures';
+import { test, expect, connect, routeConfig } from './fixtures';
 
 const nick = () => 'e2e' + Math.random().toString(36).slice(2, 7);
 
 test.describe('Orbit against a live IRCv3 server (Ergo)', () => {
+  test('site handoff auto-connects without the join form', async ({ page }) => {
+    const n = nick();
+    await routeConfig(page);
+    // Mirror the site entry form: drop the one-shot marker before navigating to
+    // /app/?nick=…&channel=… . With it present, the client must connect straight
+    // away, never showing the join form.
+    await page.addInitScript(() => {
+      sessionStorage.setItem('tchatou_handoff', JSON.stringify({ password: '', t: Date.now() }));
+    });
+    await page.goto(`/app/?nick=${n}&channel=%23e2e`);
+
+    // Lands in the channel (composer renders) with no nick prompt in between.
+    await expect(page.locator('.composer__rich')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('input[name="nick"]')).toHaveCount(0);
+  });
+
   test('connects, joins the startup channel, and echoes its own message', async ({ page }) => {
     const n = nick();
     await connect(page, n);
