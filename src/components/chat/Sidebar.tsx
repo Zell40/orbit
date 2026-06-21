@@ -50,14 +50,14 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const channels = order.filter((n) => buffers[n]?.isChannel && match(n));
   const queries = order.filter((n) => n !== SERVER && !buffers[n]?.isChannel && match(n));
   // mIRC always shows the Status window; otherwise it appears under "Tous" and matches search.
-  const hasServer = order.includes(SERVER) && (mirc || (filter === 'all' && match('console')));
+  const hasServer = order.includes(SERVER) && (mirc || (filter === 'all' && match('status')));
   const showChannels = filter !== 'people';
   const showQueries = filter !== 'rooms';
 
   const item = (name: string) => {
     const b = buffers[name];
     const isServer = name === SERVER;
-    const label = isServer ? (mirc ? 'Status' : 'Console') : b.name.replace(/^#/, '');
+    const label = isServer ? 'Status' : b.name.replace(/^#/, '');
     const glyph = isServer ? (mirc ? '●' : '✦') : label[0]?.toUpperCase() ?? '?';
     return (
       <button key={name} className={`room ${name === active ? 'is-active' : ''} ${isServer ? 'room--status' : ''}`} onClick={() => { setActive(name); onNavigate(); }}>

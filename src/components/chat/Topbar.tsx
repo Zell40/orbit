@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
 import { avatarBg } from '../../lib/format';
-import { getConfig } from '../../config';
-import { useTheme } from '../../ui/theme';
 import { NotifyMenu } from './NotifyMenu';
 import { usePluginRegistry } from '../../plugins/registry';
 import { PluginBoundary } from '../PluginBoundary';
@@ -21,13 +19,17 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const setModal = useChat((s) => s.setModal);
   const myPrefix = useChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
-  const mirc = useTheme().startsWith('yomirc');
+  // mIRC-style status line: "Status: <nick> [+<umodes>] on <servername>"
+  const myNick = useChat((s) => s.nick);
+  const myUmodes = useChat((s) => s.umodes);
+  const serverName = useChat((s) => s.serverName);
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
   if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button></div>;
   const n = members ? Object.keys(members).length : 0;
   const isServer = bname === SERVER;
-  const label = isServer ? (mirc ? 'Status' : 'Console') : bname.replace(/^#/, '');
+  const label = isServer ? 'Status' : bname.replace(/^#/, '');
+  const statusTitle = `Status: ${myNick || '…'}${myUmodes ? ` [+${myUmodes}]` : ''}${serverName ? ` on ${serverName}` : ''}`;
   if (searching || search) {
     return (
       <div className="topbar topbar--search">
@@ -48,7 +50,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
         : <span className="topbar__av" style={{ background: avatarBg(bname) }}>{isChannel ? '#' : label[0]?.toUpperCase()}</span>}
       <div className="topbar__meta">
         <span className="topbar__title">
-          {isServer ? (mirc ? `Status — ${getConfig().branding.name}` : `${getConfig().branding.name} — console`) : label}
+          {isServer ? statusTitle : label}
           {!isServer && isChannel && modes && modes !== '+' && (
             <span className="topbar__modes" title={t('topbar.modes')}>{modes}</span>
           )}

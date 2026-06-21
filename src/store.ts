@@ -79,6 +79,7 @@ interface ChatState {
   networkIcon: string;
   account: string; // NickServ account we're logged in as ('' = guest)
   umodes: string;  // our own active user-mode letters, e.g. "iwx" (global, per-user)
+  serverName: string;    // the ircd's own hostname (RPL_MYINFO / 004), for the Status title
   serverError: string;   // last ERROR reason from the server (for the connect screen)
   reconnectIn: number;   // seconds until the next auto-reconnect (0 = not reconnecting)
   everRegistered: boolean; // true after the first successful registration (keeps the chat UI mounted during reconnects)
@@ -437,6 +438,9 @@ export const useChat = create<ChatState>((set, get) => {
         return;
       case '221': // RPL_UMODEIS: <me> <modestring> — our current user modes
         set({ umodes: applyUserModes('', msg.params[1] ?? '') });
+        return;
+      case '004': // RPL_MYINFO: <me> <servername> … — the ircd's own hostname
+        set({ serverName: msg.params[1] || get().serverName });
         return;
       case '331': { // RPL_NOTOPIC
         const ch = msg.params[1];
@@ -1153,6 +1157,7 @@ export const useChat = create<ChatState>((set, get) => {
     networkIcon: getConfig().branding.icon,
     account: '',
     umodes: '',
+    serverName: '',
     serverError: '',
     reconnectIn: 0,
     everRegistered: false,
@@ -1192,6 +1197,10 @@ export const useChat = create<ChatState>((set, get) => {
         if (st === 'registered') {
           const wasReconnect = get().everRegistered;
           set({ reconnectIn: 0, serverError: '', everRegistered: true, friendsOnline: {} });
+          // Ask the server for our current user modes (RPL_UMODEIS/221) so the
+          // Status title can show them mIRC-style, even if the ircd didn't
+          // volunteer an initial MODE line.
+          client.queryUserModes();
           // Watch our friends via MONITOR (server pushes 730/731 on presence change).
           const fr = get().friends;
           if (fr.length) client.monitor('+', fr.join(','));
