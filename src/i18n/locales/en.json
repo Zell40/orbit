@@ -124,6 +124,15 @@
       "profile": "Profile",
       "remove": "Remove"
     },
+    "report": {
+      "title": "Report a problem",
+      "sub": "Your report goes straight to the staff team. Please keep it factual.",
+      "targetLabel": "Who or where",
+      "targetPlaceholder": "nick or #channel",
+      "reasonLabel": "What's happening?",
+      "reasonPlaceholder": "Describe the problem (spam, harassment, etc.)",
+      "submit": "Send report"
+    },
     "chanadmin": {
       "title": "Manage channel",
       "topic": "Channel topic…",
@@ -357,6 +366,7 @@
     "bansAdded": "Banned: {{list}}",
     "bansRemoved": "Unbanned: {{list}}",
     "reportSent": "Report on {{nick}} sent to the team ({{target}}).",
+    "reportFiled": "Your report about {{target}} has been sent to the team.",
     "onlyImages": "Only images are accepted.",
     "imageTooLarge": "Image too large (max 16 MB).",
     "sendingImage": "Sending “{{name}}”…",

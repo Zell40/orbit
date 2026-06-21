@@ -65,7 +65,7 @@ function canon(name: string): string {
   return casefold(name, casemapping);
 }
 
-export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'switcher' | 'shortcuts';
+export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'report' | 'switcher' | 'shortcuts';
 export interface ChannelInfo { name: string; users: number; topic: string }
 export interface KickInfo { channel: string; by: string; reason: string; kind: 'kick' | 'ban' | 'mute' }
 
@@ -114,6 +114,7 @@ interface ChatState {
   profileUser: string;
   whois: Record<string, WhoisInfo>;
   modal: Modal;
+  reportSubject: string; // nick/channel prefilled into the report window
   kicked: KickInfo | null; // last time we got kicked — drives the dismissible toast
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
 
@@ -136,7 +137,8 @@ interface ChatState {
   modBan: (nick: string) => void;
   modSetMode: (nick: string, mode: string, add: boolean) => void;
   modTopic: (topic: string) => void;
-  reportUser: (nick: string) => void;
+  reportUser: (nick: string) => void; // opens the report window prefilled with this nick
+  sendReport: (target: string, reason: string) => void; // files a report via ReportServ (or the fallback channel)
   refreshChannels: () => void;
   notifyTyping: () => void;
   toggleReaction: (msgid: string, emoji: string) => void;
@@ -1182,6 +1184,7 @@ export const useChat = create<ChatState>((set, get) => {
     whois: {},
     pmContext: {},
     modal: '',
+    reportSubject: '',
     kicked: null,
 
     connect(opts) {
@@ -1535,10 +1538,24 @@ export const useChat = create<ChatState>((set, get) => {
     modSetMode(nick, mode, add) { const { client, active } = get(); if (isChannelName(active)) client?.setUserMode(active, mode, add, nick); },
     modTopic(topic) { const { client, active } = get(); if (isChannelName(active)) client?.setTopic(active, topic); },
     reportUser(nick) {
+      set({ reportSubject: nick, modal: 'report' });
+    },
+    sendReport(target, reason) {
       const { client, active } = get();
-      const target = getConfig().report.target;
-      client?.privmsg(target, `⚠ Signalement : ${nick} (dans ${active}) par ${get().nick}`);
-      sysLine(active, i18n.t('system.reportSent', { nick, target }), 'system');
+      const t = target.trim();
+      const r = reason.trim();
+      if (!client || !t) return;
+      const { service, target: channel } = getConfig().report;
+      const where = (active && active !== SERVER) ? active : '';
+      if (service) {
+        // ReportServ queues "REPORT <target> <reason>" for staff and is not
+        // blocked by a +n staff channel the reporter isn't a member of.
+        const ctx = where ? ` (dans ${where})` : '';
+        client.privmsg(service, `REPORT ${t} ${r}${ctx}`);
+      } else {
+        client.privmsg(channel, `⚠ Signalement : ${t}${where ? ` (dans ${where})` : ''} par ${get().nick} — ${r}`);
+      }
+      sysLine(where || SERVER, i18n.t('system.reportFiled', { target: t }), 'system');
     },
     refreshChannels() {
       set({ channels: [], listLoading: true });

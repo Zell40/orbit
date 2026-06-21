@@ -29,7 +29,14 @@ export interface AppConfig {
     sitekey: string;
   };
   report: {
-    /** Channel that user reports (/report) are sent to. */
+    /**
+     * Services pseudo-client that receives reports (e.g. ReportServ). When set,
+     * reports are sent as "REPORT <target> <reason>" to this service, which
+     * queues them for staff. Preferred over `target`: a service is not blocked
+     * by a +n staff channel the reporter isn't in. Empty = use `target`.
+     */
+    service: string;
+    /** Fallback channel reports are sent to when `service` is empty. */
     target: string;
   };
   /** Default preferences for a NEW user (until they change them in Settings). */
@@ -72,7 +79,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     projectUrl: 'https://orbit.tchatou.fr',
   },
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
-  report: { target: '#staff' },
+  report: { service: 'ReportServ', target: '#staff' },
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
   features: { push: true, imageUpload: true, register: true },
   plugins: [],

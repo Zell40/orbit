@@ -124,6 +124,15 @@
       "profile": "Profil",
       "remove": "Retirer"
     },
+    "report": {
+      "title": "Signaler un problème",
+      "sub": "Votre signalement est transmis directement à l’équipe de modération. Restez factuel.",
+      "targetLabel": "Qui ou où",
+      "targetPlaceholder": "pseudo ou #salon",
+      "reasonLabel": "Que se passe-t-il ?",
+      "reasonPlaceholder": "Décrivez le problème (spam, harcèlement, etc.)",
+      "submit": "Envoyer le signalement"
+    },
     "chanadmin": {
       "title": "Gérer le salon",
       "topic": "Sujet du salon…",
@@ -357,6 +366,7 @@
     "bansAdded": "Bannis : {{list}}",
     "bansRemoved": "Débannis : {{list}}",
     "reportSent": "Signalement de {{nick}} envoyé à l’équipe ({{target}}).",
+    "reportFiled": "Votre signalement concernant {{target}} a été transmis à l’équipe.",
     "onlyImages": "Seules les images sont acceptées.",
     "imageTooLarge": "Image trop volumineuse (max 16 Mo).",
     "sendingImage": "Envoi de « {{name}} »…",
