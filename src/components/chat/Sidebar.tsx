@@ -42,6 +42,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const sidebarItems = usePluginRegistry((s) => s.ui);
   const away = useChat((s) => s.away);
   const setAway = useChat((s) => s.setAway);
+  const serverName = useChat((s) => s.serverName);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const mirc = useTheme().startsWith('yomirc');
@@ -67,7 +68,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         </span>
         <span className="room__body">
           <span className="room__name">{label}</span>
-          <span className="room__sub">{b.isChannel ? t('sidebar.publicRoom') : isServer ? t('sidebar.system') : t('sidebar.privateMessage')}</span>
+          <span className="room__sub">{b.isChannel ? t('sidebar.publicRoom') : isServer ? (serverName || t('sidebar.system')) : t('sidebar.privateMessage')}</span>
         </span>
         {b.unread > 0 && <span className="room__badge">{b.unread}</span>}
         {!isServer && (
