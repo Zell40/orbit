@@ -581,14 +581,14 @@ export const useChat = create<ChatState>((set, get) => {
           // automatic /FILEHOST command (every image/voice upload) — always hide
           // them. When an upload is waiting, pull the one-time token from the URL,
           // or surface the not-identified case (a guest can't upload).
-          if (/FILEHOST/i.test(text)) {
+          if (/FILEHOST|file hosting/i.test(text)) {
             if (filehostResolve) {
               const tok = text.match(/[?&]token=([\w.-]+)/);
               if (tok) {
                 if (filehostTimer) clearTimeout(filehostTimer);
                 const r = filehostResolve; filehostResolve = null; filehostReject = null;
                 r(tok[1]);
-              } else if (/not (logged|identif|authentic)|(must|need|have) to (log|ident|authentic)|veuillez.{0,12}(connect|identif)/i.test(text)) {
+              } else if (/must be logged in|not (logged|identif|authentic)/i.test(text)) {
                 if (filehostTimer) clearTimeout(filehostTimer);
                 const rj = filehostReject; filehostResolve = null; filehostReject = null;
                 rj?.(new Error('not_identified'));
