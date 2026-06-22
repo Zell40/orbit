@@ -577,22 +577,24 @@ export const useChat = create<ChatState>((set, get) => {
         // Server-originated NOTICE (no user@host, or to "*") → Server console,
         // styled as an info callout.
         if (msg.command === 'NOTICE' && (target === '*' || !msg.user)) {
-          // Intercept /FILEHOST replies while an upload is in flight.
-          if (filehostResolve && /FILEHOST|file host|hosting|héberger|heberger/i.test(text)) {
-            const tok = text.match(/[?&]token=([\w.-]+)/);
-            if (tok) {
-              if (filehostTimer) clearTimeout(filehostTimer);
-              const r = filehostResolve; filehostResolve = null; filehostReject = null;
-              r(tok[1]);
-              break; // swallow this notice
+          // FILEHOST service notices are machine/help noise triggered by our own
+          // automatic /FILEHOST command (every image/voice upload) — always hide
+          // them. When an upload is waiting, pull the one-time token from the URL,
+          // or surface the not-identified case (a guest can't upload).
+          if (/FILEHOST/i.test(text)) {
+            if (filehostResolve) {
+              const tok = text.match(/[?&]token=([\w.-]+)/);
+              if (tok) {
+                if (filehostTimer) clearTimeout(filehostTimer);
+                const r = filehostResolve; filehostResolve = null; filehostReject = null;
+                r(tok[1]);
+              } else if (/not (logged|identif|authentic)|(must|need|have) to (log|ident|authentic)|veuillez.{0,12}(connect|identif)/i.test(text)) {
+                if (filehostTimer) clearTimeout(filehostTimer);
+                const rj = filehostReject; filehostResolve = null; filehostReject = null;
+                rj?.(new Error('not_identified'));
+              }
             }
-            if (/logged in|identifie|connect|compte/i.test(text)) {
-              if (filehostTimer) clearTimeout(filehostTimer);
-              const rj = filehostReject; filehostResolve = null; filehostReject = null;
-              rj?.(new Error('not_identified'));
-              break;
-            }
-            break; // swallow the other FILEHOST help lines during upload
+            break; // swallow all FILEHOST service notices
           }
           // Cloudflare/Turnstile anti-bot gate during REGISTER → surface it in the
           // account UI instead of dumping the raw challenge link in the console.
