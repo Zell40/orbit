@@ -143,15 +143,19 @@ Orbit.plugin('games', (orbit, log) => {
       notify();
     }
   }
+  // GameServ pushes machine-readable state in an invisible client-only tag
+  // (+tchatou.fr/gs on a bodiless TAGMSG), so plain IRC clients never see it and
+  // only get GameServ's human-readable NOTICE. We read the tag and drive the UI.
   orbit.on('raw', (msg) => {
-    if (!msg || msg.command !== 'NOTICE' || (msg.nick || '').toLowerCase() !== GS) return;
-    const text = (msg.params && msg.params[msg.params.length - 1]) || '';
-    if (/^GS[#$]/.test(text)) { try { onGS(text); } catch (e) { log('gs parse error', e); } }
+    if (!msg || msg.command !== 'TAGMSG' || (msg.nick || '').toLowerCase() !== GS) return;
+    const text = msg.tags && msg.tags['+tchatou.fr/gs'];
+    if (text && /^GS[#$]/.test(text)) { try { onGS(text); } catch (e) { log('gs parse error', e); } }
   });
-  // Hide GameServ's machine lines + our own command echoes from chat.
+  // The web UI renders from the tag, so hide GameServ's human NOTICEs and our
+  // own command echoes from the chat display.
   orbit.addMessageFilter((m) => {
+    if ((m.nick || '').toLowerCase() === GS && m.command === 'NOTICE') return true;
     const t = m.text || '';
-    if ((m.nick || '').toLowerCase() === GS && m.command === 'NOTICE' && /^GS[#$]/.test(t)) return true;
     if (m.command === 'PRIVMSG' && (m.target || '').toLowerCase() === GS && /^(CHALLENGE|ACCEPT|DECLINE|MOVE|RESIGN|STATS|TOP|GAMES)\b/i.test(t)) return true;
     return false;
   });
