@@ -467,6 +467,7 @@ input, textarea { font-family: inherit; }
 /* ============ COMPOSER ============ */
 .composer { padding: .35rem 1.3rem 1rem; }
 .composer__box {
+  position: relative;
   display: flex; align-items: flex-end; gap: .4rem; background: var(--bg); border: 1px solid var(--border-2); border-radius: 14px; padding: .35rem .4rem .35rem .5rem;
   transition: border-color .15s, box-shadow .15s;
 }
@@ -514,7 +515,30 @@ input, textarea { font-family: inherit; }
 .composer__add { display: inline-flex; align-items: center; justify-content: center; }
 .composer__add:hover, .composer__emoji:hover { background: var(--bg-soft-2); }
 .composer__add:hover { color: var(--green-d); }
+.composer__mic:hover { color: #e0577a; }
 .composer__icon { display: block; }
+
+/* Voice recording overlay (covers the composer box while recording). */
+.composer__rec { position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; gap: .6rem;
+  padding: 0 .7rem; background: var(--bg-soft); border-radius: inherit; }
+.composer__rec-dot { width: 11px; height: 11px; border-radius: 50%; background: #e0577a; flex: none;
+  animation: recpulse 1.2s ease-in-out infinite; }
+@keyframes recpulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+.composer__rec-time { font-variant-numeric: tabular-nums; font-weight: 700; }
+.composer__rec-label { color: var(--faint); font-size: .9rem; }
+.composer__rec-btn { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; border: 0; cursor: pointer; font-size: 1rem; }
+.composer__rec-cancel { margin-left: auto; background: var(--bg-soft-2); color: var(--ink); }
+.composer__rec-send { margin-left: 0; background: var(--green, #2ec27e); color: #fff; }
+.composer__rec-btn:hover { filter: brightness(1.08); }
+
+/* Voice message inline player. */
+.audcard { margin-top: .4rem; display: flex; align-items: center; gap: .55rem; max-width: min(420px, 100%);
+  padding: .4rem .6rem; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px; }
+.audcard__ic { font-size: 1.05rem; flex: none; }
+.audcard__player { height: 36px; flex: 1; min-width: 0; }
+.audcard__act { flex: none; font-size: .82rem; color: var(--accent, #7aa2ff); text-decoration: none; }
+.audcard__act:hover { text-decoration: underline; }
 .composer textarea { flex: 1; border: 0; background: none; color: var(--ink); font: inherit; font-size: 1rem; resize: none; outline: none; max-height: 140px; line-height: 1.45; padding: .5rem .2rem; }
 .composer textarea::placeholder { color: var(--faint); }
 /* Rich (WYSIWYG) composer — shows real bold/italic/colour, never the codes */

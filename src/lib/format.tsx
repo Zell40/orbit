@@ -25,6 +25,20 @@ export function nickColor(nick: string): string {
 }
 
 const isImageUrl = (u: string) => /\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(u);
+const isAudioUrl = (u: string) => /\.(opus|ogg|mp3|m4a|wav|weba)(\?|#|$)/i.test(u)
+  || /\/files\/[^/?#]+\.webm(\?|#|$)/i.test(u); // filehost voice messages use a .webm audio container
+
+/* Voice message / audio attachment: a compact inline player. */
+function AudioAttachment({ url }: { url: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="audcard">
+      <span className="audcard__ic" aria-hidden="true">🎤</span>
+      <audio className="audcard__player" src={url} controls preload="metadata" />
+      <a className="audcard__act" href={url} target="_blank" rel="noopener noreferrer">{t('media.open')}</a>
+    </div>
+  );
+}
 
 /* Element-style image attachment: friendly caption bar + collapsible thumbnail + lightbox. */
 function ImageAttachment({ url, defaultShown = false }: { url: string; defaultShown?: boolean }) {
@@ -105,6 +119,7 @@ function linkify(text: string, selfMsg = false): ReactNode {
   return parts.map((p, i) => {
     if (!/^https?:\/\//.test(p)) return <span key={i}>{p}</span>;
     if (isImageUrl(p)) return <ImageAttachment key={i} url={p} defaultShown={selfMsg} />;
+    if (isAudioUrl(p)) return <AudioAttachment key={i} url={p} />;
     const yt = youtubeId(p);
     if (yt) return <YouTubeEmbed key={i} id={yt} url={p} />;
     return <a key={i} href={p} target="_blank" rel="noopener noreferrer">{p}</a>;

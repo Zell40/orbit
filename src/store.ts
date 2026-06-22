@@ -145,6 +145,8 @@ interface ChatState {
   toggleReaction: (msgid: string, emoji: string) => void;
   redact: (msgid: string) => void;
   uploadImage: (file: File) => Promise<void>;
+  uploadAudio: (blob: Blob, ext: string) => Promise<void>;
+  pushSystem: (buffer: string, text: string) => void;
   accountRegister: (account: string, email: string, password: string) => void;
   accountVerify: (code: string) => void;
   accountResend: () => void;
@@ -1614,6 +1616,46 @@ export const useChat = create<ChatState>((set, get) => {
         // 3) Share it as a CTCP ACTION so it reads as an action everywhere —
         //    "* Mik 📷 partage une image : <url>" (mIRC/irssi etc.); web renders the card.
         const caption = `📷 ${i18n.t('system.shareImage', { url: data.url })}`;
+        client.action(active, caption);
+        if (!client.hasCap('echo-message')) {
+          addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        const human = msg === 'not_identified'
+          ? i18n.t('system.uploadNeedAccount')
+          : msg === 'timeout' ? i18n.t('system.uploadTimeout') : i18n.t('system.uploadFailed', { msg });
+        sysLine(active, `⚠ ${human}`, 'system');
+      }
+    },
+
+    // Surface a one-off system line in a buffer (used by UI for local hints).
+    pushSystem(buffer, text) { sysLine(buffer || get().active, text, 'system'); },
+
+    // Voice message: a recorded audio blob, uploaded via the same /FILEHOST flow
+    // as images and shared as an action; other clients render an inline player.
+    async uploadAudio(blob, ext) {
+      const { client, active } = get();
+      if (!client || !active || active === SERVER) return;
+      if (blob.size > 16 * 1024 * 1024) { sysLine(active, `⚠ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
+
+      sysLine(active, `📤 ${i18n.t('system.sendingVoice')}`, 'system');
+      try {
+        const token = await new Promise<string>((resolve, reject) => {
+          filehostResolve = resolve; filehostReject = reject;
+          filehostTimer = setTimeout(() => { filehostResolve = null; filehostReject = null; reject(new Error('timeout')); }, 10000);
+          client.send('FILEHOST');
+        });
+        const fd = new FormData();
+        fd.append('file', new File([blob], `voice.${ext}`, { type: blob.type || 'audio/webm' }));
+        const res = await fetch(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
+        if (!res.ok) {
+          let detail = `http_${res.status}`;
+          try { const j = await res.json(); if (j?.detail) detail = `${res.status}:${j.detail}`; } catch { /* ignore */ }
+          throw new Error(detail);
+        }
+        const data = await res.json() as { url: string };
+        const caption = `🎤 ${i18n.t('system.shareVoice', { url: data.url })}`;
         client.action(active, caption);
         if (!client.hasCap('echo-message')) {
           addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
