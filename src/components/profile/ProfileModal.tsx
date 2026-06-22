@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
 import { IRCOP_COLOR, hashHue, fmtDuration, formatUserModes } from '../../lib/format';
 import { Avatar } from '../Avatar';
+import { usePluginRegistry } from '../../plugins/registry';
+import { PluginBoundary } from '../PluginBoundary';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
 const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes']);
@@ -30,6 +32,7 @@ export function ProfileModal() {
   const myPrefix = useChat((s) => s.buffers[s.active]?.members[s.nick]?.prefixes || s.buffers[s.active]?.members[s.nick]?.prefix || '');
   const targetMember = useChat((s) => s.buffers[s.active]?.members[s.profileUser]);
   const myUmodes = useChat((s) => s.umodes);
+  const userActions = usePluginRegistry((s) => s.userActions);
   const [spinning, setSpinning] = useState(false);
 
   const doRefresh = () => {
@@ -152,6 +155,12 @@ export function ProfileModal() {
               {isIgnored ? `🔔 ${t('whois.unignore')}` : `🔕 ${t('whois.ignore')}`}
             </button>
             <button className="pm-chip pm-chip--warn" onClick={() => { reportUser(nick); close(); }}>🚩 {t('whois.report')}</button>
+          </div>
+        )}
+
+        {!isMe && userActions.length > 0 && (
+          <div className="pm-modrow">
+            {userActions.map((a) => <PluginBoundary key={a.id} render={() => a.render({ nick, close })} label="user_action" />)}
           </div>
         )}
 

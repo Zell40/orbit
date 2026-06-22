@@ -13,14 +13,14 @@ import { useChat } from '../store';
 import { getTheme, setTheme, type Theme } from '../ui/theme';
 import { getConfig } from '../config';
 import { bus } from './bus';
-import { usePluginRegistry, type UiSlot, type MessageInfo } from './registry';
+import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type FilterableMessage } from './registry';
 
 const html = htm.bind(React.createElement);
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
 
 // Plugin API contract version. Bumped on a breaking change to the surface below
 // so plugins can guard (e.g. `if (Orbit.apiVersion < 2) …`). Still experimental.
-const API_VERSION = 1;
+const API_VERSION = 3;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -77,6 +77,11 @@ export interface OrbitPluginApi {
   addMessageDecorator: (render: (m: MessageInfo) => ReactNode) => () => void;
   /** Add a button to every message's hover action toolbar (next to reply/react). */
   addMessageAction: (render: (m: MessageInfo) => ReactNode) => () => void;
+  /** Add a button to a user's profile/whois card (gets the target nick + a close()). */
+  addUserAction: (render: (ctx: UserActionCtx) => ReactNode) => () => void;
+  /** Hide messages from the chat display (return true to suppress). The plugin still
+   *  receives them via on('raw'). Use for a service's machine-readable control lines. */
+  addMessageFilter: (fn: (m: FilterableMessage) => boolean) => () => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -117,6 +122,8 @@ function makeApi(name: string): OrbitPluginApi {
       usePluginRegistry.getState().addUi('settings_section', name, opts.render, { label: opts.label, icon: opts.icon }),
     addMessageDecorator: (render) => usePluginRegistry.getState().addDecorator(name, render),
     addMessageAction: (render) => usePluginRegistry.getState().addAction(name, render),
+    addUserAction: (render) => usePluginRegistry.getState().addUserAction(name, render),
+    addMessageFilter: (fn) => usePluginRegistry.getState().addMessageFilter(name, fn),
   };
 }
 

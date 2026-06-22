@@ -38,19 +38,43 @@ export interface PluginPerMessage {
   render: (m: MessageInfo) => ReactNode;
 }
 
+// Context handed to a per-user action (rendered in the profile/whois card).
+export interface UserActionCtx { nick: string; close: () => void }
+export interface PluginPerUser {
+  id: string;
+  plugin: string;
+  render: (ctx: UserActionCtx) => ReactNode;
+}
+
+// A message offered to plugin filters before it is shown. Returning true from a
+// filter suppresses the message from the chat display (plugins still see it via
+// on('raw')). Used e.g. to hide a service's machine-readable control lines.
+export interface FilterableMessage { nick: string; command: string; target: string; text: string; }
+export interface PluginFilter {
+  id: string;
+  plugin: string;
+  fn: (m: FilterableMessage) => boolean;
+}
+
 interface RegistryState {
   ui: PluginUi[];
   decorators: PluginPerMessage[];
   actions: PluginPerMessage[];
+  userActions: PluginPerUser[];
+  messageFilters: PluginFilter[];
   addUi: (slot: UiSlot, plugin: string, render: () => ReactNode, meta?: PluginUi['meta']) => () => void;
   addDecorator: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addAction: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
+  addUserAction: (plugin: string, render: (ctx: UserActionCtx) => ReactNode) => () => void;
+  addMessageFilter: (plugin: string, fn: (m: FilterableMessage) => boolean) => () => void;
 }
 
 export const usePluginRegistry = create<RegistryState>((set) => ({
   ui: [],
   decorators: [],
   actions: [],
+  userActions: [],
+  messageFilters: [],
   addUi: (slot, plugin, render, meta) => {
     const id = `${plugin}:${slot}:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ ui: [...s.ui, { id, plugin, slot, render, meta }] }));
@@ -65,5 +89,15 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
     const id = `${plugin}:act:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ actions: [...s.actions, { id, plugin, render }] }));
     return () => set((s) => ({ actions: s.actions.filter((a) => a.id !== id) }));
+  },
+  addUserAction: (plugin, render) => {
+    const id = `${plugin}:usr:${Math.random().toString(36).slice(2, 8)}`;
+    set((s) => ({ userActions: [...s.userActions, { id, plugin, render }] }));
+    return () => set((s) => ({ userActions: s.userActions.filter((a) => a.id !== id) }));
+  },
+  addMessageFilter: (plugin, fn) => {
+    const id = `${plugin}:flt:${Math.random().toString(36).slice(2, 8)}`;
+    set((s) => ({ messageFilters: [...s.messageFilters, { id, plugin, fn }] }));
+    return () => set((s) => ({ messageFilters: s.messageFilters.filter((f) => f.id !== id) }));
   },
 }));

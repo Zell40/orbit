@@ -6,6 +6,7 @@ import { getPrefs, savePrefs, applyPrefs, type Prefs } from './ui/prefs';
 import type { Buffer, ChatMessage, ConnectOptions, IrcMessage, Member, MessageKind, WhoisInfo } from './irc/types';
 import { NUMERICS, ERROR_NUMERICS } from './irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from './irc/modes';
+import { usePluginRegistry } from './plugins/registry';
 import { casefold } from './irc/casemap';
 import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';
@@ -611,6 +612,12 @@ export const useChat = create<ChatState>((set, get) => {
           const lc = msg.nick.toLowerCase();
           if (get().ignored.some((n) => n.toLowerCase() === lc)) return;
         }
+        // Plugin message filters: a plugin can hide a message from the chat
+        // display (e.g. a service's machine-readable control lines). The plugin
+        // still receives it via on('raw').
+        const mfilters = usePluginRegistry.getState().messageFilters;
+        if (mfilters.length && mfilters.some((f) => f.fn({ nick: msg.nick || '', command: msg.command, target, text })))
+          return;
         let kind: MessageKind = msg.command === 'NOTICE' ? 'notice' : 'privmsg';
         // CTCP ACTION
         if (text.startsWith('\x01ACTION ') && text.endsWith('\x01')) {
