@@ -7,10 +7,10 @@
  * commands (CHALLENGE/ACCEPT/MOVE/RESIGN/STATS/TOP), renders the board state
  * GameServ pushes, and hides GameServ's machine-readable control lines from chat.
  *
- * Wire protocol (GameServ -> client, as NOTICE lines that we hide + parse):
+ * Wire protocol (GameServ -> client, in an invisible +tchatou.fr/gs tag we parse):
  *   GS# <id> g=<game> s=<encstate> t=<turn> me=<side> opp=<nick> st=<offer|pending|active|over> r=<none|win|loss|draw>
- *   GS$ <account> r=<rank> p=<pts> w=<n> l=<n> d=<n>
- *   GS$TOPSTART ; GS$TOPROW <i> <account> <rank> <pts>
+ *   GS$ <account> <game> r=<rank> p=<pts> w=<n> l=<n> d=<n>   (one per game type)
+ *   GS$TOPSTART <game> ; GS$TOPROW <game> <i> <account> <rank> <pts>   (per-game ladder)
  */
 Orbit.plugin('games', (orbit, log) => {
   const { useState, useEffect } = orbit.React;
@@ -79,8 +79,8 @@ Orbit.plugin('games', (orbit, log) => {
   };
 
   // ════════════════════════ store ════════════════════════
-  const store = { games: {}, open: false, active: null, challengeNick: '', subs: new Set(), stats: null, leaderboard: null, topPending: null, showBoard: false };
-  const statsCache = {};
+  const store = { games: {}, open: false, active: null, challengeNick: '', subs: new Set(), myStats: null, boards: {}, topType: 'chess', topPending: null, showBoard: false };
+  const statsCache = {}; // accountLower -> { [gameType]: { rank, points, wins, losses, draws } }
   function notify() { store.subs.forEach((f) => f()); }
   function useStore() { const [, set] = useState(0); useEffect(() => { const f = () => set((x) => x + 1); store.subs.add(f); return () => store.subs.delete(f); }, []); return store; }
   const myAccount = () => (orbit.state.get().account || '').toLowerCase();
@@ -93,7 +93,7 @@ Orbit.plugin('games', (orbit, log) => {
   const sendMove = (id, mv) => cmd('MOVE ' + id + ' ' + mv);
   const resign = (id) => cmd('RESIGN ' + id);
   const refreshStats = () => cmd('STATS');
-  const fetchTop = () => cmd('TOP');
+  const fetchTop = (type) => cmd('TOP ' + type);
 
   // ════════════════════════ turn alerts ════════════════════════
   let savedTitle = null, toastEl = null, toastTimer = 0, audioCtx = null;
@@ -130,16 +130,19 @@ Orbit.plugin('games', (orbit, log) => {
       notify();
       alertTurn(g, prev);
     } else if (text.startsWith('GS$TOPSTART')) {
-      store.topPending = []; store.leaderboard = []; notify();
+      const type = text.slice('GS$TOPSTART '.length).trim() || 'chess';
+      store.topPending = []; store.boards[type] = []; notify();
     } else if (text.startsWith('GS$TOPROW ')) {
-      const p = text.slice(10).split(' '); // i account rank pts
-      (store.topPending = store.topPending || []).push({ rank: p[0], account: p[1], tier: p[2], points: +p[3] });
-      store.leaderboard = store.topPending.slice(); notify();
+      const p = text.slice(10).split(' '); // type i account rank pts
+      const type = p[0];
+      (store.topPending = store.topPending || []).push({ rank: p[1], account: p[2], tier: p[3], points: +p[4] });
+      store.boards[type] = store.topPending.slice(); notify();
     } else if (text.startsWith('GS$ ')) {
-      const p = text.slice(4).split(' '), account = p[0], kv = parseKV(p.slice(1));
-      const st = { account, rank: kv.r, points: +kv.p, wins: +kv.w, losses: +kv.l, draws: +kv.d };
-      statsCache[account.toLowerCase()] = st;
-      if (account.toLowerCase() === myAccount()) store.stats = st;
+      const p = text.slice(4).split(' '), account = p[0], type = p[1], kv = parseKV(p.slice(2));
+      const rec = { rank: kv.r, points: +kv.p, wins: +kv.w, losses: +kv.l, draws: +kv.d };
+      const key = account.toLowerCase();
+      (statsCache[key] = statsCache[key] || {})[type] = rec;
+      if (key === myAccount()) store.myStats = statsCache[key];
       notify();
     }
   }
@@ -181,7 +184,8 @@ Orbit.plugin('games', (orbit, log) => {
     const [nick, setNick] = useState(() => s.challengeNick || (() => { const a = orbit.state.active(); return a && a[0] !== '#' ? a : ''; })());
     useEffect(() => { if (s.challengeNick) { setNick(s.challengeNick); s.challengeNick = ''; } });
     useEffect(() => { refreshStats(); }, []);
-    const st = s.stats;
+    const ms = s.myStats;
+    const myPlayed = ms ? Object.keys(GAMES).filter((t) => ms[t] && (ms[t].wins + ms[t].losses + ms[t].draws) > 0) : [];
     const btn = { border: '1px solid var(--border,#444)', background: 'transparent', color: 'inherit', borderRadius: '8px', padding: '.4rem .7rem', font: 'inherit', fontSize: '.85rem', cursor: 'pointer' };
 
     return html`<div style=${{ position: 'fixed', right: '14px', bottom: '74px', zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '14px', boxShadow: '0 24px 60px -20px rgba(0,0,0,.7)', padding: '.85rem' }}>
@@ -190,10 +194,13 @@ Orbit.plugin('games', (orbit, log) => {
         <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, padding: '.15rem .45rem' }}>✕</button>
       </div>
 
-      ${st && st.rank ? html`<div style=${{ display: 'flex', alignItems: 'center', gap: '.45rem', fontSize: '.78rem', margin: '-.15rem 0 .55rem', padding: '.32rem .55rem', background: 'rgba(255,255,255,.05)', borderRadius: '8px' }}>
-        <span style=${{ fontWeight: 700 }}>${RANK_BADGE[st.rank] || ''} ${st.rank}</span>
-        <span style=${{ color: 'var(--tx-dim,#aaa)' }}>${st.points} pts</span>
-        <span style=${{ marginLeft: 'auto', color: 'var(--tx-dim,#aaa)' }}>✓${st.wins} ✗${st.losses} =${st.draws}</span>
+      ${myPlayed.length ? html`<div style=${{ display: 'flex', flexDirection: 'column', gap: '.3rem', margin: '-.15rem 0 .55rem' }}>
+        ${myPlayed.map((t) => { const r = ms[t]; return html`<div key=${t} style=${{ display: 'flex', alignItems: 'center', gap: '.45rem', fontSize: '.78rem', padding: '.32rem .55rem', background: 'rgba(255,255,255,.05)', borderRadius: '8px' }}>
+          <span style=${{ width: '1.1rem', textAlign: 'center' }}>${GAMES[t].icon}</span>
+          <span style=${{ fontWeight: 700 }}>${RANK_BADGE[r.rank] || ''} ${r.rank}</span>
+          <span style=${{ color: 'var(--tx-dim,#aaa)' }}>${r.points} pts</span>
+          <span style=${{ marginLeft: 'auto', color: 'var(--tx-dim,#aaa)' }}>✓${r.wins} ✗${r.losses} =${r.draws}</span>
+        </div>`; })}
       </div>` : null}
 
       ${invites.map((g) => html`<div key=${g.id} style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', background: 'rgba(255,255,255,.05)', borderRadius: '8px', padding: '.45rem .6rem', marginBottom: '.4rem' }}>
@@ -226,17 +233,21 @@ Orbit.plugin('games', (orbit, log) => {
     })() : html`<div>
         <div style=${{ display: 'flex', gap: '.4rem', marginBottom: '.55rem' }}>
           <button onClick=${() => { store.showBoard = false; notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: !s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>Nouvelle partie</button>
-          <button onClick=${() => { store.showBoard = true; fetchTop(); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>🏆 Classement</button>
+          <button onClick=${() => { store.showBoard = true; fetchTop(store.topType); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>🏆 Classement</button>
         </div>
         ${s.showBoard ? html`<div>
-          ${!s.leaderboard ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>Chargement…</div>`
-        : s.leaderboard.length === 0 ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>Personne au classement. Gagne une partie !</div>`
-          : s.leaderboard.map((row, i) => html`<div key=${row.account} style=${{ display: 'flex', alignItems: 'center', gap: '.5rem', fontSize: '.82rem', padding: '.32rem .2rem', borderBottom: '1px solid var(--border,rgba(255,255,255,.06))' }}>
+          <div style=${{ display: 'flex', gap: '.3rem', marginBottom: '.5rem' }}>
+            ${Object.keys(GAMES).map((t) => html`<button key=${t} onClick=${() => { store.topType = t; fetchTop(t); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.74rem', padding: '.25rem .3rem', borderColor: s.topType === t ? 'var(--ac,#5b8cff)' : undefined }}>${GAMES[t].icon} ${GAMES[t].name}</button>`)}
+          </div>
+          ${(() => { const board = s.boards[s.topType];
+        return !board ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>Chargement…</div>`
+          : board.length === 0 ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>Personne au classement. Gagne une partie !</div>`
+            : board.map((row, i) => html`<div key=${row.account} style=${{ display: 'flex', alignItems: 'center', gap: '.5rem', fontSize: '.82rem', padding: '.32rem .2rem', borderBottom: '1px solid var(--border,rgba(255,255,255,.06))' }}>
                 <span style=${{ width: '1.3rem', textAlign: 'right', color: 'var(--tx-dim,#aaa)' }}>${i + 1}</span>
                 <span>${RANK_BADGE[row.tier] || ''}</span>
                 <b style=${{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>${row.account}</b>
                 <span style=${{ color: 'var(--tx-dim,#aaa)' }}>${row.points} pts</span>
-              </div>`)}
+              </div>`); })()}
         </div>` : html`<div>
           <div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#aaa)', marginBottom: '.4rem' }}>Défie un membre connecté (il lui faut un compte). GameServ arbitre la partie.</div>
           <input value=${nick} onInput=${(e) => setNick(e.target.value)} placeholder="Pseudo de l'adversaire" style=${{ width: '100%', boxSizing: 'border-box', padding: '.5rem .6rem', borderRadius: '8px', border: '1px solid var(--border,#444)', background: 'var(--bg,#0e0e12)', color: 'inherit', font: 'inherit', marginBottom: '.5rem' }} />
@@ -272,9 +283,15 @@ Orbit.plugin('games', (orbit, log) => {
     useStore();
     const key = (nick || '').toLowerCase();
     useEffect(() => { refreshStatsFor(nick); }, [nick]);
-    const st = statsCache[key];
-    if (!st || !st.rank || (st.wins + st.losses + st.draws) === 0) return null;
-    return html`<span title="Classement Jeux" style=${{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.8rem', fontWeight: 600, padding: '.3rem .6rem', borderRadius: '999px', background: 'rgba(255,255,255,.06)', border: '1px solid var(--border,#444)' }}>${RANK_BADGE[st.rank] || ''} ${st.rank} · ${st.points} pts</span>`;
+    const all = statsCache[key];
+    if (!all) return null;
+    const played = Object.keys(GAMES)
+      .map((t) => ({ t, ...all[t] }))
+      .filter((r) => r.rank && (r.wins + r.losses + r.draws) > 0)
+      .sort((a, b) => b.points - a.points);
+    if (!played.length) return null;
+    const best = played[0]; // their strongest game
+    return html`<span title=${'Meilleur classement : ' + GAMES[best.t].name} style=${{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.8rem', fontWeight: 600, padding: '.3rem .6rem', borderRadius: '999px', background: 'rgba(255,255,255,.06)', border: '1px solid var(--border,#444)' }}>${GAMES[best.t].icon} ${RANK_BADGE[best.rank] || ''} ${best.rank} · ${best.points} pts</span>`;
   }
   const refreshStatsFor = (nick) => cmd('STATS ' + nick);
 
