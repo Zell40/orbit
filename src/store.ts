@@ -1629,6 +1629,7 @@ export const useChat = create<ChatState>((set, get) => {
           : msg === 'timeout' ? i18n.t('system.uploadTimeout')
           : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
           : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
+          : msg.includes('violent_image') ? i18n.t('system.uploadViolent')
           : i18n.t('system.uploadFailed', { msg });
         sysLine(active, `⚠ ${human}`, 'system');
       }
@@ -1672,6 +1673,7 @@ export const useChat = create<ChatState>((set, get) => {
           : msg === 'timeout' ? i18n.t('system.uploadTimeout')
           : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
           : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
+          : msg.includes('violent_image') ? i18n.t('system.uploadViolent')
           : i18n.t('system.uploadFailed', { msg });
         sysLine(active, `⚠ ${human}`, 'system');
       }

@@ -373,6 +373,7 @@
     "sendingVoice": "Envoi du message vocal…",
     "uploadNeedAccount": "Tu dois être connecté à un compte pour envoyer des images (/msg NickServ IDENTIFY).",
     "uploadTimeout": "Le serveur de fichiers ne répond pas.",
+    "uploadViolent": "Cette image a été refusée : contenu violent détecté.",
     "uploadNsfw": "Cette image a été refusée : contenu explicite détecté.",
     "uploadAvDown": "L'analyse antivirus est momentanément indisponible. Réessaie dans un instant.",
     "uploadFailed": "Échec de l’envoi ({{msg}}).",
