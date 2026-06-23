@@ -372,6 +372,16 @@ input, textarea { font-family: inherit; }
 .sysline::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--border-2); margin-right: .45rem; vertical-align: middle; }
 .sysline .who { color: var(--muted); font-weight: 700; }
 
+/* Content-policy rejection alert — stands out from ordinary system lines. */
+.sysline--alert { display: flex; align-items: flex-start; gap: .55rem; padding: .6rem 1.1rem .6rem 1.3rem; margin: .3rem 0; background: rgba(234,130,9,.10); border-left: 3px solid #ea8209; border-radius: 0 8px 8px 0; color: #c96b00; font-size: .88rem; font-weight: 600; line-height: 1.4; }
+.sysline--alert::before { display: none; }
+.sysline--alert__icon { width: 18px; height: 18px; flex: none; margin-top: .12rem; color: #ea8209; }
+.sysline--alert__body { flex: 1; }
+[data-theme^="orbit"] .sysline--alert,
+[data-theme^="yomirc"] .sysline--alert { background: rgba(234,130,9,.14); color: #f5a030; border-color: #f5a030; }
+[data-theme^="orbit"] .sysline--alert__icon,
+[data-theme^="yomirc"] .sysline--alert__icon { color: #f5a030; }
+
 /* channel mode change line (IRCAP-style: "mode : reverse applique [-v reverse]") */
 .sysline--mode { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; padding: .26rem 1.3rem; }
 .sysline--mode::before { display: none; }

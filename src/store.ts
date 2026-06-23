@@ -1624,14 +1624,21 @@ export const useChat = create<ChatState>((set, get) => {
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
+        const isPolicyHit = msg.includes('nsfw_image') || msg.includes('violent_image')
+          || msg.includes('infected') || msg.includes('scanner_unavailable');
         const human = msg === 'not_identified'
           ? i18n.t('system.uploadNeedAccount')
           : msg === 'timeout' ? i18n.t('system.uploadTimeout')
           : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
           : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
           : msg.includes('violent_image') ? i18n.t('system.uploadViolent')
+          : msg.includes('infected') ? i18n.t('system.uploadInfected')
           : i18n.t('system.uploadFailed', { msg });
-        sysLine(active, `⚠ ${human}`, 'system');
+        if (isPolicyHit) {
+          sysLine(active, `\x01ALERT\x01${human}`, 'system');
+        } else {
+          sysLine(active, `⚠ ${human}`, 'system');
+        }
       }
     },
 
@@ -1668,14 +1675,21 @@ export const useChat = create<ChatState>((set, get) => {
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
+        const isPolicyHit = msg.includes('nsfw_image') || msg.includes('violent_image')
+          || msg.includes('infected') || msg.includes('scanner_unavailable');
         const human = msg === 'not_identified'
           ? i18n.t('system.uploadNeedAccount')
           : msg === 'timeout' ? i18n.t('system.uploadTimeout')
           : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
           : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
           : msg.includes('violent_image') ? i18n.t('system.uploadViolent')
+          : msg.includes('infected') ? i18n.t('system.uploadInfected')
           : i18n.t('system.uploadFailed', { msg });
-        sysLine(active, `⚠ ${human}`, 'system');
+        if (isPolicyHit) {
+          sysLine(active, `\x01ALERT\x01${human}`, 'system');
+        } else {
+          sysLine(active, `⚠ ${human}`, 'system');
+        }
       }
     },
 
