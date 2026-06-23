@@ -1626,7 +1626,9 @@ export const useChat = create<ChatState>((set, get) => {
         const msg = e instanceof Error ? e.message : String(e);
         const human = msg === 'not_identified'
           ? i18n.t('system.uploadNeedAccount')
-          : msg === 'timeout' ? i18n.t('system.uploadTimeout') : i18n.t('system.uploadFailed', { msg });
+          : msg === 'timeout' ? i18n.t('system.uploadTimeout')
+          : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
+          : i18n.t('system.uploadFailed', { msg });
         sysLine(active, `⚠ ${human}`, 'system');
       }
     },
@@ -1666,7 +1668,9 @@ export const useChat = create<ChatState>((set, get) => {
         const msg = e instanceof Error ? e.message : String(e);
         const human = msg === 'not_identified'
           ? i18n.t('system.uploadNeedAccount')
-          : msg === 'timeout' ? i18n.t('system.uploadTimeout') : i18n.t('system.uploadFailed', { msg });
+          : msg === 'timeout' ? i18n.t('system.uploadTimeout')
+          : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
+          : i18n.t('system.uploadFailed', { msg });
         sysLine(active, `⚠ ${human}`, 'system');
       }
     },

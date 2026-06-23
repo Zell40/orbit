@@ -373,6 +373,7 @@
     "sendingVoice": "Sending voice message…",
     "uploadNeedAccount": "You must be logged into an account to send images (/msg NickServ IDENTIFY).",
     "uploadTimeout": "The file server is not responding.",
+    "uploadAvDown": "Virus scanning is temporarily unavailable. Please try again shortly.",
     "uploadFailed": "Upload failed ({{msg}}).",
     "shareImage": "shares an image: {{url}}",
     "shareVoice": "voice message: {{url}}",
