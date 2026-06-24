@@ -4,6 +4,7 @@ import { useChat } from './store';
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { refreshPush } from './services/push';
+import { getConfig } from './config';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.
@@ -27,7 +28,10 @@ export default function App() {
     Object.values(s.buffers).reduce((acc, b) => acc + b.unread, 0));
 
   useEffect(() => {
-    document.title = unread > 0 ? `(${unread}) Tchatou · Tchat` : 'Tchatou · Tchat';
+    // Title follows the configured brand name (config.branding.name) — the single
+    // source of truth. Don't hardcode it here or in index.html.
+    const name = getConfig().branding.name;
+    document.title = unread > 0 ? `(${unread}) ${name}` : name;
   }, [unread]);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives
