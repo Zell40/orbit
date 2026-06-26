@@ -162,8 +162,20 @@ Orbit.plugin('games', (orbit, log) => {
     if (m.command === 'PRIVMSG' && (m.target || '').toLowerCase() === GS && /^(CHALLENGE|ACCEPT|DECLINE|MOVE|RESIGN|STATS|TOP|GAMES)\b/i.test(t)) return true;
     return false;
   });
-  // On (re)connect, ask GameServ for our rank.
-  orbit.on('raw', (msg) => { if (msg && (msg.command === '376' || msg.command === '422')) setTimeout(refreshStats, 1500); });
+  // Duel link: /app/?duel=chess&vs=<nick> — auto-challenge the friend who shared
+  // it, through GameServ (server-refereed, works for guests, no client logic).
+  let duelFired = false;
+  function tryDuel() {
+    if (duelFired) return;
+    const p = new URLSearchParams(window.location.search);
+    const type = (p.get('duel') || '').toLowerCase(), vs = (p.get('vs') || '').trim();
+    if (!GAMES[type] || !vs) return;
+    if (vs.toLowerCase() === (orbit.state.nick() || '').toLowerCase()) return;
+    duelFired = true;
+    setTimeout(() => { store.open = true; store.challengeNick = vs; notify(); challenge(vs, type); }, 1500);
+  }
+  // On (re)connect, ask GameServ for our rank + honour any duel link.
+  orbit.on('raw', (msg) => { if (msg && (msg.command === '376' || msg.command === '422')) { setTimeout(refreshStats, 1500); tryDuel(); } });
 
   // ════════════════════════ UI ════════════════════════
   const RANK_BADGE = { Bronze: '🥉', Silver: '🥈', Gold: '🥇', Master: '💎' };
@@ -249,7 +261,7 @@ Orbit.plugin('games', (orbit, log) => {
                 <span style=${{ color: 'var(--tx-dim,#aaa)' }}>${row.points} pts</span>
               </div>`); })()}
         </div>` : html`<div>
-          <div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#aaa)', marginBottom: '.4rem' }}>Défie un membre connecté (il lui faut un compte). GameServ arbitre la partie.</div>
+          <div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#aaa)', marginBottom: '.4rem' }}>Défie n'importe qui de connecté. GameServ arbitre chaque coup. Avec un compte la partie est classée ; en invité, elle est amicale.</div>
           <input value=${nick} onInput=${(e) => setNick(e.target.value)} placeholder="Pseudo de l'adversaire" style=${{ width: '100%', boxSizing: 'border-box', padding: '.5rem .6rem', borderRadius: '8px', border: '1px solid var(--border,#444)', background: 'var(--bg,#0e0e12)', color: 'inherit', font: 'inherit', marginBottom: '.5rem' }} />
           <div style=${{ display: 'flex', gap: '.4rem' }}>
             ${Object.keys(GAMES).map((id) => html`<button key=${id} onClick=${() => nick.trim() && challenge(nick.trim(), id)} style=${{ ...btn, flex: 1, fontSize: '.8rem' }}>${GAMES[id].icon} ${GAMES[id].name}</button>`)}

@@ -1,10 +1,13 @@
 /*
- * Orbit invite plugin — share a link to bring friends into the room you're in.
+ * Orbit invite plugin — bring friends in, or challenge one, from inside the chat.
  *
- *   https://<host>/i/<salon>/?de=<you>   (lands on the invite page)
+ * Two shareable links for the room you're in:
+ *   • Room invite  → https://<host>/i/<salon>/?de=<you>
+ *   • Chess duel   → https://<host>/app/?channel=#<salon>&duel=chess&vs=<you>
+ *     (the friend connects and orbit-games auto-challenges <you> through GameServ
+ *      — server-refereed, casual for guests, no client-side game logic.)
  *
- * Native Web Share sheet on mobile, clipboard elsewhere. No account, no game
- * logic — just a shareable room link.
+ * Native Web Share sheet on mobile, clipboard elsewhere. No account required.
  */
 Orbit.plugin('invite', (orbit, log) => {
   const { useState, useEffect } = orbit.React;
@@ -18,6 +21,7 @@ Orbit.plugin('invite', (orbit, log) => {
   const salonKey = () => activeChannel().replace(/^#+/, '');
   const me = () => (orbit.state.nick() || '').trim();
   const roomLink = () => `${origin()}/i/${encodeURIComponent(salonKey())}/?de=${encodeURIComponent(me())}`;
+  const duelLink = () => `${origin()}/app/?channel=${encodeURIComponent(activeChannel())}&duel=chess&vs=${encodeURIComponent(me())}`;
 
   async function share(url, title, onDone) {
     try { if (navigator.share) { await navigator.share({ title, text: title, url }); onDone('shared'); return; } }
@@ -30,24 +34,29 @@ Orbit.plugin('invite', (orbit, log) => {
     const s = useStore();
     const [done, setDone] = useState({ how: '', url: '' });
     const chan = activeChannel();
-    const btn = { display: 'block', width: '100%', textAlign: 'left', border: '1px solid var(--border,#444)', background: 'transparent', color: 'inherit', borderRadius: '10px', padding: '.6rem .7rem', font: 'inherit', fontSize: '.86rem', cursor: 'pointer' };
+    const btn = { display: 'block', width: '100%', textAlign: 'left', border: '1px solid var(--border,#444)', background: 'transparent', color: 'inherit', borderRadius: '10px', padding: '.6rem .7rem', font: 'inherit', fontSize: '.86rem', cursor: 'pointer', marginBottom: '.5rem' };
     const sub = { display: 'block', fontSize: '.74rem', color: 'var(--tx-dim,#9aa)', marginTop: '.15rem' };
 
-    function go() {
-      const url = roomLink();
-      share(url, `Rejoins-moi sur ${chan} · Tchatou`, (how) => setDone({ how, url }));
+    function go(which) {
+      const url = which === 'duel' ? duelLink() : roomLink();
+      const title = which === 'duel' ? 'Défi aux échecs sur Tchatou' : `Rejoins-moi sur ${chan} · Tchatou`;
+      share(url, title, (how) => setDone({ how, url }));
     }
 
     return html`<div style=${{ position: 'fixed', right: '14px', bottom: '74px', zIndex: 60, width: '320px', maxWidth: '92vw', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '14px', boxShadow: '0 24px 60px -20px rgba(0,0,0,.7)', padding: '.85rem' }}>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.6rem' }}>
         <strong style=${{ font: '700 .95rem/1 inherit' }}>Inviter</strong>
-        <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, width: 'auto', padding: '.15rem .45rem' }}>✕</button>
+        <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, width: 'auto', marginBottom: 0, padding: '.15rem .45rem' }}>✕</button>
       </div>
-      <button onClick=${go} style=${btn}>
+      <button onClick=${() => go('room')} style=${btn}>
         🔗 Inviter des amis dans <b>${chan}</b>
         <span style=${sub}>Un lien à partager (WhatsApp, Discord…). Aucun compte requis.</span>
       </button>
-      ${done.how ? html`<div style=${{ marginTop: '.6rem' }}>
+      <button onClick=${() => go('duel')} style=${btn}>
+        ♟ Défier un ami aux échecs
+        <span style=${sub}>Il clique, il joue contre toi — arbitré par GameServ, sans inscription.</span>
+      </button>
+      ${done.how ? html`<div style=${{ marginTop: '.2rem' }}>
         <div style=${{ fontSize: '.78rem', color: '#2ea043', marginBottom: '.3rem' }}>${done.how === 'shared' ? 'Lien partagé ✓' : done.how === 'copied' ? 'Lien copié ✓ — colle-le où tu veux' : 'Copie ce lien :'}</div>
         <input readOnly value=${done.url} onClick=${(e) => e.target.select()} style=${{ width: '100%', boxSizing: 'border-box', padding: '.45rem .55rem', borderRadius: '8px', border: '1px solid var(--border,#444)', background: 'var(--bg,#0e0e12)', color: 'inherit', font: '.76rem/1.3 monospace' }} />
       </div>` : null}
