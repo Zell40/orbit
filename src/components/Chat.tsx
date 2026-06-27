@@ -7,7 +7,7 @@ import { Composer } from './chat/Composer';
 import { Rail, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { MemberList } from './chat/MemberList';
-import { ReconnectBanner, KickToast } from './chat/Banners';
+import { ReconnectBanner, KickToast, PushNudge } from './chat/Banners';
 
 export function Chat() {
   const { t } = useTranslation();
@@ -30,6 +30,7 @@ export function Chat() {
       <ProfileModal />
       <KickToast />
       <ReconnectBanner />
+      <PushNudge />
     </div>
   );
 }

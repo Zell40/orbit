@@ -1,6 +1,56 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
+import { isPushSupported, pushEnabledPref, enablePush } from '../../services/push';
+
+const PUSH_NUDGE_KEY = 'tchatou-pushnudge';
+
+// A gentle, one-time invitation to turn on Web Push — shown a little after the
+// user has settled in, never if they've already decided (granted/denied/pref) or
+// dismissed it. Tapping "Activer" runs the normal subscribe flow (which prompts).
+export function PushNudge() {
+  const { t } = useTranslation();
+  const status = useChat((s) => s.status);
+  const client = useChat((s) => s.client);
+  const [show, setShow] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (status !== 'registered' || !client?.vapid) return;
+    if (!isPushSupported() || pushEnabledPref()) return;
+    if (typeof Notification === 'undefined' || Notification.permission !== 'default') return;
+    try { if (localStorage.getItem(PUSH_NUDGE_KEY) === 'off') return; } catch { /* ignore */ }
+    const id = setTimeout(() => setShow(true), 25000); // let them read a bit first
+    return () => clearTimeout(id);
+  }, [status, client]);
+
+  if (!show) return null;
+
+  const close = () => {
+    try { localStorage.setItem(PUSH_NUDGE_KEY, 'off'); } catch { /* ignore */ }
+    setShow(false);
+  };
+  const enable = async () => {
+    if (!client) return;
+    setBusy(true);
+    try { await enablePush(client); } catch { /* permission denied / unsupported */ }
+    close();
+  };
+
+  return (
+    <div className="pushnudge" role="dialog" aria-label={t('banners.pushTitle', { defaultValue: 'Notifications' })}>
+      <span className="pushnudge__ic" aria-hidden>🔔</span>
+      <div className="pushnudge__body">
+        <strong>{t('banners.pushTitle', { defaultValue: 'Ne rate aucun message' })}</strong>
+        <span className="pushnudge__sub">{t('banners.pushSub', { defaultValue: 'Sois prévenu·e quand on te parle, même l’app fermée.' })}</span>
+      </div>
+      <button className="pushnudge__go" onClick={enable} disabled={busy}>
+        {busy ? '…' : t('banners.pushEnable', { defaultValue: 'Activer' })}
+      </button>
+      <button className="pushnudge__close" onClick={close} aria-label={t('profile.close')}>×</button>
+    </div>
+  );
+}
 export function ReconnectBanner() {
   const { t } = useTranslation();
   const status = useChat((s) => s.status);
