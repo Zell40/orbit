@@ -131,6 +131,10 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
       </div>
 
+      {/* On mobile the app bar docks at the bottom of this drawer instead of over
+          the conversation; CSS shows this copy only on mobile (the full-width bar
+          at the window bottom is used on desktop). */}
+      <TabBar />
     </aside>
   );
 }
