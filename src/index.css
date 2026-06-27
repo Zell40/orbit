@@ -1341,33 +1341,6 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .kicktoast__close:hover { color: var(--ink); }
 @keyframes kt-rise { from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
 
-/* Web Push opt-in nudge — bottom-centre, above the composer, dismissible. */
-.pushnudge {
-  position: fixed; left: 50%; bottom: 86px; transform: translateX(-50%); z-index: 120;
-  display: flex; align-items: center; gap: .7rem;
-  max-width: min(440px, 94vw); padding: .7rem .8rem .7rem 1rem;
-  background: var(--bg); border: 1px solid var(--border); border-left: 4px solid var(--ac, #5b8cff);
-  border-radius: 14px; box-shadow: var(--shadow-pop);
-  animation: pn-rise .22s cubic-bezier(.2,.8,.2,1) both;
-}
-.pushnudge__ic { font-size: 1.25rem; flex: none; }
-.pushnudge__body { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
-.pushnudge__body strong { font-size: .9rem; color: var(--ink); }
-.pushnudge__sub { font-size: .78rem; color: var(--muted); }
-.pushnudge__go {
-  flex: none; border: 0; border-radius: 9px; padding: .45rem .85rem;
-  background: var(--ac, #5b8cff); color: #fff; font-size: .82rem; font-weight: 700; cursor: pointer;
-  transition: opacity .14s;
-}
-.pushnudge__go:hover { opacity: .9; } .pushnudge__go:disabled { opacity: .6; cursor: default; }
-.pushnudge__close {
-  flex: none; border: 0; background: transparent; color: var(--muted);
-  font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0 .1rem;
-}
-.pushnudge__close:hover { color: var(--ink); }
-@keyframes pn-rise { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .pushnudge { animation: none; } }
-
 /* connection-lost / reconnecting banner (top-centre) */
 .reconnect-banner {
   position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 150;
