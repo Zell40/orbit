@@ -38,8 +38,8 @@ export function TabBar() {
         <TabFriends onOpen={() => setModal('friends')} />
       </nav>
       <div className="appbar__actions">
-        <button className="appbar__act" onClick={() => setAway(away ? '' : t('sidebar.away'))}
-          title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')}>{away ? '🌙' : '☀️'}</button>
+        <button className={`appbar__act appbar__act--away ${away ? 'is-on' : ''}`} onClick={() => setAway(away ? '' : t('sidebar.away'))}
+          title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')} aria-pressed={!!away}>💤</button>
         <button className="appbar__act" onClick={() => setModal('settings')}
           title={t('nav.settings')} aria-label={t('nav.settings')}>⚙️</button>
       </div>
