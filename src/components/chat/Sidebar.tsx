@@ -6,22 +6,28 @@ import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../plugins/registry';
 import { PluginBoundary } from '../PluginBoundary';
-export function Rail() {
+// Bottom navigation bar (was a left rail): Accueil · Salons · Amis · Moi.
+export function TabBar() {
   const { t } = useTranslation();
   const nick = useChat((s) => s.nick);
   const myAccount = useChat((s) => s.account);
   const setModal = useChat((s) => s.setModal);
   const openUser = useChat((s) => s.openUser);
-  const icon = useChat((s) => s.networkIcon);
   return (
-    <nav className="rail">
-      <div className="rail__brand" title="Tchatou"><img src={icon} alt="Tchatou" /></div>
-      <div className="rail__sep" />
-      <button className="rail__item is-active" title={t('nav.home')} aria-label={t('nav.home')}>🏠</button>
-      <button className="rail__item" title={t('nav.explore')} aria-label={t('nav.explore')} onClick={() => setModal('explore')}>🧭</button>
-      <RailFriends onOpen={() => setModal('friends')} />
-      <div className="rail__spacer" />
-      <button className="rail__me" title={t('sidebar.profileTip', { nick })} aria-label={t('nav.profile')} onClick={() => openUser(nick)}><Avatar nick={nick} size={34} account={myAccount} /></button>
+    <nav className="tabbar" aria-label={t('a11y.conversations')}>
+      <button className="tab is-active" aria-label={t('nav.home')}>
+        <span className="tab__ic" aria-hidden="true">🏠</span>
+        <span className="tab__lb">{t('nav.home')}</span>
+      </button>
+      <button className="tab" onClick={() => setModal('explore')} aria-label={t('nav.explore')}>
+        <span className="tab__ic" aria-hidden="true">🧭</span>
+        <span className="tab__lb">{t('nav.tabRooms', { defaultValue: 'Salons' })}</span>
+      </button>
+      <TabFriends onOpen={() => setModal('friends')} />
+      <button className="tab tab--me" onClick={() => openUser(nick)} aria-label={t('nav.profile')}>
+        <span className="tab__ic"><Avatar nick={nick} size={26} account={myAccount} /></span>
+        <span className="tab__lb">{t('nav.tabMe', { defaultValue: 'Moi' })}</span>
+      </button>
     </nav>
   );
 }
@@ -130,14 +136,15 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
     </aside>
   );
 }
-function RailFriends({ onOpen }: { onOpen: () => void }) {
+function TabFriends({ onOpen }: { onOpen: () => void }) {
   const { t } = useTranslation();
   const friends = useChat((s) => s.friends);
   const online = useChat((s) => s.friendsOnline);
   const onlineCount = friends.filter((f) => online[f.toLowerCase()]).length;
   return (
-    <button className="rail__item" title={t('nav.friends')} aria-label={t('nav.friends')} onClick={onOpen}>
-      👥{onlineCount > 0 && <span className="rail__badge">{onlineCount}</span>}
+    <button className="tab" onClick={onOpen} aria-label={t('nav.friends')}>
+      <span className="tab__ic" aria-hidden="true">👥{onlineCount > 0 && <span className="tab__badge">{onlineCount}</span>}</span>
+      <span className="tab__lb">{t('nav.friends')}</span>
     </button>
   );
 }

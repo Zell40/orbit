@@ -186,13 +186,13 @@ input, textarea { font-family: inherit; }
 .cfaq__steps { margin: .45rem 0 0; padding-left: 1.15rem; } .cfaq__steps li { margin: .25rem 0; }
 
 /* ============ APP LAYOUT ============ */
-.app { height: 100%; display: grid; grid-template-columns: 64px 248px 1fr 240px; grid-template-rows: minmax(0, 1fr); background: var(--bg); }
+.app { height: 100%; display: grid; grid-template-columns: 248px 1fr 240px; grid-template-rows: minmax(0, 1fr) auto; background: var(--bg); }
 .nav-toggle { display: none; }
 
 @media (max-width: 880px) {
   .app { display: flex; flex-direction: column; }
   .app > .main { flex: 1; min-height: 0; }
-  .rail { display: none !important; }
+  .tabbar { padding-bottom: env(safe-area-inset-bottom, 0); }
   .sidebar {
     position: fixed; top: 0; bottom: 0; left: 0; width: min(86vw, 320px); z-index: 60;
     transform: translateX(-102%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
@@ -206,30 +206,27 @@ input, textarea { font-family: inherit; }
   .nav-backdrop { position: fixed; inset: 0; z-index: 55; background: rgba(20,30,45,.4); }
 }
 
-/* ============ SPACES RAIL ============ */
-.rail {
-  display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: .85rem 0;
-  background: var(--rail-bg); border-right: 1px solid var(--border);
+/* ============ BOTTOM TAB BAR (was the left rail) ============ */
+.tabbar {
+  grid-column: 1 / -1; flex: none;
+  display: flex; align-items: stretch; justify-content: center;
+  height: 56px; background: var(--bg-soft, var(--bg)); border-top: 1px solid var(--border); z-index: 25;
 }
-.rail__brand {
-  width: 42px; height: 42px; border-radius: 14px; overflow: hidden; display: grid; place-items: center;
-  background: var(--green); box-shadow: 0 6px 16px -6px rgba(20,82,204,.6); cursor: default;
+.tab {
+  flex: 1 1 0; min-width: 0; max-width: 160px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border: 0; background: transparent; color: var(--muted); cursor: pointer; font: inherit; padding: 6px 4px;
+  transition: color .12s, background .12s;
 }
-.rail__brand img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.rail__sep { width: 26px; height: 1px; background: var(--border-2); margin: .15rem 0 .35rem; }
-.rail__item {
-  position: relative; width: 44px; height: 44px; border: 0; border-radius: 14px; background: #fff;
-  display: grid; place-items: center; font-size: 1.2rem; color: var(--muted);
-  box-shadow: inset 0 0 0 1px var(--border); transition: border-radius .18s, background .15s, transform .1s;
+.tab:hover { color: var(--ink); background: var(--bg); }
+.tab.is-active { color: var(--green); }
+.tab__ic { position: relative; font-size: 1.25rem; line-height: 1; display: inline-flex; align-items: center; }
+.tab--me .tab__ic { line-height: 0; }
+.tab__lb { font-size: .68rem; font-weight: 600; letter-spacing: .01em; }
+.tab__badge {
+  position: absolute; top: -5px; right: -9px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 9px; background: #2ec27e; color: #fff; font: 700 .62rem/16px system-ui, sans-serif; text-align: center;
 }
-.rail__item:hover { background: #fff; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--border-2); transform: translateY(-1px); }
-.rail__item.is-active { background: var(--green-soft); box-shadow: inset 0 0 0 1px rgba(20,82,204,.4); }
-.rail__item.is-active::before {
-  content: ""; position: absolute; left: -.85rem; top: 50%; transform: translateY(-50%);
-  width: 4px; height: 22px; border-radius: 0 4px 4px 0; background: var(--green);
-}
-.rail__spacer { flex: 1; }
-.rail__me { border-radius: 50%; box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--border-2); }
 
 /* ============ SIDEBAR (room list) ============ */
 .sidebar { display: flex; flex-direction: column; min-width: 0; background: var(--bg); border-right: 1px solid var(--border); }

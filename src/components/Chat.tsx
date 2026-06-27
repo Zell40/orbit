@@ -4,7 +4,7 @@ import { ProfileModal } from './profile/ProfileModal';
 import { Modals } from './modals/Modals';
 import { MessageList } from './chat/MessageList';
 import { Composer } from './chat/Composer';
-import { Rail, Sidebar } from './chat/Sidebar';
+import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { MemberList } from './chat/MemberList';
 import { ReconnectBanner, KickToast } from './chat/Banners';
@@ -16,7 +16,6 @@ export function Chat() {
   return (
     <div className={`app ${navOpen ? 'nav-open' : ''} ${membersOpen ? 'members-open' : ''}`}>
       <a className="skip-link" href="#orbit-main">{t('a11y.skip')}</a>
-      <Rail />
       <Sidebar onNavigate={() => setNavOpen(false)} />
       <main className="main" id="orbit-main">
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
@@ -24,6 +23,7 @@ export function Chat() {
         <Composer />
       </main>
       <MemberList onNavigate={() => setMembersOpen(false)} />
+      <TabBar />
       {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
       {membersOpen && <div className="nav-backdrop" onClick={() => setMembersOpen(false)} />}
       <Modals />
