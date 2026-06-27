@@ -1,7 +1,7 @@
 // Tchatou service worker — installable PWA + offline app shell.
 // Scope: /app/. Only handles same-origin /app/ GETs; the IRC websocket and all
 // API calls (cloudflare, change_password, upload) pass straight through.
-const CACHE = 'tchatou-v81';
+const CACHE = 'tchatou-v80';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/orbit-icon.svg', '/app/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
@@ -63,10 +63,6 @@ self.addEventListener('push', (e) => {
       badge: '/app/favicon.svg',
       tag: m.msgid || `${m.nick}:${m.target}`,
       renotify: true,
-      // Keep it on screen until dismissed (desktop) + a short buzz (mobile), so a
-      // glance away doesn't make you miss it — the sound alone was easy to miss.
-      requireInteraction: true,
-      vibrate: [80, 40, 80],
       data: { target: isChannel ? m.target : m.nick, url: '/app/' },
     });
   })());
