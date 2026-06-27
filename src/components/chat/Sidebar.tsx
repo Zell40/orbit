@@ -6,29 +6,44 @@ import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../plugins/registry';
 import { PluginBoundary } from '../PluginBoundary';
-// Bottom navigation bar (was a left rail): Accueil · Salons · Amis · Moi.
+// App footer bar: account chip (avatar · nick · presence) · nav (Accueil /
+// Salons / Amis) · away toggle + settings — everything that used to live in the
+// left rail and the sidebar footer, in one place like a real app.
 export function TabBar() {
   const { t } = useTranslation();
   const nick = useChat((s) => s.nick);
   const myAccount = useChat((s) => s.account);
+  const away = useChat((s) => s.away);
+  const setAway = useChat((s) => s.setAway);
   const setModal = useChat((s) => s.setModal);
   const openUser = useChat((s) => s.openUser);
   return (
-    <nav className="tabbar" aria-label={t('a11y.conversations')}>
-      <button className="tab is-active" aria-label={t('nav.home')}>
-        <span className="tab__ic" aria-hidden="true">🏠</span>
-        <span className="tab__lb">{t('nav.home')}</span>
+    <footer className="appbar">
+      <button className={`appbar__me ${away ? 'is-away' : ''}`} onClick={() => openUser(nick)} title={t('sidebar.viewProfile')}>
+        <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
+        <span className="appbar__meta">
+          <span className="appbar__name">{nick}</span>
+          <span className="appbar__status">{away ? t('sidebar.away') : t('sidebar.online')}</span>
+        </span>
       </button>
-      <button className="tab" onClick={() => setModal('explore')} aria-label={t('nav.explore')}>
-        <span className="tab__ic" aria-hidden="true">🧭</span>
-        <span className="tab__lb">{t('nav.tabRooms', { defaultValue: 'Salons' })}</span>
-      </button>
-      <TabFriends onOpen={() => setModal('friends')} />
-      <button className="tab tab--me" onClick={() => openUser(nick)} aria-label={t('nav.profile')}>
-        <span className="tab__ic"><Avatar nick={nick} size={26} account={myAccount} /></span>
-        <span className="tab__lb">{t('nav.tabMe', { defaultValue: 'Moi' })}</span>
-      </button>
-    </nav>
+      <nav className="appbar__nav" aria-label={t('a11y.conversations')}>
+        <button className="tab is-active" aria-label={t('nav.home')}>
+          <span className="tab__ic" aria-hidden="true">🏠</span>
+          <span className="tab__lb">{t('nav.home')}</span>
+        </button>
+        <button className="tab" onClick={() => setModal('explore')} aria-label={t('nav.explore')}>
+          <span className="tab__ic" aria-hidden="true">🧭</span>
+          <span className="tab__lb">{t('nav.tabRooms', { defaultValue: 'Salons' })}</span>
+        </button>
+        <TabFriends onOpen={() => setModal('friends')} />
+      </nav>
+      <div className="appbar__actions">
+        <button className="appbar__act" onClick={() => setAway(away ? '' : t('sidebar.away'))}
+          title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')}>{away ? '🌙' : '☀️'}</button>
+        <button className="appbar__act" onClick={() => setModal('settings')}
+          title={t('nav.settings')} aria-label={t('nav.settings')}>⚙️</button>
+      </div>
+    </footer>
   );
 }
 
@@ -39,15 +54,10 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const order = useChat((s) => s.order);
   const active = useChat((s) => s.active);
   const buffers = useChat((s) => s.buffers);
-  const nick = useChat((s) => s.nick);
-  const myAccount = useChat((s) => s.account);
   const setActive = useChat((s) => s.setActive);
   const setModal = useChat((s) => s.setModal);
-  const openUser = useChat((s) => s.openUser);
   const closeBuffer = useChat((s) => s.closeBuffer);
   const sidebarItems = usePluginRegistry((s) => s.ui);
-  const away = useChat((s) => s.away);
-  const setAway = useChat((s) => s.setAway);
   const serverName = useChat((s) => s.serverName);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -121,18 +131,6 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
       </div>
 
-      <div className="side-foot">
-        <button className="side-foot__id" title={t('sidebar.viewProfile')} onClick={() => openUser(nick)}>
-          <Avatar nick={nick} size={34} account={myAccount} />
-          <div className="side-foot__meta">
-            <div className="side-foot__name">{nick}</div>
-            <div className="side-foot__status"><i className={`presence ${away ? 'presence--away' : ''}`} />{away ? t('sidebar.away') : t('sidebar.online')}</div>
-          </div>
-        </button>
-        <button className="side-foot__cog" title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')}
-          onClick={() => setAway(away ? '' : t('sidebar.away'))}>{away ? '🌙' : '☀️'}</button>
-        <button className="side-foot__cog" title={t('nav.settings')} aria-label={t('nav.settings')} onClick={() => setModal('settings')}>⚙️</button>
-      </div>
     </aside>
   );
 }

@@ -192,7 +192,10 @@ input, textarea { font-family: inherit; }
 @media (max-width: 880px) {
   .app { display: flex; flex-direction: column; }
   .app > .main { flex: 1; min-height: 0; }
-  .tabbar { padding-bottom: env(safe-area-inset-bottom, 0); }
+  .appbar { padding-bottom: env(safe-area-inset-bottom, 0); }
+  .appbar__meta { display: none; }
+  .appbar__me { padding: .3rem; }
+  .tab { max-width: none; }
   .sidebar {
     position: fixed; top: 0; bottom: 0; left: 0; width: min(86vw, 320px); z-index: 60;
     transform: translateX(-102%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
@@ -206,27 +209,53 @@ input, textarea { font-family: inherit; }
   .nav-backdrop { position: fixed; inset: 0; z-index: 55; background: rgba(20,30,45,.4); }
 }
 
-/* ============ BOTTOM TAB BAR (was the left rail) ============ */
-.tabbar {
+/* ============ APP FOOTER BAR (account · nav · actions) ============ */
+.appbar {
   grid-column: 1 / -1; flex: none;
-  display: flex; align-items: stretch; justify-content: center;
-  height: 56px; background: var(--bg-soft, var(--bg)); border-top: 1px solid var(--border); z-index: 25;
+  display: flex; align-items: center; gap: .4rem;
+  height: 60px; padding: 0 .6rem;
+  background: var(--bg-soft, var(--bg)); border-top: 1px solid var(--border); z-index: 25;
 }
+/* account chip (left) */
+.appbar__me {
+  display: flex; align-items: center; gap: .55rem; flex: 0 1 auto; min-width: 0;
+  border: 0; background: transparent; color: inherit; cursor: pointer;
+  padding: .3rem .55rem .3rem .3rem; border-radius: 12px; transition: background .12s;
+}
+.appbar__me:hover { background: var(--bg); }
+.appbar__av { position: relative; display: inline-flex; flex: none; }
+.appbar__av::after {
+  content: ""; position: absolute; right: -1px; bottom: -1px; width: 11px; height: 11px; border-radius: 50%;
+  background: #2ec27e; box-shadow: 0 0 0 2.5px var(--bg-soft, var(--bg)); transition: background .15s;
+}
+.appbar__me.is-away .appbar__av::after { background: #e8a13a; }
+.appbar__meta { display: flex; flex-direction: column; min-width: 0; text-align: left; line-height: 1.15; }
+.appbar__name { font-weight: 700; font-size: .85rem; color: var(--ink); max-width: 12ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.appbar__status { font-size: .7rem; color: var(--muted); }
+.appbar__me.is-away .appbar__status { color: #c98a2e; }
+/* nav (centre) */
+.appbar__nav { display: flex; align-items: stretch; justify-content: center; gap: .1rem; flex: 1 1 auto; min-width: 0; }
 .tab {
-  flex: 1 1 0; min-width: 0; max-width: 160px;
+  flex: 1 1 0; min-width: 0; max-width: 120px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   border: 0; background: transparent; color: var(--muted); cursor: pointer; font: inherit; padding: 6px 4px;
-  transition: color .12s, background .12s;
+  border-radius: 12px; transition: color .12s, background .12s;
 }
 .tab:hover { color: var(--ink); background: var(--bg); }
 .tab.is-active { color: var(--green); }
-.tab__ic { position: relative; font-size: 1.25rem; line-height: 1; display: inline-flex; align-items: center; }
-.tab--me .tab__ic { line-height: 0; }
+.tab__ic { position: relative; font-size: 1.2rem; line-height: 1; display: inline-flex; align-items: center; }
 .tab__lb { font-size: .68rem; font-weight: 600; letter-spacing: .01em; }
 .tab__badge {
   position: absolute; top: -5px; right: -9px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
   border-radius: 9px; background: #2ec27e; color: #fff; font: 700 .62rem/16px system-ui, sans-serif; text-align: center;
 }
+/* actions (right) */
+.appbar__actions { display: flex; align-items: center; gap: .1rem; flex: 0 0 auto; }
+.appbar__act {
+  width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: transparent;
+  border-radius: 11px; font-size: 1.1rem; color: var(--muted); cursor: pointer; transition: background .12s, color .12s;
+}
+.appbar__act:hover { background: var(--bg); color: var(--ink); }
 
 /* ============ SIDEBAR (room list) ============ */
 .sidebar { display: flex; flex-direction: column; min-width: 0; background: var(--bg); border-right: 1px solid var(--border); }
