@@ -226,11 +226,18 @@ export function MessageList() {
         if (el) el.scrollTop = el.scrollHeight;
       });
     };
-    // 'tchatou:vh' fires the instant the layout height changes (incl. the
-    // pre-resize on focus); visualViewport 'resize' is the late authoritative one.
+    // Any time the list box shrinks — the composer growing (multi-line, reply
+    // bar, format toolbar) or the mobile keyboard opening — the newest messages
+    // would slide behind the composer. Re-pin on the resize so they stay visible
+    // above it. ResizeObserver catches the composer growth (incl. desktop); the
+    // events catch the mobile keyboard, which resizes the viewport not the list.
+    const ro = new ResizeObserver(repin);
+    if (ref.current)
+      ro.observe(ref.current);
     window.addEventListener('tchatou:vh', repin);
     window.visualViewport?.addEventListener('resize', repin);
     return () => {
+      ro.disconnect();
       window.removeEventListener('tchatou:vh', repin);
       window.visualViewport?.removeEventListener('resize', repin);
     };
