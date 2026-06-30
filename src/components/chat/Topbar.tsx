@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
-import { avatarBg } from '../../lib/format';
+import { avatarBg, formatIrc } from '../../lib/format';
+import { stripFormatting } from '../../store/text';
 import { NotifyMenu } from './NotifyMenu';
 import { usePluginRegistry } from '../../plugins/registry';
 import { PluginBoundary } from '../PluginBoundary';
@@ -58,7 +59,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
         {isServer
           ? <span className="topbar__topic topbar__topic--muted">{t('topbar.serverTerminal')}</span>
           : topic
-            ? <span className="topbar__topic">{topic}</span>
+            ? <span className="topbar__topic" title={stripFormatting(topic)}>{formatIrc(topic, false)}</span>
             : isChannel && <span className="topbar__topic topbar__topic--muted">{t('topbar.publicChannel', { n })}</span>}
       </div>
       {topbarItems.filter((u) => u.slot === 'topbar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}

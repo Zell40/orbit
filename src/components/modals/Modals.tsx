@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat } from '../../store';
+import { formatIrc } from '../../lib/format';
 import { Avatar } from '../Avatar';
 import { SettingsModal } from '../settings/SettingsModal';
 import { QuickSwitcher } from '../QuickSwitcher';
@@ -97,7 +98,7 @@ function ExploreModal() {
             <span className="explore-row__av">#</span>
             <div className="explore-row__main">
               <div className="explore-row__name">{c.name}</div>
-              {c.topic && <div className="explore-row__topic">{c.topic}</div>}
+              {c.topic && <div className="explore-row__topic">{formatIrc(c.topic, false)}</div>}
             </div>
             <span className="explore-row__count"><span className="dot" />{c.users}</span>
           </button>
