@@ -1486,6 +1486,7 @@ export const useChat = create<ChatState>((set, get) => {
           case 'voice': if (isChannelName(active) && arg) client.setUserMode(active, 'v', true, arg.trim()); break;
           case 'ignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
           case 'unignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
+          case 'list': get().refreshChannels(); get().setModal('explore'); break; // open the Explore window
           default: client.send(cmdline.slice(1)); // raw passthrough (formatting stripped)
         }
         return;

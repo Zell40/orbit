@@ -106,7 +106,13 @@
       "startDM": "Start direct message",
       "joinBtn": "Join",
       "emptyNone": "No channels. Type a name to create one.",
-      "emptyFound": "No channel found. Type a name to create one."
+      "emptyFound": "No channel found. Type a name to create one.",
+      "refresh": "Refresh",
+      "rooms": "rooms",
+      "online": "online",
+      "sortPop": "Popular",
+      "noTopic": "No topic",
+      "createRow": "Create and join"
     },
     "dm": {
       "title": "New conversation",

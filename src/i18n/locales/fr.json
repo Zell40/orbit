@@ -106,7 +106,13 @@
       "startDM": "Démarrer le message privé",
       "joinBtn": "Rejoindre",
       "emptyNone": "Aucun salon. Tape un nom pour en créer un.",
-      "emptyFound": "Aucun salon trouvé. Tape un nom pour en créer un."
+      "emptyFound": "Aucun salon trouvé. Tape un nom pour en créer un.",
+      "refresh": "Actualiser",
+      "rooms": "salons",
+      "online": "en ligne",
+      "sortPop": "Populaires",
+      "noTopic": "Pas de sujet",
+      "createRow": "Créer et rejoindre"
     },
     "dm": {
       "title": "Nouvelle discussion",
