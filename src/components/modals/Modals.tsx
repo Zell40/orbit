@@ -88,7 +88,7 @@ function ExploreModal() {
   }
 
   return (
-    <Modal title={t('modals.join.title')} onClose={() => setModal('')}>
+    <Modal title={t('modals.join.title')} onClose={() => setModal('')} wide>
       <div className="explore">
         <div className="explore-bar">
           <div className="explore-search">
