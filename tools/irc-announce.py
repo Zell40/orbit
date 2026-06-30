@@ -24,7 +24,7 @@ TLS = os.environ.get("IRC_TLS", "1") != "0"
 NICK = os.environ.get("IRC_NICK", "git")
 CHAN = os.environ.get("IRC_CHANNEL", "#orbit")
 REPO = os.environ.get("ORBIT_REPO", os.getcwd())
-COMPARE = os.environ.get("COMPARE_BASE", "https://codeberg.org/reversefr/orbit")
+COMPARE = os.environ.get("COMPARE_BASE", "https://git.devtronic.pro/orbit/orbit")
 BOT_SOCK = os.environ.get("ORBIT_BOT_SOCK", "/run/orbit-gitbot/sock")
 PROJECT = "orbit"
 MAX_COMMITS = 6
