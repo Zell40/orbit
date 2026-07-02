@@ -1207,6 +1207,17 @@ export const useChat = create<ChatState>((set, get) => {
     kicked: null,
 
     connect(opts) {
+      // Ident (the "user" in nick!user@host): logged-in members authenticate over
+      // SASL (a password is present) and show their own nick; guests show the
+      // configured guest ident. IRC idents are ASCII-only, so accents are folded.
+      if (!opts.username) {
+        // IRC idents are ASCII [A-Za-z0-9._-]; fold accents (Invité->Invite), cap 10.
+        const ident = (v: string, fb: string) =>
+          (v || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^A-Za-z0-9._-]/g, '').slice(0, 10) || fb;
+        const guest = ident(getConfig().server.guestIdent || 'Invité', 'Invite');
+        opts.username = opts.password ? ident(opts.nick, guest) : guest;
+      }
       const client = new IrcClient();
       initNotify();
       set({ client, nick: opts.nick, status: 'connecting' });

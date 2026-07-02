@@ -10,6 +10,9 @@ export interface AppConfig {
   server: {
     /** WebSocket URL of the IRCv3 server (text/binary.ircv3.net subprotocols). */
     url: string;
+    /** Ident for guests (not logged in). Logged-in members use their own nick.
+     *  IRC idents are ASCII, so accents are folded (e.g. "Invité" → "Invite"). */
+    guestIdent?: string;
   };
   startup: {
     /** Channels auto-joined on connect (the first is the primary/active one). */
@@ -67,7 +70,7 @@ export interface AppConfig {
 export type PluginEntry = string | { url: string; integrity?: string; crossorigin?: string };
 
 export const DEFAULT_CONFIG: AppConfig = {
-  server: { url: 'wss://www.swaygo.fr/irc/' },
+  server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité' },
   startup: { channels: ['#taverne'] },
   branding: {
     name: 'Tchatou',
