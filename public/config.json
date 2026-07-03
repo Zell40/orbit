@@ -4,7 +4,7 @@
     "guestIdent": "Invité"
   },
   "startup": {
-    "channels": ["#taverne"]
+    "channels": ["#accueil"]
   },
   "branding": {
     "name": "Tchatou",

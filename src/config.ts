@@ -71,7 +71,7 @@ export type PluginEntry = string | { url: string; integrity?: string; crossorigi
 
 export const DEFAULT_CONFIG: AppConfig = {
   server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité' },
-  startup: { channels: ['#taverne'] },
+  startup: { channels: ['#accueil'] },
   branding: {
     name: 'Tchatou',
     icon: 'https://tchatou.fr/static/img/favicon.svg',
