@@ -270,7 +270,7 @@ export function MessageList() {
     const day = new Date(m.ts).toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' });
     if (day !== lastDay) { rows.push(<div key={`d-${m.id}`} className="daysep"><span>{day}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {
-      rows.push(<div key={`unread-${m.id}`} ref={dividerRef} className="unread-divider"><span>Nouveaux messages</span></div>);
+      rows.push(<div key={`unread-${m.id}`} ref={dividerRef} className="unread-divider"><span>{t('messages.newMessages')}</span></div>);
       dividerShown = true; lastFrom = '';
     }
     if (m.ts <= buffer.readTs) hadRead = true;
@@ -387,8 +387,8 @@ export function MessageList() {
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
       role="log" aria-label={t('a11y.messages')}>
-      {histLoading && <div className="histload"><span className="histload__spin" /> Chargement de l'historique…</div>}
-      {showJump && <button className="jump-unread" onClick={jumpToUnread}>↑ Nouveaux messages</button>}
+      {histLoading && <div className="histload"><span className="histload__spin" /> {t('messages.loadingHistory')}</div>}
+      {showJump && <button className="jump-unread" onClick={jumpToUnread}>↑ {t('messages.newMessages')}</button>}
       {rows}
     </div>
   );

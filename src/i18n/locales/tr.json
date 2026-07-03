@@ -91,7 +91,9 @@
     "profileOf": "{{nick}} profili",
     "fromChannel": "Kanaldan",
     "searchResults_one": "«{{q}}» için {{count}} sonuç",
-    "searchResults_other": "«{{q}}» için {{count}} sonuç"
+    "searchResults_other": "«{{q}}» için {{count}} sonuç",
+    "newMessages": "Yeni mesajlar",
+    "loadingHistory": "Geçmiş yükleniyor…"
   },
   "modals": {
     "closeButton": "Kapat",
@@ -106,7 +108,13 @@
       "startDM": "Özel mesaj başlat",
       "joinBtn": "Katıl",
       "emptyNone": "Kanal yok. Bir tane oluşturmak için isim yaz.",
-      "emptyFound": "Kanal bulunamadı. Bir tane oluşturmak için isim yaz."
+      "emptyFound": "Kanal bulunamadı. Bir tane oluşturmak için isim yaz.",
+      "createRow": "Oluştur ve katıl",
+      "noTopic": "Konu yok",
+      "online": "çevrimiçi",
+      "refresh": "Yenile",
+      "rooms": "oda",
+      "sortPop": "Popüler"
     },
     "dm": {
       "title": "Yeni sohbet",
@@ -141,6 +149,15 @@
       "manage": "{{chan}} yönet",
       "settings": "Ayarlar",
       "by": "{{by}} tarafından"
+    },
+    "report": {
+      "reasonLabel": "Neler oluyor?",
+      "reasonPlaceholder": "Sorunu anlat (spam, taciz vb.)",
+      "sub": "Bildirimin doğrudan ekibe iletilir. Lütfen olgusal kal.",
+      "submit": "Bildirimi gönder",
+      "targetLabel": "Kim ya da nerede",
+      "targetPlaceholder": "nick ya da #kanal",
+      "title": "Sorun bildir"
     }
   },
   "settings": {
@@ -205,7 +222,8 @@
       "nickLabel": "Takma ad",
       "nickPlaceholder": "Takma ad",
       "emailLabel": "E-posta",
-      "loginTitle": "Giriş yap"
+      "loginTitle": "Giriş yap",
+      "challengeOpen": "Doğrulama sayfasını aç →"
     },
     "appearance": {
       "theme": "Tema",
@@ -366,7 +384,14 @@
     "shareImage": "bir görsel paylaşıyor: {{url}}",
     "yourModes": "Modların: +{{modes}} ({{change}})",
     "yourModesNamed": "Modların: +{{modes}} ({{change}} — {{names}})",
-    "pmNotif": "{{nick}} (özel)"
+    "pmNotif": "{{nick}} (özel)",
+    "reportFiled": "{{target}} hakkındaki bildirimin ekibe gönderildi.",
+    "sendingVoice": "Sesli mesaj gönderiliyor…",
+    "shareVoice": "sesli mesaj: {{url}}",
+    "uploadAvDown": "Virüs taraması geçici olarak kullanılamıyor. Lütfen birazdan tekrar dene.",
+    "uploadInfected": "Zararlı dosya tespit edildi — yükleme engellendi. Operatörler bilgilendirildi.",
+    "uploadNsfw": "Müstehcen içerik tespit edildi — yükleme engellendi. Operatörler bilgilendirildi.",
+    "uploadViolent": "Şiddet içeren içerik tespit edildi — yükleme engellendi. Operatörler bilgilendirildi."
   },
   "modeline": {
     "modeTag": "mod",
@@ -530,7 +555,11 @@
     "emoji": "Emoji",
     "send": "Gönder",
     "replyTo": "Yanıt:",
-    "cancelReply": "Yanıtı iptal et"
+    "cancelReply": "Yanıtı iptal et",
+    "cancel": "İptal",
+    "micDenied": "Mikrofon kullanılamıyor (izin reddedildi mi?).",
+    "recordVoice": "Sesli mesaj",
+    "recording": "Kaydediliyor…"
   },
   "media": {
     "image": "Görsel",

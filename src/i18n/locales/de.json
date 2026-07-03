@@ -91,7 +91,9 @@
     "profileOf": "Profil von {{nick}}",
     "fromChannel": "Aus Kanal",
     "searchResults_one": "{{count}} Ergebnis für „{{q}}“",
-    "searchResults_other": "{{count}} Ergebnisse für „{{q}}“"
+    "searchResults_other": "{{count}} Ergebnisse für „{{q}}“",
+    "newMessages": "Neue Nachrichten",
+    "loadingHistory": "Verlauf wird geladen…"
   },
   "modals": {
     "closeButton": "Schließen",
@@ -106,7 +108,13 @@
       "startDM": "Direktnachricht starten",
       "joinBtn": "Beitreten",
       "emptyNone": "Keine Kanäle. Gib einen Namen ein, um einen zu erstellen.",
-      "emptyFound": "Kein Kanal gefunden. Gib einen Namen ein, um einen zu erstellen."
+      "emptyFound": "Kein Kanal gefunden. Gib einen Namen ein, um einen zu erstellen.",
+      "createRow": "Erstellen und beitreten",
+      "noTopic": "Kein Thema",
+      "online": "online",
+      "refresh": "Aktualisieren",
+      "rooms": "Räume",
+      "sortPop": "Beliebt"
     },
     "dm": {
       "title": "Neue Unterhaltung",
@@ -141,6 +149,15 @@
       "manage": "{{chan}} verwalten",
       "settings": "Einstellungen",
       "by": "von {{by}}"
+    },
+    "report": {
+      "reasonLabel": "Was ist los?",
+      "reasonPlaceholder": "Beschreib das Problem (spam, Belästigung usw.)",
+      "sub": "Deine Meldung geht direkt an das Team. Bitte bleib sachlich.",
+      "submit": "Meldung senden",
+      "targetLabel": "Wer oder wo",
+      "targetPlaceholder": "nick oder #channel",
+      "title": "Problem melden"
     }
   },
   "settings": {
@@ -205,7 +222,8 @@
       "nickLabel": "Spitzname",
       "nickPlaceholder": "Spitzname",
       "emailLabel": "E-Mail",
-      "loginTitle": "Anmelden"
+      "loginTitle": "Anmelden",
+      "challengeOpen": "Verifizierungsseite öffnen →"
     },
     "appearance": {
       "theme": "Design",
@@ -366,7 +384,14 @@
     "shareImage": "teilt ein Bild: {{url}}",
     "yourModes": "Deine Modi: +{{modes}} ({{change}})",
     "yourModesNamed": "Deine Modi: +{{modes}} ({{change}} — {{names}})",
-    "pmNotif": "{{nick}} (privat)"
+    "pmNotif": "{{nick}} (privat)",
+    "reportFiled": "Deine Meldung zu {{target}} wurde an das Team gesendet.",
+    "sendingVoice": "Sprachnachricht wird gesendet…",
+    "shareVoice": "Sprachnachricht: {{url}}",
+    "uploadAvDown": "Der Virenscan ist vorübergehend nicht verfügbar. Bitte versuch es gleich noch mal.",
+    "uploadInfected": "Schädliche Datei erkannt — Upload blockiert. Die Operatoren wurden benachrichtigt.",
+    "uploadNsfw": "Expliziter Inhalt erkannt — Upload blockiert. Die Operatoren wurden benachrichtigt.",
+    "uploadViolent": "Gewaltdarstellung erkannt — Upload blockiert. Die Operatoren wurden benachrichtigt."
   },
   "modeline": {
     "modeTag": "Modus",
@@ -530,7 +555,11 @@
     "emoji": "Emoji",
     "send": "Senden",
     "replyTo": "Antwort an",
-    "cancelReply": "Antwort abbrechen"
+    "cancelReply": "Antwort abbrechen",
+    "cancel": "Abbrechen",
+    "micDenied": "Mikrofon nicht verfügbar (Zugriff verweigert?).",
+    "recordVoice": "Sprachnachricht",
+    "recording": "Aufnahme läuft…"
   },
   "media": {
     "image": "Bild",

@@ -91,7 +91,9 @@
     "profileOf": "Profil de {{nick}}",
     "fromChannel": "Depuis le salon",
     "searchResults_one": "{{count}} résultat pour « {{q}} »",
-    "searchResults_other": "{{count}} résultats pour « {{q}} »"
+    "searchResults_other": "{{count}} résultats pour « {{q}} »",
+    "newMessages": "Nouveaux messages",
+    "loadingHistory": "Chargement de l'historique…"
   },
   "modals": {
     "closeButton": "Fermer",

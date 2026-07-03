@@ -91,7 +91,9 @@
     "profileOf": "{{nick}}’s profile",
     "fromChannel": "From channel",
     "searchResults_one": "{{count}} result for “{{q}}”",
-    "searchResults_other": "{{count}} results for “{{q}}”"
+    "searchResults_other": "{{count}} results for “{{q}}”",
+    "newMessages": "New messages",
+    "loadingHistory": "Loading history…"
   },
   "modals": {
     "closeButton": "Close",

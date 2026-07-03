@@ -91,7 +91,9 @@
     "profileOf": "Perfil de {{nick}}",
     "fromChannel": "Do canal",
     "searchResults_one": "{{count}} resultado para «{{q}}»",
-    "searchResults_other": "{{count}} resultados para «{{q}}»"
+    "searchResults_other": "{{count}} resultados para «{{q}}»",
+    "newMessages": "Novas mensagens",
+    "loadingHistory": "A carregar o histórico…"
   },
   "modals": {
     "closeButton": "Fechar",
@@ -106,7 +108,13 @@
       "startDM": "Iniciar mensagem direta",
       "joinBtn": "Entrar",
       "emptyNone": "Sem canais. Escreve um nome para criar um.",
-      "emptyFound": "Nenhum canal encontrado. Escreve um nome para criar um."
+      "emptyFound": "Nenhum canal encontrado. Escreve um nome para criar um.",
+      "createRow": "Criar e entrar",
+      "noTopic": "Sem tópico",
+      "online": "online",
+      "refresh": "Atualizar",
+      "rooms": "salas",
+      "sortPop": "Populares"
     },
     "dm": {
       "title": "Nova conversa",
@@ -141,6 +149,15 @@
       "manage": "Gerir {{chan}}",
       "settings": "Definições",
       "by": "por {{by}}"
+    },
+    "report": {
+      "reasonLabel": "O que se passa?",
+      "reasonPlaceholder": "Descreve o problema (spam, assédio, etc.)",
+      "sub": "A tua denúncia vai diretamente para a equipa de moderação. Sê factual, por favor.",
+      "submit": "Enviar denúncia",
+      "targetLabel": "Quem ou onde",
+      "targetPlaceholder": "nick ou #canal",
+      "title": "Denunciar um problema"
     }
   },
   "settings": {
@@ -205,7 +222,8 @@
       "nickLabel": "Alcunha",
       "nickPlaceholder": "Alcunha",
       "emailLabel": "Email",
-      "loginTitle": "Iniciar sessão"
+      "loginTitle": "Iniciar sessão",
+      "challengeOpen": "Abrir a página de verificação →"
     },
     "appearance": {
       "theme": "Tema",
@@ -366,7 +384,14 @@
     "shareImage": "partilha uma imagem: {{url}}",
     "yourModes": "Os teus modos: +{{modes}} ({{change}})",
     "yourModesNamed": "Os teus modos: +{{modes}} ({{change}} — {{names}})",
-    "pmNotif": "{{nick}} (privado)"
+    "pmNotif": "{{nick}} (privado)",
+    "reportFiled": "A tua denúncia sobre {{target}} foi enviada à equipa.",
+    "sendingVoice": "A enviar mensagem de voz…",
+    "shareVoice": "mensagem de voz: {{url}}",
+    "uploadAvDown": "A análise antivírus está temporariamente indisponível. Tenta novamente daqui a pouco.",
+    "uploadInfected": "Ficheiro malicioso detetado — envio bloqueado. Os operadores foram notificados.",
+    "uploadNsfw": "Conteúdo explícito detetado — envio bloqueado. Os operadores foram notificados.",
+    "uploadViolent": "Conteúdo violento detetado — envio bloqueado. Os operadores foram notificados."
   },
   "modeline": {
     "modeTag": "modo",
@@ -530,7 +555,11 @@
     "emoji": "Emoji",
     "send": "Enviar",
     "replyTo": "Responder a",
-    "cancelReply": "Cancelar resposta"
+    "cancelReply": "Cancelar resposta",
+    "cancel": "Cancelar",
+    "micDenied": "Microfone indisponível (permissão recusada?).",
+    "recordVoice": "Mensagem de voz",
+    "recording": "A gravar…"
   },
   "media": {
     "image": "Imagem",

@@ -91,7 +91,9 @@
     "profileOf": "Perfil de {{nick}}",
     "fromChannel": "Desde el canal",
     "searchResults_one": "{{count}} resultado para «{{q}}»",
-    "searchResults_other": "{{count}} resultados para «{{q}}»"
+    "searchResults_other": "{{count}} resultados para «{{q}}»",
+    "newMessages": "Mensajes nuevos",
+    "loadingHistory": "Cargando historial…"
   },
   "modals": {
     "closeButton": "Cerrar",
@@ -106,7 +108,13 @@
       "startDM": "Iniciar mensaje directo",
       "joinBtn": "Unirse",
       "emptyNone": "No hay canales. Escribe un nombre para crear uno.",
-      "emptyFound": "No se encontró ningún canal. Escribe un nombre para crear uno."
+      "emptyFound": "No se encontró ningún canal. Escribe un nombre para crear uno.",
+      "createRow": "Crear y unirse",
+      "noTopic": "Sin tema",
+      "online": "en línea",
+      "refresh": "Actualizar",
+      "rooms": "salas",
+      "sortPop": "Populares"
     },
     "dm": {
       "title": "Nueva conversación",
@@ -141,6 +149,15 @@
       "manage": "Gestionar {{chan}}",
       "settings": "Ajustes",
       "by": "por {{by}}"
+    },
+    "report": {
+      "reasonLabel": "¿Qué está pasando?",
+      "reasonPlaceholder": "Describe el problema (spam, acoso, etc.)",
+      "sub": "Tu reporte llega directamente al equipo de moderación. Sé objetivo, por favor.",
+      "submit": "Enviar reporte",
+      "targetLabel": "Quién o dónde",
+      "targetPlaceholder": "nick o #canal",
+      "title": "Reportar un problema"
     }
   },
   "settings": {
@@ -205,7 +222,8 @@
       "nickLabel": "Apodo",
       "nickPlaceholder": "Apodo",
       "emailLabel": "Correo",
-      "loginTitle": "Iniciar sesión"
+      "loginTitle": "Iniciar sesión",
+      "challengeOpen": "Abrir la página de verificación →"
     },
     "appearance": {
       "theme": "Tema",
@@ -366,7 +384,14 @@
     "shareImage": "comparte una imagen: {{url}}",
     "yourModes": "Tus modos: +{{modes}} ({{change}})",
     "yourModesNamed": "Tus modos: +{{modes}} ({{change}} — {{names}})",
-    "pmNotif": "{{nick}} (privado)"
+    "pmNotif": "{{nick}} (privado)",
+    "reportFiled": "Tu reporte sobre {{target}} se ha enviado al equipo.",
+    "sendingVoice": "Enviando mensaje de voz…",
+    "shareVoice": "mensaje de voz: {{url}}",
+    "uploadAvDown": "El análisis antivirus no está disponible temporalmente. Inténtalo de nuevo en un momento.",
+    "uploadInfected": "Archivo malicioso detectado — envío bloqueado. Se ha avisado a los operadores.",
+    "uploadNsfw": "Contenido explícito detectado — envío bloqueado. Se ha avisado a los operadores.",
+    "uploadViolent": "Contenido violento detectado — envío bloqueado. Se ha avisado a los operadores."
   },
   "modeline": {
     "modeTag": "modo",
@@ -530,7 +555,11 @@
     "emoji": "Emoji",
     "send": "Enviar",
     "replyTo": "Responder a",
-    "cancelReply": "Cancelar respuesta"
+    "cancelReply": "Cancelar respuesta",
+    "cancel": "Cancelar",
+    "micDenied": "Micrófono no disponible (¿permiso denegado?).",
+    "recordVoice": "Mensaje de voz",
+    "recording": "Grabando…"
   },
   "media": {
     "image": "Imagen",
