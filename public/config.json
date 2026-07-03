@@ -28,7 +28,8 @@
     "compact": false,
     "sound": true,
     "hideJoinQuit": false,
-    "clock24": true
+    "clock24": true,
+    "lang": ""
   },
   "features": {
     "push": true,

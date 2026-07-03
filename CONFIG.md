@@ -20,24 +20,28 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 | Key | Type | Default | What it does |
 |-----|------|---------|--------------|
 | `server.url` | string | `wss://www.swaygo.fr/irc/` | WebSocket URL of the IRCv3 server (uses the `text/binary.ircv3.net` subprotocols). The server's Origin allowlist must include where the client is served. |
-| `startup.channels` | string[] | `["#taverne"]` | Channels auto-joined on connect (first = active). A `?channel=` URL param overrides this. |
+| `server.guestIdent` | string | `Invité` | Ident shown for **guests** (not logged in), e.g. `Foo!Invité@…`. Folded to ASCII since IRC idents are `[A-Za-z0-9._-]` (so `Invité`→`Invite`). Logged-in members use their own nick as the ident. |
+| `startup.channels` | string[] | `["#accueil"]` | Channels auto-joined on connect (first = active). A `?channel=` URL param overrides this. |
 | `branding.name` | string | `Tchatou` | App/network name shown in the UI, the console title, and CTCP VERSION. |
 | `branding.icon` | string | tchatou favicon URL | Logo on the connect screen + default network icon. |
 | `branding.url` | string | `https://tchatou.fr` | Homepage; also used in CTCP VERSION/SOURCE replies. |
 | `branding.tagline` | string | `Le tchat français,` | Connect screen — first title line. |
 | `branding.taglineEm` | string | `en direct.` | Connect screen — emphasised second line. |
 | `branding.subtitle` | string | … | Connect screen — paragraph under the title. |
-| `turnstile.enabled` | bool | `true` | Whether the Cloudflare Turnstile challenge is used on registration. |
+| `branding.projectUrl` | string | `https://orbit.tchatou.fr` | Link to the Orbit project/source page (shown in Settings → About). |
+| `turnstile.enabled` | bool | `true` | Render the anti-bot challenge inline (Cloudflare Turnstile). `false` = show the server's verification step as a link, no Cloudflare script. Whether a challenge is *required* is decided server-side. |
 | `turnstile.sitekey` | string | `0x4AAA…` | Public Turnstile site key. |
-| `report.target` | string | `#staff` | Channel that user reports (the 🚩 button) are sent to. |
+| `report.service` | string | `ReportServ` | Services pseudo-client that receives reports (e.g. `ReportServ`). Preferred over `report.target` — a service isn't blocked by a `+n` staff channel the reporter isn't in. Empty = fall back to `report.target`. |
+| `report.target` | string | `#staff` | Channel that user reports (the 🚩 button) are sent to when `report.service` is empty. |
 | `defaults.theme` | string | `light` | Default theme for **new** users: `light` \| `dark` \| `yomirc` \| `yomirc-dark`. |
 | `defaults.compact` | bool | `false` | Default to denser message rows. |
 | `defaults.sound` | bool | `true` | Default sound-on-mention/PM. |
 | `defaults.hideJoinQuit` | bool | `false` | Default to hiding join/part/quit noise. |
 | `defaults.clock24` | bool | `true` | Default to 24-hour timestamps. |
-| `features.push` | bool | `true` | Show the Web Push notifications setting. |
+| `defaults.lang` | string | `""` | Force a default UI language (`en`, `es`, `de`, `it`, `nl`, `tr`, `ru`, `ne`, `pt-BR`, `pt-PT`, `fr`). Empty = auto-detect from the browser. Only seeds users who haven't picked a language. |
+| `features.push` | bool | `true` | Show the Web Push notifications setting (and re-assert the subscription on connect). |
 | `features.imageUpload` | bool | `true` | Enable the composer image button + paste/drag-drop upload. |
-| `features.register` | bool | `true` | Show the "Créer un compte" (account creation) tab. |
+| `features.register` | bool | `true` | Account self-service: shows the "Create account" button, the "Forgot password" link, and their FAQ entries. `false` hides all of them. |
 | `plugins` | string[] | `[]` | Plugin script URLs loaded at startup (operator-controlled). See **[PLUGINS.md](./docs/PLUGINS.md)**. |
 
 > `defaults.*` only seed a user's preferences the **first** time — once someone
@@ -48,7 +52,7 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 
 ```json
 {
-  "server":   { "url": "wss://irc.example.org/ws/" },
+  "server":   { "url": "wss://irc.example.org/ws/", "guestIdent": "Guest" },
   "startup":  { "channels": ["#lobby", "#help"] },
   "branding": {
     "name": "ExampleChat",
@@ -56,12 +60,14 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
     "url": "https://example.org",
     "tagline": "Chat with",
     "taglineEm": "everyone.",
-    "subtitle": "Public rooms, private messages, no signup required."
+    "subtitle": "Public rooms, private messages, no signup required.",
+    "projectUrl": "https://orbit.tchatou.fr"
   },
   "turnstile": { "enabled": false, "sitekey": "" },
-  "report":   { "target": "#staff" },
-  "defaults": { "theme": "dark", "compact": true, "sound": true, "hideJoinQuit": true, "clock24": true },
-  "features": { "push": true, "imageUpload": true, "register": false }
+  "report":   { "service": "ReportServ", "target": "#staff" },
+  "defaults": { "theme": "dark", "compact": true, "sound": true, "hideJoinQuit": true, "clock24": true, "lang": "" },
+  "features": { "push": true, "imageUpload": true, "register": false },
+  "plugins":  []
 }
 ```
 
