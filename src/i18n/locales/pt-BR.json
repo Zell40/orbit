@@ -7,7 +7,8 @@
     "explore": "Explorar canais",
     "newDM": "Nova conversa",
     "away": "Ausente",
-    "quit": "Sair do chat"
+    "quit": "Sair do chat",
+    "tabRooms": "Salas"
   },
   "sidebar": {
     "all": "Todos",
@@ -391,7 +392,9 @@
     "uploadAvDown": "A verificação de vírus está temporariamente indisponível. Tente novamente em instantes.",
     "uploadInfected": "Arquivo malicioso detectado — envio bloqueado. Os operadores foram notificados.",
     "uploadNsfw": "Conteúdo explícito detectado — envio bloqueado. Os operadores foram notificados.",
-    "uploadViolent": "Conteúdo violento detectado — envio bloqueado. Os operadores foram notificados."
+    "uploadViolent": "Conteúdo violento detectado — envio bloqueado. Os operadores foram notificados.",
+    "userAway": "💤 {{who}} está ausente{{reason}}",
+    "reconnecting": "🔌 Conexão perdida — reconectando em {{secs}}s…"
   },
   "modeline": {
     "modeTag": "modo",

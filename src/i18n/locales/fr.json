@@ -7,7 +7,8 @@
     "explore": "Explorer les salons",
     "newDM": "Nouvelle discussion",
     "away": "Absence",
-    "quit": "Quitter le tchat"
+    "quit": "Quitter le tchat",
+    "tabRooms": "Salons"
   },
   "sidebar": {
     "all": "Tous",
@@ -391,7 +392,9 @@
     "shareVoice": "message vocal : {{url}}",
     "yourModes": "Tes modes : +{{modes}} ({{change}})",
     "yourModesNamed": "Tes modes : +{{modes}} ({{change}} — {{names}})",
-    "pmNotif": "{{nick}} (privé)"
+    "pmNotif": "{{nick}} (privé)",
+    "userAway": "💤 {{who}} est absent{{reason}}",
+    "reconnecting": "🔌 Connexion perdue — nouvelle tentative dans {{secs}}s…"
   },
   "modeline": {
     "modeTag": "mode",

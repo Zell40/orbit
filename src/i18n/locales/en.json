@@ -7,7 +7,8 @@
     "explore": "Explore channels",
     "newDM": "New conversation",
     "away": "Away",
-    "quit": "Leave chat"
+    "quit": "Leave chat",
+    "tabRooms": "Rooms"
   },
   "sidebar": {
     "all": "All",
@@ -391,7 +392,9 @@
     "shareVoice": "voice message: {{url}}",
     "yourModes": "Your modes: +{{modes}} ({{change}})",
     "yourModesNamed": "Your modes: +{{modes}} ({{change}} — {{names}})",
-    "pmNotif": "{{nick}} (private)"
+    "pmNotif": "{{nick}} (private)",
+    "userAway": "💤 {{who}} is away{{reason}}",
+    "reconnecting": "🔌 Connection lost — reconnecting in {{secs}}s…"
   },
   "modeline": {
     "modeTag": "mode",

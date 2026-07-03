@@ -7,7 +7,8 @@
     "explore": "Kanalları keşfet",
     "newDM": "Yeni sohbet",
     "away": "Uzakta",
-    "quit": "Sohbetten çık"
+    "quit": "Sohbetten çık",
+    "tabRooms": "Odalar"
   },
   "sidebar": {
     "all": "Tümü",
@@ -391,7 +392,9 @@
     "uploadAvDown": "Virüs taraması geçici olarak kullanılamıyor. Lütfen birazdan tekrar dene.",
     "uploadInfected": "Zararlı dosya tespit edildi — yükleme engellendi. Operatörler bilgilendirildi.",
     "uploadNsfw": "Müstehcen içerik tespit edildi — yükleme engellendi. Operatörler bilgilendirildi.",
-    "uploadViolent": "Şiddet içeren içerik tespit edildi — yükleme engellendi. Operatörler bilgilendirildi."
+    "uploadViolent": "Şiddet içeren içerik tespit edildi — yükleme engellendi. Operatörler bilgilendirildi.",
+    "userAway": "💤 {{who}} uzakta{{reason}}",
+    "reconnecting": "🔌 Bağlantı koptu — {{secs}} sn içinde yeniden deneniyor…"
   },
   "modeline": {
     "modeTag": "mod",

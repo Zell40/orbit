@@ -33,7 +33,7 @@ export function TabBar() {
         </button>
         <button className="tab" onClick={() => setModal('explore')} aria-label={t('nav.explore')}>
           <span className="tab__ic" aria-hidden="true">🧭</span>
-          <span className="tab__lb">{t('nav.tabRooms', { defaultValue: 'Salons' })}</span>
+          <span className="tab__lb">{t('nav.tabRooms')}</span>
         </button>
         <TabFriends onOpen={() => setModal('friends')} />
       </nav>

@@ -330,7 +330,7 @@ export const useChat = create<ChatState>((set, get) => {
         const key = canon(who);
         if (get().buffers[key] && Date.now() - (lastAwayNotice[key] || 0) > 60000) {
           lastAwayNotice[key] = Date.now();
-          sysLine(who, `💤 ${who} est absent${reason ? ` : ${reason}` : ''}`, 'info');
+          sysLine(who, i18n.t('system.userAway', { who, reason: reason ? `: ${reason}` : '' }), 'info');
         }
         return;
       }
@@ -1253,7 +1253,7 @@ export const useChat = create<ChatState>((set, get) => {
       });
       client.on('reconnecting', (secs) => {
         set({ reconnectIn: secs as number });
-        sysLine(SERVER, `🔌 Connexion perdue — nouvelle tentative dans ${secs}s…`, 'system');
+        sysLine(SERVER, i18n.t('system.reconnecting', { secs }), 'system');
       });
       client.on('message', (m) => handle(m as IrcMessage));
       client.connect(opts);

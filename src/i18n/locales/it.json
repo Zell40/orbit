@@ -7,7 +7,8 @@
     "explore": "Esplora canali",
     "newDM": "Nuova conversazione",
     "away": "Assente",
-    "quit": "Esci dalla chat"
+    "quit": "Esci dalla chat",
+    "tabRooms": "Stanze"
   },
   "sidebar": {
     "all": "Tutti",
@@ -391,7 +392,9 @@
     "uploadAvDown": "La scansione antivirus è temporaneamente non disponibile. Riprova tra poco.",
     "uploadInfected": "File dannoso rilevato — invio bloccato. Gli operatori sono stati avvisati.",
     "uploadNsfw": "Contenuto esplicito rilevato — invio bloccato. Gli operatori sono stati avvisati.",
-    "uploadViolent": "Contenuto violento rilevato — invio bloccato. Gli operatori sono stati avvisati."
+    "uploadViolent": "Contenuto violento rilevato — invio bloccato. Gli operatori sono stati avvisati.",
+    "userAway": "💤 {{who}} è assente{{reason}}",
+    "reconnecting": "🔌 Connessione persa — nuovo tentativo tra {{secs}}s…"
   },
   "modeline": {
     "modeTag": "modalità",

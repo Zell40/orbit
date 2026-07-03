@@ -7,7 +7,8 @@
     "explore": "Kanäle erkunden",
     "newDM": "Neue Unterhaltung",
     "away": "Abwesend",
-    "quit": "Chat verlassen"
+    "quit": "Chat verlassen",
+    "tabRooms": "Räume"
   },
   "sidebar": {
     "all": "Alle",
@@ -391,7 +392,9 @@
     "uploadAvDown": "Der Virenscan ist vorübergehend nicht verfügbar. Bitte versuch es gleich noch mal.",
     "uploadInfected": "Schädliche Datei erkannt — Upload blockiert. Die Operatoren wurden benachrichtigt.",
     "uploadNsfw": "Expliziter Inhalt erkannt — Upload blockiert. Die Operatoren wurden benachrichtigt.",
-    "uploadViolent": "Gewaltdarstellung erkannt — Upload blockiert. Die Operatoren wurden benachrichtigt."
+    "uploadViolent": "Gewaltdarstellung erkannt — Upload blockiert. Die Operatoren wurden benachrichtigt.",
+    "userAway": "💤 {{who}} ist abwesend{{reason}}",
+    "reconnecting": "🔌 Verbindung verloren — neuer Versuch in {{secs}}s…"
   },
   "modeline": {
     "modeTag": "Modus",

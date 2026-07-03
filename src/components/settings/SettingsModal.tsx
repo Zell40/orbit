@@ -728,7 +728,7 @@ function RegisterForm() {
                 ) : (
                   // turnstile.enabled=false: don't load Cloudflare's script — link to the verification page instead.
                   <a className="challenge__link" href={reg.challengeUrl} target="_blank" rel="noopener noreferrer">
-                    {t('settings.account.challengeOpen', { defaultValue: 'Ouvrir la page de vérification →' })}
+                    {t('settings.account.challengeOpen')}
                   </a>
                 )}
                 {reg.busy && <div className="challenge__busy">{t('settings.account.validating')}</div>}
