@@ -117,3 +117,10 @@ export async function loadConfig(): Promise<AppConfig> {
 }
 
 export function getConfig(): AppConfig { return cfg; }
+
+// Plugin console logging is off in production so a visitor's DevTools stays clean.
+// Enabled in dev builds, or opt in on a live site with localStorage['orbit-debug']='1'.
+export function pluginDebug(): boolean {
+  try { return import.meta.env.DEV || localStorage.getItem('orbit-debug') === '1'; }
+  catch { return import.meta.env.DEV; }
+}

@@ -11,7 +11,7 @@ import * as ReactDOM from 'react-dom';
 import htm from 'htm';
 import { useChat } from '../store';
 import { getTheme, setTheme, type Theme } from '../ui/theme';
-import { getConfig } from '../config';
+import { getConfig, pluginDebug } from '../config';
 import { bus } from './bus';
 import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type FilterableMessage } from './registry';
 
@@ -92,7 +92,7 @@ function makeApi(name: string): OrbitPluginApi {
     commit: __GIT_COMMIT__,
     apiVersion: API_VERSION,
     React, ReactDOM, jsxRuntime: ReactJSXRuntime, Fragment: React.Fragment, h: React.createElement, html,
-    log: (...a) => console.log(`%c[plugin:${name}]`, 'color:#2ea043', ...a),
+    log: (...a) => { if (pluginDebug()) console.log(`%c[plugin:${name}]`, 'color:#2ea043', ...a); },
     on: bus.on, once: bus.once, off: bus.off, emit: bus.emit,
     state: {
       active: () => useChat.getState().active,

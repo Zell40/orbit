@@ -5,7 +5,7 @@
 // An entry may be a bare URL string, or `{ url, integrity, crossorigin }` to pin
 // the script with Subresource Integrity — strongly recommended for any plugin
 // served from a third-party origin, so a compromised host can't swap the file.
-import { getConfig, type PluginEntry } from '../config';
+import { getConfig, pluginDebug, type PluginEntry } from '../config';
 
 export interface ScriptAttrs { url: string; integrity?: string; crossorigin?: string }
 
@@ -31,5 +31,5 @@ export function loadPlugins(): void {
     el.onerror = () => console.error('[plugins] failed to load', url);
     document.head.appendChild(el);
   }
-  if (list.length) console.log(`[plugins] loading ${list.length} plugin(s)`, list.map((p) => p.url));
+  if (list.length && pluginDebug()) console.log(`[plugins] loading ${list.length} plugin(s)`, list.map((p) => p.url));
 }
