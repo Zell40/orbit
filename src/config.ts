@@ -28,7 +28,11 @@ export interface AppConfig {
     projectUrl: string; // the Orbit project/source page (shown in Settings → À propos)
   };
   turnstile: {
-    enabled: boolean;   // require the Cloudflare Turnstile challenge on register
+    // Render the anti-bot challenge inline with Cloudflare Turnstile. false = no
+    // Cloudflare script; the challenge (if the SERVER requires one) is shown as a
+    // link to the verification page instead. Whether a challenge is required at
+    // all is decided server-side, not here.
+    enabled: boolean;
     sitekey: string;
   };
   report: {

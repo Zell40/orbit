@@ -987,6 +987,8 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .challenge__title { font-size: .98rem; font-weight: 800; color: var(--green-d); }
 .challenge__txt { font-size: .85rem; line-height: 1.45; color: var(--muted); margin-top: .15rem; }
 .challenge__busy { font-size: .85rem; font-weight: 700; color: var(--green-d); }
+.challenge__link { display: inline-block; margin-top: .3rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+.challenge__link:hover { text-decoration: underline; }
 .turnstile-widget { min-height: 65px; }
 
 /* ---- compact density ---- */

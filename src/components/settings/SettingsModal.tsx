@@ -721,9 +721,16 @@ function RegisterForm() {
                     <div className="challenge__txt">{t('settings.account.antiBotDesc')}</div>
                   </div>
                 </div>
-                <Turnstile sitekey={getConfig().turnstile.sitekey} theme={getTheme().includes('dark') ? 'dark' : 'light'}
-                  onVerify={(tok) => challengeComplete(tok)}
-                  onError={() => useChat.setState((s) => ({ reg: { ...s.reg, error: t('settings.account.challengeLoadError') } }))} />
+                {getConfig().turnstile.enabled ? (
+                  <Turnstile sitekey={getConfig().turnstile.sitekey} theme={getTheme().includes('dark') ? 'dark' : 'light'}
+                    onVerify={(tok) => challengeComplete(tok)}
+                    onError={() => useChat.setState((s) => ({ reg: { ...s.reg, error: t('settings.account.challengeLoadError') } }))} />
+                ) : (
+                  // turnstile.enabled=false: don't load Cloudflare's script — link to the verification page instead.
+                  <a className="challenge__link" href={reg.challengeUrl} target="_blank" rel="noopener noreferrer">
+                    {t('settings.account.challengeOpen', { defaultValue: 'Ouvrir la page de vérification →' })}
+                  </a>
+                )}
                 {reg.busy && <div className="challenge__busy">{t('settings.account.validating')}</div>}
               </div>
             </div>

@@ -211,6 +211,7 @@
       "verify": "Valider",
       "antiBotDesc": "Valide ce rapide défi. Ton code te sera ensuite envoyé par e-mail.",
       "challengeLoadError": "Le défi anti-robot n’a pas pu se charger. Réessaie.",
+      "challengeOpen": "Ouvrir la page de vérification →",
       "codeSentHtml": "📧 Un code a été envoyé à <strong>{{email}}</strong>. Saisis-le pour activer <strong>{{account}}</strong>.",
       "yourEmail": "ton e-mail",
       "createTitle": "Créer un compte",

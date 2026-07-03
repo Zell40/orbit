@@ -211,6 +211,7 @@
       "verify": "Confirm",
       "antiBotDesc": "Complete this quick challenge. Your code will then be emailed to you.",
       "challengeLoadError": "The anti-bot challenge couldn’t load. Try again.",
+      "challengeOpen": "Open the verification page →",
       "codeSentHtml": "📧 A code was sent to <strong>{{email}}</strong>. Enter it to activate <strong>{{account}}</strong>.",
       "yourEmail": "your email",
       "createTitle": "Create an account",

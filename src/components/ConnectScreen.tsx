@@ -209,8 +209,12 @@ export function ConnectScreen() {
         </form>
 
         <div className="cjoin__links">
-          <button type="button" className="primary" onClick={() => setFaq('register')}>{t('connect.createButton')}</button>
-          <span className="d">·</span>
+          {cfg.features.register && (
+            <>
+              <button type="button" className="primary" onClick={() => setFaq('register')}>{t('connect.createButton')}</button>
+              <span className="d">·</span>
+            </>
+          )}
           <button type="button" onClick={() => setFaq('forgot')}>{t('connect.forgotButton')}</button>
           <span className="d">·</span>
           <button type="button" onClick={() => setFaq('')}>{t('connect.helpButton')}</button>
