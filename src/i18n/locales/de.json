@@ -70,7 +70,23 @@
     "error_sasl": "Unbekannter Spitzname oder falsches Passwort.",
     "live": "live",
     "typing": "{{who}} schreibt",
-    "nickAria": "Spitzname"
+    "nickAria": "Spitzname",
+    "ambient": {
+      "0": "hallo zusammen 👋",
+      "1": "noch jemand wach heut abend?",
+      "2": "die stimmung hier ist echt schön 🥰",
+      "3": "hey Marina!",
+      "4": "n abend zusammen 🌙",
+      "5": "worüber quatschen wir heut abend?",
+      "6": "haha genial 😂",
+      "7": "willkommen Jade 🙌",
+      "8": "jemand lust zu quatschen?",
+      "9": "die playlist geht ab 🎶",
+      "10": "zum ersten mal hier, echt nett!",
+      "11": "ja voll 😌",
+      "12": "ganz schön was los heut abend 😮",
+      "13": "n abend allerseits ✨"
+    }
   },
   "messages": {
     "reply": "Als Antwort auf",

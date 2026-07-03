@@ -70,7 +70,23 @@
     "error_sasl": "Apodo desconocido o contraseña incorrecta.",
     "live": "en directo",
     "typing": "{{who}} está escribiendo",
-    "nickAria": "Apodo"
+    "nickAria": "Apodo",
+    "ambient": {
+      "0": "hola a todos 👋",
+      "1": "¿hay alguien por aquí esta noche?",
+      "2": "me encanta el ambiente aquí 🥰",
+      "3": "¡hola Marina!",
+      "4": "buenas noches a todos 🌙",
+      "5": "¿de qué hablamos esta noche?",
+      "6": "jaja buenísimo 😂",
+      "7": "¡bienvenida Jade 🙌",
+      "8": "¿alguien para charlar un rato?",
+      "9": "esta playlist es un temazo 🎶",
+      "10": "¡primera vez aquí, qué guay!",
+      "11": "sí totalmente 😌",
+      "12": "cuánta gente esta noche 😮",
+      "13": "buenas noches a todos ✨"
+    }
   },
   "messages": {
     "reply": "En respuesta a",

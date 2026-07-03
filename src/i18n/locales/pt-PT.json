@@ -70,7 +70,23 @@
     "error_sasl": "Alcunha desconhecida ou palavra-passe incorreta.",
     "live": "em direto",
     "typing": "{{who}} está a escrever",
-    "nickAria": "Alcunha"
+    "nickAria": "Alcunha",
+    "ambient": {
+      "0": "olá pessoal 👋",
+      "1": "há alguém por aí esta noite?",
+      "2": "adoro o ambiente por aqui 🥰",
+      "3": "olá Marina!",
+      "4": "boa noite malta 🌙",
+      "5": "sobre o que vamos falar esta noite?",
+      "6": "haha genial 😂",
+      "7": "bem-vinda Jade 🙌",
+      "8": "alguém para dar dois dedos de conversa?",
+      "9": "esta playlist é do caraças 🎶",
+      "10": "primeira vez por aqui, que fixe!",
+      "11": "sim, sem dúvida 😌",
+      "12": "somos muitos esta noite 😮",
+      "13": "boa noite a todos ✨"
+    }
   },
   "messages": {
     "reply": "Em resposta a",

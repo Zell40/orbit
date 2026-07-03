@@ -70,7 +70,23 @@
     "error_sasl": "Soprannome sconosciuto o password errata.",
     "live": "in diretta",
     "typing": "{{who}} sta scrivendo",
-    "nickAria": "Soprannome"
+    "nickAria": "Soprannome",
+    "ambient": {
+      "0": "ciao a tutti 👋",
+      "1": "c'è qualcuno stasera?",
+      "2": "che bella atmosfera qui 🥰",
+      "3": "ciao Marina!",
+      "4": "buonasera gente 🌙",
+      "5": "di cosa parliamo stasera?",
+      "6": "ahah spettacolo 😂",
+      "7": "benvenuta Jade 🙌",
+      "8": "qualcuno per due chiacchiere?",
+      "9": "questa playlist spacca 🎶",
+      "10": "prima volta qui, che bello!",
+      "11": "sì assolutamente 😌",
+      "12": "quanta gente stasera 😮",
+      "13": "buonasera a tutti ✨"
+    }
   },
   "messages": {
     "reply": "In risposta a",

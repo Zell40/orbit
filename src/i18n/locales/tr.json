@@ -70,7 +70,23 @@
     "error_sasl": "Bilinmeyen takma ad veya yanlış şifre.",
     "live": "canlı",
     "typing": "{{who}} yazıyor",
-    "nickAria": "Takma ad"
+    "nickAria": "Takma ad",
+    "ambient": {
+      "0": "selam millet 👋",
+      "1": "bu gece kimse var mı?",
+      "2": "buranın havasına bayılıyorum 🥰",
+      "3": "selam Marina!",
+      "4": "iyi akşamlar herkese 🌙",
+      "5": "bu gece ne muhabbeti dönüyor?",
+      "6": "haha efsane 😂",
+      "7": "hoş geldin Jade 🙌",
+      "8": "muhabbete var mısınız?",
+      "9": "bu çalma listesi acayip iyi 🎶",
+      "10": "ilk kez buradayım, çok güzelmiş!",
+      "11": "evet kesinlikle 😌",
+      "12": "bu gece kalabalığız 😮",
+      "13": "iyi akşamlar herkese ✨"
+    }
   },
   "messages": {
     "reply": "Yanıt:",

@@ -10,21 +10,23 @@ function param(name: string, fallback: string): string {
 // Ambient chatter for the live-room preview (decorative — aria-hidden). Warm, French,
 // no impersonation of real users; it conveys "the room is alive" before you join.
 type Line = { who: string; hue: number; text: string; react?: string };
-const POOL: Line[] = [
-  { who: 'Marina', hue: 8, text: 'coucou tout le monde 👋' },
-  { who: 'Lucas', hue: 205, text: 'quelqu’un de Lyon ce soir ?' },
-  { who: 'Inès', hue: 322, text: 'j’adore l’ambiance ici 🥰', react: '❤️' },
-  { who: 'Théo', hue: 150, text: 'salut Marina !' },
-  { who: 'Jade', hue: 265, text: 'bonsoir la compagnie 🌙' },
-  { who: 'Naël', hue: 32, text: 'on parle de quoi ce soir ?' },
-  { who: 'Sofia', hue: 188, text: 'haha excellent 😂', react: '😂' },
-  { who: 'Hugo', hue: 96, text: 'bienvenue Jade 🙌' },
-  { who: 'Léa', hue: 340, text: 'quelqu’un pour papoter ?' },
-  { who: 'Adam', hue: 228, text: 'cette playlist envoie 🎶' },
-  { who: 'Camille', hue: 50, text: 'première fois ici, c’est sympa !' },
-  { who: 'Yanis', hue: 170, text: 'oui carrément 😌' },
-  { who: 'Manon', hue: 300, text: 'on est nombreux ce soir 😮' },
-  { who: 'Eliott', hue: 120, text: 'bonsoir tout le monde ✨' },
+// Names/colours/reactions stay in code; the message text is localised
+// (connect.ambient.N) so the preview speaks the visitor's language.
+const POOL_META: { who: string; hue: number; react?: string }[] = [
+  { who: 'Marina', hue: 8 },
+  { who: 'Lucas', hue: 205 },
+  { who: 'Inès', hue: 322, react: '❤️' },
+  { who: 'Théo', hue: 150 },
+  { who: 'Jade', hue: 265 },
+  { who: 'Naël', hue: 32 },
+  { who: 'Sofia', hue: 188, react: '😂' },
+  { who: 'Hugo', hue: 96 },
+  { who: 'Léa', hue: 340 },
+  { who: 'Adam', hue: 228 },
+  { who: 'Camille', hue: 50 },
+  { who: 'Yanis', hue: 170 },
+  { who: 'Manon', hue: 300 },
+  { who: 'Eliott', hue: 120 },
 ];
 
 function avaStyle(hue: number): CSSProperties {
@@ -34,8 +36,12 @@ function avaStyle(hue: number): CSSProperties {
 // Isolated so the streaming interval never re-renders the join form.
 function LiveFeed({ chan }: { chan: string }) {
   const { t } = useTranslation();
+  const line = (i: number): Line => {
+    const n = i % POOL_META.length;
+    return { ...POOL_META[n], text: t(`connect.ambient.${n}`) };
+  };
   const [msgs, setMsgs] = useState<(Line & { id: number })[]>(
-    () => POOL.slice(0, 4).map((l, i) => ({ ...l, id: i })),
+    () => [0, 1, 2, 3].map((i) => ({ ...line(i), id: i })),
   );
   const [typing, setTyping] = useState('');
   const idx = useRef(4);
@@ -45,7 +51,7 @@ function LiveFeed({ chan }: { chan: string }) {
     let toMsg = 0;
     let toNext = 0;
     const step = () => {
-      const next = POOL[idx.current % POOL.length];
+      const next = line(idx.current);
       setTyping(next.who);
       toMsg = window.setTimeout(() => {
         if (!alive) return;

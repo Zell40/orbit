@@ -70,7 +70,23 @@
     "error_sasl": "Apelido desconhecido ou senha incorreta.",
     "live": "ao vivo",
     "typing": "{{who}} está digitando",
-    "nickAria": "Apelido"
+    "nickAria": "Apelido",
+    "ambient": {
+      "0": "oi gente 👋",
+      "1": "tem alguém por aí hoje à noite?",
+      "2": "amo o clima daqui 🥰",
+      "3": "oi Marina!",
+      "4": "boa noite pra todos 🌙",
+      "5": "vamos falar sobre o quê hoje?",
+      "6": "haha genial 😂",
+      "7": "bem-vinda Jade 🙌",
+      "8": "alguém a fim de bater papo?",
+      "9": "essa playlist tá demais 🎶",
+      "10": "primeira vez aqui, tá massa!",
+      "11": "sim com certeza 😌",
+      "12": "quanta gente hoje 😮",
+      "13": "boa noite pessoal ✨"
+    }
   },
   "messages": {
     "reply": "Em resposta a",

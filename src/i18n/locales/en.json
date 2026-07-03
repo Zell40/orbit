@@ -70,7 +70,23 @@
     "error_sasl": "Unknown nick or incorrect password.",
     "live": "live",
     "typing": "{{who}} is typing",
-    "nickAria": "Nickname"
+    "nickAria": "Nickname",
+    "ambient": {
+      "0": "hey everyone 👋",
+      "1": "anyone around tonight?",
+      "2": "I love the vibe here 🥰",
+      "3": "hi Marina!",
+      "4": "evening all 🌙",
+      "5": "what are we chatting about tonight?",
+      "6": "haha brilliant 😂",
+      "7": "welcome Jade 🙌",
+      "8": "anyone up for a chat?",
+      "9": "this playlist slaps 🎶",
+      "10": "first time here, this is nice!",
+      "11": "yeah totally 😌",
+      "12": "big crowd tonight 😮",
+      "13": "evening everyone ✨"
+    }
   },
   "messages": {
     "reply": "In reply to",

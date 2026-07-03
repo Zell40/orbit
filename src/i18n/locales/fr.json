@@ -70,7 +70,23 @@
     "error_sasl": "Pseudo ou mot de passe incorrect.",
     "live": "en direct",
     "typing": "{{who}} écrit",
-    "nickAria": "Pseudo"
+    "nickAria": "Pseudo",
+    "ambient": {
+      "0": "coucou tout le monde 👋",
+      "1": "quelqu’un dans le coin ce soir ?",
+      "2": "j’adore l’ambiance ici 🥰",
+      "3": "salut Marina !",
+      "4": "bonsoir la compagnie 🌙",
+      "5": "on parle de quoi ce soir ?",
+      "6": "haha excellent 😂",
+      "7": "bienvenue Jade 🙌",
+      "8": "quelqu’un pour papoter ?",
+      "9": "cette playlist envoie 🎶",
+      "10": "première fois ici, c’est sympa !",
+      "11": "oui carrément 😌",
+      "12": "on est nombreux ce soir 😮",
+      "13": "bonsoir tout le monde ✨"
+    }
   },
   "messages": {
     "reply": "En réponse à",
