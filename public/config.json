@@ -1,6 +1,7 @@
 {
   "server": {
-    "url": "wss://www.swaygo.fr/irc/"
+    "url": "wss://www.swaygo.fr/irc/",
+    "guestIdent": "Invité"
   },
   "startup": {
     "channels": ["#taverne"]
