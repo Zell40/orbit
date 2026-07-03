@@ -111,7 +111,7 @@ function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) 
           <button className="cfaq__close" onClick={onClose} aria-label={t('faq.close')}>✕</button>
         </div>
         <div className="cfaq__body">
-          {FAQ_IDS.map((id) => (
+          {(cfg.features.register ? FAQ_IDS : FAQ_IDS.filter((id) => id !== 'register' && id !== 'forgot')).map((id) => (
             <div className={`cfaq__item ${open === id ? 'is-open' : ''}`} key={id}>
               <button className="cfaq__q" onClick={() => setOpen(open === id ? '' : id)}>
                 {t(`faq.${id}.q`, vars)}<span className="chev">›</span>
@@ -219,10 +219,10 @@ export function ConnectScreen() {
             <>
               <button type="button" className="primary" onClick={() => setFaq('register')}>{t('connect.createButton')}</button>
               <span className="d">·</span>
+              <button type="button" onClick={() => setFaq('forgot')}>{t('connect.forgotButton')}</button>
+              <span className="d">·</span>
             </>
           )}
-          <button type="button" onClick={() => setFaq('forgot')}>{t('connect.forgotButton')}</button>
-          <span className="d">·</span>
           <button type="button" onClick={() => setFaq('')}>{t('connect.helpButton')}</button>
         </div>
 

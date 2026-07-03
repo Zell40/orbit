@@ -39,7 +39,7 @@ export default function App() {
   useEffect(() => {
     if (status !== 'registered') return;
     const client = useChat.getState().client;
-    if (client) void refreshPush(client);
+    if (client && getConfig().features.push) void refreshPush(client);
   }, [status]);
 
   // Global keyboard shortcuts (chat view only). See the Shortcuts help sheet (?).
