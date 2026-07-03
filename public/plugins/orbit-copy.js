@@ -37,8 +37,8 @@ Orbit.plugin('orbit-copy', (orbit, log) => {
     // No layout styles — inherit the toolbar button look; only tint green when copied.
     return orbit.html`
       <button
-        title=${copied ? 'Copied!' : 'Copy message'}
-        aria-label=${copied ? 'Copied' : 'Copy message'}
+        title=${copied ? orbit.i18n.t('plugins.copy.copied') : orbit.i18n.t('plugins.copy.title')}
+        aria-label=${copied ? orbit.i18n.t('plugins.copy.copiedShort') : orbit.i18n.t('plugins.copy.title')}
         onClick=${copy}
         style=${{ color: copied ? '#2ea043' : undefined }}
       >${copied ? '✓' : '⧉'}</button>

@@ -1,8 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { applyTheme, getTheme } from './ui/theme.ts'
-import './i18n'
-import { applyConfigDefaultLang } from './i18n'
+import i18n, { applyConfigDefaultLang } from './i18n'
 import './index.css'
 import { initViewport } from './ui/viewport.ts'
 import { loadConfig, getConfig } from './config.ts'
@@ -11,12 +10,33 @@ import { AppErrorBoundary } from './components/AppErrorBoundary'
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()
 
+// PWA install prompt: the static manifest.webmanifest is one language; re-serve
+// it (as a blob) with the brand name + a description in the visitor's language.
+// Icons/colors are kept from the file; root-relative icon paths still resolve.
+async function localizeManifest() {
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}manifest.webmanifest`, { cache: 'force-cache' })
+    if (!res.ok) return
+    const m = await res.json()
+    const brand = getConfig().branding?.name || m.short_name || 'Orbit'
+    m.name = brand
+    m.short_name = brand
+    m.description = i18n.t('pwa.description', { defaultValue: m.description }) as string
+    m.lang = i18n.language
+    const url = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/manifest+json' }))
+    let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null
+    if (!link) { link = document.createElement('link'); link.rel = 'manifest'; document.head.appendChild(link) }
+    link.setAttribute('href', url)
+  } catch { /* keep the static manifest */ }
+}
+
 // Load runtime config.json FIRST, then import App (so the store initialises with
 // the resolved config). Keeps the client fully re-pointable/re-brandable without
 // a rebuild.
 loadConfig().then(async () => {
   applyTheme(getTheme()) // re-apply now that config (default theme) is loaded
   applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
+  void localizeManifest() // re-serve the PWA manifest with a localized name/description
   const { default: App } = await import('./App.tsx') // also creates the store
   // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
   // then load operator-listed plugins from config. After the store exists,

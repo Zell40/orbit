@@ -725,5 +725,68 @@
     "title": "Bir şeyler ters gitti",
     "body": "Uygulama beklenmedik bir hatayla karşılaştı. Yeniden yüklemek genellikle düzeltir.",
     "reload": "Yeniden yükle"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Mesajı kopyala",
+      "copied": "Kopyalandı!",
+      "copiedShort": "Kopyalandı"
+    },
+    "clock": {
+      "title": "Yerel saat"
+    },
+    "invite": {
+      "panelTitle": "Davet et",
+      "tip": "Arkadaşlarını davet et",
+      "inRoom": "{{chan}} kanalına arkadaşlarını davet et",
+      "inRoomSub": "Paylaşılacak bir bağlantı (WhatsApp, Discord…). Hesap gerekmez.",
+      "duel": "Bir arkadaşını satrança davet et",
+      "duelSub": "Tıklar, sana karşı oynar — GameServ yönetir, kayıt yok.",
+      "shared": "Bağlantı paylaşıldı ✓",
+      "copied": "Bağlantı kopyalandı ✓ — istediğin yere yapıştır",
+      "copyThis": "Bu bağlantıyı kopyala:",
+      "roomShare": "{{chan}} kanalında bana katıl · {{brand}}",
+      "duelShare": "{{brand}} üzerinde satranç meydan okuması"
+    },
+    "games": {
+      "title": "Oyunlar",
+      "name": {
+        "ttt": "XOX",
+        "c4": "Dört Yap",
+        "chess": "Satranç"
+      },
+      "promotion": "Terfi:",
+      "toastTurn": "{{game}}: {{opp}} karşısında sıra sende",
+      "titleTurn": "Sıra sende · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} sana meydan okuyor · {{game}}",
+      "stOffer": "{{opp}} sana meydan okuyor",
+      "stPending": "{{opp}} bekleniyor…",
+      "stDraw": "Berabere.",
+      "stWin": "Kazandın!",
+      "stLoss": "Kaybettin.",
+      "stYourTurn": "Sıra sende",
+      "stTheirTurn": "Sıra {{opp}}'de",
+      "accept": "Kabul et",
+      "decline": "Reddet",
+      "newGame": "Yeni oyun",
+      "rematch": "Rövanş",
+      "resign": "Pes et",
+      "leaderboard": "Sıralama",
+      "loading": "Yükleniyor…",
+      "empty": "Henüz sıralamada kimse yok. Bir oyun kazan!",
+      "challengeIntro": "Çevrimiçi olan herkese meydan oku. GameServ her hamleyi yönetir. Hesapla oynanan oyun sıralamaya girer; misafir olarak dostçadır.",
+      "oppPlaceholder": "Rakibin takma adı",
+      "bestRank": "En iyi sıralama: {{game}}",
+      "challengeAction": "Bir oyuna davet et",
+      "rank": {
+        "Bronze": "Bronz",
+        "Silver": "Gümüş",
+        "Gold": "Altın",
+        "Master": "Usta"
+      }
+    }
+  },
+  "pwa": {
+    "description": "Sohbet, canlı. Herkese açık odalar, özel mesajlar, kayıt yok."
   }
 }

@@ -725,5 +725,68 @@
     "title": "Algo correu mal",
     "body": "A aplicação encontrou um erro inesperado. Recarregar costuma resolver.",
     "reload": "Recarregar"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Copiar mensagem",
+      "copied": "Copiado!",
+      "copiedShort": "Copiado"
+    },
+    "clock": {
+      "title": "Hora local"
+    },
+    "invite": {
+      "panelTitle": "Convidar",
+      "tip": "Convida amigos",
+      "inRoom": "Convida amigos para {{chan}}",
+      "inRoomSub": "Um link para partilhar (WhatsApp, Discord…). Não precisas de conta.",
+      "duel": "Desafia um amigo para o xadrez",
+      "duelSub": "Ele clica, joga contra ti — arbitrado pelo GameServ, sem registo.",
+      "shared": "Link partilhado ✓",
+      "copied": "Link copiado ✓ — cola-o onde quiseres",
+      "copyThis": "Copia este link:",
+      "roomShare": "Junta-te a mim em {{chan}} · {{brand}}",
+      "duelShare": "Desafio de xadrez no {{brand}}"
+    },
+    "games": {
+      "title": "Jogos",
+      "name": {
+        "ttt": "Jogo do galo",
+        "c4": "4 em linha",
+        "chess": "Xadrez"
+      },
+      "promotion": "Promoção:",
+      "toastTurn": "{{game}}: é a tua vez contra {{opp}}",
+      "titleTurn": "É a tua vez · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} desafia-te · {{game}}",
+      "stOffer": "{{opp}} desafia-te",
+      "stPending": "À espera de {{opp}}…",
+      "stDraw": "Empate.",
+      "stWin": "Ganhaste!",
+      "stLoss": "Perdeste.",
+      "stYourTurn": "É a tua vez",
+      "stTheirTurn": "Vez de {{opp}}",
+      "accept": "Aceitar",
+      "decline": "Recusar",
+      "newGame": "Novo jogo",
+      "rematch": "Desforra",
+      "resign": "Desistir",
+      "leaderboard": "Classificação",
+      "loading": "A carregar…",
+      "empty": "Ainda ninguém na classificação. Ganha um jogo!",
+      "challengeIntro": "Desafia qualquer pessoa online. O GameServ arbitra cada jogada. Com uma conta, a partida é classificada; como convidado, é amigável.",
+      "oppPlaceholder": "Alcunha do adversário",
+      "bestRank": "Melhor classificação: {{game}}",
+      "challengeAction": "Desafiar para um jogo",
+      "rank": {
+        "Bronze": "Bronze",
+        "Silver": "Prata",
+        "Gold": "Ouro",
+        "Master": "Mestre"
+      }
+    }
+  },
+  "pwa": {
+    "description": "O chat, em direto. Salas públicas, mensagens privadas, sem registo."
   }
 }

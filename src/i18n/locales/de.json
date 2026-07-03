@@ -725,5 +725,68 @@
     "title": "Etwas ist schiefgelaufen",
     "body": "Die App hatte einen unerwarteten Fehler. Ein Neuladen behebt das meist.",
     "reload": "Neu laden"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Nachricht kopieren",
+      "copied": "Kopiert!",
+      "copiedShort": "Kopiert"
+    },
+    "clock": {
+      "title": "Ortszeit"
+    },
+    "invite": {
+      "panelTitle": "Einladen",
+      "tip": "Freunde einladen",
+      "inRoom": "Lade Freunde zu {{chan}} ein",
+      "inRoomSub": "Ein Link zum Teilen (WhatsApp, Discord…). Kein Konto nötig.",
+      "duel": "Fordere einen Freund zum Schach heraus",
+      "duelSub": "Er klickt, er spielt gegen dich — von GameServ geleitet, ohne Anmeldung.",
+      "shared": "Link geteilt ✓",
+      "copied": "Link kopiert ✓ — füg ihn überall ein",
+      "copyThis": "Kopier diesen Link:",
+      "roomShare": "Komm zu mir auf {{chan}} · {{brand}}",
+      "duelShare": "Schach-Herausforderung auf {{brand}}"
+    },
+    "games": {
+      "title": "Spiele",
+      "name": {
+        "ttt": "Tic-Tac-Toe",
+        "c4": "Vier gewinnt",
+        "chess": "Schach"
+      },
+      "promotion": "Umwandlung:",
+      "toastTurn": "{{game}}: du bist dran gegen {{opp}}",
+      "titleTurn": "Du bist dran · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} fordert dich heraus · {{game}}",
+      "stOffer": "{{opp}} fordert dich heraus",
+      "stPending": "Warte auf {{opp}}…",
+      "stDraw": "Unentschieden.",
+      "stWin": "Du gewinnst!",
+      "stLoss": "Du verlierst.",
+      "stYourTurn": "Du bist dran",
+      "stTheirTurn": "{{opp}} ist dran",
+      "accept": "Annehmen",
+      "decline": "Ablehnen",
+      "newGame": "Neues Spiel",
+      "rematch": "Revanche",
+      "resign": "Aufgeben",
+      "leaderboard": "Rangliste",
+      "loading": "Lädt…",
+      "empty": "Noch niemand in der Rangliste. Gewinn ein Spiel!",
+      "challengeIntro": "Fordere jeden heraus, der online ist. GameServ leitet jeden Zug. Mit einem Konto ist die Partie gewertet; als Gast ist sie freundschaftlich.",
+      "oppPlaceholder": "Nick des Gegners",
+      "bestRank": "Beste Platzierung: {{game}}",
+      "challengeAction": "Zu einem Spiel herausfordern",
+      "rank": {
+        "Bronze": "Bronze",
+        "Silver": "Silber",
+        "Gold": "Gold",
+        "Master": "Meister"
+      }
+    }
+  },
+  "pwa": {
+    "description": "Der Chat, live. Öffentliche Räume, private Nachrichten, ohne Anmeldung."
   }
 }

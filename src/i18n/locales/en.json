@@ -725,5 +725,68 @@
     "title": "Something went wrong",
     "body": "The app hit an unexpected error. Reloading usually fixes it.",
     "reload": "Reload"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Copy message",
+      "copied": "Copied!",
+      "copiedShort": "Copied"
+    },
+    "clock": {
+      "title": "Local time"
+    },
+    "invite": {
+      "panelTitle": "Invite",
+      "tip": "Invite friends",
+      "inRoom": "Invite friends to {{chan}}",
+      "inRoomSub": "A link to share (WhatsApp, Discord…). No account needed.",
+      "duel": "Challenge a friend to chess",
+      "duelSub": "They click, they play you — refereed by GameServ, no sign-up.",
+      "shared": "Link shared ✓",
+      "copied": "Link copied ✓ — paste it anywhere",
+      "copyThis": "Copy this link:",
+      "roomShare": "Join me on {{chan}} · {{brand}}",
+      "duelShare": "Chess challenge on {{brand}}"
+    },
+    "games": {
+      "title": "Games",
+      "name": {
+        "ttt": "Tic-tac-toe",
+        "c4": "Connect 4",
+        "chess": "Chess"
+      },
+      "promotion": "Promotion:",
+      "toastTurn": "{{game}}: your turn vs {{opp}}",
+      "titleTurn": "Your turn · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} challenges you · {{game}}",
+      "stOffer": "{{opp}} challenges you",
+      "stPending": "Waiting for {{opp}}…",
+      "stDraw": "Draw.",
+      "stWin": "You win!",
+      "stLoss": "You lose.",
+      "stYourTurn": "Your turn",
+      "stTheirTurn": "{{opp}}'s turn",
+      "accept": "Accept",
+      "decline": "Decline",
+      "newGame": "New game",
+      "rematch": "Rematch",
+      "resign": "Resign",
+      "leaderboard": "Leaderboard",
+      "loading": "Loading…",
+      "empty": "Nobody ranked yet. Win a game!",
+      "challengeIntro": "Challenge anyone online. GameServ referees every move. With an account the game is ranked; as a guest it's friendly.",
+      "oppPlaceholder": "Opponent's nick",
+      "bestRank": "Best ranking: {{game}}",
+      "challengeAction": "Challenge to a game",
+      "rank": {
+        "Bronze": "Bronze",
+        "Silver": "Silver",
+        "Gold": "Gold",
+        "Master": "Master"
+      }
+    }
+  },
+  "pwa": {
+    "description": "The chat, live. Public rooms, private messages, no sign-up."
   }
 }

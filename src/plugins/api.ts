@@ -10,6 +10,7 @@ import * as ReactJSXRuntime from 'react/jsx-runtime';
 import * as ReactDOM from 'react-dom';
 import htm from 'htm';
 import { useChat } from '../store';
+import i18n from '../i18n';
 import { getTheme, setTheme, type Theme } from '../ui/theme';
 import { getConfig, pluginDebug } from '../config';
 import { bus } from './bus';
@@ -20,7 +21,7 @@ const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomi
 
 // Plugin API contract version. Bumped on a breaking change to the surface below
 // so plugins can guard (e.g. `if (Orbit.apiVersion < 2) …`). Still experimental.
-const API_VERSION = 3;
+const API_VERSION = 4;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -65,6 +66,19 @@ export interface OrbitPluginApi {
     part: (channel: string) => void;
     list: () => void;
   };
+  /** The resolved runtime config (branding, features, server, …). */
+  config: () => ReturnType<typeof getConfig>;
+  // ── i18n ─────────────────────────────────────────────────────────────────
+  i18n: {
+    /** Current UI language code, e.g. 'es' or 'pt-BR'. */
+    language: () => string;
+    /** Translate an app locale key with optional {{interpolation}} — bundled
+     *  plugins ship their strings as `plugins.*` keys in the app locales. */
+    t: (key: string, opts?: Record<string, unknown>) => string;
+    /** Pick from a `{ lang: text }` table by the current language (for
+     *  self-contained third-party plugins that carry their own strings). */
+    pick: (table: Record<string, string>) => string;
+  };
   // ── theming ──────────────────────────────────────────────────────────────
   themes: { current: () => Theme; list: () => Theme[]; set: (t: Theme) => void };
   // ── namespaced persistence ───────────────────────────────────────────────
@@ -108,6 +122,15 @@ function makeApi(name: string): OrbitPluginApi {
       join: (channel) => { const s = useChat.getState(); s.client?.join(channel); s.setActive(channel); },
       part: (channel) => useChat.getState().client?.part(channel),
       list: () => useChat.getState().client?.list(),
+    },
+    config: () => getConfig(),
+    i18n: {
+      language: () => i18n.language,
+      t: (key, opts) => i18n.t(key, opts) as string,
+      pick: (table) => {
+        const l = i18n.language || 'en';
+        return table[l] ?? table[l.split('-')[0]] ?? table.en ?? Object.values(table)[0] ?? '';
+      },
     },
     themes: { current: getTheme, list: () => THEMES.slice(), set: setTheme },
     storage: {

@@ -725,5 +725,68 @@
     "title": "Qualcosa è andato storto",
     "body": "L'app ha riscontrato un errore imprevisto. Ricaricare di solito risolve.",
     "reload": "Ricarica"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Copia il messaggio",
+      "copied": "Copiato!",
+      "copiedShort": "Copiato"
+    },
+    "clock": {
+      "title": "Ora locale"
+    },
+    "invite": {
+      "panelTitle": "Invita",
+      "tip": "Invita amici",
+      "inRoom": "Invita amici in {{chan}}",
+      "inRoomSub": "Un link da condividere (WhatsApp, Discord…). Nessun account richiesto.",
+      "duel": "Sfida un amico a scacchi",
+      "duelSub": "Clicca, gioca contro di te — arbitrato da GameServ, senza registrazione.",
+      "shared": "Link condiviso ✓",
+      "copied": "Link copiato ✓ — incollalo dove vuoi",
+      "copyThis": "Copia questo link:",
+      "roomShare": "Raggiungimi su {{chan}} · {{brand}}",
+      "duelShare": "Sfida a scacchi su {{brand}}"
+    },
+    "games": {
+      "title": "Giochi",
+      "name": {
+        "ttt": "Tris",
+        "c4": "Forza 4",
+        "chess": "Scacchi"
+      },
+      "promotion": "Promozione:",
+      "toastTurn": "{{game}}: tocca a te contro {{opp}}",
+      "titleTurn": "Tocca a te · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} ti sfida · {{game}}",
+      "stOffer": "{{opp}} ti sfida",
+      "stPending": "In attesa di {{opp}}…",
+      "stDraw": "Patta.",
+      "stWin": "Hai vinto!",
+      "stLoss": "Hai perso.",
+      "stYourTurn": "Tocca a te",
+      "stTheirTurn": "Tocca a {{opp}}",
+      "accept": "Accetta",
+      "decline": "Rifiuta",
+      "newGame": "Nuova partita",
+      "rematch": "Rivincita",
+      "resign": "Abbandona",
+      "leaderboard": "Classifica",
+      "loading": "Caricamento…",
+      "empty": "Nessuno in classifica. Vinci una partita!",
+      "challengeIntro": "Sfida chiunque sia online. GameServ arbitra ogni mossa. Con un account la partita è classificata; da ospite è amichevole.",
+      "oppPlaceholder": "Nick dell'avversario",
+      "bestRank": "Miglior classifica: {{game}}",
+      "challengeAction": "Sfida a un gioco",
+      "rank": {
+        "Bronze": "Bronzo",
+        "Silver": "Argento",
+        "Gold": "Oro",
+        "Master": "Maestro"
+      }
+    }
+  },
+  "pwa": {
+    "description": "La chat, in diretta. Stanze pubbliche, messaggi privati, senza registrazione."
   }
 }

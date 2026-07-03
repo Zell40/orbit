@@ -725,5 +725,68 @@
     "title": "Une erreur est survenue",
     "body": "L'application a rencontré une erreur inattendue. Recharger règle généralement le problème.",
     "reload": "Recharger"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Copier le message",
+      "copied": "Copié !",
+      "copiedShort": "Copié"
+    },
+    "clock": {
+      "title": "Heure locale"
+    },
+    "invite": {
+      "panelTitle": "Inviter",
+      "tip": "Inviter des amis",
+      "inRoom": "Inviter des amis dans {{chan}}",
+      "inRoomSub": "Un lien à partager (WhatsApp, Discord…). Aucun compte requis.",
+      "duel": "Défier un ami aux échecs",
+      "duelSub": "Il clique, il joue contre toi — arbitré par GameServ, sans inscription.",
+      "shared": "Lien partagé ✓",
+      "copied": "Lien copié ✓ — colle-le où tu veux",
+      "copyThis": "Copie ce lien :",
+      "roomShare": "Rejoins-moi sur {{chan}} · {{brand}}",
+      "duelShare": "Défi aux échecs sur {{brand}}"
+    },
+    "games": {
+      "title": "Jeux",
+      "name": {
+        "ttt": "Morpion",
+        "c4": "Puissance 4",
+        "chess": "Échecs"
+      },
+      "promotion": "Promotion :",
+      "toastTurn": "{{game}} : à toi contre {{opp}}",
+      "titleTurn": "À toi · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} te défie · {{game}}",
+      "stOffer": "{{opp}} te défie",
+      "stPending": "En attente de {{opp}}…",
+      "stDraw": "Match nul.",
+      "stWin": "Tu gagnes !",
+      "stLoss": "Tu perds.",
+      "stYourTurn": "À toi",
+      "stTheirTurn": "Au tour de {{opp}}",
+      "accept": "Accepter",
+      "decline": "Refuser",
+      "newGame": "Nouvelle partie",
+      "rematch": "Revanche",
+      "resign": "Abandonner",
+      "leaderboard": "Classement",
+      "loading": "Chargement…",
+      "empty": "Personne au classement. Gagne une partie !",
+      "challengeIntro": "Défie n'importe qui de connecté. GameServ arbitre chaque coup. Avec un compte la partie est classée ; en invité, elle est amicale.",
+      "oppPlaceholder": "Pseudo de l'adversaire",
+      "bestRank": "Meilleur classement : {{game}}",
+      "challengeAction": "Défier à un jeu",
+      "rank": {
+        "Bronze": "Bronze",
+        "Silver": "Argent",
+        "Gold": "Or",
+        "Master": "Maître"
+      }
+    }
+  },
+  "pwa": {
+    "description": "Le tchat, en direct. Salons publics, messages privés, sans inscription."
   }
 }

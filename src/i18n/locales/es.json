@@ -725,5 +725,68 @@
     "title": "Algo salió mal",
     "body": "La aplicación tuvo un error inesperado. Recargar suele solucionarlo.",
     "reload": "Recargar"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Copiar mensaje",
+      "copied": "¡Copiado!",
+      "copiedShort": "Copiado"
+    },
+    "clock": {
+      "title": "Hora local"
+    },
+    "invite": {
+      "panelTitle": "Invitar",
+      "tip": "Invita a tus amigos",
+      "inRoom": "Invita a tus amigos a {{chan}}",
+      "inRoomSub": "Un enlace para compartir (WhatsApp, Discord…). No hace falta cuenta.",
+      "duel": "Reta a un amigo al ajedrez",
+      "duelSub": "Hace clic, juega contra ti — arbitrado por GameServ, sin registro.",
+      "shared": "Enlace compartido ✓",
+      "copied": "Enlace copiado ✓ — pégalo donde quieras",
+      "copyThis": "Copia este enlace:",
+      "roomShare": "Únete a mí en {{chan}} · {{brand}}",
+      "duelShare": "Reto de ajedrez en {{brand}}"
+    },
+    "games": {
+      "title": "Juegos",
+      "name": {
+        "ttt": "Tres en raya",
+        "c4": "Conecta 4",
+        "chess": "Ajedrez"
+      },
+      "promotion": "Promoción:",
+      "toastTurn": "{{game}}: te toca contra {{opp}}",
+      "titleTurn": "Te toca · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} te reta · {{game}}",
+      "stOffer": "{{opp}} te reta",
+      "stPending": "Esperando a {{opp}}…",
+      "stDraw": "Empate.",
+      "stWin": "¡Ganaste!",
+      "stLoss": "Perdiste.",
+      "stYourTurn": "Te toca",
+      "stTheirTurn": "Turno de {{opp}}",
+      "accept": "Aceptar",
+      "decline": "Rechazar",
+      "newGame": "Nueva partida",
+      "rematch": "Revancha",
+      "resign": "Abandonar",
+      "leaderboard": "Clasificación",
+      "loading": "Cargando…",
+      "empty": "Nadie en la clasificación. ¡Gana una partida!",
+      "challengeIntro": "Reta a cualquiera que esté conectado. GameServ arbitra cada jugada. Con una cuenta la partida es clasificatoria; como invitado, es amistosa.",
+      "oppPlaceholder": "Apodo del rival",
+      "bestRank": "Mejor clasificación: {{game}}",
+      "challengeAction": "Retar a una partida",
+      "rank": {
+        "Bronze": "Bronce",
+        "Silver": "Plata",
+        "Gold": "Oro",
+        "Master": "Maestro"
+      }
+    }
+  },
+  "pwa": {
+    "description": "El chat, en directo. Salas públicas, mensajes privados, sin registro."
   }
 }

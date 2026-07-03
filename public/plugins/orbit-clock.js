@@ -20,7 +20,7 @@ Orbit.plugin('orbit-clock', (orbit, log) => {
     const mm = String(now.getMinutes()).padStart(2, '0');
     return orbit.html`
       <span
-        title="Local time (clock plugin)"
+        title=${orbit.i18n.t('plugins.clock.title')}
         style=${{ font: '600 .82rem/1 inherit', opacity: 0.7, padding: '0 .45rem', alignSelf: 'center' }}
       >${hh}:${mm}</span>
     `;

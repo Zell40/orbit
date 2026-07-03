@@ -15,6 +15,7 @@
 Orbit.plugin('games', (orbit, log) => {
   const { useState, useEffect } = orbit.React;
   const html = orbit.html;
+  const T = orbit.i18n.t;
   const GS = 'gameserv'; // GameServ nick, lower-cased for comparison
 
   // ════════════════════════ decoding GameServ's state ════════════════════════
@@ -66,16 +67,16 @@ Orbit.plugin('games', (orbit, log) => {
       <div style=${{ display: 'grid', gridTemplateColumns: 'repeat(8,1fr)', width: '300px', maxWidth: '78vw', aspectRatio: '1', border: '1px solid var(--border,#333)', borderRadius: '8px', overflow: 'hidden', userSelect: 'none', margin: '.3rem auto 0' }}>
         ${order.map((s) => { const light = (cf(s) + cr(s)) % 2 === 1, p = b[s]; return html`<div key=${s} onClick=${() => clickSq(s)} style=${{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: s === sel ? '#caa84a' : light ? '#e9e4d6' : '#7d8aa0', fontSize: '1.65rem', lineHeight: 1, cursor: myTurn ? 'pointer' : 'default', color: p && p === p.toUpperCase() ? '#fff' : '#111', textShadow: p && p === p.toUpperCase() ? '0 1px 1px rgba(0,0,0,.5)' : 'none' }}>${p ? GLYPH[p] : ''}</div>`; })}
       </div>
-      ${promo ? html`<div style=${{ textAlign: 'center', marginTop: '.4rem' }}>Promotion :
+      ${promo ? html`<div style=${{ textAlign: 'center', marginTop: '.4rem' }}>${T('plugins.games.promotion')} 
         ${['q', 'r', 'b', 'n'].map((pr) => html`<button key=${pr} onClick=${() => { play(cName(promo.from) + cName(promo.to) + pr); setPromo(null); setSel(-1); }} style=${{ fontSize: '1.5rem', padding: '.2rem .5rem', cursor: 'pointer' }}>${PROMO[pr]}</button>`)}
       </div>` : null}
     </div>`;
   }
 
   const GAMES = {
-    ttt: { name: 'Morpion', icon: 'XO', decode: flatDecode, Board: TttBoard },
-    c4: { name: 'Puissance 4', icon: '●', decode: flatDecode, Board: C4Board },
-    chess: { name: 'Échecs', icon: '♟', decode: chessDecode, Board: ChessBoard },
+    ttt: { get name() { return T('plugins.games.name.ttt'); }, icon: 'XO', decode: flatDecode, Board: TttBoard },
+    c4: { get name() { return T('plugins.games.name.c4'); }, icon: '●', decode: flatDecode, Board: C4Board },
+    chess: { get name() { return T('plugins.games.name.chess'); }, icon: '♟', decode: chessDecode, Board: ChessBoard },
   };
 
   // ════════════════════════ store ════════════════════════
@@ -110,8 +111,8 @@ Orbit.plugin('games', (orbit, log) => {
     if (!g || g.status !== 'active' || g.turn !== g.mySide) return;
     if (prev && prev.status === 'active' && prev.turn === g.turn) return; // no change
     if (store.open && store.active === g.id && !store.showBoard && !document.hidden) return;
-    showToast(GAMES[g.type].name + ' : à toi contre ' + g.opp, g.id);
-    if (document.hidden) { flashTitle('À toi · ' + GAMES[g.type].name + ' · ' + g.opp); beep(); }
+    showToast(T('plugins.games.toastTurn', { game: GAMES[g.type].name, opp: g.opp }), g.id);
+    if (document.hidden) { flashTitle(T('plugins.games.titleTurn', { game: GAMES[g.type].name, opp: g.opp })); beep(); }
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) restoreTitle(); });
   window.addEventListener('focus', restoreTitle);
@@ -126,7 +127,7 @@ Orbit.plugin('games', (orbit, log) => {
       const g = { id, type, board: GAMES[type].decode(kv.s), turn: kv.t, mySide: kv.me, opp: kv.opp, status: kv.st, result: kv.r };
       store.games[id] = g;
       if (!store.active || store.active === id) { store.active = id; store.showBoard = false; }
-      if (g.status === 'offer' && (!prev || prev.status !== 'offer')) showToast(g.opp + ' te défie · ' + GAMES[type].name, id);
+      if (g.status === 'offer' && (!prev || prev.status !== 'offer')) showToast(T('plugins.games.toastOffer', { opp: g.opp, game: GAMES[type].name }), id);
       notify();
       alertTurn(g, prev);
     } else if (text.startsWith('GS$TOPSTART')) {
@@ -181,10 +182,10 @@ Orbit.plugin('games', (orbit, log) => {
   const RANK_BADGE = { Bronze: '🥉', Silver: '🥈', Gold: '🥇', Master: '💎' };
 
   function statusText(g) {
-    if (g.status === 'offer') return g.opp + ' te défie';
-    if (g.status === 'pending') return 'En attente de ' + g.opp + '…';
-    if (g.status === 'over') return g.result === 'draw' ? 'Match nul.' : g.result === 'win' ? 'Tu gagnes !' : 'Tu perds.';
-    return g.turn === g.mySide ? 'À toi' : 'Au tour de ' + g.opp;
+    if (g.status === 'offer') return T('plugins.games.stOffer', { opp: g.opp });
+    if (g.status === 'pending') return T('plugins.games.stPending', { opp: g.opp });
+    if (g.status === 'over') return g.result === 'draw' ? T('plugins.games.stDraw') : g.result === 'win' ? T('plugins.games.stWin') : T('plugins.games.stLoss');
+    return g.turn === g.mySide ? T('plugins.games.stYourTurn') : T('plugins.games.stTheirTurn', { opp: g.opp });
   }
 
   function Panel() {
@@ -202,30 +203,30 @@ Orbit.plugin('games', (orbit, log) => {
 
     return html`<div style=${{ position: 'fixed', right: '14px', bottom: '74px', zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '14px', boxShadow: '0 24px 60px -20px rgba(0,0,0,.7)', padding: '.85rem' }}>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.6rem' }}>
-        <strong style=${{ font: '700 .95rem/1 inherit' }}>Jeux</strong>
+        <strong style=${{ font: '700 .95rem/1 inherit' }}>${T('plugins.games.title')}</strong>
         <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, padding: '.15rem .45rem' }}>✕</button>
       </div>
 
       ${myPlayed.length ? html`<div style=${{ display: 'flex', flexDirection: 'column', gap: '.3rem', margin: '-.15rem 0 .55rem' }}>
         ${myPlayed.map((t) => { const r = ms[t]; return html`<div key=${t} style=${{ display: 'flex', alignItems: 'center', gap: '.45rem', fontSize: '.78rem', padding: '.32rem .55rem', background: 'rgba(255,255,255,.05)', borderRadius: '8px' }}>
           <span style=${{ width: '1.1rem', textAlign: 'center' }}>${GAMES[t].icon}</span>
-          <span style=${{ fontWeight: 700 }}>${RANK_BADGE[r.rank] || ''} ${r.rank}</span>
+          <span style=${{ fontWeight: 700 }}>${RANK_BADGE[r.rank] || ''} ${T('plugins.games.rank.' + r.rank, { defaultValue: r.rank })}</span>
           <span style=${{ color: 'var(--tx-dim,#aaa)' }}>${r.points} pts</span>
           <span style=${{ marginLeft: 'auto', color: 'var(--tx-dim,#aaa)' }}>✓${r.wins} ✗${r.losses} =${r.draws}</span>
         </div>`; })}
       </div>` : null}
 
       ${invites.map((g) => html`<div key=${g.id} style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', background: 'rgba(255,255,255,.05)', borderRadius: '8px', padding: '.45rem .6rem', marginBottom: '.4rem' }}>
-        <span style=${{ fontSize: '.84rem' }}><b>${g.opp}</b> te défie · ${GAMES[g.type].name}</span>
+        <span style=${{ fontSize: '.84rem' }}>${T('plugins.games.toastOffer', { opp: g.opp, game: GAMES[g.type].name })}</span>
         <span style=${{ display: 'flex', gap: '.3rem' }}>
-          <button onClick=${() => accept(g.id)} style=${{ ...btn, color: '#2ea043', borderColor: '#2ea043' }}>Accepter</button>
-          <button onClick=${() => decline(g.id)} style=${btn}>Refuser</button>
+          <button onClick=${() => accept(g.id)} style=${{ ...btn, color: '#2ea043', borderColor: '#2ea043' }}>${T('plugins.games.accept')}</button>
+          <button onClick=${() => decline(g.id)} style=${btn}>${T('plugins.games.decline')}</button>
         </span>
       </div>`)}
 
       ${games.length ? html`<div style=${{ display: 'flex', flexWrap: 'wrap', gap: '.3rem', marginBottom: '.5rem', alignItems: 'center' }}>
         ${games.map((g) => html`<button key=${g.id} onClick=${() => { s.active = g.id; s.showBoard = false; notify(); }} style=${{ ...btn, fontSize: '.76rem', padding: '.22rem .5rem', borderColor: s.active === g.id && !s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>${GAMES[g.type].icon} ${g.opp}${g.status === 'active' && g.turn === g.mySide ? ' •' : ''}</button>`)}
-        <button onClick=${() => { s.active = null; notify(); }} title="Nouvelle partie" style=${{ ...btn, fontSize: '.76rem', padding: '.22rem .5rem' }}>＋</button>
+        <button onClick=${() => { s.active = null; notify(); }} title=${T('plugins.games.newGame')} style=${{ ...btn, fontSize: '.76rem', padding: '.22rem .5rem' }}>＋</button>
       </div>` : null}
 
       ${!showForm ? (() => {
@@ -238,22 +239,22 @@ Orbit.plugin('games', (orbit, log) => {
           <${def.Board} game=${g} play=${(mv) => { sendMove(g.id, mv); restoreTitle(); hideToast(); }} key=${g.id + g.status} />
           ${over ? html`<div style=${{ textAlign: 'center', fontWeight: 700, fontSize: '.92rem', margin: '.45rem 0' }}>${statusText(g)}</div>` : null}
           <div style=${{ display: 'flex', gap: '.4rem', justifyContent: 'center', marginTop: '.5rem' }}>
-            ${over ? html`<button onClick=${() => { s.active = null; s.challengeNick = g.opp; notify(); }} style=${btn}>Revanche</button>` : null}
-            ${!over ? html`<button onClick=${() => resign(g.id)} style=${btn}>Abandonner</button>` : null}
+            ${over ? html`<button onClick=${() => { s.active = null; s.challengeNick = g.opp; notify(); }} style=${btn}>${T('plugins.games.rematch')}</button>` : null}
+            ${!over ? html`<button onClick=${() => resign(g.id)} style=${btn}>${T('plugins.games.resign')}</button>` : null}
           </div>
         </div>`;
     })() : html`<div>
         <div style=${{ display: 'flex', gap: '.4rem', marginBottom: '.55rem' }}>
-          <button onClick=${() => { store.showBoard = false; notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: !s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>Nouvelle partie</button>
-          <button onClick=${() => { store.showBoard = true; fetchTop(store.topType); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>🏆 Classement</button>
+          <button onClick=${() => { store.showBoard = false; notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: !s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>${T('plugins.games.newGame')}</button>
+          <button onClick=${() => { store.showBoard = true; fetchTop(store.topType); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>🏆 ${T('plugins.games.leaderboard')}</button>
         </div>
         ${s.showBoard ? html`<div>
           <div style=${{ display: 'flex', gap: '.3rem', marginBottom: '.5rem' }}>
             ${Object.keys(GAMES).map((t) => html`<button key=${t} onClick=${() => { store.topType = t; fetchTop(t); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.74rem', padding: '.25rem .3rem', borderColor: s.topType === t ? 'var(--ac,#5b8cff)' : undefined }}>${GAMES[t].icon} ${GAMES[t].name}</button>`)}
           </div>
           ${(() => { const board = s.boards[s.topType];
-        return !board ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>Chargement…</div>`
-          : board.length === 0 ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>Personne au classement. Gagne une partie !</div>`
+        return !board ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>${T('plugins.games.loading')}</div>`
+          : board.length === 0 ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>${T('plugins.games.empty')}</div>`
             : board.map((row, i) => html`<div key=${row.account} style=${{ display: 'flex', alignItems: 'center', gap: '.5rem', fontSize: '.82rem', padding: '.32rem .2rem', borderBottom: '1px solid var(--border,rgba(255,255,255,.06))' }}>
                 <span style=${{ width: '1.3rem', textAlign: 'right', color: 'var(--tx-dim,#aaa)' }}>${i + 1}</span>
                 <span>${RANK_BADGE[row.tier] || ''}</span>
@@ -261,8 +262,8 @@ Orbit.plugin('games', (orbit, log) => {
                 <span style=${{ color: 'var(--tx-dim,#aaa)' }}>${row.points} pts</span>
               </div>`); })()}
         </div>` : html`<div>
-          <div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#aaa)', marginBottom: '.4rem' }}>Défie n'importe qui de connecté. GameServ arbitre chaque coup. Avec un compte la partie est classée ; en invité, elle est amicale.</div>
-          <input value=${nick} onInput=${(e) => setNick(e.target.value)} placeholder="Pseudo de l'adversaire" style=${{ width: '100%', boxSizing: 'border-box', padding: '.5rem .6rem', borderRadius: '8px', border: '1px solid var(--border,#444)', background: 'var(--bg,#0e0e12)', color: 'inherit', font: 'inherit', marginBottom: '.5rem' }} />
+          <div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#aaa)', marginBottom: '.4rem' }}>${T('plugins.games.challengeIntro')}</div>
+          <input value=${nick} onInput=${(e) => setNick(e.target.value)} placeholder=${T('plugins.games.oppPlaceholder')} style=${{ width: '100%', boxSizing: 'border-box', padding: '.5rem .6rem', borderRadius: '8px', border: '1px solid var(--border,#444)', background: 'var(--bg,#0e0e12)', color: 'inherit', font: 'inherit', marginBottom: '.5rem' }} />
           <div style=${{ display: 'flex', gap: '.4rem' }}>
             ${Object.keys(GAMES).map((id) => html`<button key=${id} onClick=${() => nick.trim() && challenge(nick.trim(), id)} style=${{ ...btn, flex: 1, fontSize: '.8rem' }}>${GAMES[id].icon} ${GAMES[id].name}</button>`)}
           </div>
@@ -276,7 +277,7 @@ Orbit.plugin('games', (orbit, log) => {
     const games = Object.values(s.games);
     const alert = games.some((g) => g.status === 'offer') || games.some((g) => g.status === 'active' && g.turn === g.mySide);
     return html`<${orbit.Fragment}>
-      <button title="Jeux" onClick=${() => { s.open = !s.open; notify(); }} style=${{ position: 'relative', display: 'flex', alignItems: 'center', background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer', padding: '0 .4rem', alignSelf: 'center' }}>
+      <button title=${T('plugins.games.title')} onClick=${() => { s.open = !s.open; notify(); }} style=${{ position: 'relative', display: 'flex', alignItems: 'center', background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer', padding: '0 .4rem', alignSelf: 'center' }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style=${{ display: 'block' }}>
           <line x1="6" x2="10" y1="11" y2="11" />
           <line x1="8" x2="8" y1="9" y2="13" />
@@ -303,11 +304,11 @@ Orbit.plugin('games', (orbit, log) => {
       .sort((a, b) => b.points - a.points);
     if (!played.length) return null;
     const best = played[0]; // their strongest game
-    return html`<span title=${'Meilleur classement : ' + GAMES[best.t].name} style=${{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.8rem', fontWeight: 600, padding: '.3rem .6rem', borderRadius: '999px', background: 'rgba(255,255,255,.06)', border: '1px solid var(--border,#444)' }}>${GAMES[best.t].icon} ${RANK_BADGE[best.rank] || ''} ${best.rank} · ${best.points} pts</span>`;
+    return html`<span title=${T('plugins.games.bestRank', { game: GAMES[best.t].name })} style=${{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.8rem', fontWeight: 600, padding: '.3rem .6rem', borderRadius: '999px', background: 'rgba(255,255,255,.06)', border: '1px solid var(--border,#444)' }}>${GAMES[best.t].icon} ${RANK_BADGE[best.rank] || ''} ${T('plugins.games.rank.' + best.rank, { defaultValue: best.rank })} · ${best.points} pts</span>`;
   }
   const refreshStatsFor = (nick) => cmd('STATS ' + nick);
 
   orbit.addUi('topbar_item', () => orbit.h(GamesButton));
   orbit.addUserAction((u) => html`<${RankChip} nick=${u.nick} />`);
-  orbit.addUserAction((u) => html`<button className="pm-chip" onClick=${() => { store.challengeNick = u.nick; store.active = null; store.showBoard = false; store.open = true; notify(); u.close(); }}>♟ Défier à un jeu</button>`);
+  orbit.addUserAction((u) => html`<button className="pm-chip" onClick=${() => { store.challengeNick = u.nick; store.active = null; store.showBoard = false; store.open = true; notify(); u.close(); }}>♟ ${T('plugins.games.challengeAction')}</button>`);
 });

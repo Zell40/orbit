@@ -725,5 +725,68 @@
     "title": "Algo deu errado",
     "body": "O app encontrou um erro inesperado. Recarregar costuma resolver.",
     "reload": "Recarregar"
+  },
+  "plugins": {
+    "copy": {
+      "title": "Copiar mensagem",
+      "copied": "Copiado!",
+      "copiedShort": "Copiado"
+    },
+    "clock": {
+      "title": "Hora local"
+    },
+    "invite": {
+      "panelTitle": "Convidar",
+      "tip": "Convidar amigos",
+      "inRoom": "Convide amigos para {{chan}}",
+      "inRoomSub": "Um link para compartilhar (WhatsApp, Discord…). Sem precisar de conta.",
+      "duel": "Desafie um amigo para o xadrez",
+      "duelSub": "Ele clica, joga contra você — arbitrado pelo GameServ, sem cadastro.",
+      "shared": "Link compartilhado ✓",
+      "copied": "Link copiado ✓ — cole onde quiser",
+      "copyThis": "Copie este link:",
+      "roomShare": "Venha comigo em {{chan}} · {{brand}}",
+      "duelShare": "Desafio de xadrez no {{brand}}"
+    },
+    "games": {
+      "title": "Jogos",
+      "name": {
+        "ttt": "Jogo da velha",
+        "c4": "Lig 4",
+        "chess": "Xadrez"
+      },
+      "promotion": "Promoção:",
+      "toastTurn": "{{game}}: sua vez contra {{opp}}",
+      "titleTurn": "Sua vez · {{game}} · {{opp}}",
+      "toastOffer": "{{opp}} desafia você · {{game}}",
+      "stOffer": "{{opp}} desafia você",
+      "stPending": "Aguardando {{opp}}…",
+      "stDraw": "Empate.",
+      "stWin": "Você venceu!",
+      "stLoss": "Você perdeu.",
+      "stYourTurn": "Sua vez",
+      "stTheirTurn": "Vez de {{opp}}",
+      "accept": "Aceitar",
+      "decline": "Recusar",
+      "newGame": "Nova partida",
+      "rematch": "Revanche",
+      "resign": "Desistir",
+      "leaderboard": "Ranking",
+      "loading": "Carregando…",
+      "empty": "Ninguém no ranking ainda. Vença uma partida!",
+      "challengeIntro": "Desafie qualquer pessoa online. O GameServ arbitra cada jogada. Com uma conta a partida vale ranking; como convidado é só por diversão.",
+      "oppPlaceholder": "Nick do adversário",
+      "bestRank": "Melhor colocação: {{game}}",
+      "challengeAction": "Desafiar para um jogo",
+      "rank": {
+        "Bronze": "Bronze",
+        "Silver": "Prata",
+        "Gold": "Ouro",
+        "Master": "Mestre"
+      }
+    }
+  },
+  "pwa": {
+    "description": "O chat, ao vivo. Salas públicas, mensagens privadas, sem cadastro."
   }
 }
