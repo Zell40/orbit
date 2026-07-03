@@ -205,7 +205,7 @@ export class IrcClient {
       this.send(`CAP LS 302`);
       if (opts.serverPassword) this.send(`PASS :${opts.serverPassword}`);
       this.send(`NICK ${opts.nick}`);
-      this.send(`USER ${opts.username || 'tchatou'} 0 * :${opts.realname || opts.nick}`);
+      this.send(`USER ${opts.username || 'guest'} 0 * :${opts.realname || opts.nick}`);
     };
     ws.onmessage = (ev) => {
       const text = typeof ev.data === 'string'

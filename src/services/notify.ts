@@ -1,5 +1,6 @@
 // Browser notifications, a subtle sound blip, and permission handling.
 import { pushEnabledPref } from './push';
+import { getConfig } from '../config';
 
 let ac: AudioContext | null = null;
 
@@ -17,7 +18,7 @@ export function desktopNotify(title: string, body: string): void {
     // even when the tab is backgrounded/closed) — skip here to avoid duplicates.
     if (pushEnabledPref()) return;
     if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-      const n = new Notification(title, { body, icon: '/app/favicon.svg', silent: true });
+      const n = new Notification(title, { body, icon: getConfig().branding.icon || '/app/favicon.svg', silent: true });
       n.onclick = () => { window.focus(); n.close(); };
       setTimeout(() => n.close(), 6000);
     }

@@ -40,6 +40,17 @@ function parseIrcLine(line) {
   return { nick, command, target, text, msgid };
 }
 
+// Brand name/icon for notifications — read from config.json (network-first, cache
+// fallback) so a re-branded deployment's push notifications match its identity.
+async function brand() {
+  try {
+    let r;
+    try { r = await fetch('/app/config.json', { cache: 'no-store' }); } catch { r = await caches.match('/app/config.json'); }
+    const b = (await r.json()).branding || {};
+    return { name: b.name || 'Orbit', icon: b.icon || '/app/favicon.svg' };
+  } catch { return { name: 'Orbit', icon: '/app/favicon.svg' }; }
+}
+
 self.addEventListener('push', (e) => {
   e.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
@@ -53,14 +64,15 @@ self.addEventListener('push', (e) => {
     if (m.command !== 'PRIVMSG' && m.command !== 'NOTICE') return;
 
     const isChannel = /^[#&]/.test(m.target || '');
-    const title = isChannel ? `${m.nick} · ${m.target}` : (m.nick || 'Tchatou');
+    const b = await brand();
+    const title = isChannel ? `${m.nick} · ${m.target}` : (m.nick || b.name);
     let body = m.text || '';
     if (body.startsWith('\x01ACTION ')) body = `* ${m.nick} ${body.slice(8).replace(/\x01$/, '')}`;
 
     await self.registration.showNotification(title, {
       body,
-      icon: '/app/favicon.svg',
-      badge: '/app/favicon.svg',
+      icon: b.icon,
+      badge: b.icon,
       tag: m.msgid || `${m.nick}:${m.target}`,
       renotify: true,
       data: { target: isChannel ? m.target : m.nick, url: '/app/' },

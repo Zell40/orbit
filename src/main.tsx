@@ -30,6 +30,21 @@ async function localizeManifest() {
   } catch { /* keep the static manifest */ }
 }
 
+// Browser tab icon follows the configured brand icon (index.html ships a static
+// default for the pre-JS paint; here we point it at config.branding.icon).
+function applyBrandIcon() {
+  try {
+    const icon = getConfig().branding?.icon
+    if (!icon) return
+    let link = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null
+    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link) }
+    link.href = icon
+    const name = getConfig().branding?.name
+    const m = document.querySelector('meta[name="apple-mobile-web-app-title"]')
+    if (m && name) m.setAttribute('content', name) // iOS home-screen title
+  } catch { /* keep the static favicon */ }
+}
+
 // Load runtime config.json FIRST, then import App (so the store initialises with
 // the resolved config). Keeps the client fully re-pointable/re-brandable without
 // a rebuild.
@@ -37,6 +52,7 @@ loadConfig().then(async () => {
   applyTheme(getTheme()) // re-apply now that config (default theme) is loaded
   applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
   void localizeManifest() // re-serve the PWA manifest with a localized name/description
+  applyBrandIcon()        // browser tab favicon follows config.branding.icon
   const { default: App } = await import('./App.tsx') // also creates the store
   // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
   // then load operator-listed plugins from config. After the store exists,
