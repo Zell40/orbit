@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from 'zustand';
-import { useNetworks, type NetworkEntry } from '../../core/networks';
+import { useNetworks, passKey, type NetworkEntry } from '../../core/networks';
 import { getConfig } from '../../core/config';
-import type { ConnectOptions } from '../../core/irc/types';
 
 // One network chip: connection dot + label + (when it's not the active one) an
 // unread badge. Subscribes to THIS network's own store for its status/unread.
@@ -54,10 +53,11 @@ function AddNetwork({ onClose }: { onClose: () => void }) {
     if (!nk || !url.trim()) return;
     let name = label.trim();
     if (!name) { try { name = new URL(url).hostname; } catch { name = 'Network'; } }
+    const u = url.trim();
     const channels = chans.split(',').map((c) => c.trim()).filter(Boolean);
-    const entry = useNetworks.getState().add(name);
-    const opts: ConnectOptions = { url: url.trim(), nick: nk, channels, password: pass || undefined };
-    entry.store.getState().connect(opts);
+    const entry = useNetworks.getState().add(name, { url: u, nick: nk, channels });
+    if (pass) sessionStorage.setItem(passKey(u, nk), pass); // survives reload same-tab, not localStorage
+    entry.store.getState().connect({ url: u, nick: nk, channels, password: pass || undefined });
     useNetworks.getState().setActive(entry.id);
     onClose();
   }

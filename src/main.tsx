@@ -66,6 +66,11 @@ loadConfig().then(async () => {
   // mounted by core — no config.json entry needed.
   void import('./modules/sandbox/builtins').then((m) => m.mountBuiltins())
 
+  // Multi-network: reconnect any extra networks the user had before a reload.
+  if (getConfig().features.multiNetwork) {
+    try { (await import('./core/networks')).restoreNetworks() } catch { /* ignore */ }
+  }
+
   // Site handoff: if the entry form sent us here, auto-connect with the nick and
   // channels from the URL plus any SASL password parked in sessionStorage, and
   // mark the store so the first paint is a "connecting" splash, not the join
