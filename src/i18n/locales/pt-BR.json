@@ -715,6 +715,13 @@
     "mute": "Silenciado",
     "muteDesc": "Sem avisos nem som"
   },
+  "pins": {
+    "pin": "Fixar",
+    "unpin": "Desafixar",
+    "title": "Fixadas",
+    "jump": "Ir para a mensagem",
+    "aria": "Mensagens fixadas ({{count}})"
+  },
   "a11y": {
     "skip": "Ir para as mensagens",
     "messages": "Mensagens",

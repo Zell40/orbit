@@ -715,6 +715,13 @@
     "mute": "Muted",
     "muteDesc": "No alerts or sound"
   },
+  "pins": {
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "title": "Pinned",
+    "jump": "Go to message",
+    "aria": "Pinned messages ({{count}})"
+  },
   "a11y": {
     "skip": "Skip to messages",
     "messages": "Messages",

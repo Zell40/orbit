@@ -715,6 +715,13 @@
     "mute": "Stummgeschaltet",
     "muteDesc": "Keine Hinweise oder Töne"
   },
+  "pins": {
+    "pin": "Anpinnen",
+    "unpin": "Entpinnen",
+    "title": "Angepinnt",
+    "jump": "Zur Nachricht",
+    "aria": "Angepinnte Nachrichten ({{count}})"
+  },
   "a11y": {
     "skip": "Zu den Nachrichten springen",
     "messages": "Nachrichten",

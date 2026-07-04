@@ -715,6 +715,13 @@
     "mute": "En sourdine",
     "muteDesc": "Aucune alerte ni son"
   },
+  "pins": {
+    "pin": "Épingler",
+    "unpin": "Désépingler",
+    "title": "Épinglés",
+    "jump": "Aller au message",
+    "aria": "Messages épinglés ({{count}})"
+  },
   "a11y": {
     "skip": "Aller aux messages",
     "messages": "Messages",

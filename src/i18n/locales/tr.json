@@ -715,6 +715,13 @@
     "mute": "Sessize alındı",
     "muteDesc": "Uyarı veya ses yok"
   },
+  "pins": {
+    "pin": "Sabitle",
+    "unpin": "Sabitlemeyi kaldır",
+    "title": "Sabitlenenler",
+    "jump": "Mesaja git",
+    "aria": "Sabitlenen mesajlar ({{count}})"
+  },
   "a11y": {
     "skip": "Mesajlara geç",
     "messages": "Mesajlar",
