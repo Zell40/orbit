@@ -76,14 +76,22 @@
       // Populate this iframe's own DOM, then claim a UI slot in the app shell.
       // Height is reported back so the host can size the frame to the content.
       ui: function (slot, build) {
-        try { build(document.body); } catch (e) { rpc('log', 'ui build threw: ' + e); }
+        // Outer sizer stays inline-block so it shrink-wraps to content; the plugin
+        // only gets `inner` and may style it freely (even display:flex) without
+        // breaking measurement.
+        var outer = document.createElement('div');
+        outer.style.cssText = 'display:inline-block';
+        var inner = document.createElement('div');
+        outer.appendChild(inner);
+        document.body.appendChild(outer);
+        try { build(inner); } catch (e) { rpc('log', 'ui build threw: ' + e); }
         rpc('ui.claim', slot);
         var report = function () {
-          var r = document.body.getBoundingClientRect();
+          var r = outer.getBoundingClientRect();
           rpc('ui.resize', Math.ceil(r.width), Math.ceil(r.height));
         };
         report();
-        if (window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+        if (window.ResizeObserver) new ResizeObserver(report).observe(outer);
       },
     };
   }
