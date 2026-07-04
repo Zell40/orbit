@@ -258,6 +258,8 @@ input, textarea { font-family: inherit; }
   border-radius: 11px; font-size: 1.1rem; color: var(--muted); cursor: pointer; transition: background .12s, color .12s;
 }
 .appbar__act:hover { background: var(--bg); color: var(--ink); }
+/* host mount point for a sandboxed plugin's iframe (sized to content by the host) */
+.sbx-slot { display: inline-flex; align-items: center; }
 /* away toggle: dim = present (click to step away), amber-lit = away */
 .appbar__act--away { filter: grayscale(1); opacity: .55; }
 .appbar__act--away:hover { filter: grayscale(.5); opacity: .85; }

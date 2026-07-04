@@ -15,8 +15,10 @@ Orbit.plugin('sandbox-demo', function (orbit, log) {
   orbit.ui('footer_item', function (root) {
     var btn = document.createElement('button');
     btn.textContent = '🧪 wave';
-    btn.style.cssText = 'font:inherit;cursor:pointer;border:1px solid #8884;border-radius:8px;' +
-      'padding:.25rem .5rem;background:transparent;color:inherit';
+    // Explicit colours: the sandbox is isolated from the app's theme vars, so a
+    // self-contained plugin ships its own visible styling (works on light + dark).
+    btn.style.cssText = 'font:600 13px system-ui,sans-serif;cursor:pointer;border:0;border-radius:8px;' +
+      'padding:.3rem .6rem;background:#8957e5;color:#fff;white-space:nowrap';
     btn.onclick = function () {
       var n = (orbit.storage.get('waves', 0)) + 1;
       orbit.storage.set('waves', n);

@@ -65,10 +65,8 @@ export async function mountSandboxedPlugin(entry: Exclude<PluginEntry, string>):
   iframe.src = SANDBOX_DOC;
   iframe.setAttribute('sandbox', 'allow-scripts'); // opaque origin — the isolation boundary
   iframe.title = name;
-  iframe.style.cssText = 'border:0;width:100%;height:0;display:block;background:transparent';
+  iframe.style.cssText = 'border:0;width:0;height:0;display:block;background:transparent;color-scheme:normal';
 
-  const chan = new MessageChannel();
-  const port = chan.port1;
   const log = (...a: unknown[]) => { if (pluginDebug()) console.log(`%c[${name}]`, 'color:#8957e5', ...a); };
 
   let claimed = false;
@@ -88,38 +86,50 @@ export async function mountSandboxedPlugin(entry: Exclude<PluginEntry, string>):
       const slot = String(a[0] ?? 'footer_item') as UiSlot;
       removeUi = usePluginRegistry.getState().addUi(slot, name, () => createElement(SandboxFrame, { iframe }));
     },
-    'ui.resize': (a) => { iframe.style.height = `${Math.max(0, Math.min(2000, Number(a[0]) || 0))}px`; },
+    'ui.resize': (a) => {
+      const w = Math.max(0, Math.min(4000, Number(a[0]) || 0));
+      const h = Math.max(0, Math.min(2000, Number(a[1]) || 0));
+      if (w) iframe.style.width = `${w}px`;
+      iframe.style.height = `${h}px`;
+    },
   };
 
-  port.onmessage = (e: MessageEvent) => {
-    const m = e.data as GuestToHost;
-    if (!m || m.type !== 'rpc' || typeof m.method !== 'string') return;
-    if (!isGranted(permissions, m.method)) {
-      log('DENIED ungranted capability', m.method);
-      port.postMessage({ type: 'rpc:reply', id: m.id, error: `denied: ${m.method}` });
-      return;
-    }
-    let result: unknown, error: string | undefined;
-    try { result = impl[m.method]?.(Array.isArray(m.args) ? m.args : []); }
-    catch (err) { error = String(err); }
-    port.postMessage({ type: 'rpc:reply', id: m.id, result, error });
-  };
-
-  // Forward only the curated events; refresh the cached snapshot when it can change.
-  const offs = FORWARDED_EVENTS.map((ev) =>
-    bus.on(ev, (...args: unknown[]) => {
-      port.postMessage({ type: 'event', name: ev, args });
-      if (ev === 'connected' || ev === 'buffer.active') port.postMessage({ type: 'snapshot', snapshot: snapshot() });
-    }));
-  void offs; // plugins live for the session; disposers kept for a future unload path
-
-  iframe.addEventListener('load', () => {
+  // (Re)establish the bridge on EVERY iframe load. Adopting the iframe into a UI
+  // slot reparents it, which reloads the document and neuters the transferred
+  // port — so we hand the fresh guest a new MessageChannel and re-send init each
+  // time (a plugin's on-load code must therefore be idempotent).
+  let teardown = () => {};
+  const handshake = () => {
+    teardown();
+    const chan = new MessageChannel();
+    const port = chan.port1;
+    port.onmessage = (e: MessageEvent) => {
+      const m = e.data as GuestToHost;
+      if (!m || m.type !== 'rpc' || typeof m.method !== 'string') return;
+      if (!isGranted(permissions, m.method)) {
+        log('DENIED ungranted capability', m.method);
+        port.postMessage({ type: 'rpc:reply', id: m.id, error: `denied: ${m.method}` });
+        return;
+      }
+      let result: unknown, error: string | undefined;
+      try { result = impl[m.method]?.(Array.isArray(m.args) ? m.args : []); }
+      catch (err) { error = String(err); }
+      port.postMessage({ type: 'rpc:reply', id: m.id, result, error });
+    };
+    const offs = FORWARDED_EVENTS.map((ev) =>
+      bus.on(ev, (...args: unknown[]) => {
+        port.postMessage({ type: 'event', name: ev, args });
+        if (ev === 'connected' || ev === 'buffer.active') port.postMessage({ type: 'snapshot', snapshot: snapshot() });
+      }));
+    teardown = () => { offs.forEach((o) => o()); port.close(); };
     iframe.contentWindow?.postMessage(
       { type: 'init', name, permissions, source, snapshot: snapshot(), storage: loadStorage(name) },
       '*', [chan.port2],
     );
-    log('mounted');
-  });
+    log('handshake');
+  };
+
+  iframe.addEventListener('load', handshake);
   holder().appendChild(iframe);
   void removeUi; // referenced by the (future) unload path
 }
