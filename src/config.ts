@@ -70,6 +70,9 @@ export interface AppConfig {
    * See docs/PLUGINS.md.
    */
   plugins?: PluginEntry[];
+  /** Built-in sandboxed features to enable, by name (opt-in). Currently: "dice".
+   *  These ship with the app and run isolated; listing one here mounts it. */
+  builtins?: string[];
 }
 
 /** A plugin to load: a bare URL, or a URL with options.
@@ -98,6 +101,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
   features: { push: true, imageUpload: true, register: true },
   plugins: [],
+  builtins: [],
 };
 
 let cfg: AppConfig = DEFAULT_CONFIG;

@@ -10,8 +10,9 @@ Two things use it:
 
 - **Built-in features (bundled)** — the app mounts them itself at boot via
   `src/sandbox/builtins.ts` → `mountSandboxed({ name, source, permissions })`, with
-  the source compiled into the app (`?raw`). No `config.json` entry. Example: the
-  `/roll` dice widget (`src/sandbox/features/dice.js`).
+  the source compiled into the app (`?raw`). They are **opt-in per deployment**: a
+  built-in only mounts if its name is listed in `config.json` `"builtins": [...]`.
+  Example: the `dice` 🎲/🪙 widget (`src/sandbox/features/dice.js`).
 - **Operator plugins (config)** — a `config.json` entry with `sandbox: true` is
   fetched and mounted the same way. Use for community / third-party / less-trusted
   plugins. (Plain string entries still load in-page as a trusted `<script>`.)

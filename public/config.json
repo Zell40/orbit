@@ -38,5 +38,6 @@
     "imageUpload": true,
     "register": true
   },
-  "plugins": ["/app/plugins/orbit-clock.js", "/app/plugins/orbit-copy.js", "/app/plugins/orbit-games.js", "/app/plugins/orbit-invite.js"]
+  "plugins": ["/app/plugins/orbit-clock.js", "/app/plugins/orbit-copy.js", "/app/plugins/orbit-games.js", "/app/plugins/orbit-invite.js"],
+  "builtins": []
 }

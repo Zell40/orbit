@@ -6,11 +6,14 @@
 // the opaque-origin guest, so a bundled feature still can't reach the page/session.
 import diceSource from './features/dice.js?raw';
 import { mountSandboxed } from './host';
+import { getConfig } from '../config';
 
 const BUILTINS = [
   { name: 'dice', source: diceSource, permissions: ['irc', 'storage'] },
 ];
 
+// Mount only the built-ins an operator opted into via config.json `builtins: [...]`.
 export function mountBuiltins(): void {
-  for (const b of BUILTINS) mountSandboxed(b);
+  const enabled = getConfig().builtins ?? [];
+  for (const b of BUILTINS) if (enabled.includes(b.name)) mountSandboxed(b);
 }

@@ -43,6 +43,7 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 | `features.imageUpload` | bool | `true` | Enable the composer image button + paste/drag-drop upload. |
 | `features.register` | bool | `true` | Account self-service: shows the "Create account" button, the "Forgot password" link, and their FAQ entries. `false` hides all of them. |
 | `plugins` | string[] | `[]` | Plugin script URLs loaded at startup (operator-controlled). See **[PLUGINS.md](./docs/PLUGINS.md)**. |
+| `builtins` | string[] | `[]` | Built-in **sandboxed** features to enable by name (opt-in). Currently `"dice"` (a 🎲/🪙 footer widget). See **[docs/SANDBOX.md](./docs/SANDBOX.md)**. |
 
 > `defaults.*` only seed a user's preferences the **first** time — once someone
 > changes a setting it's stored in their browser and the config no longer
@@ -67,7 +68,8 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
   "report":   { "service": "ReportServ", "target": "#staff" },
   "defaults": { "theme": "dark", "compact": true, "sound": true, "hideJoinQuit": true, "clock24": true, "lang": "" },
   "features": { "push": true, "imageUpload": true, "register": false },
-  "plugins":  []
+  "plugins":  [],
+  "builtins": ["dice"]
 }
 ```
 
