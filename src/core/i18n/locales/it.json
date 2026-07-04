@@ -271,7 +271,7 @@
       "hideJoins": "Nascondi entrate / uscite",
       "hideJoinsHint": "Nasconde i «è entrato / è uscito».",
       "linkPreviews": "Anteprime dei link",
-      "linkPreviewsHint": "Mostra una scheda per i link, recuperata dal server.",
+      "linkPreviewsHint": "Mostra anteprime per link, immagini, audio e video.",
       "highlightLabel": "Parole chiave di evidenziazione",
       "highlightPlaceholder": "es.: tchatou, incontro, urgente",
       "highlightHint": "Oltre al tuo soprannome, queste parole attivano un avviso (separate da virgole)."

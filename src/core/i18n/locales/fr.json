@@ -271,7 +271,7 @@
       "hideJoins": "Masquer entrées / sorties",
       "hideJoinsHint": "Cache les « a rejoint / a quitté ».",
       "linkPreviews": "Aperçus de liens",
-      "linkPreviewsHint": "Affiche une carte pour les liens, récupérée par le serveur.",
+      "linkPreviewsHint": "Affiche des aperçus pour les liens, images, audio et vidéos.",
       "highlightLabel": "Mots-clés de surbrillance",
       "highlightPlaceholder": "ex : tchatou, rdv, urgent",
       "highlightHint": "En plus de ton pseudo, ces mots déclenchent une alerte (séparés par des virgules)."

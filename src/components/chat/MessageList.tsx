@@ -79,7 +79,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           {m.kind === 'action' ? `* ${m.from}` : `<${m.from}>`}
         </button>{' '}
         <span className="mircline__txt">
-          {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self)}
+          {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
           {!m.redacted && <MsgDecorations m={m} />}
         </span>
         {m.reactions && m.reactions.length > 0 && (
@@ -123,7 +123,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           </div>
         )}
         <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
-          {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self)}</em> : formatIrc(m.text, m.self))}
+          {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
         </div>
         {!m.redacted && linkPreviews && getConfig().features.linkPreviews && (() => {
@@ -194,6 +194,7 @@ export function MessageList() {
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const search = useActiveChat((s) => s.search);
   const hideJoinQuit = useActiveChat((s) => s.prefs.hideJoinQuit);
+  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const mirc = useTheme().startsWith('yomirc');
   const loadMore = useActiveChat((s) => s.loadMoreHistory);
   const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
@@ -292,7 +293,7 @@ export function MessageList() {
         const [modes, ...margs] = m.text.split(' ');
         body = <>{m.from} applique {modes}{margs.length ? ' ' + margs.join(' ') : ''}</>;
       } else if (m.kind === 'topic') {
-        body = m.text ? <>{m.from} change le sujet : {formatIrc(m.text, false)}</> : <>{m.from} retire le sujet</>;
+        body = m.text ? <>{m.from} change le sujet : {formatIrc(m.text, false, linkPreviews)}</> : <>{m.from} retire le sujet</>;
       } else if (m.kind === 'info' || m.kind === 'ban') {
         body = m.text.replace(/^[*•»]+\s*/, '');
       } else { // join / part / quit / nick / kick / system
@@ -356,7 +357,7 @@ export function MessageList() {
           <span className="modeline__tag modeline__tag--topic">{t('modeline.topicTag')}</span>
           <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
           <span className="modeline__verb">{m.text ? t('modeline.topicChanged') : t('modeline.topicRemoved')}</span>
-          {m.text && <span className="topicline__txt">{formatIrc(m.text, false)}</span>}
+          {m.text && <span className="topicline__txt">{formatIrc(m.text, false, linkPreviews)}</span>}
         </div>,
       );
       lastFrom = ''; continue;
@@ -386,7 +387,7 @@ export function MessageList() {
         <div key={m.id} className="sysline sysline--mode noticeline">
           <span className="modeline__tag noticeline__tag">NOTICE</span>
           {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
-          <span className="noticeline__txt">{formatIrc(m.text, m.self)}</span>
+          <span className="noticeline__txt">{formatIrc(m.text, m.self, linkPreviews)}</span>
         </div>,
       );
       lastFrom = ''; continue;

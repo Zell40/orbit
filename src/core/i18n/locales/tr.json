@@ -271,7 +271,7 @@
       "hideJoins": "Girişleri / çıkışları gizle",
       "hideJoinsHint": "«katıldı / ayrıldı» satırlarını gizler.",
       "linkPreviews": "Bağlantı önizlemeleri",
-      "linkPreviewsHint": "Bağlantılar için sunucudan alınan bir kart gösterir.",
+      "linkPreviewsHint": "Bağlantılar, resimler, ses ve videolar için önizleme gösterir.",
       "highlightLabel": "Vurgulama anahtar kelimeleri",
       "highlightPlaceholder": "örn.: tchatou, buluşma, acil",
       "highlightHint": "Takma adının yanı sıra bu kelimeler uyarı tetikler (virgülle ayrılmış)."

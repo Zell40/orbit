@@ -189,7 +189,9 @@ function Spoiler({ text }: { text: string }) {
   );
 }
 
-function linkify(text: string, selfMsg = false): ReactNode {
+// `embeds` gates the inline media cards (image/audio/YouTube) — off = plain links,
+// so the "Link previews" pref silences every embed, not just the OpenGraph card.
+function linkify(text: string, selfMsg = false, embeds = true): ReactNode {
   // Pull out ||spoilers|| first, then linkify the remaining runs.
   return text.split(/(\|\|.+?\|\|)/g).map((seg, si) => {
     const sp = /^\|\|(.+)\|\|$/.exec(seg);
@@ -197,9 +199,9 @@ function linkify(text: string, selfMsg = false): ReactNode {
     return seg.split(/(https?:\/\/[^\s]+)/g).map((p, i) => {
       const k = `${si}-${i}`;
       if (!/^https?:\/\//.test(p)) return <span key={k}>{p}</span>;
-      if (isImageUrl(p)) return <ImageAttachment key={k} url={p} defaultShown={selfMsg} />;
-      if (isAudioUrl(p)) return <AudioAttachment key={k} url={p} />;
-      const yt = youtubeId(p);
+      if (embeds && isImageUrl(p)) return <ImageAttachment key={k} url={p} defaultShown={selfMsg} />;
+      if (embeds && isAudioUrl(p)) return <AudioAttachment key={k} url={p} />;
+      const yt = embeds ? youtubeId(p) : null;
       if (yt) return <YouTubeEmbed key={k} id={yt} url={p} />;
       return <a key={k} href={p} target="_blank" rel="noopener noreferrer">{p}</a>;
     });
@@ -240,13 +242,13 @@ function fmtToStyle(st: FmtState): CSSProperties {
   return css;
 }
 
-export function formatIrc(text: string, selfMsg: boolean): ReactNode {
-  if (!FMT_RE.test(text)) return linkify(text, selfMsg);
+export function formatIrc(text: string, selfMsg: boolean, embeds = true): ReactNode {
+  if (!FMT_RE.test(text)) return linkify(text, selfMsg, embeds);
   const out: ReactNode[] = [];
   const st: FmtState = { b: false, i: false, u: false, s: false, m: false, rev: false };
   let buf = '';
   let key = 0;
-  const flush = () => { if (buf) { out.push(<span key={key++} style={fmtToStyle(st)}>{linkify(buf, selfMsg)}</span>); buf = ''; } };
+  const flush = () => { if (buf) { out.push(<span key={key++} style={fmtToStyle(st)}>{linkify(buf, selfMsg, embeds)}</span>); buf = ''; } };
   for (let i = 0; i < text.length; i++) {
     const c = text.charCodeAt(i);
     switch (c) {

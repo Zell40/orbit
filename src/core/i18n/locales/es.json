@@ -271,7 +271,7 @@
       "hideJoins": "Ocultar entradas / salidas",
       "hideJoinsHint": "Oculta los «se unió / salió».",
       "linkPreviews": "Vistas previas de enlaces",
-      "linkPreviewsHint": "Muestra una tarjeta para los enlaces, obtenida por el servidor.",
+      "linkPreviewsHint": "Muestra vistas previas de enlaces, imágenes, audio y vídeo.",
       "highlightLabel": "Palabras clave de resaltado",
       "highlightPlaceholder": "ej.: tchatou, quedada, urgente",
       "highlightHint": "Además de tu apodo, estas palabras activan una alerta (separadas por comas)."
