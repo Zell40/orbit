@@ -9,7 +9,7 @@ export type Theme = 'light' | 'dark' | 'orbit' | 'orbit-dark' | 'yomirc' | 'yomi
 
 const KEY = 'tchatou-theme';
 
-const THEME_COLOR: Record<Theme, string> = {
+const THEME_COLOR: Record<string, string> = {
   light: '#ffffff',
   dark: '#16191c',
   orbit: '#0b0e13',
@@ -20,20 +20,41 @@ const THEME_COLOR: Record<Theme, string> = {
 
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
 
-export function getTheme(): Theme {
-  const t = localStorage.getItem(KEY) as Theme;
-  if (THEMES.includes(t)) return t;
-  const d = getConfig().defaults.theme as Theme; // config-provided default for new users
-  return THEMES.includes(d) ? d : 'light';
+// Themes registered at runtime by plugins (orbit.addTheme). Kept apart from the
+// built-in list; the picker and the theme-color meta include them. Their ids are
+// plain strings, not the built-in `Theme` union.
+export interface PluginTheme { id: string; name: string; icon?: string; color?: string }
+let pluginThemes: PluginTheme[] = [];
+export function registerTheme(pt: PluginTheme): () => void {
+  pluginThemes = [...pluginThemes.filter((x) => x.id !== pt.id), pt];
+  if (pt.color) THEME_COLOR[pt.id] = pt.color;
+  window.dispatchEvent(new Event('themelistchange'));
+  return () => { pluginThemes = pluginThemes.filter((x) => x.id !== pt.id); window.dispatchEvent(new Event('themelistchange')); };
+}
+export function listPluginThemes(): PluginTheme[] { return pluginThemes; }
+export function usePluginThemes(): PluginTheme[] {
+  return useSyncExternalStore(
+    (cb) => { window.addEventListener('themelistchange', cb); return () => window.removeEventListener('themelistchange', cb); },
+    listPluginThemes, listPluginThemes,
+  );
 }
 
-export function applyTheme(t: Theme): void {
+const known = (t: string) => THEMES.includes(t as Theme) || pluginThemes.some((p) => p.id === t);
+
+export function getTheme(): string {
+  const t = localStorage.getItem(KEY) || '';
+  if (known(t)) return t;
+  const d = getConfig().defaults.theme; // config-provided default for new users
+  return known(d) ? d : 'light';
+}
+
+export function applyTheme(t: string): void {
   document.documentElement.dataset.theme = t;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', THEME_COLOR[t] ?? '#ffffff');
 }
 
-export function setTheme(t: Theme): void {
+export function setTheme(t: string): void {
   localStorage.setItem(KEY, t);
   applyTheme(t);
   window.dispatchEvent(new Event('themechange'));
@@ -44,7 +65,7 @@ function subscribe(cb: () => void): () => void {
   window.addEventListener('themechange', cb);
   return () => window.removeEventListener('themechange', cb);
 }
-export function useTheme(): Theme {
+export function useTheme(): string {
   return useSyncExternalStore(subscribe, getTheme, getTheme);
 }
 

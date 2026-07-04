@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { LANGS, setLang, getLang } from '../../i18n';
 import { useChat } from '../../store';
 import { getConfig } from '../../config';
-import { getTheme, setTheme, type Theme } from '../../ui/theme';
+import { getTheme, setTheme, usePluginThemes, type Theme } from '../../ui/theme';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../services/push';
 import { CAP_INFO } from '../../irc/cap-info';
 import { usePluginRegistry } from '../../plugins/registry';
@@ -297,9 +297,10 @@ function AppearanceSection() {
   const textScale = useChat((s) => s.prefs.textScale);
   const setPref = useChat((s) => s.setPref);
   const { t } = useTranslation();
-  const [theme, setT] = useState<Theme>(getTheme());
+  const [theme, setT] = useState<string>(getTheme());
   const [lang, setLangState] = useState(getLang());
-  function pick(tm: Theme) { setT(tm); setTheme(tm); }
+  const pluginThemes = usePluginThemes();
+  function pick(tm: string) { setT(tm); setTheme(tm); }
   function pickLang(code: string) { setLangState(code); setLang(code); }
 
   const THEME_OPTS: Array<{ id: Theme; icon: string; label: string }> = [
@@ -309,6 +310,11 @@ function AppearanceSection() {
     { id: 'orbit-dark', icon: '🌑', label: 'themes.orbitDark' },
     { id: 'yomirc', icon: '🖥️', label: 'themes.yomirc' },
     { id: 'yomirc-dark', icon: '🌑', label: 'themes.yomircDark' },
+  ];
+  // Built-in options (i18n labels) plus any themes plugins registered (plain names).
+  const themeOpts: Array<{ id: string; icon: string; label: string }> = [
+    ...THEME_OPTS.map((o) => ({ id: o.id as string, icon: o.icon, label: t(o.label) })),
+    ...pluginThemes.map((p) => ({ id: p.id, icon: p.icon || '🎨', label: p.name })),
   ];
 
   return (
@@ -323,10 +329,10 @@ function AppearanceSection() {
         <div className="sfield">
           <label className="sfield__label">{t('settings.appearance.theme')}</label>
           <div className="theme-grid">
-            {THEME_OPTS.map((tm) => (
+            {themeOpts.map((tm) => (
               <button key={tm.id} className={`theme-opt ${theme === tm.id ? 'is-on' : ''}`} onClick={() => pick(tm.id)}>
                 <span className="theme-opt__ic" aria-hidden>{tm.icon}</span>
-                <span className="theme-opt__label">{t(tm.label)}</span>
+                <span className="theme-opt__label">{tm.label}</span>
               </button>
             ))}
           </div>

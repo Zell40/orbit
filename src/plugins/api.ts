@@ -12,7 +12,7 @@ import htm from 'htm';
 import { useChat } from '../store';
 import i18n from '../i18n';
 import { pluginNotify } from '../services/notify';
-import { getTheme, setTheme, type Theme } from '../ui/theme';
+import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../ui/theme';
 import { getConfig, pluginDebug } from '../config';
 import { bus } from './bus';
 import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type FilterableMessage } from './registry';
@@ -81,7 +81,10 @@ export interface OrbitPluginApi {
     pick: (table: Record<string, string>) => string;
   };
   // ── theming ──────────────────────────────────────────────────────────────
-  themes: { current: () => Theme; list: () => Theme[]; set: (t: Theme) => void };
+  themes: { current: () => string; list: () => string[]; set: (t: string) => void };
+  /** Register a runtime theme: injects `[data-theme="id"]{…vars}` and adds it to
+   *  the theme picker. `vars` keys may omit the leading `--`. */
+  addTheme: (id: string, spec: { name?: string; icon?: string; color?: string; vars?: Record<string, string>; css?: string }) => () => void;
   // ── namespaced persistence ───────────────────────────────────────────────
   storage: { get: <T>(key: string, fallback?: T) => T | undefined; set: (key: string, value: unknown) => void };
   // ── UI extension (named slots — see registry.ts) ─────────────────────────
@@ -138,7 +141,16 @@ function makeApi(name: string): OrbitPluginApi {
         return table[l] ?? table[l.split('-')[0]] ?? table.en ?? Object.values(table)[0] ?? '';
       },
     },
-    themes: { current: getTheme, list: () => THEMES.slice(), set: setTheme },
+    themes: { current: getTheme, list: () => [...THEMES, ...listPluginThemes().map((p) => p.id)], set: setTheme },
+    addTheme: (id, spec) => {
+      const styleId = `orbit-theme-${id}`;
+      let el = document.getElementById(styleId) as HTMLStyleElement | null;
+      if (!el) { el = document.createElement('style'); el.id = styleId; document.head.appendChild(el); }
+      const vars = Object.entries(spec.vars || {}).map(([k, v]) => `${k.startsWith('--') ? k : '--' + k}:${v};`).join('');
+      el.textContent = `[data-theme="${id}"]{${vars}}${spec.css || ''}`;
+      const off = registerTheme({ id, name: spec.name || id, icon: spec.icon, color: spec.color });
+      return () => { off(); el?.remove(); };
+    },
     storage: {
       get: <T,>(key: string, fallback?: T) => {
         try { const v = localStorage.getItem(ns + key); return v === null ? fallback : (JSON.parse(v) as T); }
