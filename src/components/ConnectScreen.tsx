@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../store';
-import { getConfig } from '../config';
+import { useChat } from '../core/store';
+import { getConfig } from '../core/config';
 
 function param(name: string, fallback: string): string {
   return new URLSearchParams(window.location.search).get(name) ?? fallback;

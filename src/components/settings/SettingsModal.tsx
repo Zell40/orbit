@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LANGS, setLang, getLang } from '../../i18n';
-import { useChat } from '../../store';
-import { getConfig } from '../../config';
+import { LANGS, setLang, getLang } from '../../core/i18n';
+import { useChat } from '../../core/store';
+import { getConfig } from '../../core/config';
 import { getTheme, setTheme, usePluginThemes, type Theme } from '../../ui/theme';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../services/push';
-import { CAP_INFO } from '../../irc/cap-info';
-import { usePluginRegistry } from '../../plugins/registry';
+import { CAP_INFO } from '../../core/irc/cap-info';
+import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { Avatar } from '../Avatar';
 import { Turnstile } from '../Turnstile';

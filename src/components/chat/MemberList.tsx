@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../store';
-import type { Member } from '../../irc/types';
+import { useChat } from '../../core/store';
+import type { Member } from '../../core/irc/types';
 import { Avatar } from '../Avatar';
 const ROLES: Record<string, { key: string; cls: string }> = {
   '~': { key: 'owner', cls: 'owner' },

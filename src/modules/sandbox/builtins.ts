@@ -6,7 +6,7 @@
 // the opaque-origin guest, so a bundled feature still can't reach the page/session.
 import diceSource from './features/dice.js?raw';
 import { mountSandboxed } from './host';
-import { getConfig } from '../config';
+import { getConfig } from '../../core/config';
 
 const BUILTINS = [
   { name: 'dice', source: diceSource, permissions: ['irc', 'storage'] },

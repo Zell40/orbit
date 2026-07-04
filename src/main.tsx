@@ -1,10 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { applyTheme, getTheme } from './ui/theme.ts'
-import i18n, { applyConfigDefaultLang } from './i18n'
+import i18n, { applyConfigDefaultLang } from './core/i18n'
 import './index.css'
 import { initViewport } from './ui/viewport.ts'
-import { loadConfig, getConfig } from './config.ts'
+import { loadConfig, getConfig } from './core/config.ts'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
@@ -59,22 +59,22 @@ loadConfig().then(async () => {
   // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
   // then load operator-listed plugins from config. After the store exists,
   // before render (plugin-contributed UI registers reactively).
-  const { initPlugins } = await import('./plugins')
+  const { initPlugins } = await import('./modules')
   initPlugins()
 
   // Core sandboxed features the app ships itself (isolated + capability-gated),
   // mounted by core — no config.json entry needed.
-  void import('./sandbox/builtins').then((m) => m.mountBuiltins())
+  void import('./modules/sandbox/builtins').then((m) => m.mountBuiltins())
 
   // Site handoff: if the entry form sent us here, auto-connect with the nick and
   // channels from the URL plus any SASL password parked in sessionStorage, and
   // mark the store so the first paint is a "connecting" splash, not the join
   // form. Direct visits (no marker) fall through to the normal join screen.
-  const { takeHandoff } = await import('./handoff')
+  const { takeHandoff } = await import('./core/handoff')
   const handoff = takeHandoff()
   const nick = new URLSearchParams(window.location.search).get('nick')?.trim()
   if (handoff && nick) {
-    const { useChat } = await import('./store')
+    const { useChat } = await import('./core/store')
     const cfg = getConfig()
     const channels = (new URLSearchParams(window.location.search).get('channel') || cfg.startup.channels.join(','))
       .split(',').map((c) => c.trim()).filter(Boolean)

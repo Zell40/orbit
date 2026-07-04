@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../store';
+import { useChat } from '../../core/store';
 export function ReconnectBanner() {
   const { t } = useTranslation();
   const status = useChat((s) => s.status);

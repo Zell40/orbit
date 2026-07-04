@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from './store';
+import { useChat } from './core/store';
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { refreshPush } from './services/push';
-import { getConfig } from './config';
-import { usePluginRegistry, matchShortcut } from './plugins/registry';
+import { getConfig } from './core/config';
+import { usePluginRegistry, matchShortcut } from './modules/registry';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.

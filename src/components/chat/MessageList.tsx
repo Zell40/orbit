@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat, SERVER } from '../../store';
-import type { ChatMessage } from '../../irc/types';
+import { useChat, SERVER } from '../../core/store';
+import type { ChatMessage } from '../../core/irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
-import { stripFormatting } from '../../store/text';
+import { stripFormatting } from '../../core/store/text';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
-import { usePluginRegistry, type MessageInfo } from '../../plugins/registry';
+import { usePluginRegistry, type MessageInfo } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];

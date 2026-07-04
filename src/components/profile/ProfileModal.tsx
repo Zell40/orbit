@@ -1,9 +1,9 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../store';
+import { useChat } from '../../core/store';
 import { IRCOP_COLOR, hashHue, fmtDuration, formatUserModes } from '../../lib/format';
 import { Avatar } from '../Avatar';
-import { usePluginRegistry } from '../../plugins/registry';
+import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat, SERVER } from '../../store';
+import { useChat, SERVER } from '../../core/store';
 import { nickColor, MIRC_PALETTE } from '../../lib/format';
 import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '../../lib/editor';
-import { getConfig } from '../../config';
-import { usePluginRegistry } from '../../plugins/registry';
+import { getConfig } from '../../core/config';
+import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 function TypingIndicator() {
   const { t } = useTranslation();
