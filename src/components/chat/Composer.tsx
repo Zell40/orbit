@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat, SERVER } from '../../core/store';
+import { SERVER } from '../../core/store';
 import { nickColor, MIRC_PALETTE } from '../../lib/format';
 import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '../../lib/editor';
 import { getConfig } from '../../core/config';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { useActiveChat, activeStore } from '../../core/networks';
 function TypingIndicator() {
   const { t } = useTranslation();
-  const buffer = useChat((s) => s.buffers[s.active]);
+  const buffer = useActiveChat((s) => s.buffers[s.active]);
   if (!buffer) return null;
   const now = Date.now();
   const who = Object.entries(buffer.typing).filter(([, exp]) => exp > now).map(([n]) => n);
@@ -52,12 +53,12 @@ export function Composer() {
   // filter in the body.
   const pluginUi = usePluginRegistry((s) => s.ui);
   const pluginButtons = pluginUi.filter((u) => u.slot === 'composer_button');
-  const active = useChat((s) => s.active);
-  const send = useChat((s) => s.sendInput);
-  const notifyTyping = useChat((s) => s.notifyTyping);
-  const uploadImage = useChat((s) => s.uploadImage);
-  const uploadAudio = useChat((s) => s.uploadAudio);
-  const setDraft = useChat((s) => s.setDraft);
+  const active = useActiveChat((s) => s.active);
+  const send = useActiveChat((s) => s.sendInput);
+  const notifyTyping = useActiveChat((s) => s.notifyTyping);
+  const uploadImage = useActiveChat((s) => s.uploadImage);
+  const uploadAudio = useActiveChat((s) => s.uploadAudio);
+  const setDraft = useActiveChat((s) => s.setDraft);
 
   const [picker, setPicker] = useState(false);
   const [colors, setColors] = useState(false);
@@ -116,7 +117,7 @@ export function Composer() {
   // Load the saved draft for a salon into the editor (rich), once on mount.
   useEffect(() => {
     const root = ed.current; if (!root) return;
-    root.innerHTML = ircToHtml(useChat.getState().drafts[active] ?? '');
+    root.innerHTML = ircToHtml(activeStore().getState().drafts[active] ?? '');
     setEmpty(!(root.textContent || '').trim());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -126,7 +127,7 @@ export function Composer() {
     if (prevActive.current === active) return;
     const root = ed.current; if (!root) return;
     setDraft(prevActive.current, serialize(root));
-    root.innerHTML = ircToHtml(useChat.getState().drafts[active] ?? '');
+    root.innerHTML = ircToHtml(activeStore().getState().drafts[active] ?? '');
     setEmpty(!(root.textContent || '').trim());
     cyc.current = null;
     prevActive.current = active;
@@ -242,7 +243,7 @@ export function Composer() {
       const pluginCmds = usePluginRegistry.getState().commands.map((c) => c.name);
       cands = [...SLASH_COMMANDS, ...pluginCmds].filter((c2) => c2.startsWith(q)).map((c2) => '/' + c2 + ' ');
     } else {
-      const members = Object.keys(useChat.getState().buffers[active]?.members ?? {});
+      const members = Object.keys(activeStore().getState().buffers[active]?.members ?? {});
       const q = token.toLowerCase();
       const tail = start === 0 ? ': ' : ' ';
       cands = members.filter((n) => n.toLowerCase().startsWith(q)).sort((a, b) => a.localeCompare(b))
@@ -280,7 +281,7 @@ export function Composer() {
     if (recording || !canRecord) return;
     let stream: MediaStream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch { useChat.getState().pushSystem?.(active, `⚠ ${t('composer.micDenied')}`); return; }
+    catch { activeStore().getState().pushSystem?.(active, `⚠ ${t('composer.micDenied')}`); return; }
     const mime = bestAudioMime();
     recExt.current = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'm4a' : 'webm';
     const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
@@ -422,8 +423,8 @@ export function Composer() {
 
 function ReplyBar() {
   const { t } = useTranslation();
-  const reply = useChat((s) => s.replyTarget);
-  const clear = useChat((s) => s.clearReply);
+  const reply = useActiveChat((s) => s.replyTarget);
+  const clear = useActiveChat((s) => s.clearReply);
   if (!reply) return null;
   return (
     <div className="replybar">

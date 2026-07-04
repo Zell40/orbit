@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from './core/store';
+
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { refreshPush } from './services/push';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
+import { useActiveChat, activeStore } from './core/networks';
+import { useChat } from './core/store';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.
@@ -20,12 +22,13 @@ function ConnectingSplash() {
 }
 
 export default function App() {
+  // The connect-screen-vs-chat decision follows the PRIMARY network: once your
+  // first connection is up you're "in the app", and adding another network (which
+  // starts out connecting) must not bounce you back to the full-page join form.
   const status = useChat((s) => s.status);
-  // Once we've registered once, keep the chat UI mounted through reconnects
-  // (auto-reconnect restores the session) instead of bouncing to the connect screen.
   const everRegistered = useChat((s) => s.everRegistered);
   const autoConnecting = useChat((s) => s.autoConnecting);
-  const unread = useChat((s) =>
+  const unread = useActiveChat((s) =>
     Object.values(s.buffers).reduce((acc, b) => acc + b.unread, 0));
 
   useEffect(() => {
@@ -50,7 +53,7 @@ export default function App() {
       return !!a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
     };
     const onKey = (e: KeyboardEvent) => {
-      const st = useChat.getState();
+      const st = activeStore().getState();
       if (st.status !== 'registered' && !st.everRegistered) return; // chat view only
       // Ctrl/⌘-K — quick switcher
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
@@ -88,7 +91,7 @@ export default function App() {
     const onMsg = (ev: MessageEvent) => {
       const target = ev.data?.type === 'open-buffer' ? ev.data.target : null;
       if (!target) return;
-      const st = useChat.getState();
+      const st = activeStore().getState();
       if (/^[#&]/.test(target)) st.setActive(target);
       else st.openQuery(target);
     };

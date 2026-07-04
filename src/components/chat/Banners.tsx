@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../core/store';
+import { useActiveChat } from '../../core/networks';
+
 export function ReconnectBanner() {
   const { t } = useTranslation();
-  const status = useChat((s) => s.status);
-  const reconnectIn = useChat((s) => s.reconnectIn);
+  const status = useActiveChat((s) => s.status);
+  const reconnectIn = useActiveChat((s) => s.reconnectIn);
   if (status === 'registered') return null;
   const label = status === 'connecting' ? t('banners.reconnecting')
     : reconnectIn > 0 ? t('banners.lostRetry', { n: reconnectIn })
@@ -17,9 +18,9 @@ export function ReconnectBanner() {
 // is only offered for a kick (a ban would just refuse the join again).
 export function KickToast() {
   const { t } = useTranslation();
-  const kicked = useChat((s) => s.kicked);
-  const dismiss = useChat((s) => s.dismissKick);
-  const rejoin = useChat((s) => s.rejoinKicked);
+  const kicked = useActiveChat((s) => s.kicked);
+  const dismiss = useActiveChat((s) => s.dismissKick);
+  const rejoin = useActiveChat((s) => s.rejoinKicked);
   useEffect(() => {
     if (!kicked) return;
     const t = setTimeout(dismiss, 12000); // auto-dismiss after a while

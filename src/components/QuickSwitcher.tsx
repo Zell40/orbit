@@ -1,22 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../core/store';
+
 import { avatarBg } from '../lib/format';
 import { buildSwitcherResults, type SwitcherItem } from '../lib/switcher';
+import { useActiveChat } from '../core/networks';
 
 // Command-palette-style quick switcher (Ctrl/⌘-K): fuzzy-jump to any open
 // channel/DM, any person in your channels, or join a channel by name.
 export function QuickSwitcher() {
   const { t } = useTranslation();
-  const setModal = useChat((s) => s.setModal);
-  const setActive = useChat((s) => s.setActive);
-  const openQuery = useChat((s) => s.openQuery);
-  const client = useChat((s) => s.client);
+  const setModal = useActiveChat((s) => s.setModal);
+  const setActive = useActiveChat((s) => s.setActive);
+  const openQuery = useActiveChat((s) => s.openQuery);
+  const client = useActiveChat((s) => s.client);
   // Stable-ref selects (a new-array selector would loop under zustand v5).
-  const order = useChat((s) => s.order);
-  const buffers = useChat((s) => s.buffers);
-  const friends = useChat((s) => s.friends);
-  const nick = useChat((s) => s.nick);
+  const order = useActiveChat((s) => s.order);
+  const buffers = useActiveChat((s) => s.buffers);
+  const friends = useActiveChat((s) => s.friends);
+  const nick = useActiveChat((s) => s.nick);
 
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);

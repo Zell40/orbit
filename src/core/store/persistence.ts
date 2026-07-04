@@ -17,28 +17,31 @@ export function saveStr(key: string, list: string[]): void {
 // Per-channel notification level (canon key → 'all' | 'mentions' | 'mute').
 // Absent entry = the 'mentions' default. Seeded once from any legacy muted list.
 export type NotifyLevel = 'all' | 'mentions' | 'mute';
-export function loadNotify(): Record<string, NotifyLevel> {
+// `ns` namespaces the key PER NETWORK ('' = primary, ':<id>' = extra networks) so
+// two networks' same-named channels don't clobber each other in localStorage.
+export function loadNotify(ns = ''): Record<string, NotifyLevel> {
   try {
-    const raw = localStorage.getItem(NOTIFY_KEY);
+    const raw = localStorage.getItem(NOTIFY_KEY + ns);
     if (raw) return JSON.parse(raw);
-    // Migrate legacy muted channels → level 'mute'.
+    if (ns) return {};
+    // Migrate legacy muted channels → level 'mute' (primary only).
     const seed: Record<string, NotifyLevel> = {};
     for (const c of loadStr(MUTED_KEY)) seed[c] = 'mute';
     return seed;
   } catch { return {}; }
 }
-export function saveNotify(map: Record<string, NotifyLevel>): void {
-  try { localStorage.setItem(NOTIFY_KEY, JSON.stringify(map)); } catch { /* ignore */ }
+export function saveNotify(map: Record<string, NotifyLevel>, ns = ''): void {
+  try { localStorage.setItem(NOTIFY_KEY + ns, JSON.stringify(map)); } catch { /* ignore */ }
 }
 
 // Pinned messages are client-local (IRC has no pin protocol) — a snapshot of the
 // line, kept per canon channel key, newest first.
 export interface Pin { id: string; from: string; text: string; ts: number; }
-export function loadPins(): Record<string, Pin[]> {
-  try { return JSON.parse(localStorage.getItem(PINS_KEY) || '{}'); } catch { return {}; }
+export function loadPins(ns = ''): Record<string, Pin[]> {
+  try { return JSON.parse(localStorage.getItem(PINS_KEY + ns) || '{}'); } catch { return {}; }
 }
-export function savePins(map: Record<string, Pin[]>): void {
-  try { localStorage.setItem(PINS_KEY, JSON.stringify(map)); } catch { /* ignore */ }
+export function savePins(map: Record<string, Pin[]>, ns = ''): void {
+  try { localStorage.setItem(PINS_KEY + ns, JSON.stringify(map)); } catch { /* ignore */ }
 }
 
 export const PIN_CAP = 30; // most-recent pins kept per channel

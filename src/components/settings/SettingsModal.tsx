@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LANGS, setLang, getLang } from '../../core/i18n';
-import { useChat } from '../../core/store';
+
 import { getConfig } from '../../core/config';
 import { getTheme, setTheme, usePluginThemes, type Theme } from '../../ui/theme';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../services/push';
@@ -10,6 +10,7 @@ import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { Avatar } from '../Avatar';
 import { Turnstile } from '../Turnstile';
+import { useActiveChat, activeStore } from '../../core/networks';
 
 // Labels & descriptions are resolved via i18n (SEC_KEY / SEC_DESC).
 const SETTINGS_SECTIONS = [
@@ -67,8 +68,8 @@ const SEC_DESC: Record<SettingsSection, string> = {
 
 export function SettingsModal() {
   const { t } = useTranslation();
-  const setModal = useChat((s) => s.setModal);
-  const account = useChat((s) => s.account);
+  const setModal = useActiveChat((s) => s.setModal);
+  const account = useActiveChat((s) => s.account);
   // Stable-ref selector (zustand v5 loops on a new array each render); filter in body.
   const pluginUi = usePluginRegistry((s) => s.ui);
   const pluginSections = pluginUi.filter((u) => u.slot === 'settings_section');
@@ -155,7 +156,7 @@ export function SettingsModal() {
 // One toggle row: icon · label/hint · switch.
 function PushRow() {
   const { t } = useTranslation();
-  const client = useChat((s) => s.client);
+  const client = useActiveChat((s) => s.client);
   const supported = isPushSupported();
   const [on, setOn] = useState(pushEnabledPref());
   const [busy, setBusy] = useState(false);
@@ -198,8 +199,8 @@ function PushRow() {
 }
 
 function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string; hint?: string; prefKey: 'sound' | 'hideJoinQuit' | 'compact' | 'linkPreviews' }) {
-  const value = useChat((s) => s.prefs[prefKey]);
-  const setPref = useChat((s) => s.setPref);
+  const value = useActiveChat((s) => s.prefs[prefKey]);
+  const setPref = useActiveChat((s) => s.setPref);
   return (
     <div className="srow">
       <span className="srow__ic" aria-hidden>{icon}</span>
@@ -215,8 +216,8 @@ function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string
 
 function HighlightWordsRow() {
   const { t } = useTranslation();
-  const words = useChat((s) => s.highlightWords);
-  const setWords = useChat((s) => s.setHighlightWords);
+  const words = useActiveChat((s) => s.highlightWords);
+  const setWords = useActiveChat((s) => s.setHighlightWords);
   const [val, setVal] = useState(words.join(', '));
   const save = () => setWords(val.split(',').map((w) => w.trim()).filter(Boolean));
   return (
@@ -233,9 +234,9 @@ function HighlightWordsRow() {
 
 function ProfileSection() {
   const { t } = useTranslation();
-  const client = useChat((s) => s.client);
-  const nick = useChat((s) => s.nick);
-  const account = useChat((s) => s.account);
+  const client = useActiveChat((s) => s.client);
+  const nick = useActiveChat((s) => s.nick);
+  const account = useActiveChat((s) => s.account);
 
   return (
     <>
@@ -260,8 +261,8 @@ function ProfileSection() {
 // your pseudo with your account name BEFORE identifying.
 function ChangeNickField({ hint }: { hint: string }) {
   const { t } = useTranslation();
-  const client = useChat((s) => s.client);
-  const nick = useChat((s) => s.nick);
+  const client = useActiveChat((s) => s.client);
+  const nick = useActiveChat((s) => s.nick);
   const [newNick, setNewNick] = useState(nick);
   // Keep the field in sync if the server confirms a nick change elsewhere.
   useEffect(() => { setNewNick(nick); }, [nick]);
@@ -293,9 +294,9 @@ const TEXT_SIZES: Array<{ v: number; label: string }> = [
 ];
 
 function AppearanceSection() {
-  const clock24 = useChat((s) => s.prefs.clock24);
-  const textScale = useChat((s) => s.prefs.textScale);
-  const setPref = useChat((s) => s.setPref);
+  const clock24 = useActiveChat((s) => s.prefs.clock24);
+  const textScale = useActiveChat((s) => s.prefs.textScale);
+  const setPref = useActiveChat((s) => s.setPref);
   const { t } = useTranslation();
   const [theme, setT] = useState<string>(getTheme());
   const [lang, setLangState] = useState(getLang());
@@ -399,8 +400,8 @@ function NotificationsSection() {
 // Server / IRCd facts, pulled live from the registration numerics + ISUPPORT.
 function ServerSection() {
   const { t } = useTranslation();
-  const client = useChat((s) => s.client);
-  const status = useChat((s) => s.status);
+  const client = useActiveChat((s) => s.client);
+  const status = useActiveChat((s) => s.status);
   const connected = status === 'registered' && !!client;
 
   const dash = '—';
@@ -505,8 +506,8 @@ function AboutSection() {
 // connected server actually supports it (live, from the client's CAP state).
 function CapabilitiesSection() {
   const { t } = useTranslation();
-  const client = useChat((s) => s.client);
-  const status = useChat((s) => s.status);
+  const client = useActiveChat((s) => s.client);
+  const status = useActiveChat((s) => s.status);
   const connected = status === 'registered' && !!client;
   const caps = client ? client.listCaps() : CAP_KEYS.map((name) => ({ name, available: false, enabled: false }));
   const active = caps.filter((c) => c.enabled).length;
@@ -541,9 +542,9 @@ const CAP_KEYS = Object.keys(CAP_INFO);
 
 function LoginTab() {
   const { t } = useTranslation();
-  const client = useChat((s) => s.client);
-  const account = useChat((s) => s.account);
-  const nick = useChat((s) => s.nick);
+  const client = useActiveChat((s) => s.client);
+  const account = useActiveChat((s) => s.account);
+  const nick = useActiveChat((s) => s.nick);
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [acct, setAcct] = useState(nick);
   const [pw, setPw] = useState('');
@@ -656,7 +657,7 @@ function LoginTab() {
 // Change the account password — updates BOTH Anope (IRC) and Django (site).
 function ChangePassword() {
   const { t } = useTranslation();
-  const change = useChat((s) => s.accountChangePassword);
+  const change = useActiveChat((s) => s.accountChangePassword);
   const [cur, setCur] = useState('');
   const [np, setNp] = useState('');
   const [busy, setBusy] = useState(false);
@@ -705,13 +706,13 @@ function ChangePassword() {
 // code → VERIFY → the server auto-logs you in).
 function RegisterForm() {
   const { t } = useTranslation();
-  const nick = useChat((s) => s.nick);
-  const reg = useChat((s) => s.reg);
-  const doRegister = useChat((s) => s.accountRegister);
-  const doVerify = useChat((s) => s.accountVerify);
-  const doResend = useChat((s) => s.accountResend);
-  const reset = useChat((s) => s.resetReg);
-  const challengeComplete = useChat((s) => s.accountChallengeComplete);
+  const nick = useActiveChat((s) => s.nick);
+  const reg = useActiveChat((s) => s.reg);
+  const doRegister = useActiveChat((s) => s.accountRegister);
+  const doVerify = useActiveChat((s) => s.accountVerify);
+  const doResend = useActiveChat((s) => s.accountResend);
+  const reset = useActiveChat((s) => s.resetReg);
+  const challengeComplete = useActiveChat((s) => s.accountChallengeComplete);
 
   const [account, setAccount] = useState(nick);
   const [email, setEmail] = useState('');
@@ -737,7 +738,7 @@ function RegisterForm() {
                 {getConfig().turnstile.enabled ? (
                   <Turnstile sitekey={getConfig().turnstile.sitekey} theme={getTheme().includes('dark') ? 'dark' : 'light'}
                     onVerify={(tok) => challengeComplete(tok)}
-                    onError={() => useChat.setState((s) => ({ reg: { ...s.reg, error: t('settings.account.challengeLoadError') } }))} />
+                    onError={() => activeStore().setState((s) => ({ reg: { ...s.reg, error: t('settings.account.challengeLoadError') } }))} />
                 ) : (
                   // turnstile.enabled=false: don't load Cloudflare's script — link to the verification page instead.
                   <a className="challenge__link" href={reg.challengeUrl} target="_blank" rel="noopener noreferrer">

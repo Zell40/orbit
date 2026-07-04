@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../core/store';
+import { useActiveChat } from '../../core/networks';
+
 
 const LEVELS = ['all', 'mentions', 'mute'] as const;
 
@@ -8,9 +9,9 @@ const LEVELS = ['all', 'mentions', 'mute'] as const;
 // accessible popover anchored to the topbar bell.
 export function NotifyMenu() {
   const { t } = useTranslation();
-  const active = useChat((s) => s.active);
-  const level = useChat((s) => s.notifyLevel[s.active] || 'mentions');
-  const setNotifyLevel = useChat((s) => s.setNotifyLevel);
+  const active = useActiveChat((s) => s.active);
+  const level = useActiveChat((s) => s.notifyLevel[s.active] || 'mentions');
+  const setNotifyLevel = useActiveChat((s) => s.setNotifyLevel);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

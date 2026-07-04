@@ -37,7 +37,8 @@
     "push": true,
     "imageUpload": true,
     "register": true,
-    "linkPreviews": true
+    "linkPreviews": true,
+    "multiNetwork": false
   },
   "plugins": ["/app/plugins/orbit-clock.js", "/app/plugins/orbit-copy.js", "/app/plugins/orbit-games.js", "/app/plugins/orbit-invite.js"],
   "builtins": []

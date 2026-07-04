@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../core/store';
+
 import { formatIrc, avatarBg } from '../../lib/format';
 import { Avatar } from '../Avatar';
 import { SettingsModal } from '../settings/SettingsModal';
@@ -8,6 +8,7 @@ import { QuickSwitcher } from '../QuickSwitcher';
 import { Shortcuts } from '../Shortcuts';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { useActiveChat } from '../../core/networks';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const { t } = useTranslation();
@@ -31,10 +32,10 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
 
 function JoinDialog() {
   const { t } = useTranslation();
-  const setModal = useChat((s) => s.setModal);
-  const client = useChat((s) => s.client);
-  const setActive = useChat((s) => s.setActive);
-  const openQuery = useChat((s) => s.openQuery);
+  const setModal = useActiveChat((s) => s.setModal);
+  const client = useActiveChat((s) => s.client);
+  const setActive = useActiveChat((s) => s.setActive);
+  const openQuery = useActiveChat((s) => s.openQuery);
   const [val, setVal] = useState('#');
   const v = val.trim();
   const isChan = v.startsWith('#') || v.startsWith('&');
@@ -62,12 +63,12 @@ function JoinDialog() {
 
 function ExploreModal() {
   const { t } = useTranslation();
-  const setModal = useChat((s) => s.setModal);
-  const client = useChat((s) => s.client);
-  const setActive = useChat((s) => s.setActive);
-  const channels = useChat((s) => s.channels);
-  const loading = useChat((s) => s.listLoading);
-  const refresh = useChat((s) => s.refreshChannels);
+  const setModal = useActiveChat((s) => s.setModal);
+  const client = useActiveChat((s) => s.client);
+  const setActive = useActiveChat((s) => s.setActive);
+  const channels = useActiveChat((s) => s.channels);
+  const loading = useActiveChat((s) => s.listLoading);
+  const refresh = useActiveChat((s) => s.refreshChannels);
   const [q, setQ] = useState('');
   const [sort, setSort] = useState<'pop' | 'az'>('pop');
 
@@ -149,13 +150,13 @@ function ExploreModal() {
 
 function FriendsModal() {
   const { t } = useTranslation();
-  const friends = useChat((s) => s.friends);
-  const online = useChat((s) => s.friendsOnline);
-  const add = useChat((s) => s.addFriend);
-  const remove = useChat((s) => s.removeFriend);
-  const openUser = useChat((s) => s.openUser);
-  const openQuery = useChat((s) => s.openQuery);
-  const setModal = useChat((s) => s.setModal);
+  const friends = useActiveChat((s) => s.friends);
+  const online = useActiveChat((s) => s.friendsOnline);
+  const add = useActiveChat((s) => s.addFriend);
+  const remove = useActiveChat((s) => s.removeFriend);
+  const openUser = useActiveChat((s) => s.openUser);
+  const openQuery = useActiveChat((s) => s.openQuery);
+  const setModal = useActiveChat((s) => s.setModal);
   const [nick, setNick] = useState('');
   const submit = () => { const n = nick.trim(); if (n) { add(n); setNick(''); } };
   const sorted = [...friends].sort((a, b) =>
@@ -201,14 +202,14 @@ const CHAN_FLAGS: { m: string; key: string }[] = [
 
 function ChanAdminModal() {
   const { t } = useTranslation();
-  const setModal = useChat((s) => s.setModal);
-  const buffer = useChat((s) => s.buffers[s.active]);
-  const banlist = useChat((s) => s.banlists[s.active] || []);
-  const loadBanList = useChat((s) => s.loadBanList);
-  const setChannelMode = useChat((s) => s.setChannelMode);
-  const removeBan = useChat((s) => s.removeBan);
-  const modTopic = useChat((s) => s.modTopic);
-  const client = useChat((s) => s.client);
+  const setModal = useActiveChat((s) => s.setModal);
+  const buffer = useActiveChat((s) => s.buffers[s.active]);
+  const banlist = useActiveChat((s) => s.banlists[s.active] || []);
+  const loadBanList = useActiveChat((s) => s.loadBanList);
+  const setChannelMode = useActiveChat((s) => s.setChannelMode);
+  const removeBan = useActiveChat((s) => s.removeBan);
+  const modTopic = useActiveChat((s) => s.modTopic);
+  const client = useActiveChat((s) => s.client);
   const chan = buffer?.name || '';
   const [newban, setNewban] = useState('');
   const [topic, setTopicVal] = useState(buffer?.topic || '');
@@ -266,9 +267,9 @@ function ChanAdminModal() {
 
 function ReportModal() {
   const { t } = useTranslation();
-  const setModal = useChat((s) => s.setModal);
-  const subject = useChat((s) => s.reportSubject);
-  const sendReport = useChat((s) => s.sendReport);
+  const setModal = useActiveChat((s) => s.setModal);
+  const subject = useActiveChat((s) => s.reportSubject);
+  const sendReport = useActiveChat((s) => s.sendReport);
   const [target, setTarget] = useState(subject);
   const [reason, setReason] = useState('');
   const canSend = target.trim().length > 0 && reason.trim().length > 0;
@@ -305,7 +306,7 @@ function PluginModal() {
 }
 
 export function Modals() {
-  const modal = useChat((s) => s.modal);
+  const modal = useActiveChat((s) => s.modal);
   return (
     <>
       {modal === 'join' && <JoinDialog />}

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../core/store';
+import { useActiveChat } from '../core/networks';
+
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || '');
 const MOD = isMac ? '⌘' : 'Ctrl';
@@ -9,7 +10,7 @@ const MOD = isMac ? '⌘' : 'Ctrl';
 // with an i18n description. Keeps power users — and the switcher — discoverable.
 export function Shortcuts() {
   const { t } = useTranslation();
-  const setModal = useChat((s) => s.setModal);
+  const setModal = useActiveChat((s) => s.setModal);
   const close = () => setModal('');
 
   useEffect(() => {
