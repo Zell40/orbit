@@ -34,6 +34,8 @@ async function localizeManifest() {
 // default for the pre-JS paint; here we point it at config.branding.icon).
 function applyBrandIcon() {
   try {
+    const accent = getConfig().branding?.accent
+    if (accent) document.documentElement.style.setProperty('--accent', accent) // config accent token
     const icon = getConfig().branding?.icon
     if (!icon) return
     let link = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null

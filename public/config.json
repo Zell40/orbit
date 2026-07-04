@@ -14,7 +14,8 @@
     "taglineEm": "en direct.",
     "subtitle": "Salons publics, messages privés, modération. Choisis un pseudo, ou crée un compte — et rejoins la conversation, avec toute la France.",
     "projectUrl": "https://orbit.tchatou.fr",
-    "links": []
+    "links": [],
+    "accent": ""
   },
   "turnstile": {
     "enabled": true,
