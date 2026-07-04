@@ -5,6 +5,7 @@
 // networks and which one is ACTIVE; the chat UI reads the active network's store
 // (routing + UI land in later increments). Today it holds only the primary
 // network, so single-network behaviour is exactly preserved.
+import { useSyncExternalStore } from 'react';
 import { create, useStore } from 'zustand';
 import { createChatStore, useChat } from './store';
 import { getConfig } from './config';
@@ -91,6 +92,35 @@ export function activeStore(): ChatStore {
 export function useActiveChat<T>(selector: (s: ChatState) => T): T {
   const store = useNetworks((s) => (s.networks.find((n) => n.id === s.activeId) ?? s.networks[0]).store);
   return useStore(store, selector);
+}
+
+// ── total unread across ALL networks (for the tab title) ────────────────────
+// A dynamic-subscription hook: subscribe to every network's store AND to the
+// registry, re-wiring the per-store subscriptions only when the networks list
+// actually changes (add/remove) — NOT on a plain switch (setActive keeps the same
+// array ref). The snapshot is a number, so referential equality stops any loop.
+const unreadOf = (store: ChatStore) =>
+  Object.values(store.getState().buffers).reduce((a, b) => a + (b.unread || 0), 0);
+
+function totalUnread(): number {
+  return useNetworks.getState().networks.reduce((sum, n) => sum + unreadOf(n.store), 0);
+}
+function subscribeUnread(cb: () => void): () => void {
+  let list = useNetworks.getState().networks;
+  let unsubs = list.map((n) => n.store.subscribe(cb));
+  const off = useNetworks.subscribe((s) => {
+    if (s.networks !== list) {           // networks added/removed → re-wire
+      list = s.networks;
+      unsubs.forEach((u) => u());
+      unsubs = list.map((n) => n.store.subscribe(cb));
+    }
+    cb();
+  });
+  return () => { off(); unsubs.forEach((u) => u()); };
+}
+/** Sum of unread across every connected network (single-network: = the primary). */
+export function useAllNetworksUnread(): number {
+  return useSyncExternalStore(subscribeUnread, totalUnread);
 }
 
 /** Re-add + reconnect the extra networks saved from a previous session. Called

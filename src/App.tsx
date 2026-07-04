@@ -6,7 +6,7 @@ import { Chat } from './components/Chat';
 import { refreshPush } from './services/push';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
-import { useActiveChat, activeStore } from './core/networks';
+import { activeStore, useAllNetworksUnread } from './core/networks';
 import { useChat } from './core/store';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
@@ -28,8 +28,8 @@ export default function App() {
   const status = useChat((s) => s.status);
   const everRegistered = useChat((s) => s.everRegistered);
   const autoConnecting = useChat((s) => s.autoConnecting);
-  const unread = useActiveChat((s) =>
-    Object.values(s.buffers).reduce((acc, b) => acc + b.unread, 0));
+  // Tab title reflects unread across ALL connected networks, not just the active one.
+  const unread = useAllNetworksUnread();
 
   useEffect(() => {
     // Title follows the configured brand name (config.branding.name) — the single
