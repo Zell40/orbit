@@ -797,5 +797,11 @@
   },
   "pwa": {
     "description": "Sohbet, canlı. Herkese açık odalar, özel mesajlar, kayıt yok."
+  },
+  "networks": {
+    "add": "Ağ ekle",
+    "name": "Ad (isteğe bağlı)",
+    "password": "Parola (isteğe bağlı)",
+    "connect": "Bağlan"
   }
 }

@@ -797,5 +797,11 @@
   },
   "pwa": {
     "description": "Le tchat, en direct. Salons publics, messages privés, sans inscription."
+  },
+  "networks": {
+    "add": "Ajouter un réseau",
+    "name": "Nom (facultatif)",
+    "password": "Mot de passe (facultatif)",
+    "connect": "Se connecter"
   }
 }

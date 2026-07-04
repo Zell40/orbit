@@ -797,5 +797,11 @@
   },
   "pwa": {
     "description": "O chat, ao vivo. Salas públicas, mensagens privadas, sem cadastro."
+  },
+  "networks": {
+    "add": "Adicionar uma rede",
+    "name": "Nome (opcional)",
+    "password": "Senha (opcional)",
+    "connect": "Conectar"
   }
 }

@@ -797,5 +797,11 @@
   },
   "pwa": {
     "description": "O chat, em direto. Salas públicas, mensagens privadas, sem registo."
+  },
+  "networks": {
+    "add": "Adicionar uma rede",
+    "name": "Nome (opcional)",
+    "password": "Palavra-passe (opcional)",
+    "connect": "Ligar"
   }
 }

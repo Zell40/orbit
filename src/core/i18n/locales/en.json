@@ -797,5 +797,11 @@
   },
   "pwa": {
     "description": "The chat, live. Public rooms, private messages, no sign-up."
+  },
+  "networks": {
+    "add": "Add a network",
+    "name": "Name (optional)",
+    "password": "Password (optional)",
+    "connect": "Connect"
   }
 }

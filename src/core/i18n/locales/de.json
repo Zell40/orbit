@@ -797,5 +797,11 @@
   },
   "pwa": {
     "description": "Der Chat, live. Öffentliche Räume, private Nachrichten, ohne Anmeldung."
+  },
+  "networks": {
+    "add": "Netzwerk hinzufügen",
+    "name": "Name (optional)",
+    "password": "Passwort (optional)",
+    "connect": "Verbinden"
   }
 }

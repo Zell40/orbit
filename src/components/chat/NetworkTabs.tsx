@@ -35,7 +35,7 @@ export function NetworkTabs() {
     <div className="nettabs">
       {networks.map((n) => <NetTab key={n.id} net={n} active={n.id === activeId} />)}
       <button className="nettab nettab--add" onClick={() => setAdding(true)}
-        title={t('networks.add', { defaultValue: 'Add a network' })}>+</button>
+        title={t('networks.add')}>+</button>
       {adding && <AddNetwork onClose={() => setAdding(false)} />}
     </div>
   );
@@ -66,17 +66,17 @@ function AddNetwork({ onClose }: { onClose: () => void }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal__head">
-          <h3>{t('networks.addTitle', { defaultValue: 'Add a network' })}</h3>
+          <h3>{t('networks.add')}</h3>
           <button className="modal__x" onClick={onClose} aria-label={t('modals.closeButton')}>✕</button>
         </div>
-        <input className="modal__input" placeholder={t('networks.name', { defaultValue: 'Name (optional)' })} value={label} onChange={(e) => setLabel(e.target.value)} />
+        <input className="modal__input" placeholder={t('networks.name')} value={label} onChange={(e) => setLabel(e.target.value)} />
         <input className="modal__input" placeholder="wss://host/irc/" value={url} onChange={(e) => setUrl(e.target.value)} />
-        <input className="modal__input" autoFocus placeholder={t('connect.nickPlaceholder', { defaultValue: 'Nickname' })} value={nick} onChange={(e) => setNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && go()} />
+        <input className="modal__input" autoFocus placeholder={t('connect.nickAria')} value={nick} onChange={(e) => setNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && go()} />
         <input className="modal__input" placeholder="#channel, #other" value={chans} onChange={(e) => setChans(e.target.value)} />
-        <input className="modal__input" type="password" placeholder={t('networks.password', { defaultValue: 'Password (optional)' })} value={pass} onChange={(e) => setPass(e.target.value)} />
+        <input className="modal__input" type="password" placeholder={t('networks.password')} value={pass} onChange={(e) => setPass(e.target.value)} />
         <div className="modal__actions">
           <button className="upbtn" onClick={onClose}>{t('profile.cancel')}</button>
-          <button className="upbtn upbtn--primary" onClick={go}>{t('networks.connect', { defaultValue: 'Connect' })}</button>
+          <button className="upbtn upbtn--primary" onClick={go}>{t('networks.connect')}</button>
         </div>
       </div>
     </div>

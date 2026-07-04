@@ -797,5 +797,11 @@
   },
   "pwa": {
     "description": "La chat, in diretta. Stanze pubbliche, messaggi privati, senza registrazione."
+  },
+  "networks": {
+    "add": "Aggiungi una rete",
+    "name": "Nome (facoltativo)",
+    "password": "Password (facoltativa)",
+    "connect": "Connetti"
   }
 }
