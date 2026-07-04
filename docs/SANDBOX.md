@@ -41,7 +41,7 @@ The sandboxed API (`src/plugins/sandbox/host.ts` + `public/plugin-sandbox.html`)
 `orbit.storage.get/set`, and `orbit.ui(slot, build)` where `build(document.body)`
 populates the plugin's own iframe and the host sizes it to the content.
 
-## Required CSP (staged — not yet applied to prod)
+## Required CSP (APPLIED 2026-07-04)
 
 The sandbox iframe needs two nginx changes in `chat-headers.conf`. Both are
 contained: the sandbox doc is opaque-origin, so its looser script policy cannot
@@ -64,5 +64,8 @@ touch the app.
    }
    ```
 
-Until (1) is applied, the app's current `frame-src` (no `'self'`) blocks the
-sandbox iframe, so sandboxed plugins are inert — in-page plugins are unaffected.
+Applied live in `csp-app.conf` / `chat-headers.conf` (added `'self'` to `frame-src`)
+and a `location = /app/plugin-sandbox.html` block in `tchatou-app-backend.conf`.
+Note: nginx *reload* cannot rekey a shared-memory zone, so activating this needed a
+full `systemctl restart nginx` (an unrelated pre-existing `limit_req` key change had
+been blocking reloads).
