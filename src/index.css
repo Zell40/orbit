@@ -1498,31 +1498,35 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
    - FLAT nick list: no access-level sections, all nicks inline (real mIRC)
    ============================================================================ */
 /* Tokens — light (yomirc) and dark (yomirc-dark); structure below is shared via [data-theme^="yomirc"] */
+/* yomirc — a faithful recreation of the classic mIRC client (Win95/98/XP era):
+   silver 3D chrome, sunken white panes, a navy→blue caption bar, the exact mIRC
+   16-colour log, and a fixed-width Lucida/Fixedsys feel. Dark = "mIRC at night":
+   a pure-black message log where the 16 colours blaze. */
 [data-theme="yomirc"] {
-  --mirc-silver: #c0c0c0; --mirc-face: #d4d0c8; --mirc-light: #ffffff;
-  --mirc-shadow: #908b80; --mirc-dark: #5a554c; --mirc-navy: #0a246a; --mirc-navy-2: #2f5fc0;
-  --mirc-paper: #ffffff; --mirc-hover: #e7e4db; --mirc-bevel-hi: #efefef; --mirc-sel-ink: #ffffff;
-  --mirc-join: #3f7d4a; --mirc-quit: #b0544b;   /* gentle sage green / muted brick */
-  --mono: "Lucida Console", "Consolas", "Courier New", monospace;
-  --ink: #000000; --ink-2: #000000; --muted: #404040; --faint: #606060;
-  --bg: #ffffff; --bg-soft: #d4d0c8; --bg-soft-2: #c4c0b8; --bg-active: #0a246a; --rail-bg: #c8c4bb;
+  --mirc-silver: #c0c0c0; --mirc-face: #c0c0c0; --mirc-light: #ffffff;
+  --mirc-shadow: #808080; --mirc-dark: #404040; --mirc-navy: #000080; --mirc-navy-2: #1084d0;
+  --mirc-paper: #ffffff; --mirc-hover: #cddaf5; --mirc-bevel-hi: #dfdfdf; --mirc-sel-ink: #ffffff;
+  --mirc-join: #0a7a2f; --mirc-quit: #b01717;   /* classic green join / red leave */
+  --mono: "Lucida Console", "Fixedsys Excelsior", Consolas, "Courier New", monospace;
+  --ink: #000000; --ink-2: #000000; --muted: #7f7f7f; --faint: #969696;
+  --bg: #ffffff; --bg-soft: #c0c0c0; --bg-soft-2: #b4b4b4; --bg-active: #000080; --rail-bg: #c0c0c0;
   --border: #808080; --border-2: #404040;
-  --green: #0a246a; --green-d: #0a246a; --green-soft: #d6e0f4;
+  --green: #000080; --green-d: #000080; --green-soft: #cdd8f5;
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
-  --shadow-pop: 2px 2px 0 rgba(0,0,0,.35);
+  --shadow-pop: 2px 2px 0 rgba(0,0,0,.4);
 }
 [data-theme="yomirc-dark"] {
-  --mirc-silver: #283341; --mirc-face: #1b2230; --mirc-light: #38465a;
-  --mirc-shadow: #090d14; --mirc-dark: #04070c; --mirc-navy: #1f6f86; --mirc-navy-2: #2f9fbd;
-  --mirc-paper: #0d1219; --mirc-hover: #19232f; --mirc-bevel-hi: #2e3a4b; --mirc-sel-ink: #ffffff;
-  --mirc-join: #6cc585; --mirc-quit: #df8b82;   /* soft mint / soft coral — easy on the eyes */
-  --mono: "Lucida Console", "Consolas", "Courier New", monospace;
-  --ink: #d4dde7; --ink-2: #c2cdd9; --muted: #8a96a4; --faint: #6c7886;
-  --bg: #0d1219; --bg-soft: #1b2230; --bg-soft-2: #283341; --bg-active: #1f6f86; --rail-bg: #161d28;
-  --border: #090d14; --border-2: #38465a;
-  --green: #2f9fbd; --green-d: #57c3dd; --green-soft: rgba(47,159,189,.18);
+  --mirc-silver: #3a3a3a; --mirc-face: #2b2b2b; --mirc-light: #565656;
+  --mirc-shadow: #121212; --mirc-dark: #000000; --mirc-navy: #000080; --mirc-navy-2: #1084d0;
+  --mirc-paper: #000000; --mirc-hover: #101a33; --mirc-bevel-hi: #3d3d3d; --mirc-sel-ink: #ffffff;
+  --mirc-join: #35c46a; --mirc-quit: #ff5a5a;   /* bright on black, like real mIRC colours */
+  --mono: "Lucida Console", "Fixedsys Excelsior", Consolas, "Courier New", monospace;
+  --ink: #d2d2d2; --ink-2: #c4c4c4; --muted: #7d7d7d; --faint: #5a5a5a;
+  --bg: #000000; --bg-soft: #2b2b2b; --bg-soft-2: #3a3a3a; --bg-active: #000080; --rail-bg: #242424;
+  --border: #121212; --border-2: #000000;
+  --green: #35c46a; --green-d: #57d07a; --green-soft: rgba(53,196,106,.16);
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
-  --shadow-pop: 0 10px 30px -8px rgba(0,0,0,.7), 0 2px 8px -2px rgba(0,0,0,.6);
+  --shadow-pop: 0 8px 26px -8px rgba(0,0,0,.85);
 }
 [data-theme^="yomirc"] body { background: var(--mirc-face); }
 

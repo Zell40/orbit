@@ -35,8 +35,13 @@ async function localizeManifest() {
 const MIRC_FAVICON = 'data:image/svg+xml,' + encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">'
   + '<rect width="32" height="32" fill="#c0c0c0"/>'
-  + '<path d="M0 0h32v3H3v29H0z" fill="#fff"/><path d="M32 0v32H0v-3h29V0z" fill="#808080"/>'
-  + '<path d="M13 8v16M20 8v16M8 13h17M7 19h17" stroke="#0a246a" stroke-width="3"/></svg>')
+  + '<path d="M0 0h32v2H2v30H0z" fill="#fff"/><path d="M32 0v32H0v-2h30V0z" fill="#808080"/>'
+  + '<rect x="3" y="3" width="26" height="6" fill="#000080"/>'          // caption bar
+  + '<rect x="3" y="9" width="26" height="20" fill="#fff"/>'            // white log
+  + '<rect x="5" y="12" width="15" height="2" fill="#009300"/>'         // green line
+  + '<rect x="5" y="16" width="21" height="2" fill="#00007f"/>'         // blue line
+  + '<rect x="5" y="20" width="11" height="2" fill="#ff0000"/>'         // red line
+  + '<rect x="5" y="24" width="18" height="2" fill="#7f7f7f"/></svg>')  // grey line
 
 // Browser tab icon: the retro favicon under yomirc, else the configured brand
 // icon (index.html ships a static default for the pre-JS paint).
