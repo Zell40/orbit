@@ -9,7 +9,7 @@ import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } 
 import { usePluginRegistry } from '../modules/registry';
 import { casefold } from './irc/casemap';
 import { getConfig } from './config';
-import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';
+import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting, tidyOutgoing } from './store/text';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 
 let localId = 0; // globally-unique local id source (shared across networks is fine)
@@ -1552,16 +1552,20 @@ export function createChatStore(ns = '') {
       }
 
       const reply = get().replyTarget;
+      // Tidy channel/DM messages so they can't be padded/spammed with runs of
+      // blank space; leave service messages byte-for-byte (never touch creds).
+      const body = isService(active) ? text : tidyOutgoing(text);
+      if (!body) return;
       // +draft/channel-context: on a DM that was started from a channel, tag it.
       const ctx = !isChannelName(active) ? get().pmContext[canon(active)] : undefined;
-      if (reply) { client.privmsgReply(active, text, reply.id, ctx); set({ replyTarget: null }); }
-      else client.privmsg(active, text, ctx);
+      if (reply) { client.privmsgReply(active, body, reply.id, ctx); set({ replyTarget: null }); }
+      else client.privmsg(active, body, ctx);
       if (isChannelName(active)) { client.sendTyping(active, 'done'); lastTypingSent = 0; }
       // Optimistic echo only if the server won't echo it back to us.
       if (!client.hasCap('echo-message')) {
         addMessage(active, {
           id: newId(), bufferName: active, from: get().nick,
-          text: isService(active) ? maskSecret(text) : text,
+          text: isService(active) ? maskSecret(text) : body,
           ts: Date.now(), kind: 'privmsg', self: true, replyTo: reply?.id, channelContext: ctx,
         });
       }

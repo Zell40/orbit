@@ -1,5 +1,26 @@
 import { describe, it, expect } from 'vitest';
-import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './text';
+import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting, tidyOutgoing } from './text';
+
+describe('tidyOutgoing', () => {
+  it('strips the "screenful of blank space + a dot" padding spam', () => {
+    expect(tidyOutgoing(' '.repeat(120) + '.')).toBe('.');
+    expect(tidyOutgoing('.' + ' '.repeat(120) + '.')).toBe('. .');
+  });
+  it('collapses runs of spaces/tabs to a single space and trims the ends', () => {
+    expect(tidyOutgoing('  hello    world  ')).toBe('hello world');
+    expect(tidyOutgoing('a\t\t\tb')).toBe('a b');
+  });
+  it('keeps single spaces and normal text intact', () => {
+    expect(tidyOutgoing('hello world')).toBe('hello world');
+  });
+  it('preserves newlines but caps blank-line runs and trims each line', () => {
+    expect(tidyOutgoing('a\n\n\n\n\nb')).toBe('a\n\nb');
+    expect(tidyOutgoing('a   \n   b')).toBe('a\nb');
+  });
+  it('leaves formatting control bytes untouched', () => {
+    expect(tidyOutgoing('\x02bold\x02')).toBe('\x02bold\x02');
+  });
+});
 
 describe('isService', () => {
   it('recognises the standard services (case-insensitive)', () => {
