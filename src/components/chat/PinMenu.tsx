@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../core/store';
+
 import { nickColor } from '../../lib/format';
 import { stripFormatting } from '../../core/store/text';
 import type { Pin } from '../../core/store/persistence';
+import { useActiveChat } from '../../core/networks';
 
 const EMPTY: Pin[] = [];
 
@@ -20,9 +21,9 @@ function jumpTo(id: string) {
 // active channel has nothing pinned.
 export function PinMenu() {
   const { t } = useTranslation();
-  const active = useChat((s) => s.active);
-  const pins = useChat((s) => s.pins[s.active]) ?? EMPTY;
-  const unpin = useChat((s) => s.unpin);
+  const active = useActiveChat((s) => s.active);
+  const pins = useActiveChat((s) => s.pins[s.active]) ?? EMPTY;
+  const unpin = useActiveChat((s) => s.unpin);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

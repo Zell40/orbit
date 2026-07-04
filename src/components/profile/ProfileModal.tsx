@@ -1,10 +1,11 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../core/store';
+
 import { IRCOP_COLOR, hashHue, fmtDuration, formatUserModes } from '../../lib/format';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { useActiveChat } from '../../core/networks';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
 const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes']);
@@ -12,26 +13,26 @@ const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'inf
 /* Wide horizontal profile card — pops over a blurred "nebula" of the app */
 export function ProfileModal() {
   const { t } = useTranslation();
-  const nick = useChat((s) => s.profileUser);
-  const info = useChat((s) => s.whois[s.profileUser]);
-  const me = useChat((s) => s.nick);
-  const openQuery = useChat((s) => s.openQuery);
-  const refreshUser = useChat((s) => s.refreshUser);
-  const close = useChat((s) => s.closeProfile);
-  const activeChan = useChat((s) => s.active); // channel this profile was opened from (for +draft/channel-context)
-  const ignored = useChat((s) => s.ignored);
-  const toggleIgnore = useChat((s) => s.toggleIgnore);
-  const reportUser = useChat((s) => s.reportUser);
-  const friends = useChat((s) => s.friends);
-  const addFriend = useChat((s) => s.addFriend);
-  const removeFriend = useChat((s) => s.removeFriend);
-  const modKick = useChat((s) => s.modKick);
-  const modBan = useChat((s) => s.modBan);
-  const modSetMode = useChat((s) => s.modSetMode);
-  const active = useChat((s) => s.active);
-  const myPrefix = useChat((s) => s.buffers[s.active]?.members[s.nick]?.prefixes || s.buffers[s.active]?.members[s.nick]?.prefix || '');
-  const targetMember = useChat((s) => s.buffers[s.active]?.members[s.profileUser]);
-  const myUmodes = useChat((s) => s.umodes);
+  const nick = useActiveChat((s) => s.profileUser);
+  const info = useActiveChat((s) => s.whois[s.profileUser]);
+  const me = useActiveChat((s) => s.nick);
+  const openQuery = useActiveChat((s) => s.openQuery);
+  const refreshUser = useActiveChat((s) => s.refreshUser);
+  const close = useActiveChat((s) => s.closeProfile);
+  const activeChan = useActiveChat((s) => s.active); // channel this profile was opened from (for +draft/channel-context)
+  const ignored = useActiveChat((s) => s.ignored);
+  const toggleIgnore = useActiveChat((s) => s.toggleIgnore);
+  const reportUser = useActiveChat((s) => s.reportUser);
+  const friends = useActiveChat((s) => s.friends);
+  const addFriend = useActiveChat((s) => s.addFriend);
+  const removeFriend = useActiveChat((s) => s.removeFriend);
+  const modKick = useActiveChat((s) => s.modKick);
+  const modBan = useActiveChat((s) => s.modBan);
+  const modSetMode = useActiveChat((s) => s.modSetMode);
+  const active = useActiveChat((s) => s.active);
+  const myPrefix = useActiveChat((s) => s.buffers[s.active]?.members[s.nick]?.prefixes || s.buffers[s.active]?.members[s.nick]?.prefix || '');
+  const targetMember = useActiveChat((s) => s.buffers[s.active]?.members[s.profileUser]);
+  const myUmodes = useActiveChat((s) => s.umodes);
   const userActions = usePluginRegistry((s) => s.userActions);
   const [spinning, setSpinning] = useState(false);
 

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../core/store';
+
 import type { Member } from '../../core/irc/types';
 import { Avatar } from '../Avatar';
+import { useActiveChat } from '../../core/networks';
 const ROLES: Record<string, { key: string; cls: string }> = {
   '~': { key: 'owner', cls: 'owner' },
   '&': { key: 'admin', cls: 'admin' },
@@ -18,10 +19,10 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   // Subscribe to the members map BY REFERENCE (it's replaced immutably on
   // join/part/mode/away/nick) — NOT the whole buffer, so ordinary incoming
   // messages don't re-render and re-sort the list. Critical for large channels.
-  const membersMap = useChat((s) => s.buffers[s.active]?.members);
-  const isChannel = useChat((s) => !!s.buffers[s.active]?.isChannel);
-  const openUser = useChat((s) => s.openUser);
-  const prefixOrder = useChat((s) => s.client?.prefixModes ?? '~&@%+');
+  const membersMap = useActiveChat((s) => s.buffers[s.active]?.members);
+  const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
+  const openUser = useActiveChat((s) => s.openUser);
+  const prefixOrder = useActiveChat((s) => s.client?.prefixModes ?? '~&@%+');
   const [q, setQ] = useState('');
   const needle = q.trim().toLowerCase();
 

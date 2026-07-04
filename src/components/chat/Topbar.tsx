@@ -1,30 +1,31 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat, SERVER } from '../../core/store';
+import { SERVER } from '../../core/store';
 import { avatarBg, formatIrc } from '../../lib/format';
 import { stripFormatting } from '../../core/store/text';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { useActiveChat } from '../../core/networks';
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
   const { t } = useTranslation();
   // Narrow per-field selects (stable on message updates) so the topbar doesn't
   // re-render — and recount members — on every incoming line in a busy channel.
-  const bname = useChat((s) => s.buffers[s.active]?.name);
-  const isChannel = useChat((s) => !!s.buffers[s.active]?.isChannel);
-  const topic = useChat((s) => s.buffers[s.active]?.topic ?? '');
-  const modes = useChat((s) => s.buffers[s.active]?.modes ?? '');
-  const members = useChat((s) => s.buffers[s.active]?.members);
-  const search = useChat((s) => s.search);
-  const setSearch = useChat((s) => s.setSearch);
-  const setModal = useChat((s) => s.setModal);
-  const myPrefix = useChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
+  const bname = useActiveChat((s) => s.buffers[s.active]?.name);
+  const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
+  const topic = useActiveChat((s) => s.buffers[s.active]?.topic ?? '');
+  const modes = useActiveChat((s) => s.buffers[s.active]?.modes ?? '');
+  const members = useActiveChat((s) => s.buffers[s.active]?.members);
+  const search = useActiveChat((s) => s.search);
+  const setSearch = useActiveChat((s) => s.setSearch);
+  const setModal = useActiveChat((s) => s.setModal);
+  const myPrefix = useActiveChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
   // mIRC-style status line: "Status: <nick> [+<umodes>] on <servername>"
-  const myNick = useChat((s) => s.nick);
-  const myUmodes = useChat((s) => s.umodes);
-  const serverName = useChat((s) => s.serverName);
+  const myNick = useActiveChat((s) => s.nick);
+  const myUmodes = useActiveChat((s) => s.umodes);
+  const serverName = useActiveChat((s) => s.serverName);
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
   if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button></div>;

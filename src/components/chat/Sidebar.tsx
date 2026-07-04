@@ -1,11 +1,12 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat, SERVER } from '../../core/store';
+import { SERVER } from '../../core/store';
 import { avatarBg } from '../../lib/format';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { useActiveChat } from '../../core/networks';
 // The footer bar (TabBar) is in the DOM twice for the responsive layout — a
 // window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on
 // mobile (`.sidebar .appbar`), with CSS showing one at the 880px breakpoint. So
@@ -24,12 +25,12 @@ function useMediaQuery(query: string): boolean {
 // left rail and the sidebar footer, in one place like a real app.
 export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer' }) {
   const { t } = useTranslation();
-  const nick = useChat((s) => s.nick);
-  const myAccount = useChat((s) => s.account);
-  const away = useChat((s) => s.away);
-  const setAway = useChat((s) => s.setAway);
-  const setModal = useChat((s) => s.setModal);
-  const openUser = useChat((s) => s.openUser);
+  const nick = useActiveChat((s) => s.nick);
+  const myAccount = useActiveChat((s) => s.account);
+  const away = useActiveChat((s) => s.away);
+  const setAway = useActiveChat((s) => s.setAway);
+  const setModal = useActiveChat((s) => s.setModal);
+  const openUser = useActiveChat((s) => s.openUser);
   const footerItems = usePluginRegistry((s) => s.ui);
   const footerVisible = variant === (useMediaQuery('(max-width: 880px)') ? 'drawer' : 'desktop');
   return (
@@ -67,14 +68,14 @@ type Filter = 'all' | 'rooms' | 'people';
 
 export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useTranslation();
-  const order = useChat((s) => s.order);
-  const active = useChat((s) => s.active);
-  const buffers = useChat((s) => s.buffers);
-  const setActive = useChat((s) => s.setActive);
-  const setModal = useChat((s) => s.setModal);
-  const closeBuffer = useChat((s) => s.closeBuffer);
+  const order = useActiveChat((s) => s.order);
+  const active = useActiveChat((s) => s.active);
+  const buffers = useActiveChat((s) => s.buffers);
+  const setActive = useActiveChat((s) => s.setActive);
+  const setModal = useActiveChat((s) => s.setModal);
+  const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const sidebarItems = usePluginRegistry((s) => s.ui);
-  const serverName = useChat((s) => s.serverName);
+  const serverName = useActiveChat((s) => s.serverName);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const mirc = useTheme().startsWith('yomirc');
@@ -156,8 +157,8 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
 }
 function TabFriends({ onOpen }: { onOpen: () => void }) {
   const { t } = useTranslation();
-  const friends = useChat((s) => s.friends);
-  const online = useChat((s) => s.friendsOnline);
+  const friends = useActiveChat((s) => s.friends);
+  const online = useActiveChat((s) => s.friendsOnline);
   const onlineCount = friends.filter((f) => online[f.toLowerCase()]).length;
   return (
     <button className="tab" onClick={onOpen} aria-label={t('nav.friends')}>

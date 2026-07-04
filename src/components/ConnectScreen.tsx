@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../core/store';
+
 import { getConfig } from '../core/config';
+import { useActiveChat } from '../core/networks';
 
 function param(name: string, fallback: string): string {
   return new URLSearchParams(window.location.search).get(name) ?? fallback;
@@ -129,8 +130,8 @@ export function ConnectScreen() {
   const { t } = useTranslation();
   const cfg = getConfig();
   const [faq, setFaq] = useState<string | null>(null);
-  const connect = useChat((s) => s.connect);
-  const status = useChat((s) => s.status);
+  const connect = useActiveChat((s) => s.connect);
+  const status = useActiveChat((s) => s.status);
   const [nick, setNick] = useState(param('nick', ''));
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);

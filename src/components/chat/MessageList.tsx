@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat, SERVER } from '../../core/store';
+import { SERVER } from '../../core/store';
 import type { ChatMessage } from '../../core/irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, firstPreviewableUrl, LinkPreview } from '../../lib/format';
 import { stripFormatting } from '../../core/store/text';
@@ -9,6 +9,7 @@ import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry, type MessageInfo } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { useActiveChat } from '../../core/networks';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
 
@@ -37,22 +38,22 @@ function MsgActions({ m }: { m: ChatMessage }) {
 }
 function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   const { t } = useTranslation();
-  const react = useChat((s) => s.toggleReaction);
-  const redact = useChat((s) => s.redact);
-  const openUser = useChat((s) => s.openUser);
-  const setActive = useChat((s) => s.setActive);
-  const setReply = useChat((s) => s.setReplyTarget);
-  const togglePin = useChat((s) => s.togglePin);
-  const pinned = useChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
-  const isOper = useChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
-  const linkPreviews = useChat((s) => s.prefs.linkPreviews);
+  const react = useActiveChat((s) => s.toggleReaction);
+  const redact = useActiveChat((s) => s.redact);
+  const openUser = useActiveChat((s) => s.openUser);
+  const setActive = useActiveChat((s) => s.setActive);
+  const setReply = useActiveChat((s) => s.setReplyTarget);
+  const togglePin = useActiveChat((s) => s.togglePin);
+  const pinned = useActiveChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
+  const isOper = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
+  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   // Avatars resolve by ACCOUNT. Live messages carry the account tag, but
   // chathistory-replayed ones (e.g. on a fresh mobile join) often don't — so
   // fall back to the author's account from the channel member list.
-  const memberAccount = useChat((s) => s.buffers[s.active]?.members[m.from]?.account);
+  const memberAccount = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.account);
   const avatarAccount = m.account || memberAccount;
   const mirc = useTheme().startsWith('yomirc');
-  const msgs = useChat((s) => s.buffers[s.active]?.messages);
+  const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
   const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
   // +draft/channel-context: badge it only when the context first appears or CHANGES.
   // Compare against the last message that ACTUALLY carried a context (skip untagged
@@ -164,7 +165,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
 
 function SearchResults({ messages, query }: { messages: ChatMessage[]; query: string }) {
   const { t } = useTranslation();
-  const openUser = useChat((s) => s.openUser);
+  const openUser = useActiveChat((s) => s.openUser);
   const q = query.trim().toLowerCase();
   const hits = messages.filter((m) => (m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice')
     && !m.redacted && m.text.toLowerCase().includes(q));
@@ -189,15 +190,15 @@ function SearchResults({ messages, query }: { messages: ChatMessage[]; query: st
 
 export function MessageList() {
   const { t, i18n } = useTranslation();
-  const active = useChat((s) => s.active);
-  const buffer = useChat((s) => s.buffers[s.active]);
-  const search = useChat((s) => s.search);
-  const hideJoinQuit = useChat((s) => s.prefs.hideJoinQuit);
+  const active = useActiveChat((s) => s.active);
+  const buffer = useActiveChat((s) => s.buffers[s.active]);
+  const search = useActiveChat((s) => s.search);
+  const hideJoinQuit = useActiveChat((s) => s.prefs.hideJoinQuit);
   const mirc = useTheme().startsWith('yomirc');
-  const loadMore = useChat((s) => s.loadMoreHistory);
-  const histLoading = useChat((s) => !!s.historyLoading[s.active]);
-  const histDone = useChat((s) => !!s.historyDone[s.active]);
-  useChat((s) => s.prefs.clock24); // re-render timestamps when the clock format changes
+  const loadMore = useActiveChat((s) => s.loadMoreHistory);
+  const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
+  const histDone = useActiveChat((s) => !!s.historyDone[s.active]);
+  useActiveChat((s) => s.prefs.clock24); // re-render timestamps when the clock format changes
   const ref = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const prevHeight = useRef(0);
