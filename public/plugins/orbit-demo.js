@@ -41,4 +41,7 @@ Orbit.plugin('orbit-demo', (orbit, log) => {
     help: 'Roll a die: /roll [sides]',
     run: (args) => orbit.irc.say('\u{1F3B2} ' + (1 + Math.floor(Math.random() * Math.max(2, +args[0] || 6)))),
   });
+
+  // Register a keyboard shortcut: mod+shift+d fires a notification.
+  orbit.addShortcut('mod+shift+d', () => orbit.notify('Demo plugin', 'shortcut fired'));
 });

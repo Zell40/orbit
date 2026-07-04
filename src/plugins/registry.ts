@@ -68,6 +68,32 @@ export interface PluginCommand {
   help?: string;
 }
 
+// A plugin-registered keyboard shortcut. `combo` is "+"-joined, e.g. "mod+k" or
+// "alt+shift+r" (mod = Cmd on macOS, Ctrl elsewhere). Built-in shortcuts win.
+export interface PluginShortcut {
+  id: string;
+  plugin: string;
+  combo: string;
+  run: (e: KeyboardEvent) => void;
+}
+
+const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || '');
+// True when a keydown event matches a "mod+shift+k"-style combo.
+export function matchShortcut(e: KeyboardEvent, combo: string): boolean {
+  const want = { ctrl: false, meta: false, alt: false, shift: false };
+  let key = '';
+  for (const p of combo.toLowerCase().split('+').map((s) => s.trim()).filter(Boolean)) {
+    if (p === 'mod') { if (IS_MAC) want.meta = true; else want.ctrl = true; }
+    else if (p === 'ctrl' || p === 'control') want.ctrl = true;
+    else if (p === 'meta' || p === 'cmd' || p === 'super') want.meta = true;
+    else if (p === 'alt' || p === 'option') want.alt = true;
+    else if (p === 'shift') want.shift = true;
+    else key = p;
+  }
+  return e.ctrlKey === want.ctrl && e.metaKey === want.meta && e.altKey === want.alt
+    && e.shiftKey === want.shift && (e.key || '').toLowerCase() === key;
+}
+
 interface RegistryState {
   ui: PluginUi[];
   decorators: PluginPerMessage[];
@@ -75,12 +101,14 @@ interface RegistryState {
   userActions: PluginPerUser[];
   messageFilters: PluginFilter[];
   commands: PluginCommand[];
+  shortcuts: PluginShortcut[];
   addUi: (slot: UiSlot, plugin: string, render: () => ReactNode, meta?: PluginUi['meta']) => () => void;
   addDecorator: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addAction: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addUserAction: (plugin: string, render: (ctx: UserActionCtx) => ReactNode) => () => void;
   addMessageFilter: (plugin: string, fn: (m: FilterableMessage) => boolean) => () => void;
   addCommand: (plugin: string, name: string, run: PluginCommand['run'], help?: string) => () => void;
+  addShortcut: (plugin: string, combo: string, run: PluginShortcut['run']) => () => void;
 }
 
 export const usePluginRegistry = create<RegistryState>((set) => ({
@@ -90,6 +118,7 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
   userActions: [],
   messageFilters: [],
   commands: [],
+  shortcuts: [],
   addUi: (slot, plugin, render, meta) => {
     const id = `${plugin}:${slot}:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ ui: [...s.ui, { id, plugin, slot, render, meta }] }));
@@ -120,5 +149,10 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
     const clean = name.replace(/^\//, '').toLowerCase();
     set((s) => ({ commands: [...s.commands, { id, plugin, name: clean, run, help }] }));
     return () => set((s) => ({ commands: s.commands.filter((c) => c.id !== id) }));
+  },
+  addShortcut: (plugin, combo, run) => {
+    const id = `${plugin}:key:${Math.random().toString(36).slice(2, 8)}`;
+    set((s) => ({ shortcuts: [...s.shortcuts, { id, plugin, combo, run }] }));
+    return () => set((s) => ({ shortcuts: s.shortcuts.filter((k) => k.id !== id) }));
   },
 }));

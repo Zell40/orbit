@@ -105,6 +105,9 @@ export interface OrbitPluginApi {
   addCommand: (name: string, spec: { run: (args: string[], rest: string) => void; help?: string }) => () => void;
   /** Fire a desktop notification with the brand icon (asks permission once). */
   notify: (title: string, body?: string) => void;
+  /** Register a global keyboard shortcut, e.g. "mod+shift+k" (mod = Cmd/Ctrl).
+   *  Runs in the chat view; built-in shortcuts take priority. */
+  addShortcut: (combo: string, run: (e: KeyboardEvent) => void) => () => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -167,6 +170,7 @@ function makeApi(name: string): OrbitPluginApi {
     addMessageFilter: (fn) => usePluginRegistry.getState().addMessageFilter(name, fn),
     addCommand: (cmd, spec) => usePluginRegistry.getState().addCommand(name, cmd, spec.run, spec.help),
     notify: (title, body) => pluginNotify(title, body),
+    addShortcut: (combo, run) => usePluginRegistry.getState().addShortcut(name, combo, run),
   };
 }
 

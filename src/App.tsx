@@ -5,6 +5,7 @@ import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { refreshPush } from './services/push';
 import { getConfig } from './config';
+import { usePluginRegistry, matchShortcut } from './plugins/registry';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.
@@ -71,6 +72,10 @@ export default function App() {
       // ? — keyboard shortcuts help (ignored while typing)
       if (e.key === '?' && !isTyping()) {
         e.preventDefault(); st.setModal(st.modal === 'shortcuts' ? '' : 'shortcuts'); return;
+      }
+      // Plugin-registered shortcuts (the built-ins above take priority).
+      for (const sc of usePluginRegistry.getState().shortcuts) {
+        if (matchShortcut(e, sc.combo)) { e.preventDefault(); try { sc.run(e); } catch { /* plugin threw */ } return; }
       }
     };
     window.addEventListener('keydown', onKey);
