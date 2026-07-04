@@ -53,17 +53,22 @@ export interface InitMsg {
   source: string;             // the plugin's JS, fetched host-side (same trust as app)
   snapshot: StateSnapshot;    // cached so guest state reads stay synchronous
   storage: Record<string, unknown>;
+  theme: Record<string, string>; // app CSS vars, so sandboxed UI matches the theme
 }
 export interface EventMsg { type: 'event'; name: string; args: unknown[]; }
 export interface SnapshotMsg { type: 'snapshot'; snapshot: StateSnapshot; }
+export interface ThemeMsg { type: 'theme'; theme: Record<string, string>; }
 export interface RpcReplyMsg { type: 'rpc:reply'; id: number; result?: unknown; error?: string; }
+
+// App CSS variables mirrored into the sandbox so plugins can `var(--accent)` etc.
+export const THEME_VARS = ['--bg', '--ink', '--accent', '--muted', '--border', '--panel', '--green-soft'] as const;
 
 // guest -> host
 export interface RpcMsg { type: 'rpc'; id: number; method: string; args: unknown[]; }
 
 export interface StateSnapshot { active: string; nick: string; account: string; buffers: string[]; }
 
-export type HostToGuest = InitMsg | EventMsg | SnapshotMsg | RpcReplyMsg;
+export type HostToGuest = InitMsg | EventMsg | SnapshotMsg | ThemeMsg | RpcReplyMsg;
 export type GuestToHost = RpcMsg;
 
 /** App events forwarded into the sandbox. A deny-list-free allow-list: the guest

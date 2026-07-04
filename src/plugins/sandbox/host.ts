@@ -13,7 +13,7 @@ import { usePluginRegistry, type UiSlot } from '../registry';
 import { pluginNotify } from '../../services/notify';
 import { SandboxFrame } from './SandboxFrame';
 import {
-  isGranted, sanitizePermissions, FORWARDED_EVENTS,
+  isGranted, sanitizePermissions, FORWARDED_EVENTS, THEME_VARS,
   type StateSnapshot, type GuestToHost,
 } from './protocol';
 
@@ -25,6 +25,14 @@ const STORE_PREFIX = 'orbit-sbx:';
 function snapshot(): StateSnapshot {
   const s = useChat.getState();
   return { active: s.active, nick: s.nick, account: s.account, buffers: Object.keys(s.buffers) };
+}
+
+// Current values of the app's themeable CSS vars, mirrored into the sandbox.
+function themeVars(): Record<string, string> {
+  const cs = getComputedStyle(document.documentElement);
+  const out: Record<string, string> = {};
+  for (const v of THEME_VARS) out[v] = cs.getPropertyValue(v).trim();
+  return out;
 }
 
 // Per-plugin namespaced storage, kept in the app's localStorage (the sandbox has none).
@@ -121,9 +129,11 @@ export async function mountSandboxedPlugin(entry: Exclude<PluginEntry, string>):
         port.postMessage({ type: 'event', name: ev, args });
         if (ev === 'connected' || ev === 'buffer.active') port.postMessage({ type: 'snapshot', snapshot: snapshot() });
       }));
-    teardown = () => { offs.forEach((o) => o()); port.close(); };
+    const onTheme = () => port.postMessage({ type: 'theme', theme: themeVars() });
+    window.addEventListener('themechange', onTheme);
+    teardown = () => { offs.forEach((o) => o()); window.removeEventListener('themechange', onTheme); port.close(); };
     iframe.contentWindow?.postMessage(
-      { type: 'init', name, permissions, source, snapshot: snapshot(), storage: loadStorage(name) },
+      { type: 'init', name, permissions, source, snapshot: snapshot(), storage: loadStorage(name), theme: themeVars() },
       '*', [chan.port2],
     );
     log('handshake');

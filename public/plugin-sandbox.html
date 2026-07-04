@@ -26,6 +26,12 @@
   var listeners = {};                 // event name -> [fn]
   var pending = new Map(), rpcId = 0;  // in-flight RPCs
 
+  // Mirror the app's theme CSS vars onto our root so plugin UI can use var(--accent) etc.
+  function applyTheme(vars) {
+    if (!vars) return;
+    for (var k in vars) { try { document.documentElement.style.setProperty(k, vars[k]); } catch (e) {} }
+  }
+
   function rpc(method) {
     var args = Array.prototype.slice.call(arguments, 1);
     return new Promise(function (resolve, reject) {
@@ -100,6 +106,7 @@
       port = e.ports[0];
       snap = m.snapshot || snap;
       store = m.storage || {};
+      applyTheme(m.theme);
       port.onmessage = function (ev) {
         var d = ev.data;
         if (!d) return;
@@ -110,6 +117,8 @@
           emit.apply(null, [d.name].concat(d.args || []));
         } else if (d.type === 'snapshot') {
           snap = d.snapshot || snap;
+        } else if (d.type === 'theme') {
+          applyTheme(d.theme);
         }
       };
       // Run the plugin now that the bridge is live. new Function keeps it out of
