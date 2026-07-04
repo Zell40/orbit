@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../store';
+import { useChat } from '../core/store';
 
 const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || '');
 const MOD = isMac ? '⌘' : 'Ctrl';

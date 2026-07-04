@@ -1,10 +1,10 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat, SERVER } from '../../store';
+import { useChat, SERVER } from '../../core/store';
 import { avatarBg } from '../../lib/format';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
-import { usePluginRegistry } from '../../plugins/registry';
+import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 // The footer bar (TabBar) is in the DOM twice for the responsive layout — a
 // window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on

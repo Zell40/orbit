@@ -9,11 +9,11 @@ import React, { type ReactNode } from 'react';
 import * as ReactJSXRuntime from 'react/jsx-runtime';
 import * as ReactDOM from 'react-dom';
 import htm from 'htm';
-import { useChat } from '../store';
-import i18n from '../i18n';
+import { useChat } from '../core/store';
+import i18n from '../core/i18n';
 import { pluginNotify } from '../services/notify';
 import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../ui/theme';
-import { getConfig, pluginDebug } from '../config';
+import { getConfig, pluginDebug } from '../core/config';
 import { bus } from './bus';
 import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type FilterableMessage } from './registry';
 

@@ -7,11 +7,11 @@
 // store directly — only through the gated calls below. It powers both first-party
 // features the app bundles (see ./builtins) and operator-listed sandboxed plugins.
 import { createElement } from 'react';
-import { useChat } from '../store';
-import { pluginDebug, type PluginEntry } from '../config';
-import { bus } from '../plugins/bus';
-import { usePluginRegistry, type UiSlot } from '../plugins/registry';
-import { pluginNotify } from '../services/notify';
+import { useChat } from '../../core/store';
+import { pluginDebug, type PluginEntry } from '../../core/config';
+import { bus } from '../bus';
+import { usePluginRegistry, type UiSlot } from '../registry';
+import { pluginNotify } from '../../services/notify';
 import { SandboxFrame } from './SandboxFrame';
 import {
   isGranted, sanitizePermissions, FORWARDED_EVENTS, THEME_VARS,

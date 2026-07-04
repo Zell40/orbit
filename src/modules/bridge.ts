@@ -1,7 +1,7 @@
 // Bridges the app's state/IRC events onto the plugin event bus. Plugins subscribe
 // via Orbit.on('connected' | 'buffer.active' | 'message' | 'raw' | 'status').
-import { useChat } from '../store';
-import type { IrcClient } from '../irc/client';
+import { useChat } from '../core/store';
+import type { IrcClient } from '../core/irc/client';
 import { bus } from './bus';
 
 let attached: IrcClient | null = null;

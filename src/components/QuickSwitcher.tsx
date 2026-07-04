@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../store';
+import { useChat } from '../core/store';
 import { avatarBg } from '../lib/format';
 import { buildSwitcherResults, type SwitcherItem } from '../lib/switcher';
 

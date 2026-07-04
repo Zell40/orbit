@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import i18n from './i18n';
 import { IrcClient } from './irc/client';
-import { initNotify, desktopNotify, blip } from './services/notify';
-import { getPrefs, savePrefs, applyPrefs, type Prefs } from './ui/prefs';
+import { initNotify, desktopNotify, blip } from '../services/notify';
+import { getPrefs, savePrefs, applyPrefs, type Prefs } from '../ui/prefs';
 import type { Buffer, ChatMessage, ConnectOptions, IrcMessage, Member, MessageKind, WhoisInfo } from './irc/types';
 import { NUMERICS, ERROR_NUMERICS } from './irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from './irc/modes';
-import { usePluginRegistry } from './plugins/registry';
+import { usePluginRegistry } from '../modules/registry';
 import { casefold } from './irc/casemap';
 import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';

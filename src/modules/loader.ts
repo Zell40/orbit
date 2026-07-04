@@ -5,7 +5,7 @@
 // An entry may be a bare URL string, or `{ url, integrity, crossorigin }` to pin
 // the script with Subresource Integrity — strongly recommended for any plugin
 // served from a third-party origin, so a compromised host can't swap the file.
-import { getConfig, pluginDebug, type PluginEntry } from '../config';
+import { getConfig, pluginDebug, type PluginEntry } from '../core/config';
 
 export interface ScriptAttrs { url: string; integrity?: string; crossorigin?: string }
 
@@ -39,7 +39,7 @@ export function loadPlugins(): void {
 
   if (sandboxed.length) {
     // Loaded lazily so the sandbox subsystem (and React) isn't pulled in unless used.
-    void import('../sandbox/host').then(({ mountSandboxedPlugin }) => {
+    void import('./sandbox/host').then(({ mountSandboxedPlugin }) => {
       for (const entry of sandboxed) void mountSandboxedPlugin(entry);
     });
   }

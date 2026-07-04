@@ -1,12 +1,12 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../../store';
+import { useChat } from '../../core/store';
 import { formatIrc, avatarBg } from '../../lib/format';
 import { Avatar } from '../Avatar';
 import { SettingsModal } from '../settings/SettingsModal';
 import { QuickSwitcher } from '../QuickSwitcher';
 import { Shortcuts } from '../Shortcuts';
-import { usePluginRegistry } from '../../plugins/registry';
+import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {

@@ -1,6 +1,6 @@
 // Browser notifications, a subtle sound blip, and permission handling.
 import { pushEnabledPref } from './push';
-import { getConfig } from '../config';
+import { getConfig } from '../core/config';
 
 let ac: AudioContext | null = null;
 

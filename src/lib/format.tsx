@@ -2,8 +2,8 @@
 // link/image/YouTube rendering, and the mIRC/IRC formatting → React renderer.
 import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useChat } from '../store';
-import i18n from '../i18n';
+import { useChat } from '../core/store';
+import i18n from '../core/i18n';
 
 export const fmtTime = (ts: number) =>
   new Date(ts).toLocaleTimeString(i18n.language || 'fr', {
