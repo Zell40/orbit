@@ -45,8 +45,8 @@ The app's theme CSS vars (`--bg`, `--ink`, `--accent`, `--muted`, `--border`,
 `--panel`, `--green-soft`) are mirrored into the sandbox and kept in sync on theme
 change, so plugin UI can use `var(--accent)` and look native in light + dark.
 
-Example: `public/plugins/orbit-sandbox-demo.js`. (Trivial first-party features
-like `/roll` live in core, not the sandbox — the sandbox is for untrusted code.)
+Examples: `public/plugins/orbit-sandbox-demo.js` (minimal) and
+`public/plugins/orbit-dice.js` (a real themed dice/coin plugin, `["irc","storage"]`).
 
 ## Required CSP (APPLIED 2026-07-04)
 
