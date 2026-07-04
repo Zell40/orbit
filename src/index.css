@@ -495,7 +495,7 @@ input, textarea { font-family: inherit; }
 
 .msg-actions {
   position: absolute; top: -14px; right: 20px; display: flex; gap: 1px; padding: 3px; border-radius: 10px;
-  background: #fff; border: 1px solid var(--border); box-shadow: var(--shadow-pop);
+  background: var(--bg); border: 1px solid var(--border); box-shadow: var(--shadow-pop);
   opacity: 0; transform: translateY(3px); pointer-events: none; transition: opacity .13s, transform .13s;
 }
 .group:hover .msg-actions { opacity: 1; transform: none; pointer-events: auto; }
@@ -1047,7 +1047,6 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] body { background: #141619; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .rail__item { background: var(--bg); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .rail__item:hover { background: var(--bg-soft); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .msg-actions { background: var(--bg); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .theme-toggle button.is-on { background: var(--bg-active); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .upbtn--danger { background: var(--bg); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .ubadge--op { background: #3a2a17; color: #e0a35e; }
