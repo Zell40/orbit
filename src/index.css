@@ -1507,7 +1507,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   --ink: #000000; --ink-2: #000000; --muted: #404040; --faint: #606060;
   --bg: #ffffff; --bg-soft: #d4d0c8; --bg-soft-2: #c4c0b8; --bg-active: #0a246a; --rail-bg: #c8c4bb;
   --border: #808080; --border-2: #404040;
-  --green: #0a246a; --green-d: #0a246a; --green-soft: #0a246a;
+  --green: #0a246a; --green-d: #0a246a; --green-soft: #d6e0f4;
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
   --shadow-pop: 2px 2px 0 rgba(0,0,0,.35);
 }
