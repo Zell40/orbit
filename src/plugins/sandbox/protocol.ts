@@ -68,4 +68,4 @@ export type GuestToHost = RpcMsg;
 
 /** App events forwarded into the sandbox. A deny-list-free allow-list: the guest
  *  only ever sees these, never raw internals. */
-export const FORWARDED_EVENTS = ['connected', 'disconnected', 'message', 'active-change'] as const;
+export const FORWARDED_EVENTS = ['connected', 'message', 'buffer.active', 'status'] as const;
