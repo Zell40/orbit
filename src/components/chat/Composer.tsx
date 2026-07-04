@@ -256,9 +256,14 @@ export function Composer() {
   }
 
   const canUpload = getConfig().features.imageUpload;
-  function uploadFrom(files: FileList | null | undefined): boolean {
-    if (!files || isConsole || !canUpload) return false;
-    const img = Array.from(files).find((f) => f.type.startsWith('image/'));
+  function uploadFrom(dt: DataTransfer | null | undefined): boolean {
+    if (!dt || isConsole || !canUpload) return false;
+    // A pasted/copied image (screenshot, "copy image") usually arrives in items
+    // via getAsFile(), NOT in .files — so check both, else paste silently no-ops.
+    let img: File | null = Array.from(dt.files || []).find((f) => f.type.startsWith('image/')) ?? null;
+    if (!img) for (const it of Array.from(dt.items || [])) {
+      if (it.kind === 'file' && it.type.startsWith('image/')) { img = it.getAsFile(); if (img) break; }
+    }
     if (img) { uploadImage(img); return true; }
     return false;
   }
@@ -340,7 +345,7 @@ export function Composer() {
       <div className={`composer__box ${isConsole ? 'composer__box--console' : ''} ${dragOver ? 'is-drop' : ''}`}
         onDragOver={(e) => { if (!isConsole) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => { setDragOver(false); if (uploadFrom(e.dataTransfer.files)) e.preventDefault(); }}>
+        onDrop={(e) => { setDragOver(false); if (uploadFrom(e.dataTransfer)) e.preventDefault(); }}>
         {recording && (
           <div className="composer__rec">
             <span className="composer__rec-dot" aria-hidden="true" />
@@ -381,7 +386,7 @@ export function Composer() {
           data-ph={dragOver ? t('composer.dropImage') : placeholder}
           onInput={changed}
           onPaste={(e) => {
-            if (uploadFrom(e.clipboardData?.files)) { e.preventDefault(); return; }
+            if (uploadFrom(e.clipboardData)) { e.preventDefault(); return; }
             const t = e.clipboardData?.getData('text/plain');
             if (t != null) { e.preventDefault(); document.execCommand('insertText', false, t); changed(); }
           }}
