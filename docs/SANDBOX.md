@@ -1,6 +1,6 @@
 # The sandbox
 
-The sandbox is a **core subsystem** (`src/sandbox/`): it runs code in an
+The sandbox is a **core subsystem** (`src/modules/sandbox/`): it runs code in an
 **opaque-origin iframe** (`sandbox="allow-scripts"`, no `allow-same-origin`) that
 reaches the app **only** through a capability-gated message bridge. Sandboxed code
 cannot read the page DOM, cookies, `localStorage` (the SASL handoff password), or
@@ -9,10 +9,10 @@ the store — only what its `permissions` grant.
 Two things use it:
 
 - **Built-in features (bundled)** — the app mounts them itself at boot via
-  `src/sandbox/builtins.ts` → `mountSandboxed({ name, source, permissions })`, with
+  `src/modules/sandbox/builtins.ts` → `mountSandboxed({ name, source, permissions })`, with
   the source compiled into the app (`?raw`). They are **opt-in per deployment**: a
   built-in only mounts if its name is listed in `config.json` `"builtins": [...]`.
-  Example: the `dice` 🎲/🪙 widget (`src/sandbox/features/dice.js`).
+  Example: the `dice` 🎲/🪙 widget (`src/modules/sandbox/features/dice.js`).
 - **Operator plugins (config)** — a `config.json` entry with `sandbox: true` is
   fetched and mounted the same way. Use for community / third-party / less-trusted
   plugins. (Plain string entries still load in-page as a trusted `<script>`.)
@@ -38,9 +38,9 @@ UI inside its own iframe) needs no grant because it is already contained.
 | `storage` | `orbit.storage.set(k, v)` (namespaced, persisted host-side) |
 
 Ungranted or unknown calls are refused host-side (fail-closed). The gate is unit
-tested in `src/plugins/sandbox/protocol.test.ts`.
+tested in `src/modules/sandbox/protocol.test.ts`.
 
-The sandboxed API (`src/plugins/sandbox/host.ts` + `public/plugin-sandbox.html`):
+The sandboxed API (`src/modules/sandbox/host.ts` + `public/plugin-sandbox.html`):
 `orbit.log`, `orbit.on(event, fn)` (forwarded `connected` / `message` /
 `buffer.active` / `status`), `orbit.irc.*`, `orbit.notify`,
 `orbit.state.active/nick/account/buffers` (from a pushed snapshot, synchronous),
@@ -51,7 +51,7 @@ The app's theme CSS vars (`--bg`, `--ink`, `--accent`, `--muted`, `--border`,
 `--panel`, `--green-soft`) are mirrored into the sandbox and kept in sync on theme
 change, so plugin UI can use `var(--accent)` and look native in light + dark.
 
-Examples: `src/sandbox/features/dice.js` (a built-in, bundled + mounted by core) and
+Examples: `src/modules/sandbox/features/dice.js` (a built-in, bundled + mounted by core) and
 `public/plugins/orbit-sandbox-demo.js` (the minimal config-loaded form).
 
 ## Required CSP (APPLIED 2026-07-04)
