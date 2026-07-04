@@ -7,6 +7,8 @@ import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '../../core/networks';
+import { NetworkTabs } from './NetworkTabs';
+import { getConfig } from '../../core/config';
 // The footer bar (TabBar) is in the DOM twice for the responsive layout — a
 // window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on
 // mobile (`.sidebar .appbar`), with CSS showing one at the 880px breakpoint. So
@@ -126,6 +128,8 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {sidebarItems.filter((u) => u.slot === 'sidebar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="sidebar_item" />)}
         <button className="side-compose" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => setModal('join')}>✎</button>
       </div>
+
+      {getConfig().features.multiNetwork && <NetworkTabs />}
 
       <div className="side-search">
         <span className="side-search__icon">🔍</span>

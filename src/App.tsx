@@ -7,6 +7,7 @@ import { refreshPush } from './services/push';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
 import { useActiveChat, activeStore } from './core/networks';
+import { useChat } from './core/store';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.
@@ -21,11 +22,12 @@ function ConnectingSplash() {
 }
 
 export default function App() {
-  const status = useActiveChat((s) => s.status);
-  // Once we've registered once, keep the chat UI mounted through reconnects
-  // (auto-reconnect restores the session) instead of bouncing to the connect screen.
-  const everRegistered = useActiveChat((s) => s.everRegistered);
-  const autoConnecting = useActiveChat((s) => s.autoConnecting);
+  // The connect-screen-vs-chat decision follows the PRIMARY network: once your
+  // first connection is up you're "in the app", and adding another network (which
+  // starts out connecting) must not bounce you back to the full-page join form.
+  const status = useChat((s) => s.status);
+  const everRegistered = useChat((s) => s.everRegistered);
+  const autoConnecting = useChat((s) => s.autoConnecting);
   const unread = useActiveChat((s) =>
     Object.values(s.buffers).reduce((acc, b) => acc + b.unread, 0));
 
@@ -40,7 +42,7 @@ export default function App() {
   // server-side expiry and reconnects (cheap no-op if push isn't enabled).
   useEffect(() => {
     if (status !== 'registered') return;
-    const client = activeStore().getState().client;
+    const client = useChat.getState().client;
     if (client && getConfig().features.push) void refreshPush(client);
   }, [status]);
 

@@ -72,6 +72,7 @@ interface ChatState {
   buffers: Record<string, Buffer>;
   order: string[];
   active: string;
+  isActive: boolean;      // is this the network the user is currently viewing (registry-managed)
   client: IrcClient | null;
   networkIcon: string;
   account: string; // NickServ account we're logged in as ('' = guest)
@@ -158,12 +159,12 @@ interface ChatState {
 // A chat store is created PER NETWORK (multi-network) — each owns its own
 // connection, buffers, nick and per-instance throttles. `useChat` below is the
 // primary (default) network; additional ones come from the networks registry.
-export function createChatStore() {
+export function createChatStore(ns = '') {
   let lastTypingSent = 0;
   const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
   const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
-  return create<ChatState>((set, get) => {
+  const store = create<ChatState>((set, get) => {
   // ---- helpers that mutate state immutably -------------------------------
   // Buffers are keyed by the CASEMAPPING-folded name (canon); Buffer.name keeps
   // the original display case so the UI shows "#Taverne" while "#taverne" maps
@@ -710,7 +711,7 @@ export function createChatStore() {
           const lc = text.toLowerCase();
           const mention = (me.length > 1 && lc.includes(me.toLowerCase()))
             || get().highlightWords.some((w) => lc.includes(w.toLowerCase()));
-          const inactive = document.hidden || canon(bufferName) !== get().active;
+          const inactive = document.hidden || !get().isActive || canon(bufferName) !== get().active;
           if (mention && level !== 'mute') patchBuffer(bufferName, (b) => ({ ...b, highlight: true }));
           const wants = level === 'all' || (level === 'mentions' && mention);
           if (inactive && wants) {
@@ -1196,10 +1197,11 @@ export function createChatStore() {
     friends: loadFriends(),
     friendsOnline: {},
     banlists: {},
-    notifyLevel: loadNotify(),
+    notifyLevel: loadNotify(ns),
     highlightWords: loadStr(HIGHLIGHT_KEY),
     drafts: {},
-    pins: loadPins(),
+    pins: loadPins(ns),
+    isActive: true, // is this network the one the user is currently viewing (set by the registry)
     reg: { step: 'idle', account: '', busy: false, error: '', info: '', challengeUrl: '' },
     replyTarget: null,
     search: '',
@@ -1339,14 +1341,14 @@ export function createChatStore() {
       const cur = get().friends;
       if (cur.some((f) => f.toLowerCase() === n.toLowerCase())) return;
       const next = [...cur, n];
-      saveFriends(next);
+      saveFriends(next); syncGlobal();
       set({ friends: next });
       get().client?.monitor('+', n); // start watching
     },
 
     removeFriend(nick) {
       const next = get().friends.filter((f) => f.toLowerCase() !== nick.toLowerCase());
-      saveFriends(next);
+      saveFriends(next); syncGlobal();
       const online = { ...get().friendsOnline }; delete online[nick.toLowerCase()];
       set({ friends: next, friendsOnline: online });
       get().client?.monitor('-', nick);
@@ -1369,7 +1371,7 @@ export function createChatStore() {
       const next = { ...get().notifyLevel };
       // 'mentions' is the default → store nothing, keeping the map small.
       if (level === 'mentions') delete next[key]; else next[key] = level;
-      saveNotify(next);
+      saveNotify(next, ns);
       set({ notifyLevel: next });
     },
 
@@ -1378,17 +1380,17 @@ export function createChatStore() {
       const m = get().buffers[key]?.messages.find((x) => x.id === msgid);
       if (!m) return;
       const next = togglePinIn(get().pins, key, { id: m.id, from: m.from, text: m.text, ts: m.ts });
-      savePins(next);
+      savePins(next, ns);
       set({ pins: next });
     },
     unpin(channel, id) {
       const next = unpinIn(get().pins, canon(channel), id);
-      savePins(next);
+      savePins(next, ns);
       set({ pins: next });
     },
     setHighlightWords(words) {
       const clean = words.map((w) => w.trim()).filter(Boolean);
-      saveStr(HIGHLIGHT_KEY, clean);
+      saveStr(HIGHLIGHT_KEY, clean); syncGlobal();
       set({ highlightWords: clean });
     },
     setDraft(name, text) {
@@ -1579,7 +1581,7 @@ export function createChatStore() {
       const next = cur.some((n) => n.toLowerCase() === lc)
         ? cur.filter((n) => n.toLowerCase() !== lc)
         : [...cur, nick];
-      saveIgnored(next);
+      saveIgnored(next); syncGlobal();
       set({ ignored: next });
     },
     modKick(nick) { const { client, active } = get(); if (isChannelName(active)) client?.kick(active, nick); },
@@ -1807,10 +1809,20 @@ export function createChatStore() {
       savePrefs(prefs);
       applyPrefs(prefs);
       set({ prefs });
+      syncGlobal();
     },
   };
   });
+  // Keep truly-global state (prefs / friends / ignored / highlights) consistent
+  // across networks: any store that changes it dispatches, every store re-reads.
+  if (typeof window !== 'undefined') {
+    window.addEventListener('orbit:globalsync', () => store.setState({
+      prefs: getPrefs(), friends: loadFriends(), ignored: loadIgnored(), highlightWords: loadStr(HIGHLIGHT_KEY),
+    }));
+  }
+  return store;
 }
+function syncGlobal() { if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit:globalsync')); }
 
 // The primary network. Existing single-network usage is unchanged.
 export const useChat = createChatStore();

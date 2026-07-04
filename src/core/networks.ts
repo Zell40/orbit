@@ -7,6 +7,7 @@
 // network, so single-network behaviour is exactly preserved.
 import { create, useStore } from 'zustand';
 import { createChatStore, useChat } from './store';
+import { getConfig } from './config';
 
 export type ChatStore = ReturnType<typeof createChatStore>;
 type ChatState = ReturnType<ChatStore['getState']>;
@@ -32,10 +33,13 @@ let seq = 0;
 
 export const useNetworks = create<NetworksState>((set) => ({
   // Seed with the primary network = the existing useChat instance.
-  networks: [{ id: PRIMARY, label: PRIMARY, store: useChat }],
+  networks: [{ id: PRIMARY, label: getConfig().branding?.name || 'Network', store: useChat }],
   activeId: PRIMARY,
   add: (label) => {
-    const entry: NetworkEntry = { id: `net${++seq}`, label, store: createChatStore() };
+    const id = `net${++seq}`;
+    // namespace the new network's persisted per-channel state (pins/notify) by id
+    const entry: NetworkEntry = { id, label, store: createChatStore(`:${id}`) };
+    entry.store.setState({ isActive: false });
     set((s) => ({ networks: [...s.networks, entry] }));
     return entry;
   },
@@ -43,9 +47,14 @@ export const useNetworks = create<NetworksState>((set) => ({
     if (s.networks.length <= 1) return s;
     const networks = s.networks.filter((n) => n.id !== id);
     const activeId = s.activeId === id ? networks[0].id : s.activeId;
+    networks.forEach((n) => n.store.setState({ isActive: n.id === activeId }));
     return { networks, activeId };
   }),
-  setActive: (id) => set((s) => (s.networks.some((n) => n.id === id) ? { activeId: id } : s)),
+  setActive: (id) => set((s) => {
+    if (!s.networks.some((n) => n.id === id)) return s;
+    s.networks.forEach((n) => n.store.setState({ isActive: n.id === id }));
+    return { activeId: id };
+  }),
 }));
 
 /** The active network's store — the one the chat UI should read from (imperative). */
