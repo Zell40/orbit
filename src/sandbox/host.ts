@@ -1,16 +1,17 @@
-// Host side of the sandboxed-plugin bridge. Runs on the trusted app thread.
+// Host side of the sandbox bridge — a core subsystem. Runs on the trusted app thread.
 //
-// For each sandboxed plugin entry it: fetches the plugin source (same-origin),
-// spins an opaque-origin iframe (the isolation boundary), hands the source to the
-// guest over a MessageChannel, then services capability-checked RPC and forwards a
-// curated set of events + a state snapshot in. The guest can NEVER reach the app's
-// DOM, cookies, localStorage or store directly — only through the gated calls below.
+// `mountSandboxed(spec)` takes plugin SOURCE, spins an opaque-origin iframe (the
+// isolation boundary), hands the source to the guest over a MessageChannel, then
+// services capability-checked RPC and forwards a curated set of events + a state
+// snapshot in. The guest can NEVER reach the app's DOM, cookies, localStorage or
+// store directly — only through the gated calls below. It powers both first-party
+// features the app bundles (see ./builtins) and operator-listed sandboxed plugins.
 import { createElement } from 'react';
-import { useChat } from '../../store';
-import { pluginDebug, type PluginEntry } from '../../config';
-import { bus } from '../bus';
-import { usePluginRegistry, type UiSlot } from '../registry';
-import { pluginNotify } from '../../services/notify';
+import { useChat } from '../store';
+import { pluginDebug, type PluginEntry } from '../config';
+import { bus } from '../plugins/bus';
+import { usePluginRegistry, type UiSlot } from '../plugins/registry';
+import { pluginNotify } from '../services/notify';
 import { SandboxFrame } from './SandboxFrame';
 import {
   isGranted, sanitizePermissions, FORWARDED_EVENTS, THEME_VARS,
@@ -57,17 +58,15 @@ function holder(): HTMLElement {
   return holderEl;
 }
 
-export async function mountSandboxedPlugin(entry: Exclude<PluginEntry, string>): Promise<void> {
-  const url = entry.url;
-  const name = `sbx:${url.split('/').pop() || url}`;
-  const permissions = sanitizePermissions(entry.permissions);
+// A sandboxed feature: a name, its JS source, and the capabilities it may use.
+export interface SandboxSpec { name: string; source: string; permissions?: readonly string[]; }
 
-  let source: string;
-  try {
-    const res = await fetch(url, entry.integrity ? { integrity: entry.integrity } : undefined);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    source = await res.text();
-  } catch (e) { console.error(`[sandbox] ${name}: failed to fetch ${url}`, e); return; }
+// Core entry point: run `source` in an isolated iframe with `permissions`. Used by
+// the app for its own bundled features and by the config loader for plugins.
+export function mountSandboxed(spec: SandboxSpec): void {
+  const name = spec.name;
+  const source = spec.source;
+  const permissions = sanitizePermissions(spec.permissions);
 
   const iframe = document.createElement('iframe');
   iframe.src = SANDBOX_DOC;
@@ -142,4 +141,16 @@ export async function mountSandboxedPlugin(entry: Exclude<PluginEntry, string>):
   iframe.addEventListener('load', handshake);
   holder().appendChild(iframe);
   void removeUi; // referenced by the (future) unload path
+}
+
+// Operator-listed sandboxed plugin: fetch its source (same-origin, optional SRI),
+// then hand off to mountSandboxed. Third-party/untrusted plugins load this way.
+export async function mountSandboxedPlugin(entry: Exclude<PluginEntry, string>): Promise<void> {
+  const url = entry.url;
+  const name = `sbx:${url.split('/').pop() || url}`;
+  try {
+    const res = await fetch(url, entry.integrity ? { integrity: entry.integrity } : undefined);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    mountSandboxed({ name, source: await res.text(), permissions: entry.permissions });
+  } catch (e) { console.error(`[sandbox] ${name}: failed to fetch ${url}`, e); }
 }

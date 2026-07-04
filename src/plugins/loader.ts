@@ -39,7 +39,7 @@ export function loadPlugins(): void {
 
   if (sandboxed.length) {
     // Loaded lazily so the sandbox subsystem (and React) isn't pulled in unless used.
-    void import('./sandbox/host').then(({ mountSandboxedPlugin }) => {
+    void import('../sandbox/host').then(({ mountSandboxedPlugin }) => {
       for (const entry of sandboxed) void mountSandboxedPlugin(entry);
     });
   }

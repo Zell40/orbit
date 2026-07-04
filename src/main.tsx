@@ -62,6 +62,10 @@ loadConfig().then(async () => {
   const { initPlugins } = await import('./plugins')
   initPlugins()
 
+  // Core sandboxed features the app ships itself (isolated + capability-gated),
+  // mounted by core — no config.json entry needed.
+  void import('./sandbox/builtins').then((m) => m.mountBuiltins())
+
   // Site handoff: if the entry form sent us here, auto-connect with the nick and
   // channels from the URL plus any SASL password parked in sessionStorage, and
   // mark the store so the first paint is a "connecting" splash, not the join
