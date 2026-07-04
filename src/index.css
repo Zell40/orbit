@@ -1500,14 +1500,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 /* Tokens — light (yomirc) and dark (yomirc-dark); structure below is shared via [data-theme^="yomirc"] */
 [data-theme="yomirc"] {
   --mirc-silver: #c0c0c0; --mirc-face: #d4d0c8; --mirc-light: #ffffff;
-  --mirc-shadow: #908b80; --mirc-dark: #5a554c; --mirc-navy: #4f6a93; --mirc-navy-2: #7089ad;
-  --mirc-paper: #f6f4ec; --mirc-hover: #e7e4db; --mirc-bevel-hi: #efefef; --mirc-sel-ink: #ffffff;
+  --mirc-shadow: #908b80; --mirc-dark: #5a554c; --mirc-navy: #0a246a; --mirc-navy-2: #2f5fc0;
+  --mirc-paper: #ffffff; --mirc-hover: #e7e4db; --mirc-bevel-hi: #efefef; --mirc-sel-ink: #ffffff;
   --mirc-join: #3f7d4a; --mirc-quit: #b0544b;   /* gentle sage green / muted brick */
   --mono: "Lucida Console", "Consolas", "Courier New", monospace;
   --ink: #000000; --ink-2: #000000; --muted: #404040; --faint: #606060;
-  --bg: #f6f4ec; --bg-soft: #d4d0c8; --bg-soft-2: #c4c0b8; --bg-active: #4f6a93; --rail-bg: #c8c4bb;
+  --bg: #ffffff; --bg-soft: #d4d0c8; --bg-soft-2: #c4c0b8; --bg-active: #0a246a; --rail-bg: #c8c4bb;
   --border: #808080; --border-2: #404040;
-  --green: #4f6a93; --green-d: #3c557d; --green-soft: #4f6a93;
+  --green: #0a246a; --green-d: #0a246a; --green-soft: #0a246a;
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
   --shadow-pop: 2px 2px 0 rgba(0,0,0,.35);
 }

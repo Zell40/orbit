@@ -30,22 +30,33 @@ async function localizeManifest() {
   } catch { /* keep the static manifest */ }
 }
 
-// Browser tab icon follows the configured brand icon (index.html ships a static
-// default for the pre-JS paint; here we point it at config.branding.icon).
+// A retro Win98-style tab icon for the yomirc skins: a beveled silver tile with
+// a navy #, so the classic theme gets a matching classic favicon.
+const MIRC_FAVICON = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">'
+  + '<rect width="32" height="32" fill="#c0c0c0"/>'
+  + '<path d="M0 0h32v3H3v29H0z" fill="#fff"/><path d="M32 0v32H0v-3h29V0z" fill="#808080"/>'
+  + '<path d="M13 8v16M20 8v16M8 13h17M7 19h17" stroke="#0a246a" stroke-width="3"/></svg>')
+
+// Browser tab icon: the retro favicon under yomirc, else the configured brand
+// icon (index.html ships a static default for the pre-JS paint).
 function applyBrandIcon() {
   try {
     const accent = getConfig().branding?.accent
     if (accent) document.documentElement.style.setProperty('--accent', accent) // config accent token
-    const icon = getConfig().branding?.icon
-    if (!icon) return
     let link = document.querySelector('link[rel="icon"]') as HTMLLinkElement | null
     if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link) }
-    link.href = icon
+    const mirc = getTheme().startsWith('yomirc')
+    if (mirc) link.type = 'image/svg+xml'; else link.removeAttribute('type')
+    const icon = mirc ? MIRC_FAVICON : getConfig().branding?.icon
+    if (icon) link.href = icon
     const name = getConfig().branding?.name
     const m = document.querySelector('meta[name="apple-mobile-web-app-title"]')
     if (m && name) m.setAttribute('content', name) // iOS home-screen title
   } catch { /* keep the static favicon */ }
 }
+// Swap the favicon when the user changes theme (into or out of yomirc).
+window.addEventListener('themechange', applyBrandIcon)
 
 // Load runtime config.json FIRST, then import App (so the store initialises with
 // the resolved config). Keeps the client fully re-pointable/re-brandable without
