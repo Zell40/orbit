@@ -8,6 +8,7 @@ import diceSource from './features/dice.js?raw';
 import { mountSandboxed } from './host';
 import { getConfig } from '../../core/config';
 
+// The registry of built-in feature modules. To add one, see features/README.md.
 const BUILTINS = [
   { name: 'dice', source: diceSource, permissions: ['irc', 'storage'] },
 ];
