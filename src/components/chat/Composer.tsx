@@ -63,7 +63,8 @@ export function Composer() {
   const [picker, setPicker] = useState(false);
   const [colors, setColors] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [empty, setEmpty] = useState(true);
+  const [empty, setEmpty] = useState(true);   // truly empty → show the placeholder hint
+  const [blank, setBlank] = useState(true);   // whitespace-only → keep the send button disabled
   const [fmt, setFmt] = useState({ b: false, i: false, u: false });
   const fgRef = useRef('');                 // active text colour, kept sticky across sends
   const ed = useRef<HTMLDivElement>(null);
@@ -97,12 +98,19 @@ export function Composer() {
     } catch { /* queryCommandState unsupported — leave as-is */ }
   }
 
-  // Reflect editor contents into the empty flag (placeholder + send button) and ping typing.
+  // Reflect the editor into the two flags. The hint hides as soon as there's ANY
+  // content (like a normal input) so a lone space no longer leaves it under the
+  // caret; the send button stays disabled until there's non-whitespace to send.
+  function reflect() {
+    const root = ed.current; if (!root) return;
+    const text = root.textContent || '';
+    setEmpty(!text);
+    setBlank(!text.trim());
+  }
   function changed() {
     const root = ed.current; if (!root) return;
-    const has = !!(root.textContent && root.textContent.trim());
-    setEmpty(!has);
-    if (has && !isConsole) notifyTyping();
+    reflect();
+    if ((root.textContent || '').trim() && !isConsole) notifyTyping();
     histIdx.current = -1; // typing exits history-recall mode
     syncFmt();
   }
@@ -118,7 +126,7 @@ export function Composer() {
   useEffect(() => {
     const root = ed.current; if (!root) return;
     root.innerHTML = ircToHtml(activeStore().getState().drafts[active] ?? '');
-    setEmpty(!(root.textContent || '').trim());
+    reflect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -128,7 +136,7 @@ export function Composer() {
     const root = ed.current; if (!root) return;
     setDraft(prevActive.current, serialize(root));
     root.innerHTML = ircToHtml(activeStore().getState().drafts[active] ?? '');
-    setEmpty(!(root.textContent || '').trim());
+    reflect();
     cyc.current = null;
     prevActive.current = active;
   }, [active, setDraft]);
@@ -155,7 +163,7 @@ export function Composer() {
     histIdx.current = -1;
     histStash.current = '';
     root.innerHTML = '';
-    setEmpty(true);
+    setEmpty(true); setBlank(true);
     setDraft(active, '');
     cyc.current = null;
     reapplySticky();   // keep bold/italic/colour active for the next line
@@ -165,7 +173,7 @@ export function Composer() {
   function setEditorText(irc: string) {
     const root = ed.current; if (!root) return;
     root.innerHTML = ircToHtml(irc);
-    setEmpty(!(root.textContent || '').trim());
+    reflect();
     caretToEnd(root);
   }
 
@@ -420,7 +428,7 @@ export function Composer() {
         )}
         {!isConsole && pluginButtons.map((b) => <PluginBoundary key={b.id} render={b.render} label="composer_button" />)}
         {!isConsole && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
-        <button className="composer__send" disabled={empty} onClick={submit} aria-label={t('composer.send')}>{isConsole ? '⏎' : '➤'}</button>
+        <button className="composer__send" disabled={blank} onClick={submit} aria-label={t('composer.send')}>{isConsole ? '⏎' : '➤'}</button>
       </div>
     </div>
   );
