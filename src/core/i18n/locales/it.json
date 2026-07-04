@@ -270,6 +270,8 @@
       "soundsHint": "Un bip su menzione o messaggio diretto.",
       "hideJoins": "Nascondi entrate / uscite",
       "hideJoinsHint": "Nasconde i «è entrato / è uscito».",
+      "linkPreviews": "Anteprime dei link",
+      "linkPreviewsHint": "Mostra una scheda per i link, recuperata dal server.",
       "highlightLabel": "Parole chiave di evidenziazione",
       "highlightPlaceholder": "es.: tchatou, incontro, urgente",
       "highlightHint": "Oltre al tuo soprannome, queste parole attivano un avviso (separate da virgole)."

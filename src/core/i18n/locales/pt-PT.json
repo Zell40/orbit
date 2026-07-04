@@ -270,6 +270,8 @@
       "soundsHint": "Um bip ao seres mencionado ou em mensagem direta.",
       "hideJoins": "Ocultar entradas / saídas",
       "hideJoinsHint": "Oculta os «entrou / saiu».",
+      "linkPreviews": "Pré-visualizações de links",
+      "linkPreviewsHint": "Mostra um cartão para as ligações, obtido pelo servidor.",
       "highlightLabel": "Palavras-chave de destaque",
       "highlightPlaceholder": "ex.: tchatou, encontro, urgente",
       "highlightHint": "Além da tua alcunha, estas palavras ativam um alerta (separadas por vírgulas)."

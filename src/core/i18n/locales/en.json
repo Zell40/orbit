@@ -270,6 +270,8 @@
       "soundsHint": "A beep on mention or direct message.",
       "hideJoins": "Hide joins / parts",
       "hideJoinsHint": "Hides “joined / left” lines.",
+      "linkPreviews": "Link previews",
+      "linkPreviewsHint": "Show a card for links, fetched by the server.",
       "highlightLabel": "Highlight keywords",
       "highlightPlaceholder": "e.g. tchatou, meet, urgent",
       "highlightHint": "Besides your nickname, these words trigger an alert (comma-separated)."

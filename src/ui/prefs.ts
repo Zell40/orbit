@@ -7,6 +7,7 @@ export interface Prefs {
   compact: boolean;      // denser message rows
   clock24: boolean;      // 24h timestamps (else 12h am/pm)
   textScale: number;     // UI text size multiplier (1 = default; 0.9 / 1.1 / 1.25)
+  linkPreviews: boolean; // show OpenGraph link-preview cards (off = never fetch)
 }
 
 const KEY = 'tchatou-prefs';
@@ -14,7 +15,7 @@ const KEY = 'tchatou-prefs';
 // Defaults come from config.json (so a deployment can preset compact/sound/etc.).
 function defaults(): Prefs {
   const d = getConfig().defaults;
-  return { sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24, textScale: 1 };
+  return { sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24, textScale: 1, linkPreviews: true };
 }
 
 export function getPrefs(): Prefs {

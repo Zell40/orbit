@@ -270,6 +270,8 @@
       "soundsHint": "Ein Piep bei Erwähnung oder Direktnachricht.",
       "hideJoins": "Beitritte / Verlassen ausblenden",
       "hideJoinsHint": "Blendet „beigetreten / verlassen“ aus.",
+      "linkPreviews": "Link-Vorschauen",
+      "linkPreviewsHint": "Zeigt eine Karte für Links, vom Server geladen.",
       "highlightLabel": "Hervorhebungs-Schlüsselwörter",
       "highlightPlaceholder": "z. B. tchatou, treffen, dringend",
       "highlightHint": "Neben deinem Spitznamen lösen diese Wörter einen Hinweis aus (kommagetrennt)."

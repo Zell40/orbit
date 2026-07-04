@@ -45,6 +45,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   const togglePin = useChat((s) => s.togglePin);
   const pinned = useChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
   const isOper = useChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
+  const linkPreviews = useChat((s) => s.prefs.linkPreviews);
   // Avatars resolve by ACCOUNT. Live messages carry the account tag, but
   // chathistory-replayed ones (e.g. on a fresh mobile join) often don't — so
   // fall back to the author's account from the channel member list.
@@ -124,7 +125,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self)}</em> : formatIrc(m.text, m.self))}
           {!m.redacted && <MsgDecorations m={m} />}
         </div>
-        {!m.redacted && getConfig().features.linkPreviews && (() => {
+        {!m.redacted && linkPreviews && getConfig().features.linkPreviews && (() => {
           const pu = firstPreviewableUrl(stripFormatting(m.text));
           return pu ? <LinkPreview url={pu} /> : null;
         })()}
