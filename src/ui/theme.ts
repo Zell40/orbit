@@ -7,16 +7,7 @@ import { getConfig } from '../core/config';
 // 'orbit-dark' mirrors tchatou.fr — near-black, monochrome white accent, Geist, green "live".
 export type Theme = 'light' | 'dark' | 'orbit' | 'orbit-dark' | 'yomirc' | 'yomirc-dark';
 
-const KEY = 'tchatou-theme';
-
-const THEME_COLOR: Record<string, string> = {
-  light: '#ffffff',
-  dark: '#16191c',
-  orbit: '#0b0e13',
-  'orbit-dark': '#08080a',
-  yomirc: '#f7f7f5',
-  'yomirc-dark': '#0c0c0f',
-};
+const KEY = 'tchatou-theme'; // also read by the pre-paint script in index.html
 
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
 
@@ -27,7 +18,6 @@ export interface PluginTheme { id: string; name: string; icon?: string; color?: 
 let pluginThemes: PluginTheme[] = [];
 export function registerTheme(pt: PluginTheme): () => void {
   pluginThemes = [...pluginThemes.filter((x) => x.id !== pt.id), pt];
-  if (pt.color) THEME_COLOR[pt.id] = pt.color;
   window.dispatchEvent(new Event('themelistchange'));
   return () => { pluginThemes = pluginThemes.filter((x) => x.id !== pt.id); window.dispatchEvent(new Event('themelistchange')); };
 }
@@ -51,7 +41,12 @@ export function getTheme(): string {
 export function applyTheme(t: string): void {
   document.documentElement.dataset.theme = t;
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', THEME_COLOR[t] ?? '#ffffff');
+  if (!meta) return;
+  // Mobile chrome tint follows the theme's own --bg (single source of truth, no
+  // JS map to drift); plugin themes fall back to the colour they registered.
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  const plugin = pluginThemes.find((p) => p.id === t)?.color;
+  meta.setAttribute('content', bg || plugin || '#ffffff');
 }
 
 export function setTheme(t: string): void {
