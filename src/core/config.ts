@@ -62,6 +62,7 @@ export interface AppConfig {
     push: boolean;          // Web Push notifications (Settings row)
     imageUpload: boolean;   // the composer image button + paste/drag upload
     register: boolean;      // account creation (the "Créer un compte" tab)
+    linkPreviews: boolean;  // rich link-preview cards (via the server unfurl endpoint)
   };
   /**
    * Operator-listed plugin scripts loaded at startup. Each entry is a URL, or an
@@ -99,7 +100,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
   report: { service: 'ReportServ', target: '#staff' },
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
-  features: { push: true, imageUpload: true, register: true },
+  features: { push: true, imageUpload: true, register: true, linkPreviews: true },
   plugins: [],
   builtins: [],
 };

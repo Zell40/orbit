@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../core/store';
 import type { ChatMessage } from '../../core/irc/types';
-import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
+import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, firstPreviewableUrl, LinkPreview } from '../../lib/format';
 import { stripFormatting } from '../../core/store/text';
+import { getConfig } from '../../core/config';
 import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry, type MessageInfo } from '../../modules/registry';
@@ -123,6 +124,10 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self)}</em> : formatIrc(m.text, m.self))}
           {!m.redacted && <MsgDecorations m={m} />}
         </div>
+        {!m.redacted && getConfig().features.linkPreviews && (() => {
+          const pu = firstPreviewableUrl(stripFormatting(m.text));
+          return pu ? <LinkPreview url={pu} /> : null;
+        })()}
         {showCtx && (
           <button
             className="ctx-chip"

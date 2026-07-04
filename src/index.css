@@ -1863,3 +1863,16 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .crash__btn { background: var(--green, #2ea043); color: #fff; border: 0; border-radius: 8px;
   padding: .6rem 1.4rem; font-weight: 600; font-size: .95rem; cursor: pointer; }
 .crash__btn:hover { filter: brightness(1.08); }
+
+/* Link-preview cards (OpenGraph, via the same-origin server unfurl endpoint) */
+.lpcard { display: flex; gap: 0; margin-top: .35rem; max-width: 440px; text-decoration: none;
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  background: var(--panel, var(--bg)); color: inherit; transition: background .12s; }
+.lpcard:hover { background: var(--green-soft); }
+.lpcard__img { width: 92px; min-width: 92px; height: 92px; object-fit: cover; background: var(--muted); }
+.lpcard__body { display: flex; flex-direction: column; gap: .12rem; padding: .5rem .6rem; min-width: 0; }
+.lpcard__site { font-size: .66rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+.lpcard__title { font-size: .86rem; font-weight: 600; color: var(--ink);
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.lpcard__desc { font-size: .78rem; color: var(--muted);
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
