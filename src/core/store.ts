@@ -12,11 +12,7 @@ import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 
-let localId = 0;
-let lastTypingSent = 0;
-const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
-const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
-const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
+let localId = 0; // globally-unique local id source (shared across networks is fine)
 
 const newId = () => `local-${Date.now()}-${localId++}`;
 
@@ -159,7 +155,15 @@ interface ChatState {
   setPref: <K extends keyof Prefs>(key: K, value: Prefs[K]) => void;
 }
 
-export const useChat = create<ChatState>((set, get) => {
+// A chat store is created PER NETWORK (multi-network) — each owns its own
+// connection, buffers, nick and per-instance throttles. `useChat` below is the
+// primary (default) network; additional ones come from the networks registry.
+export function createChatStore() {
+  let lastTypingSent = 0;
+  const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
+  const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
+  const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
+  return create<ChatState>((set, get) => {
   // ---- helpers that mutate state immutably -------------------------------
   // Buffers are keyed by the CASEMAPPING-folded name (canon); Buffer.name keeps
   // the original display case so the UI shows "#Taverne" while "#taverne" maps
@@ -1805,4 +1809,8 @@ export const useChat = create<ChatState>((set, get) => {
       set({ prefs });
     },
   };
-});
+  });
+}
+
+// The primary network. Existing single-network usage is unchanged.
+export const useChat = createChatStore();
