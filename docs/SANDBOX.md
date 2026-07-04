@@ -1,15 +1,20 @@
-# Sandboxed plugins
+# The sandbox
 
-Orbit loads two kinds of plugin, chosen per entry in `config.json`:
+The sandbox is a **core subsystem** (`src/sandbox/`): it runs code in an
+**opaque-origin iframe** (`sandbox="allow-scripts"`, no `allow-same-origin`) that
+reaches the app **only** through a capability-gated message bridge. Sandboxed code
+cannot read the page DOM, cookies, `localStorage` (the SASL handoff password), or
+the store — only what its `permissions` grant.
 
-- **In-page (default)** — a trusted `<script>` on the app origin, same trust level
-  as deploying the app. Gets the full React plugin API. Use for first-party
-  plugins the operator wrote or fully vets.
-- **Sandboxed** — runs in an **opaque-origin iframe** (`sandbox="allow-scripts"`,
-  no `allow-same-origin`) and reaches the app **only** through a capability-gated
-  message bridge. It cannot read the page DOM, cookies, `localStorage` (the SASL
-  handoff password), or the store. Use for community / third-party / less-trusted
-  plugins.
+Two things use it:
+
+- **Built-in features (bundled)** — the app mounts them itself at boot via
+  `src/sandbox/builtins.ts` → `mountSandboxed({ name, source, permissions })`, with
+  the source compiled into the app (`?raw`). No `config.json` entry. Example: the
+  `/roll` dice widget (`src/sandbox/features/dice.js`).
+- **Operator plugins (config)** — a `config.json` entry with `sandbox: true` is
+  fetched and mounted the same way. Use for community / third-party / less-trusted
+  plugins. (Plain string entries still load in-page as a trusted `<script>`.)
 
 ```jsonc
 "plugins": [
@@ -45,8 +50,8 @@ The app's theme CSS vars (`--bg`, `--ink`, `--accent`, `--muted`, `--border`,
 `--panel`, `--green-soft`) are mirrored into the sandbox and kept in sync on theme
 change, so plugin UI can use `var(--accent)` and look native in light + dark.
 
-Examples: `public/plugins/orbit-sandbox-demo.js` (minimal) and
-`public/plugins/orbit-dice.js` (a real themed dice/coin plugin, `["irc","storage"]`).
+Examples: `src/sandbox/features/dice.js` (a built-in, bundled + mounted by core) and
+`public/plugins/orbit-sandbox-demo.js` (the minimal config-loaded form).
 
 ## Required CSP (APPLIED 2026-07-04)
 
