@@ -20,8 +20,13 @@ export function scriptAttrs(entry: PluginEntry): ScriptAttrs {
 }
 
 export function loadPlugins(): void {
-  const list = (getConfig().plugins ?? []).filter(Boolean).map(scriptAttrs).filter((p) => p.url);
-  for (const { url, integrity, crossorigin } of list) {
+  const entries = (getConfig().plugins ?? []).filter(Boolean);
+  // `sandbox: true` entries run in an opaque-origin iframe via the sandbox host;
+  // everything else is a trusted in-page <script> (same trust as the app).
+  const sandboxed = entries.filter((e): e is Exclude<typeof e, string> => typeof e !== 'string' && !!e.sandbox);
+  const inPage = entries.filter((e) => typeof e === 'string' || !e.sandbox).map(scriptAttrs).filter((p) => p.url);
+
+  for (const { url, integrity, crossorigin } of inPage) {
     const el = document.createElement('script');
     el.src = url;
     el.async = true;
@@ -31,5 +36,14 @@ export function loadPlugins(): void {
     el.onerror = () => console.error('[plugins] failed to load', url);
     document.head.appendChild(el);
   }
-  if (list.length && pluginDebug()) console.log(`[plugins] loading ${list.length} plugin(s)`, list.map((p) => p.url));
+
+  if (sandboxed.length) {
+    // Loaded lazily so the sandbox subsystem (and React) isn't pulled in unless used.
+    void import('./sandbox/host').then(({ mountSandboxedPlugin }) => {
+      for (const entry of sandboxed) void mountSandboxedPlugin(entry);
+    });
+  }
+
+  if ((inPage.length || sandboxed.length) && pluginDebug())
+    console.log(`[plugins] loading ${inPage.length} in-page, ${sandboxed.length} sandboxed`);
 }

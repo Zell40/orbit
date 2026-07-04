@@ -1,0 +1,118 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<title>Orbit sandboxed plugin</title>
+<style>
+  html, body { margin: 0; background: transparent; color: inherit; font: inherit; }
+  body { font: 13px/1.3 system-ui, sans-serif; }
+</style>
+<body>
+<script>
+/*
+ * Guest bootstrap for a sandboxed Orbit plugin.
+ *
+ * This document runs in an OPAQUE origin (the embedding <iframe> has
+ * sandbox="allow-scripts" and no allow-same-origin), so it has no access to the
+ * app's DOM, cookies, localStorage or store. Its only link to the app is the
+ * MessagePort handed over in the `init` message; every privileged action is an
+ * RPC the host validates against the plugin's granted permissions.
+ *
+ * Kept as a static, dependency-free file (not part of the TS bundle) so it can be
+ * served with its own strict CSP.
+ */
+(function () {
+  var port, snap = { active: '', nick: '', account: '', buffers: [] }, store = {};
+  var listeners = {};                 // event name -> [fn]
+  var pending = new Map(), rpcId = 0;  // in-flight RPCs
+
+  function rpc(method) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (resolve, reject) {
+      var id = ++rpcId;
+      pending.set(id, { resolve: resolve, reject: reject });
+      port.postMessage({ type: 'rpc', id: id, method: method, args: args });
+    });
+  }
+  function emit(name) {
+    var a = Array.prototype.slice.call(arguments, 1);
+    (listeners[name] || []).forEach(function (fn) { try { fn.apply(null, a); } catch (e) { /* plugin threw */ } });
+  }
+
+  // The constrained API a sandboxed plugin sees. Same shape spirit as the in-page
+  // Orbit, but privileged bits go through the host and reads come from the snapshot.
+  function makeApi(name) {
+    return {
+      name: name,
+      sandboxed: true,
+      log: function () { rpc.apply(null, ['log'].concat(Array.prototype.slice.call(arguments))); },
+      on: function (ev, fn) { (listeners[ev] = listeners[ev] || []).push(fn); return function () {
+        listeners[ev] = (listeners[ev] || []).filter(function (f) { return f !== fn; }); }; },
+      irc: {
+        say: function (t) { return rpc('irc.say', t); },
+        msg: function (to, t) { return rpc('irc.msg', to, t); },
+        send: function (l) { return rpc('irc.send', l); },
+        join: function (c) { return rpc('irc.join', c); },
+        part: function (c) { return rpc('irc.part', c); },
+        list: function () { return rpc('irc.list'); },
+      },
+      notify: function (title, body) { return rpc('notify', title, body); },
+      state: {
+        active: function () { return snap.active; },
+        nick: function () { return snap.nick; },
+        account: function () { return snap.account; },
+        buffers: function () { return snap.buffers.slice(); },
+      },
+      storage: {
+        get: function (k, fallback) { return k in store ? store[k] : fallback; },
+        set: function (k, v) { store[k] = v; return rpc('storage.set', k, v); },
+      },
+      // Populate this iframe's own DOM, then claim a UI slot in the app shell.
+      // Height is reported back so the host can size the frame to the content.
+      ui: function (slot, build) {
+        try { build(document.body); } catch (e) { rpc('log', 'ui build threw: ' + e); }
+        rpc('ui.claim', slot);
+        var report = function () { rpc('ui.resize', document.documentElement.scrollHeight); };
+        report();
+        if (window.ResizeObserver) new ResizeObserver(report).observe(document.documentElement);
+      },
+    };
+  }
+
+  // The global the plugin source registers against: Orbit.plugin('name', fn).
+  var registered = false;
+  window.Orbit = {
+    sandboxed: true,
+    plugin: function (name, fn) {
+      if (registered) return; registered = true;
+      var api = makeApi(name);
+      try { fn(api, api.log); } catch (e) { rpc('log', 'plugin threw during init: ' + e); }
+    },
+  };
+
+  window.addEventListener('message', function (e) {
+    var m = e.data;
+    if (!m || !m.type) return;
+    if (m.type === 'init' && e.ports && e.ports[0]) {
+      port = e.ports[0];
+      snap = m.snapshot || snap;
+      store = m.storage || {};
+      port.onmessage = function (ev) {
+        var d = ev.data;
+        if (!d) return;
+        if (d.type === 'rpc:reply') {
+          var p = pending.get(d.id); if (!p) return; pending.delete(d.id);
+          d.error ? p.reject(new Error(d.error)) : p.resolve(d.result);
+        } else if (d.type === 'event') {
+          emit.apply(null, [d.name].concat(d.args || []));
+        } else if (d.type === 'snapshot') {
+          snap = d.snapshot || snap;
+        }
+      };
+      // Run the plugin now that the bridge is live. new Function keeps it out of
+      // this bootstrap's scope; it only reaches the app through window.Orbit.
+      try { new Function(m.source).call(window); }
+      catch (err) { rpc('log', 'plugin source failed: ' + err); }
+    }
+  });
+})();
+</script>

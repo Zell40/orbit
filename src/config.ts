@@ -72,8 +72,14 @@ export interface AppConfig {
   plugins?: PluginEntry[];
 }
 
-/** A plugin to load: a bare URL, or a URL with an SRI hash (and optional crossorigin). */
-export type PluginEntry = string | { url: string; integrity?: string; crossorigin?: string };
+/** A plugin to load: a bare URL, or a URL with options.
+ *  `sandbox: true` runs it in an opaque-origin iframe reachable only through a
+ *  capability-gated bridge; `permissions` lists what it may do (irc/notify/storage).
+ *  Untrusted or community plugins should be sandboxed. Trusted first-party plugins
+ *  may run in-page (the default) for the full React API. */
+export type PluginEntry =
+  | string
+  | { url: string; integrity?: string; crossorigin?: string; sandbox?: boolean; permissions?: string[] };
 
 export const DEFAULT_CONFIG: AppConfig = {
   server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité' },
