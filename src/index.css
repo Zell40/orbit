@@ -1502,29 +1502,32 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
    silver 3D chrome, sunken white panes, a navy→blue caption bar, the exact mIRC
    16-colour log, and a fixed-width Lucida/Fixedsys feel. Dark = "mIRC at night":
    a pure-black message log where the 16 colours blaze. */
+/* No Windows-98 chrome. The colour is the mIRC 16-colour TEXT on a clean canvas;
+   everything else is flat and quiet. Blue is gone entirely; the one accent is the
+   classic IRC/terminal green. Bevel tokens are transparent so the old 3D vanishes. */
 [data-theme="yomirc"] {
-  --mirc-silver: #c0c0c0; --mirc-face: #c0c0c0; --mirc-light: #ffffff;
-  --mirc-shadow: #808080; --mirc-dark: #404040; --mirc-navy: #000080; --mirc-navy-2: #1084d0;
-  --mirc-paper: #ffffff; --mirc-hover: #cddaf5; --mirc-bevel-hi: #dfdfdf; --mirc-sel-ink: #ffffff;
-  --mirc-join: #0a7a2f; --mirc-quit: #b01717;   /* classic green join / red leave */
+  --mirc-silver: #ececec; --mirc-face: #f7f7f5; --mirc-light: transparent;
+  --mirc-shadow: #e0e0dc; --mirc-dark: transparent; --mirc-navy: #daf1e2; --mirc-navy-2: #daf1e2;
+  --mirc-paper: #ffffff; --mirc-hover: #f0f4ee; --mirc-bevel-hi: transparent; --mirc-sel-ink: #0a5c2b;
+  --mirc-join: #0a7a2f; --mirc-quit: #c01717;
   --mono: "Lucida Console", "Fixedsys Excelsior", Consolas, "Courier New", monospace;
-  --ink: #000000; --ink-2: #000000; --muted: #7f7f7f; --faint: #969696;
-  --bg: #ffffff; --bg-soft: #c0c0c0; --bg-soft-2: #b4b4b4; --bg-active: #000080; --rail-bg: #c0c0c0;
-  --border: #808080; --border-2: #404040;
-  --green: #000080; --green-d: #000080; --green-soft: #cdd8f5;
+  --ink: #101010; --ink-2: #101010; --muted: #7d7d7d; --faint: #9a9a9a;
+  --bg: #ffffff; --bg-soft: #f2f2ee; --bg-soft-2: #e8e8e2; --bg-active: #daf1e2; --rail-bg: #f2f2ee;
+  --border: #dcdcd6; --border-2: #ccccc6;
+  --green: #0a8f3c; --green-d: #0a5c2b; --green-soft: #daf1e2;
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
-  --shadow-pop: 2px 2px 0 rgba(0,0,0,.4);
+  --shadow-pop: 0 6px 20px -6px rgba(0,0,0,.25);
 }
 [data-theme="yomirc-dark"] {
-  --mirc-silver: #3a3a3a; --mirc-face: #2b2b2b; --mirc-light: #565656;
-  --mirc-shadow: #121212; --mirc-dark: #000000; --mirc-navy: #000080; --mirc-navy-2: #1084d0;
-  --mirc-paper: #000000; --mirc-hover: #101a33; --mirc-bevel-hi: #3d3d3d; --mirc-sel-ink: #ffffff;
+  --mirc-silver: #16161a; --mirc-face: #0c0c0f; --mirc-light: transparent;
+  --mirc-shadow: #23232a; --mirc-dark: transparent; --mirc-navy: #113a22; --mirc-navy-2: #113a22;
+  --mirc-paper: #000000; --mirc-hover: #121212; --mirc-bevel-hi: transparent; --mirc-sel-ink: #b9ffcf;
   --mirc-join: #35c46a; --mirc-quit: #ff5a5a;   /* bright on black, like real mIRC colours */
   --mono: "Lucida Console", "Fixedsys Excelsior", Consolas, "Courier New", monospace;
-  --ink: #d2d2d2; --ink-2: #c4c4c4; --muted: #7d7d7d; --faint: #5a5a5a;
-  --bg: #000000; --bg-soft: #2b2b2b; --bg-soft-2: #3a3a3a; --bg-active: #000080; --rail-bg: #242424;
-  --border: #121212; --border-2: #000000;
-  --green: #35c46a; --green-d: #57d07a; --green-soft: rgba(53,196,106,.16);
+  --ink: #d2d2d2; --ink-2: #c4c4c4; --muted: #7d7d7d; --faint: #565656;
+  --bg: #000000; --bg-soft: #0c0c0f; --bg-soft-2: #16161a; --bg-active: #113a22; --rail-bg: #090909;
+  --border: #262630; --border-2: #33333c;
+  --green: #35c46a; --green-d: #57d07a; --green-soft: rgba(53,196,106,.14);
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
   --shadow-pop: 0 8px 26px -8px rgba(0,0,0,.85);
 }
@@ -1542,16 +1545,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme^="yomirc"] .sidebar { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 [data-theme^="yomirc"] .members { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 
-/* Title bar — gradient mIRC window caption */
+/* Flat caption bar — no Windows title-bar gradient, no blue */
 [data-theme^="yomirc"] .topbar {
-  min-height: 30px; padding: .2rem .5rem; gap: .4rem;
-  background: linear-gradient(90deg, var(--mirc-navy), var(--mirc-navy-2));
-  box-shadow: inset 1px 1px 0 rgba(255,255,255,.18);
-  border-bottom: 1px solid var(--mirc-shadow);
+  padding: .45rem .7rem; gap: .5rem;
+  background: var(--mirc-face); box-shadow: none; border-bottom: 1px solid var(--border);
 }
-[data-theme^="yomirc"] .topbar__title,
-[data-theme^="yomirc"] .topbar__topic,
-[data-theme^="yomirc"] .topbar__modes { color: var(--mirc-sel-ink); font-weight: 700; text-shadow: 1px 1px 0 rgba(0,0,0,.4); }
+[data-theme^="yomirc"] .topbar__title { color: var(--green-d); font-weight: 700; text-shadow: none; }
+[data-theme^="yomirc"] .topbar__topic { color: var(--ink-2); text-shadow: none; }
+[data-theme^="yomirc"] .topbar__modes { color: var(--muted); text-shadow: none; }
 [data-theme^="yomirc"] .topbar__topic--muted { color: rgba(255,255,255,.82); }
 [data-theme^="yomirc"] .topbar__av { border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 
