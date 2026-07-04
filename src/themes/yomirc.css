@@ -27,7 +27,7 @@
   --ink: #101010; --ink-2: #101010; --muted: #7d7d7d; --faint: #9a9a9a;
   --bg: #ffffff; --bg-soft: #f2f2ee; --bg-soft-2: #e8e8e2; --bg-active: #daf1e2; --rail-bg: #f2f2ee;
   --border: #dcdcd6; --border-2: #ccccc6;
-  --green: #0a8f3c; --green-d: #0a5c2b; --green-soft: #daf1e2;
+  --accent: #0a8f3c; --accent-d: #0a5c2b; --accent-soft: #daf1e2;
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
   --shadow-pop: 0 6px 20px -6px rgba(0,0,0,.25);
 }
@@ -40,7 +40,7 @@
   --ink: #d2d2d2; --ink-2: #c4c4c4; --muted: #7d7d7d; --faint: #565656;
   --bg: #000000; --bg-soft: #0c0c0f; --bg-soft-2: #16161a; --bg-active: #113a22; --rail-bg: #090909;
   --border: #262630; --border-2: #33333c;
-  --green: #35c46a; --green-d: #57d07a; --green-soft: rgba(53,196,106,.14);
+  --accent: #35c46a; --accent-d: #57d07a; --accent-soft: rgba(53,196,106,.14);
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
   --shadow-pop: 0 8px 26px -8px rgba(0,0,0,.85);
 }
@@ -61,7 +61,7 @@
   padding: .45rem .7rem; gap: .5rem;
   background: var(--mirc-face); box-shadow: none; border-bottom: 1px solid var(--border);
 }
-[data-theme^="yomirc"] .topbar__title { color: var(--green-d); font-weight: 700; text-shadow: none; }
+[data-theme^="yomirc"] .topbar__title { color: var(--accent-d); font-weight: 700; text-shadow: none; }
 [data-theme^="yomirc"] .topbar__topic { color: var(--ink-2); text-shadow: none; }
 [data-theme^="yomirc"] .topbar__modes { color: var(--muted); text-shadow: none; }
 [data-theme^="yomirc"] .topbar__topic--muted { color: rgba(255,255,255,.82); }
@@ -78,7 +78,7 @@
 /* Channel switcher (rooms) — sunken treebar */
 [data-theme^="yomirc"] .rooms { background: var(--mirc-paper); margin: 2px; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
 [data-theme^="yomirc"] .room { border-radius: 0; padding: .25rem .4rem; gap: .4rem; }
-[data-theme^="yomirc"] .room__av { border-radius: 0; width: 18px; height: 18px; background: transparent; color: var(--green); }
+[data-theme^="yomirc"] .room__av { border-radius: 0; width: 18px; height: 18px; background: transparent; color: var(--accent); }
 [data-theme^="yomirc"] .room__hash { font-size: 1rem; }
 [data-theme^="yomirc"] .room__sub { display: none; }
 [data-theme^="yomirc"] .room__name { font-weight: 400; color: var(--ink); }
@@ -87,7 +87,7 @@
 [data-theme^="yomirc"] .room.is-active .room__name { color: var(--mirc-sel-ink); font-weight: 400; }
 [data-theme^="yomirc"] .room.is-active .room__av { color: var(--mirc-sel-ink); }
 [data-theme^="yomirc"] .room.is-active::before { display: none; }
-[data-theme^="yomirc"] .rooms-h { color: var(--green-d); }
+[data-theme^="yomirc"] .rooms-h { color: var(--accent-d); }
 /* Status window pinned at the top of the switchbar (the real mIRC "Status") */
 [data-theme^="yomirc"] .room--status { border-bottom: 1px solid var(--mirc-shadow); margin-bottom: 2px; padding-bottom: .3rem; }
 [data-theme^="yomirc"] .room--status .room__name { font-weight: 700; }
@@ -125,16 +125,16 @@
 [data-theme^="yomirc"] .mircline--sys-ban { color: var(--mirc-quit); }
 [data-theme^="yomirc"] .mircline--sys-mode,
 [data-theme^="yomirc"] .mircline--sys-nick,
-[data-theme^="yomirc"] .mircline--sys-topic { color: var(--green-d); }
+[data-theme^="yomirc"] .mircline--sys-topic { color: var(--accent-d); }
 /* ---- THE NICK LIST: flat & inline, no access-level groups (real mIRC) ---- */
 [data-theme^="yomirc"] .members__list { background: var(--mirc-paper); margin: 0 2px 2px; padding: 1px; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-[data-theme^="yomirc"] .members__h { color: var(--green-d); padding: .35rem .6rem; }
+[data-theme^="yomirc"] .members__h { color: var(--accent-d); padding: .35rem .6rem; }
 [data-theme^="yomirc"] .mgroup { margin: 0; }
 [data-theme^="yomirc"] .mgroup__h { display: none; }
 [data-theme^="yomirc"] .member { border-radius: 0; padding: .05rem .4rem; gap: .25rem; }
 [data-theme^="yomirc"] .member .avatar { display: none; }
 [data-theme^="yomirc"] .member__name { font-family: var(--mono); font-size: .9rem; font-weight: 400; color: var(--ink); }
-[data-theme^="yomirc"] .member__prefix { color: var(--green); font-weight: 700; }
+[data-theme^="yomirc"] .member__prefix { color: var(--accent); font-weight: 700; }
 [data-theme^="yomirc"] .member:hover:not(:disabled) { background: var(--mirc-navy); }
 [data-theme^="yomirc"] .member:hover:not(:disabled) .member__name,
 [data-theme^="yomirc"] .member:hover:not(:disabled) .member__prefix { color: var(--mirc-sel-ink); }

@@ -61,7 +61,7 @@ export interface ThemeMsg { type: 'theme'; theme: Record<string, string>; }
 export interface RpcReplyMsg { type: 'rpc:reply'; id: number; result?: unknown; error?: string; }
 
 // App CSS variables mirrored into the sandbox so plugins can `var(--accent)` etc.
-export const THEME_VARS = ['--bg', '--ink', '--accent', '--muted', '--border', '--panel', '--green-soft'] as const;
+export const THEME_VARS = ['--bg', '--ink', '--accent', '--muted', '--border', '--panel', '--accent-soft'] as const;
 
 // guest -> host
 export interface RpcMsg { type: 'rpc'; id: number; method: string; args: unknown[]; }

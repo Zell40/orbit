@@ -246,7 +246,7 @@ function ProfileSection() {
             <span className="srow__ic" style={{ background: 'transparent', padding: 0 }}><Avatar nick={nick} size={42} account={account} /></span>
             <div className="srow__txt">
               <div className="srow__label">{nick}</div>
-              <div className="srow__hint">{account ? <>{t('settings.account.loggedIn')} · <strong style={{ color: 'var(--green-d)' }}>@{account}</strong></> : t('settings.account.guestNotConnected')}</div>
+              <div className="srow__hint">{account ? <>{t('settings.account.loggedIn')} · <strong style={{ color: 'var(--accent-d)' }}>@{account}</strong></> : t('settings.account.guestNotConnected')}</div>
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@
 
 /* ============ ORBIT THEME — mirrors orbit.tchatou.fr (near-black slate, green accent) ============ */
 [data-theme="orbit"] {
-  --green: #2ea043; --green-d: #46c35c; --green-soft: rgba(46,160,67,.16);
+  --accent: #2ea043; --accent-d: #46c35c; --accent-soft: rgba(46,160,67,.16);
   --online: #2ea043; --online-d: #46c35c; --online-soft: rgba(46,160,67,.13);
   --ink: #dde4ee; --ink-2: #c2ccd9; --muted: #8b97a8; --faint: #5f6b7a;
   --bg: #10151d; --bg-soft: #0b0e13; --bg-soft-2: #19212c; --bg-active: #1b2533; --rail-bg: #07090d;
@@ -37,7 +37,7 @@
   --ink: #f3f4f6; --ink-2: #c9cace; --muted: #8b8c95; --faint: #5c5d66;
   --bg: #0d0d0f; --bg-soft: #141416; --bg-soft-2: #1b1b1e; --bg-active: #212126; --rail-bg: #060607;
   --border: #232327; --border-2: #34343a;
-  --green: #f2f3f5; --green-d: #ffffff; --green-soft: rgba(255,255,255,.10);
+  --accent: #f2f3f5; --accent-d: #ffffff; --accent-soft: rgba(255,255,255,.10);
   --online: #2ec27e; --online-d: #25a76c; --online-soft: rgba(46,194,126,.16);
   --danger: #f0556e;
   --shadow-pop: 0 14px 44px -14px rgba(0,0,0,.8), 0 2px 8px -2px rgba(0,0,0,.6);

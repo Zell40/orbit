@@ -27,8 +27,8 @@
   --ink: #e7ebf0; --ink-2: #c2cad4; --muted: #93a0ad; --faint: #6a7682;
   --bg: #1a1d22; --bg-soft: #23272e; --bg-soft-2: #2c313a; --bg-active: #313742; --rail-bg: #141619;
   --border: #2a2f37; --border-2: #3a414b;
-  --green-soft: rgba(42,107,255,.20);
-  --green-d: #7aa6ff;
+  --accent-soft: rgba(42,107,255,.20);
+  --accent-d: #7aa6ff;
   --shadow-pop: 0 10px 30px -8px rgba(0,0,0,.6), 0 2px 8px -2px rgba(0,0,0,.5);
 }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] body { background: #141619; }
