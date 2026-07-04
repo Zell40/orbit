@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { applyTheme, getTheme } from './ui/theme.ts'
+import { getTheme, hydrateTheme, useThemeStore } from './ui/theme.ts'
 import i18n, { applyConfigDefaultLang } from './core/i18n'
 import './index.css'
 // Alternate themes, loaded after the base so their [data-theme] rules win.
@@ -64,14 +64,14 @@ function applyBrandIcon() {
     if (m && name) m.setAttribute('content', name) // iOS home-screen title
   } catch { /* keep the static favicon */ }
 }
-// Swap the favicon when the user changes theme (into or out of yomirc).
-window.addEventListener('themechange', applyBrandIcon)
+// Swap the favicon when the theme changes (into or out of yomirc).
+useThemeStore.subscribe((s, prev) => { if (s.theme !== prev.theme) applyBrandIcon() })
 
 // Load runtime config.json FIRST, then import App (so the store initialises with
 // the resolved config). Keeps the client fully re-pointable/re-brandable without
 // a rebuild.
 loadConfig().then(async () => {
-  applyTheme(getTheme()) // re-apply now that config (default theme) is loaded
+  hydrateTheme() // first-time visitors adopt the config default now config is loaded
   applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
   void localizeManifest() // re-serve the PWA manifest with a localized name/description
   applyBrandIcon()        // browser tab favicon follows config.branding.icon

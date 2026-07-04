@@ -8,6 +8,7 @@
 // features the app bundles (see ./builtins) and operator-listed sandboxed plugins.
 import { createElement } from 'react';
 import { activeStore } from '../../core/networks';
+import { useThemeStore } from '../../ui/theme';
 import { pluginDebug, type PluginEntry } from '../../core/config';
 import { bus } from '../bus';
 import { usePluginRegistry, type UiSlot } from '../registry';
@@ -128,9 +129,10 @@ export function mountSandboxed(spec: SandboxSpec): void {
         port.postMessage({ type: 'event', name: ev, args });
         if (ev === 'connected' || ev === 'buffer.active') port.postMessage({ type: 'snapshot', snapshot: snapshot() });
       }));
-    const onTheme = () => port.postMessage({ type: 'theme', theme: themeVars() });
-    window.addEventListener('themechange', onTheme);
-    teardown = () => { offs.forEach((o) => o()); window.removeEventListener('themechange', onTheme); port.close(); };
+    const offTheme = useThemeStore.subscribe((s, prev) => {
+      if (s.theme !== prev.theme) port.postMessage({ type: 'theme', theme: themeVars() });
+    });
+    teardown = () => { offs.forEach((o) => o()); offTheme(); port.close(); };
     iframe.contentWindow?.postMessage(
       { type: 'init', name, permissions, source, snapshot: snapshot(), storage: loadStorage(name), theme: themeVars() },
       '*', [chan.port2],
