@@ -23,7 +23,7 @@ export function Chat() {
         <Composer />
       </main>
       <MemberList onNavigate={() => setMembersOpen(false)} />
-      <TabBar />
+      <TabBar variant="desktop" />
       {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
       {membersOpen && <div className="nav-backdrop" onClick={() => setMembersOpen(false)} />}
       <Modals />

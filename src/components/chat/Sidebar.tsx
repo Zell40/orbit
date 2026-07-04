@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useChat, SERVER } from '../../store';
 import { avatarBg } from '../../lib/format';
@@ -6,10 +6,23 @@ import { useTheme } from '../../ui/theme';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../plugins/registry';
 import { PluginBoundary } from '../PluginBoundary';
+// The footer bar (TabBar) is in the DOM twice for the responsive layout — a
+// window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on
+// mobile (`.sidebar .appbar`), with CSS showing one at the 880px breakpoint. So
+// plugin `footer_item` slots render only in whichever copy is actually visible,
+// keeping the button a true singleton (it mounts once, not twice).
+function useMediaQuery(query: string): boolean {
+  return useSyncExternalStore(
+    (cb) => { const m = matchMedia(query); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb); },
+    () => matchMedia(query).matches,
+    () => false,
+  );
+}
+
 // App footer bar: account chip (avatar · nick · presence) · nav (Accueil /
 // Salons / Amis) · away toggle + settings — everything that used to live in the
 // left rail and the sidebar footer, in one place like a real app.
-export function TabBar() {
+export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer' }) {
   const { t } = useTranslation();
   const nick = useChat((s) => s.nick);
   const myAccount = useChat((s) => s.account);
@@ -18,6 +31,7 @@ export function TabBar() {
   const setModal = useChat((s) => s.setModal);
   const openUser = useChat((s) => s.openUser);
   const footerItems = usePluginRegistry((s) => s.ui);
+  const footerVisible = variant === (useMediaQuery('(max-width: 880px)') ? 'drawer' : 'desktop');
   return (
     <footer className="appbar">
       <button className={`appbar__me ${away ? 'is-away' : ''}`} onClick={() => openUser(nick)} title={t('sidebar.viewProfile')}>
@@ -39,7 +53,7 @@ export function TabBar() {
         <TabFriends onOpen={() => setModal('friends')} />
       </nav>
       <div className="appbar__actions">
-        {footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
+        {footerVisible && footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
         <button className={`appbar__act appbar__act--away ${away ? 'is-on' : ''}`} onClick={() => setAway(away ? '' : t('sidebar.away'))}
           title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')} aria-pressed={!!away}>💤</button>
         <button className="appbar__act" onClick={() => setModal('settings')}
@@ -136,7 +150,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       {/* On mobile the app bar docks at the bottom of this drawer instead of over
           the conversation; CSS shows this copy only on mobile (the full-width bar
           at the window bottom is used on desktop). */}
-      <TabBar />
+      <TabBar variant="drawer" />
     </aside>
   );
 }
