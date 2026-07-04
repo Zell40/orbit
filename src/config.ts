@@ -26,6 +26,8 @@ export interface AppConfig {
     taglineEm: string;  // connect screen — emphasised second line
     subtitle: string;   // connect screen — paragraph under the title
     projectUrl: string; // the Orbit project/source page (shown in Settings → À propos)
+    links?: { label: string; url: string }[]; // extra links shown in Settings → About (rules, donate, …)
+    accent?: string;    // optional accent colour override (the --accent CSS token)
   };
   turnstile: {
     // Render the anti-bot challenge inline with Cloudflare Turnstile. false = no

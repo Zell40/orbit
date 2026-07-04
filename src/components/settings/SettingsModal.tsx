@@ -469,6 +469,10 @@ function AboutSection() {
     { label: t('about.source'), value: <a href={ORBIT_SOURCE} target="_blank" rel="noopener noreferrer">codeberg.org/reversefr/orbit ↗</a> },
     { label: t('about.project'), value: <a href={cfg.branding.projectUrl} target="_blank" rel="noopener noreferrer">{cfg.branding.projectUrl.replace(/^https?:\/\//, '')} ↗</a> },
     { label: t('about.running'), value: <a href={cfg.branding.url} target="_blank" rel="noopener noreferrer">{cfg.branding.name} ↗</a> },
+    ...(cfg.branding.links || []).map((l) => ({
+      label: l.label,
+      value: <a href={l.url} target="_blank" rel="noopener noreferrer">{l.url.replace(/^https?:\/\//, '')} ↗</a>,
+    })),
   ];
   return (
     <div className="scard">
