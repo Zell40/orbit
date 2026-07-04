@@ -3,32 +3,43 @@
  *
  * Exercises a different slice of the sandbox API than dice: message events + a
  * state snapshot + UI, and NO privileged permissions (it only reads). See README.
+ *
+ * Busy-channel safe: counting is O(1) per message (per-second buckets, not a growing
+ * array), and repaints are coalesced to ~2/second no matter the message rate.
  */
 Orbit.plugin('pulse', function (orbit) {
-  var hits = [];                       // timestamps of recent messages in the active channel
+  var buckets = {};                    // unix-second -> message count (rolling 60s window)
   var active = orbit.state.active();
-  var pill;
+  var pill, pending = false;
 
-  function prune() {
-    var cut = Date.now() - 60000;      // rolling 60s window
-    while (hits.length && hits[0] < cut) hits.shift();
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+
+  function count() {                   // sum the window; prune expired seconds (<= 60 keys)
+    var cut = nowSec() - 60, n = 0;
+    for (var k in buckets) { if (+k < cut) delete buckets[k]; else n += buckets[k]; }
+    return n;
   }
 
   function render() {
     if (!pill) return;
-    prune();
-    var n = hits.length;
+    var n = count();
     pill.textContent = '⚡ ' + n;
     pill.title = n + ' messages in the last minute' + (active ? ' in ' + active : '');
-    // colour ramps from muted → green → orange as the room heats up
-    var hot = Math.min(1, n / 20);
+    var hot = Math.min(1, n / 20);     // colour ramps muted -> green -> orange
     pill.style.color = n ? 'hsl(' + Math.round(140 - hot * 140) + ',70%,45%)' : 'var(--muted,#888)';
   }
 
+  // Coalesce repaints: a flood of messages schedules at most one render per 500ms.
+  function schedule() {
+    if (pending) return;
+    pending = true;
+    setTimeout(function () { pending = false; render(); }, 500);
+  }
+
   orbit.on('message', function (m) {
-    if (m && m.target === active) { hits.push(Date.now()); render(); }
+    if (m && m.target === active) { var s = nowSec(); buckets[s] = (buckets[s] || 0) + 1; schedule(); }
   });
-  orbit.on('buffer.active', function (a) { active = a; hits = []; render(); });
+  orbit.on('buffer.active', function (a) { active = a; buckets = {}; render(); });
 
   orbit.ui('footer_item', function (root) {
     pill = document.createElement('span');
