@@ -5,6 +5,7 @@ export const FRIENDS_KEY = 'tchatou-friends';
 export const MUTED_KEY = 'tchatou-muted';
 export const HIGHLIGHT_KEY = 'tchatou-highlights';
 export const NOTIFY_KEY = 'tchatou-notify';
+export const PINS_KEY = 'tchatou-pins';
 
 export function loadStr(key: string): string[] {
   try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
@@ -28,6 +29,16 @@ export function loadNotify(): Record<string, NotifyLevel> {
 }
 export function saveNotify(map: Record<string, NotifyLevel>): void {
   try { localStorage.setItem(NOTIFY_KEY, JSON.stringify(map)); } catch { /* ignore */ }
+}
+
+// Pinned messages are client-local (IRC has no pin protocol) — a snapshot of the
+// line, kept per canon channel key, newest first.
+export interface Pin { id: string; from: string; text: string; ts: number; }
+export function loadPins(): Record<string, Pin[]> {
+  try { return JSON.parse(localStorage.getItem(PINS_KEY) || '{}'); } catch { return {}; }
+}
+export function savePins(map: Record<string, Pin[]>): void {
+  try { localStorage.setItem(PINS_KEY, JSON.stringify(map)); } catch { /* ignore */ }
 }
 
 export const loadIgnored = () => loadStr(IGNORE_KEY);

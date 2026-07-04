@@ -10,7 +10,7 @@ import { usePluginRegistry } from './plugins/registry';
 import { casefold } from './irc/casemap';
 import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';
-import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, type NotifyLevel } from './store/persistence';
+import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, type NotifyLevel, type Pin } from './store/persistence';
 
 let localId = 0;
 let lastTypingSent = 0;
@@ -105,6 +105,9 @@ interface ChatState {
   setHighlightWords: (words: string[]) => void;
   drafts: Record<string, string>; // buffer key → unsent composer text
   setDraft: (name: string, text: string) => void;
+  pins: Record<string, Pin[]>; // canon key → pinned messages (newest first), client-local
+  togglePin: (msgid: string) => void;
+  unpin: (channel: string, id: string) => void;
   reg: { step: 'idle' | 'code' | 'done'; account: string; busy: boolean; error: string; info: string; challengeUrl: string };
   replyTarget: { id: string; from: string; text: string } | null;
   search: string;
@@ -1192,6 +1195,7 @@ export const useChat = create<ChatState>((set, get) => {
     notifyLevel: loadNotify(),
     highlightWords: loadStr(HIGHLIGHT_KEY),
     drafts: {},
+    pins: loadPins(),
     reg: { step: 'idle', account: '', busy: false, error: '', info: '', challengeUrl: '' },
     replyTarget: null,
     search: '',
@@ -1363,6 +1367,30 @@ export const useChat = create<ChatState>((set, get) => {
       if (level === 'mentions') delete next[key]; else next[key] = level;
       saveNotify(next);
       set({ notifyLevel: next });
+    },
+
+    togglePin(msgid) {
+      const key = get().active;
+      const m = get().buffers[key]?.messages.find((x) => x.id === msgid);
+      if (!m) return;
+      const cur = get().pins[key] || [];
+      const next = { ...get().pins };
+      // Toggle: drop it if already pinned, else add to the front (cap the list).
+      next[key] = cur.some((p) => p.id === msgid)
+        ? cur.filter((p) => p.id !== msgid)
+        : [{ id: m.id, from: m.from, text: m.text, ts: m.ts }, ...cur].slice(0, 30);
+      if (!next[key].length) delete next[key];
+      savePins(next);
+      set({ pins: next });
+    },
+    unpin(channel, id) {
+      const key = canon(channel);
+      const cur = get().pins[key] || [];
+      const next = { ...get().pins };
+      next[key] = cur.filter((p) => p.id !== id);
+      if (!next[key].length) delete next[key];
+      savePins(next);
+      set({ pins: next });
     },
     setHighlightWords(words) {
       const clean = words.map((w) => w.trim()).filter(Boolean);
