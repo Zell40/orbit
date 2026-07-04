@@ -77,6 +77,15 @@ export interface PluginShortcut {
   run: (e: KeyboardEvent) => void;
 }
 
+// A plugin-opened modal dialog. `render` fills the body; the core supplies the
+// backdrop, title bar and close button. Only one is shown at a time.
+export interface PluginModalSpec {
+  plugin: string;
+  render: () => ReactNode;
+  title?: string;
+  wide?: boolean;
+}
+
 const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || '');
 // True when a keydown event matches a "mod+shift+k"-style combo.
 export function matchShortcut(e: KeyboardEvent, combo: string): boolean {
@@ -102,6 +111,7 @@ interface RegistryState {
   messageFilters: PluginFilter[];
   commands: PluginCommand[];
   shortcuts: PluginShortcut[];
+  modal: PluginModalSpec | null;
   addUi: (slot: UiSlot, plugin: string, render: () => ReactNode, meta?: PluginUi['meta']) => () => void;
   addDecorator: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addAction: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
@@ -109,6 +119,8 @@ interface RegistryState {
   addMessageFilter: (plugin: string, fn: (m: FilterableMessage) => boolean) => () => void;
   addCommand: (plugin: string, name: string, run: PluginCommand['run'], help?: string) => () => void;
   addShortcut: (plugin: string, combo: string, run: PluginShortcut['run']) => () => void;
+  openModal: (spec: PluginModalSpec) => () => void;
+  closeModal: () => void;
 }
 
 export const usePluginRegistry = create<RegistryState>((set) => ({
@@ -119,6 +131,7 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
   messageFilters: [],
   commands: [],
   shortcuts: [],
+  modal: null,
   addUi: (slot, plugin, render, meta) => {
     const id = `${plugin}:${slot}:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ ui: [...s.ui, { id, plugin, slot, render, meta }] }));
@@ -155,4 +168,9 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
     set((s) => ({ shortcuts: [...s.shortcuts, { id, plugin, combo, run }] }));
     return () => set((s) => ({ shortcuts: s.shortcuts.filter((k) => k.id !== id) }));
   },
+  openModal: (spec) => {
+    set({ modal: spec });
+    return () => set((s) => (s.modal === spec ? { modal: null } : {}));
+  },
+  closeModal: () => set({ modal: null }),
 }));

@@ -6,6 +6,8 @@ import { Avatar } from '../Avatar';
 import { SettingsModal } from '../settings/SettingsModal';
 import { QuickSwitcher } from '../QuickSwitcher';
 import { Shortcuts } from '../Shortcuts';
+import { usePluginRegistry } from '../../plugins/registry';
+import { PluginBoundary } from '../PluginBoundary';
 
 function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
   const { t } = useTranslation();
@@ -289,15 +291,32 @@ function ReportModal() {
   );
 }
 
+// A modal opened by a plugin via orbit.modal(): the core owns the shell, the
+// plugin owns the body (rendered inside its own error boundary).
+function PluginModal() {
+  const spec = usePluginRegistry((s) => s.modal);
+  const close = usePluginRegistry((s) => s.closeModal);
+  if (!spec) return null;
+  return (
+    <Modal title={spec.title || ''} wide={spec.wide} onClose={close}>
+      <PluginBoundary render={spec.render} label="modal" />
+    </Modal>
+  );
+}
+
 export function Modals() {
   const modal = useChat((s) => s.modal);
-  if (modal === 'join') return <JoinDialog />;
-  if (modal === 'settings') return <SettingsModal />;
-  if (modal === 'explore') return <ExploreModal />;
-  if (modal === 'friends') return <FriendsModal />;
-  if (modal === 'chanadmin') return <ChanAdminModal />;
-  if (modal === 'report') return <ReportModal />;
-  if (modal === 'switcher') return <QuickSwitcher />;
-  if (modal === 'shortcuts') return <Shortcuts />;
-  return null;
+  return (
+    <>
+      {modal === 'join' && <JoinDialog />}
+      {modal === 'settings' && <SettingsModal />}
+      {modal === 'explore' && <ExploreModal />}
+      {modal === 'friends' && <FriendsModal />}
+      {modal === 'chanadmin' && <ChanAdminModal />}
+      {modal === 'report' && <ReportModal />}
+      {modal === 'switcher' && <QuickSwitcher />}
+      {modal === 'shortcuts' && <Shortcuts />}
+      <PluginModal />
+    </>
+  );
 }

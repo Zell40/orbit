@@ -22,7 +22,7 @@ const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomi
 
 // Plugin API contract version. Bumped on a breaking change to the surface below
 // so plugins can guard (e.g. `if (Orbit.apiVersion < 2) …`). Still experimental.
-const API_VERSION = 4;
+const API_VERSION = 5;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -108,6 +108,9 @@ export interface OrbitPluginApi {
   /** Register a global keyboard shortcut, e.g. "mod+shift+k" (mod = Cmd/Ctrl).
    *  Runs in the chat view; built-in shortcuts take priority. */
   addShortcut: (combo: string, run: (e: KeyboardEvent) => void) => () => void;
+  /** Open a modal dialog: `render` fills the body, the core supplies the backdrop,
+   *  title bar and close button. Returns a function that closes it. */
+  modal: (render: () => ReactNode, opts?: { title?: string; wide?: boolean }) => () => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -171,6 +174,7 @@ function makeApi(name: string): OrbitPluginApi {
     addCommand: (cmd, spec) => usePluginRegistry.getState().addCommand(name, cmd, spec.run, spec.help),
     notify: (title, body) => pluginNotify(title, body),
     addShortcut: (combo, run) => usePluginRegistry.getState().addShortcut(name, combo, run),
+    modal: (render, opts) => usePluginRegistry.getState().openModal({ plugin: name, render, title: opts?.title, wide: opts?.wide }),
   };
 }
 

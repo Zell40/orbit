@@ -42,6 +42,12 @@ Orbit.plugin('orbit-demo', (orbit, log) => {
     run: (args) => orbit.irc.say('\u{1F3B2} ' + (1 + Math.floor(Math.random() * Math.max(2, +args[0] || 6)))),
   });
 
-  // Register a keyboard shortcut: mod+shift+d fires a notification.
-  orbit.addShortcut('mod+shift+d', () => orbit.notify('Demo plugin', 'shortcut fired'));
+  // Register a keyboard shortcut: mod+shift+d opens a modal dialog.
+  orbit.addShortcut('mod+shift+d', () => {
+    const close = orbit.modal(
+      () => orbit.html`<p style="padding:.5rem 0">Hello from the demo plugin.
+        <button class="upbtn upbtn--primary" onClick=${() => close()}>Close</button></p>`,
+      { title: 'Demo plugin' },
+    );
+  });
 });
