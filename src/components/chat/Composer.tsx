@@ -239,7 +239,8 @@ export function Composer() {
       cands = Object.keys(EMOJI_NAMES).filter((n) => n.startsWith(q)).map((n) => EMOJI_NAMES[n]);
     } else if (token.startsWith('/') && start === 0) {
       const q = token.slice(1).toLowerCase();
-      cands = SLASH_COMMANDS.filter((c2) => c2.startsWith(q)).map((c2) => '/' + c2 + ' ');
+      const pluginCmds = usePluginRegistry.getState().commands.map((c) => c.name);
+      cands = [...SLASH_COMMANDS, ...pluginCmds].filter((c2) => c2.startsWith(q)).map((c2) => '/' + c2 + ' ');
     } else {
       const members = Object.keys(useChat.getState().buffers[active]?.members ?? {});
       const q = token.toLowerCase();

@@ -35,4 +35,10 @@ Orbit.plugin('orbit-demo', (orbit, log) => {
       >👋</button>
     `,
   );
+
+  // Register a slash command: /roll [sides] rolls a die into the current channel.
+  orbit.addCommand('roll', {
+    help: 'Roll a die: /roll [sides]',
+    run: (args) => orbit.irc.say('\u{1F3B2} ' + (1 + Math.floor(Math.random() * Math.max(2, +args[0] || 6)))),
+  });
 });

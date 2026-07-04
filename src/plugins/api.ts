@@ -96,6 +96,9 @@ export interface OrbitPluginApi {
   /** Hide messages from the chat display (return true to suppress). The plugin still
    *  receives them via on('raw'). Use for a service's machine-readable control lines. */
   addMessageFilter: (fn: (m: FilterableMessage) => boolean) => () => void;
+  /** Register a slash command. Typing "/name a b" calls `run(['a','b'], 'a b')`;
+   *  respond via `orbit.irc.say`/`orbit.notify`. Built-in commands take priority. */
+  addCommand: (name: string, spec: { run: (args: string[], rest: string) => void; help?: string }) => () => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -147,6 +150,7 @@ function makeApi(name: string): OrbitPluginApi {
     addMessageAction: (render) => usePluginRegistry.getState().addAction(name, render),
     addUserAction: (render) => usePluginRegistry.getState().addUserAction(name, render),
     addMessageFilter: (fn) => usePluginRegistry.getState().addMessageFilter(name, fn),
+    addCommand: (cmd, spec) => usePluginRegistry.getState().addCommand(name, cmd, spec.run, spec.help),
   };
 }
 

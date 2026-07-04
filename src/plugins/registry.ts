@@ -56,17 +56,31 @@ export interface PluginFilter {
   fn: (m: FilterableMessage) => boolean;
 }
 
+// A plugin-registered slash command. Typing "/name a b c" runs it with the
+// space-split args and the raw remainder; the plugin responds through its own
+// captured `orbit` (orbit.irc.say/send, orbit.notify, …). Built-in commands win
+// over a plugin with the same name.
+export interface PluginCommand {
+  id: string;
+  plugin: string;
+  name: string;
+  run: (args: string[], rest: string) => void;
+  help?: string;
+}
+
 interface RegistryState {
   ui: PluginUi[];
   decorators: PluginPerMessage[];
   actions: PluginPerMessage[];
   userActions: PluginPerUser[];
   messageFilters: PluginFilter[];
+  commands: PluginCommand[];
   addUi: (slot: UiSlot, plugin: string, render: () => ReactNode, meta?: PluginUi['meta']) => () => void;
   addDecorator: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addAction: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addUserAction: (plugin: string, render: (ctx: UserActionCtx) => ReactNode) => () => void;
   addMessageFilter: (plugin: string, fn: (m: FilterableMessage) => boolean) => () => void;
+  addCommand: (plugin: string, name: string, run: PluginCommand['run'], help?: string) => () => void;
 }
 
 export const usePluginRegistry = create<RegistryState>((set) => ({
@@ -75,6 +89,7 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
   actions: [],
   userActions: [],
   messageFilters: [],
+  commands: [],
   addUi: (slot, plugin, render, meta) => {
     const id = `${plugin}:${slot}:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ ui: [...s.ui, { id, plugin, slot, render, meta }] }));
@@ -99,5 +114,11 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
     const id = `${plugin}:flt:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ messageFilters: [...s.messageFilters, { id, plugin, fn }] }));
     return () => set((s) => ({ messageFilters: s.messageFilters.filter((f) => f.id !== id) }));
+  },
+  addCommand: (plugin, name, run, help) => {
+    const id = `${plugin}:cmd:${Math.random().toString(36).slice(2, 8)}`;
+    const clean = name.replace(/^\//, '').toLowerCase();
+    set((s) => ({ commands: [...s.commands, { id, plugin, name: clean, run, help }] }));
+    return () => set((s) => ({ commands: s.commands.filter((c) => c.id !== id) }));
   },
 }));

@@ -1498,7 +1498,11 @@ export const useChat = create<ChatState>((set, get) => {
           case 'ignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
           case 'unignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
           case 'list': get().refreshChannels(); get().setModal('explore'); break; // open the Explore window
-          default: client.send(cmdline.slice(1)); // raw passthrough (formatting stripped)
+          default: {
+            const pc = usePluginRegistry.getState().commands.find((c) => c.name === cmd.toLowerCase());
+            if (pc) { try { pc.run(rest, arg); } catch (e) { console.error(`[plugins] /${cmd} threw`, e); } }
+            else client.send(cmdline.slice(1)); // raw passthrough (formatting stripped)
+          }
         }
         return;
       }
