@@ -7,7 +7,7 @@
 // store directly — only through the gated calls below. It powers both first-party
 // features the app bundles (see ./builtins) and operator-listed sandboxed plugins.
 import { createElement } from 'react';
-import { useChat } from '../../core/store';
+import { activeStore } from '../../core/networks';
 import { pluginDebug, type PluginEntry } from '../../core/config';
 import { bus } from '../bus';
 import { usePluginRegistry, type UiSlot } from '../registry';
@@ -24,7 +24,7 @@ const SANDBOX_DOC = `${import.meta.env.BASE_URL}plugin-sandbox.html`;
 const STORE_PREFIX = 'orbit-sbx:';
 
 function snapshot(): StateSnapshot {
-  const s = useChat.getState();
+  const s = activeStore().getState();
   return { active: s.active, nick: s.nick, account: s.account, buffers: Object.keys(s.buffers) };
 }
 
@@ -80,12 +80,12 @@ export function mountSandboxed(spec: SandboxSpec): void {
   let removeUi: () => void = () => {};
   const impl: Record<string, (args: unknown[]) => unknown> = {
     log: (a) => log(...a),
-    'irc.say': (a) => useChat.getState().sendInput(String(a[0] ?? '')),
-    'irc.msg': (a) => useChat.getState().client?.privmsg(String(a[0]), String(a[1] ?? '')),
-    'irc.send': (a) => useChat.getState().client?.send(String(a[0] ?? '')),
-    'irc.join': (a) => { const s = useChat.getState(); const c = String(a[0] ?? ''); s.client?.join(c); s.setActive(c); },
-    'irc.part': (a) => useChat.getState().client?.part(String(a[0] ?? '')),
-    'irc.list': () => useChat.getState().client?.list(),
+    'irc.say': (a) => activeStore().getState().sendInput(String(a[0] ?? '')),
+    'irc.msg': (a) => activeStore().getState().client?.privmsg(String(a[0]), String(a[1] ?? '')),
+    'irc.send': (a) => activeStore().getState().client?.send(String(a[0] ?? '')),
+    'irc.join': (a) => { const s = activeStore().getState(); const c = String(a[0] ?? ''); s.client?.join(c); s.setActive(c); },
+    'irc.part': (a) => activeStore().getState().client?.part(String(a[0] ?? '')),
+    'irc.list': () => activeStore().getState().client?.list(),
     notify: (a) => pluginNotify(String(a[0] ?? ''), a[1] != null ? String(a[1]) : undefined),
     'storage.set': (a) => persistStorage(name, String(a[0]), a[1]),
     'ui.claim': (a) => {

@@ -10,6 +10,7 @@ import * as ReactJSXRuntime from 'react/jsx-runtime';
 import * as ReactDOM from 'react-dom';
 import htm from 'htm';
 import { useChat } from '../core/store';
+import { activeStore } from '../core/networks';
 import i18n from '../core/i18n';
 import { pluginNotify } from '../services/notify';
 import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../ui/theme';
@@ -124,19 +125,19 @@ function makeApi(name: string): OrbitPluginApi {
     log: (...a) => { if (pluginDebug()) console.log(`%c[plugin:${name}]`, 'color:#2ea043', ...a); },
     on: bus.on, once: bus.once, off: bus.off, emit: bus.emit,
     state: {
-      active: () => useChat.getState().active,
-      nick: () => useChat.getState().nick,
-      account: () => useChat.getState().account,
-      buffers: () => Object.keys(useChat.getState().buffers),
-      get: () => useChat.getState(),
+      active: () => activeStore().getState().active,
+      nick: () => activeStore().getState().nick,
+      account: () => activeStore().getState().account,
+      buffers: () => Object.keys(activeStore().getState().buffers),
+      get: () => activeStore().getState(),
     },
     irc: {
-      send: (line) => useChat.getState().client?.send(line),
-      msg: (target, text) => useChat.getState().client?.privmsg(target, text),
-      say: (text) => useChat.getState().sendInput(text),
-      join: (channel) => { const s = useChat.getState(); s.client?.join(channel); s.setActive(channel); },
-      part: (channel) => useChat.getState().client?.part(channel),
-      list: () => useChat.getState().client?.list(),
+      send: (line) => activeStore().getState().client?.send(line),
+      msg: (target, text) => activeStore().getState().client?.privmsg(target, text),
+      say: (text) => activeStore().getState().sendInput(text),
+      join: (channel) => { const s = activeStore().getState(); s.client?.join(channel); s.setActive(channel); },
+      part: (channel) => activeStore().getState().client?.part(channel),
+      list: () => activeStore().getState().client?.list(),
     },
     config: () => getConfig(),
     i18n: {
