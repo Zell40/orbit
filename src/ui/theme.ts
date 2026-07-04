@@ -14,8 +14,8 @@ const THEME_COLOR: Record<string, string> = {
   dark: '#16191c',
   orbit: '#0b0e13',
   'orbit-dark': '#08080a',
-  yomirc: '#c0c0c0',
-  'yomirc-dark': '#0d1219',
+  yomirc: '#f7f7f5',
+  'yomirc-dark': '#0c0c0f',
 };
 
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
