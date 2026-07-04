@@ -1644,6 +1644,17 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 [data-theme^="yomirc"] .composer__send { background: var(--mirc-silver); }
 [data-theme^="yomirc"] .composer__fmtbtn.is-on { box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); background: var(--mirc-silver); }
 
+/* Sidebar controls squared to match: sunken search field + raised filter tabs */
+[data-theme^="yomirc"] .side-search { border-radius: 0; background: var(--mirc-paper); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
+[data-theme^="yomirc"] .side-search input { background: transparent; color: var(--ink); font-family: var(--mono); }
+[data-theme^="yomirc"] .pill {
+  border-radius: 0; background: var(--mirc-face); color: var(--ink); border: 0;
+  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow), inset 2px 2px 0 var(--mirc-bevel-hi), inset -2px -2px 0 var(--mirc-dark);
+}
+[data-theme^="yomirc"] .pill:hover { background: var(--mirc-face); color: var(--ink); }
+[data-theme^="yomirc"] .pill.is-on { background: var(--mirc-silver); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
+[data-theme^="yomirc"] .nettab__main { border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
+
 /* Retro scrollbars + selection */
 [data-theme^="yomirc"] *::-webkit-scrollbar { width: 16px; height: 16px; }
 [data-theme^="yomirc"] *::-webkit-scrollbar-track { background: var(--mirc-face); }
