@@ -25,6 +25,21 @@ export function desktopNotify(title: string, body: string): void {
   } catch { /* ignore */ }
 }
 
+// For plugins: fire a notification with the brand icon, asking permission once.
+// Unlike desktopNotify it fires even while the tab is focused (the plugin decides).
+export function pluginNotify(title: string, body?: string): void {
+  try {
+    if (!('Notification' in window)) return;
+    const show = () => {
+      const n = new Notification(title, { body: body || '', icon: getConfig().branding.icon || '/app/favicon.svg', silent: true });
+      n.onclick = () => { window.focus(); n.close(); };
+      setTimeout(() => n.close(), 6000);
+    };
+    if (Notification.permission === 'granted') show();
+    else if (Notification.permission === 'default') void Notification.requestPermission().then((p) => { if (p === 'granted') show(); });
+  } catch { /* ignore */ }
+}
+
 export function blip(): void {
   try {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;

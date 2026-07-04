@@ -11,6 +11,7 @@ import * as ReactDOM from 'react-dom';
 import htm from 'htm';
 import { useChat } from '../store';
 import i18n from '../i18n';
+import { pluginNotify } from '../services/notify';
 import { getTheme, setTheme, type Theme } from '../ui/theme';
 import { getConfig, pluginDebug } from '../config';
 import { bus } from './bus';
@@ -99,6 +100,8 @@ export interface OrbitPluginApi {
   /** Register a slash command. Typing "/name a b" calls `run(['a','b'], 'a b')`;
    *  respond via `orbit.irc.say`/`orbit.notify`. Built-in commands take priority. */
   addCommand: (name: string, spec: { run: (args: string[], rest: string) => void; help?: string }) => () => void;
+  /** Fire a desktop notification with the brand icon (asks permission once). */
+  notify: (title: string, body?: string) => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -151,6 +154,7 @@ function makeApi(name: string): OrbitPluginApi {
     addUserAction: (render) => usePluginRegistry.getState().addUserAction(name, render),
     addMessageFilter: (fn) => usePluginRegistry.getState().addMessageFilter(name, fn),
     addCommand: (cmd, spec) => usePluginRegistry.getState().addCommand(name, cmd, spec.run, spec.help),
+    notify: (title, body) => pluginNotify(title, body),
   };
 }
 
