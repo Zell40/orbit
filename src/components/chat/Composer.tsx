@@ -39,7 +39,7 @@ const EMOJI_NAMES: Record<string, string> = {
   ok: '👌', wave: '👋', party: '🥳', think: '🤔', wink: '😉', sun: '☀️', star: '⭐',
 };
 // Slash commands offered by tab-completion (with a leading '/').
-const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', 'kick', 'ban', 'op', 'deop', 'voice', 'ignore', 'unignore', 'list', 'clear', 'help'];
+const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', 'kick', 'ban', 'op', 'deop', 'voice', 'ignore', 'unignore', 'list', 'roll', 'flip', 'clear', 'help'];
 
 // ── Rich composer plumbing ───────────────────────────────────────────────────
 // The composer is a contentEditable so the user sees real bold/italic/colour as

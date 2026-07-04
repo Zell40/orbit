@@ -1516,6 +1516,12 @@ export const useChat = create<ChatState>((set, get) => {
           case 'ignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
           case 'unignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
           case 'list': get().refreshChannels(); get().setModal('explore'); break; // open the Explore window
+          case 'roll': if (active && active !== SERVER) { // /roll [sides] — d6 by default
+            const sides = Math.max(2, Math.min(1000, parseInt(arg, 10) || 6));
+            client.action(active, `🎲 rolled ${1 + Math.floor(Math.random() * sides)} (d${sides})`);
+          } break;
+          case 'flip':
+          case 'coin': if (active && active !== SERVER) client.action(active, `🪙 ${Math.random() < 0.5 ? 'heads' : 'tails'}`); break;
           default: {
             const pc = usePluginRegistry.getState().commands.find((c) => c.name === cmd.toLowerCase());
             if (pc) { try { pc.run(rest, arg); } catch (e) { console.error(`[plugins] /${cmd} threw`, e); } }
