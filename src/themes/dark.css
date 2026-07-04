@@ -1,0 +1,49 @@
+/* Theme: dark (also the shared dark/orbit/orbit-dark rules). Loaded after index.css (see main.tsx) so these override the
+   base component styles; only one [data-theme] is ever active at a time. */
+
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .topbar__pill:hover { color: #3fe0a0; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag { background: #3a2a17; color: #e0a35e; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag--topic { background: #16294a; color: #6ea0ff; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline { background: rgba(139,92,246,.16); border-left-color: #a78bfa; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__tag { background: #8b6fe0 !important; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__txt { color: #ddd0ff; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { background: rgba(214, 70, 95, .16); border-color: rgba(214, 70, 95, .38); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { color: #f3a9b5; background: #311a1f; border-color: #5a2a32; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .mode-add { color: #2ecc71; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .infoline { background: rgba(59,123,255,.12); border-color: rgba(110,160,255,.3); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline { background: rgba(240,169,58,.14); border-color: rgba(240,169,58,.42); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline__txt { color: var(--ink); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-owner { color: #e3b554; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-op { color: #2ecc71; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-halfop { color: #36c0c0; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-voice { color: #5aa0e0; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-op { color: #2ecc71; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-voice { color: #5aa0e0; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-halfop { color: #36c0c0; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-owner { color: #e3b554; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__bot { background: #222a4a; color: #8fa0ee; }
+/* ============ DARK THEME ============ */
+[data-theme="dark"] {
+  --ink: #e7ebf0; --ink-2: #c2cad4; --muted: #93a0ad; --faint: #6a7682;
+  --bg: #1a1d22; --bg-soft: #23272e; --bg-soft-2: #2c313a; --bg-active: #313742; --rail-bg: #141619;
+  --border: #2a2f37; --border-2: #3a414b;
+  --green-soft: rgba(42,107,255,.20);
+  --green-d: #7aa6ff;
+  --shadow-pop: 0 10px 30px -8px rgba(0,0,0,.6), 0 2px 8px -2px rgba(0,0,0,.5);
+}
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] body { background: #141619; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .rail__item { background: var(--bg); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .rail__item:hover { background: var(--bg-soft); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .theme-toggle button.is-on { background: var(--bg-active); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .upbtn--danger { background: var(--bg); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .ubadge--op { background: #3a2a17; color: #e0a35e; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .ubadge--bot { background: #222a4a; color: #8fa0ee; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .room__av[data-server], [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .topbar__av[data-server] { background: #333a44; color: var(--muted); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] *::-webkit-scrollbar-thumb { background: #3a414b; background-clip: padding-box; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .avatar { box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+/* image avatars: the <img> covers the inset ring, so a dark photo vanishes into the dark bg —
+   give it a visible OUTER ring instead so the circle always reads */
+[data-theme="dark"] .avatar--img, [data-theme="orbit"] .avatar--img { box-shadow: 0 0 0 1px rgba(255,255,255,.16); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .pm-badge--op { background: #3a2a17; color: #e0a35e; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .pm-badge--bot { background: #222a4a; color: #8fa0ee; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .pm-status--away { background: #3a2a17; color: #e0a35e; }

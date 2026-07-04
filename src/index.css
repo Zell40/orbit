@@ -357,7 +357,7 @@ input, textarea { font-family: inherit; }
 }
 .topbar__pill:hover { background: var(--online-soft); color: var(--online-d); border-color: rgba(31,209,137,.35); }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--online); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .topbar__pill:hover { color: #3fe0a0; }
+
 
 /* ============ MESSAGE LIST ============ */
 .messages { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 1rem 0 .6rem; }
@@ -415,10 +415,7 @@ input, textarea { font-family: inherit; }
 .sysline--alert::before { display: none; }
 .sysline--alert__icon { width: 18px; height: 18px; flex: none; margin-top: .12rem; color: #ea8209; }
 .sysline--alert__body { flex: 1; }
-[data-theme^="orbit"] .sysline--alert,
-[data-theme^="yomirc"] .sysline--alert { background: rgba(234,130,9,.14); color: #f5a030; border-color: #f5a030; }
-[data-theme^="orbit"] .sysline--alert__icon,
-[data-theme^="yomirc"] .sysline--alert__icon { color: #f5a030; }
+
 
 /* channel mode change line (IRCAP-style: "mode : reverse applique [-v reverse]") */
 .sysline--mode { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; padding: .26rem 1.3rem; }
@@ -428,30 +425,18 @@ input, textarea { font-family: inherit; }
 .modeline__verb { color: var(--faint); font-size: .84rem; }
 .modeline__chg { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 700; font-size: .82rem; color: var(--muted); background: var(--bg-soft-2); padding: .06rem .45rem; border-radius: 6px; }
 .mode-add { color: #16a34a; } .mode-rm { color: #d6465f; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag { background: #3a2a17; color: #e0a35e; }
+
 
 /* TOPIC change line — same layout as the mode line, blue "sujet" tag */
 .modeline__tag--topic { background: #e3edff; color: #2a5bb9; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag--topic { background: #16294a; color: #6ea0ff; }
+
 .topicline__txt { font-size: .84rem; color: var(--ink-2); font-style: italic; overflow-wrap: anywhere; }
 
 /* NOTICE — a prominent violet callout so it can't get lost in the chat flow */
 .noticeline { background: #f3effe; border-left: 3px solid #8b5cf6; border-radius: 8px; margin: .22rem 1.1rem; padding: .42rem .7rem; gap: .5rem; }
 .noticeline__tag { background: #8b5cf6 !important; color: #fff !important; box-shadow: 0 2px 6px -2px rgba(139,92,246,.6); }
 .noticeline__txt { color: #6d28d9; font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline { background: rgba(139,92,246,.16); border-left-color: #a78bfa; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__tag { background: #8b6fe0 !important; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__txt { color: #ddd0ff; }
-/* mIRC themes: flat mono "-nick- text" line in classic notice magenta (readable on the paper) */
-[data-theme^="yomirc"] .noticeline { font-family: var(--mono); background: transparent; border-radius: 0; border-left-width: 2px; margin: 0; padding: .05rem .6rem; }
-[data-theme^="yomirc"] .noticeline__tag { border-radius: 0; box-shadow: none; font-family: var(--mono); }
-[data-theme^="yomirc"] .noticeline__txt { font-family: var(--mono); }
-[data-theme="yomirc"] .noticeline { border-left-color: #9c27b0; }
-[data-theme="yomirc"] .noticeline__tag { background: #9c27b0 !important; }
-[data-theme="yomirc"] .noticeline__txt { color: #9c27b0; }
-[data-theme="yomirc-dark"] .noticeline { border-left-color: #c46fce; }
-[data-theme="yomirc-dark"] .noticeline__tag { background: #b15dbd !important; }
-[data-theme="yomirc-dark"] .noticeline__txt { color: #ee9ff2; }
+
 
 /* ban / unban — a clear, prominent channel line (not the faint sysline) */
 .banline {
@@ -459,7 +444,7 @@ input, textarea { font-family: inherit; }
   background: rgba(214, 70, 95, .1); border: 1px solid rgba(214, 70, 95, .28);
   color: var(--ink); font-size: .86rem; font-weight: 600; overflow-wrap: anywhere; word-break: break-word;
 }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { background: rgba(214, 70, 95, .16); border-color: rgba(214, 70, 95, .38); }
+
 
 /* ban / unban line — clearly visible like a real IRC client */
 .banline {
@@ -468,8 +453,7 @@ input, textarea { font-family: inherit; }
   color: #9a2e3f; background: #fdeef0; border: 1px solid #f5d2d8;
   overflow-wrap: anywhere; word-break: break-word;
 }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { color: #f3a9b5; background: #311a1f; border-color: #5a2a32; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .mode-add { color: #2ecc71; }
+
 
 /* server info notices (rehash warnings, broadcasts) — tagged "Info" callout */
 .infoline { display: flex; align-items: flex-start; gap: .6rem; margin: .4rem 1.3rem; padding: .6rem .8rem; border-radius: 12px;
@@ -477,7 +461,7 @@ input, textarea { font-family: inherit; }
 .infoline__tag { flex: none; margin-top: .05rem; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   padding: .2rem .55rem; border-radius: 999px; background: #3b7bff; color: #fff; box-shadow: 0 2px 6px -2px rgba(59,123,255,.6); }
 .infoline__txt { font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .infoline { background: rgba(59,123,255,.12); border-color: rgba(110,160,255,.3); }
+
 
 /* security / warning notice — amber, with a shield and a tag (a real callout) */
 .warnline { display: flex; align-items: flex-start; gap: .65rem; margin: .5rem 1.3rem; padding: .7rem .85rem; border-radius: 13px;
@@ -488,8 +472,8 @@ input, textarea { font-family: inherit; }
   padding: .2rem .55rem; border-radius: 999px; background: #e8920f; color: #fff; box-shadow: 0 2px 6px -2px rgba(232,146,15,.6); }
 .warnline__txt { font-size: .9rem; line-height: 1.5; color: var(--ink-2); overflow-wrap: anywhere; }
 .warnline__txt strong { color: var(--ink); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline { background: rgba(240,169,58,.14); border-color: rgba(240,169,58,.42); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline__txt { color: var(--ink); }
+
+
 .messages--console .warnline { background: rgba(240,169,58,.10); border-color: rgba(240,169,58,.3); box-shadow: inset 3px 0 0 #f0a93a; }
 .messages--console .warnline__txt { color: var(--term-fg); }
 
@@ -648,13 +632,13 @@ html[data-actions="off"] .msg-actions { display: none; }
 .role-halfop { color: #1f9e9e; }
 .role-voice  { color: #3b82c4; }
 .role-member { color: var(--faint); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-owner { color: #e3b554; } [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-op { color: #2ecc71; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-halfop { color: #36c0c0; } [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-voice { color: #5aa0e0; }
+ 
+ 
 .member__prefix.role-owner { color: #d39d2a; } .member__prefix.role-admin { color: #d6465f; }
 .member__prefix.role-op { color: #16a34a; } .member__prefix.role-halfop { color: #1f9e9e; }
 .member__prefix.role-voice { color: #3b82c4; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-op { color: #2ecc71; } [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-voice { color: #5aa0e0; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-halfop { color: #36c0c0; } [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-owner { color: #e3b554; }
+ 
+ 
 
 /* away members dimmed + amber presence dot */
 .member.is-away { opacity: .5; }
@@ -663,7 +647,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 
 /* bot tag */
 .member__bot { margin-left: auto; flex: none; font-size: .58rem; font-weight: 800; letter-spacing: .06em; padding: .1rem .35rem; border-radius: 5px; background: #e8ecff; color: #4458c8; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__bot { background: #222a4a; color: #8fa0ee; }
+
 
 /* visible IRC operators (no +H) — IRCop nick colour (IRC colour 10), consistent everywhere */
 .member--oper .member__name { color: var(--ircop); }
@@ -1036,112 +1020,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .composer__box--console { font-family: ui-monospace, "SF Mono", Menlo, monospace; border-color: var(--border-2); }
 .composer__box--console textarea { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92rem; }
 
-/* ============ DARK THEME ============ */
-[data-theme="dark"] {
-  --ink: #e7ebf0; --ink-2: #c2cad4; --muted: #93a0ad; --faint: #6a7682;
-  --bg: #1a1d22; --bg-soft: #23272e; --bg-soft-2: #2c313a; --bg-active: #313742; --rail-bg: #141619;
-  --border: #2a2f37; --border-2: #3a414b;
-  --green-soft: rgba(42,107,255,.20);
-  --green-d: #7aa6ff;
-  --shadow-pop: 0 10px 30px -8px rgba(0,0,0,.6), 0 2px 8px -2px rgba(0,0,0,.5);
-}
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] body { background: #141619; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .rail__item { background: var(--bg); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .rail__item:hover { background: var(--bg-soft); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .theme-toggle button.is-on { background: var(--bg-active); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .upbtn--danger { background: var(--bg); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .ubadge--op { background: #3a2a17; color: #e0a35e; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .ubadge--bot { background: #222a4a; color: #8fa0ee; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .room__av[data-server], [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .topbar__av[data-server] { background: #333a44; color: var(--muted); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] *::-webkit-scrollbar-thumb { background: #3a414b; background-clip: padding-box; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .avatar { box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
-/* image avatars: the <img> covers the inset ring, so a dark photo vanishes into the dark bg —
-   give it a visible OUTER ring instead so the circle always reads */
-[data-theme="dark"] .avatar--img, [data-theme="orbit"] .avatar--img { box-shadow: 0 0 0 1px rgba(255,255,255,.16); }
 
-/* ============ ORBIT THEME — mirrors orbit.tchatou.fr (near-black slate, green accent) ============ */
-[data-theme="orbit"] {
-  --green: #2ea043; --green-d: #46c35c; --green-soft: rgba(46,160,67,.16);
-  --online: #2ea043; --online-d: #46c35c; --online-soft: rgba(46,160,67,.13);
-  --ink: #dde4ee; --ink-2: #c2ccd9; --muted: #8b97a8; --faint: #5f6b7a;
-  --bg: #10151d; --bg-soft: #0b0e13; --bg-soft-2: #19212c; --bg-active: #1b2533; --rail-bg: #07090d;
-  --border: #1f2733; --border-2: #2a3340;
-  --shadow-pop: 0 14px 40px -12px rgba(0,0,0,.72), 0 2px 8px -2px rgba(0,0,0,.55);
-  /* dim the hash-coloured avatar bubbles — easy on the eyes at night */
-  --av-s1: 45%; --av-l1: 42%; --av-s2: 42%; --av-l2: 32%;
-  color-scheme: dark;
-}
-[data-theme="orbit"] body { background: #07090d; }
 /* connect screen: green aurora to match the site hero */
-/* green-ify the accent glows that are hardcoded blue in the base sheet */
-[data-theme="orbit"] .composer__send { box-shadow: 0 6px 16px -6px rgba(46,160,67,.55); }
-[data-theme="orbit"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(46,160,67,.16); }
-[data-theme="orbit"] .room.is-active::before { box-shadow: 0 0 10px 0 rgba(46,160,67,.55); }
-[data-theme="orbit"] .room__badge { box-shadow: 0 2px 6px -1px rgba(46,160,67,.45); }
-[data-theme="orbit"] .pill.is-on { box-shadow: 0 4px 12px -4px rgba(46,160,67,.45); }
-[data-theme="orbit"] .pm-btn--primary { box-shadow: 0 10px 24px -8px rgba(46,160,67,.5); }
-[data-theme="orbit"] .pm-btn--primary:hover { box-shadow: 0 14px 30px -8px rgba(46,160,67,.65); }
-/* profile banner + avatar ring: drop the per-nick hue, use a deep site green */
-[data-theme="orbit"] .pm-cover {
-  background:
-    radial-gradient(130% 150% at 18% 0%, rgba(46,160,67,.34), transparent 60%),
-    radial-gradient(120% 160% at 92% 0%, rgba(33,122,52,.32), transparent 55%),
-    linear-gradient(135deg, #207a39, #0f4423);
-}
-[data-theme="orbit"] .pm-avring {
-  background: conic-gradient(from 130deg, #2ea043, #22813a, #176430, #2ea043);
-}
 
-/* ============ ORBIT-DARK — mirrors tchatou.fr (near-black, monochrome white accent, Geist) ============ */
-[data-theme="orbit-dark"] {
-  --ink: #f3f4f6; --ink-2: #c9cace; --muted: #8b8c95; --faint: #5c5d66;
-  --bg: #0d0d0f; --bg-soft: #141416; --bg-soft-2: #1b1b1e; --bg-active: #212126; --rail-bg: #060607;
-  --border: #232327; --border-2: #34343a;
-  --green: #f2f3f5; --green-d: #ffffff; --green-soft: rgba(255,255,255,.10);
-  --online: #2ec27e; --online-d: #25a76c; --online-soft: rgba(46,194,126,.16);
-  --danger: #f0556e;
-  --shadow-pop: 0 14px 44px -14px rgba(0,0,0,.8), 0 2px 8px -2px rgba(0,0,0,.6);
-  /* muted hash avatars + tchatou's Geist face */
-  --av-s1: 30%; --av-l1: 52%; --av-s2: 28%; --av-l2: 42%;
-  --font: "Geist", "Hanken Grotesk", system-ui, -apple-system, sans-serif;
-  --display: "Geist", "Hanken Grotesk", system-ui, sans-serif;
-  color-scheme: dark;
-}
-[data-theme="orbit-dark"] body { background: #060607; }
-/* white accent -> dark text on accent-filled controls (Grok-style white buttons) */
-[data-theme="orbit-dark"] .composer__send,
-[data-theme="orbit-dark"] .cjoin__send,
-[data-theme="orbit-dark"] .pill.is-on,
-[data-theme="orbit-dark"] .upbtn--primary,
-[data-theme="orbit-dark"] .sseg button.is-on,
-[data-theme="orbit-dark"] .pm-check,
-[data-theme="orbit-dark"] .pm-btn--primary,
-[data-theme="orbit-dark"] .room__badge,
-[data-theme="orbit-dark"] .settings__navitem.is-on .settings__navic { color: #0a0a0b; }
-[data-theme="orbit-dark"] .switch.is-on .switch__dot { background: #0a0a0b; }
-/* drop the hardcoded blue glows now that the controls are white */
-[data-theme="orbit-dark"] .composer__send,
-[data-theme="orbit-dark"] .pm-btn--primary,
-[data-theme="orbit-dark"] .pm-check,
-[data-theme="orbit-dark"] .pill.is-on,
-[data-theme="orbit-dark"] .sseg button.is-on { box-shadow: 0 2px 12px -3px rgba(0,0,0,.6); }
-[data-theme="orbit-dark"] .room.is-active::before { box-shadow: none; }
-[data-theme="orbit-dark"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(255,255,255,.12); }
-/* connect/welcome screen -> near-black monochrome (not the green cosmic) */
-[data-theme="orbit-dark"] .connect {
-  color: var(--ink);
-  background: radial-gradient(70% 55% at 50% -8%, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, #0c0c0e, #08080a 62%, #050506);
-}
-[data-theme="orbit-dark"] .cjoin__composer:focus-within { border-color: rgba(255,255,255,.5); box-shadow: 0 0 0 4px rgba(255,255,255,.1); }
-/* profile banner + avatar ring: monochrome, not the per-nick hue */
-[data-theme="orbit-dark"] .pm-cover {
-  background:
-    radial-gradient(130% 150% at 18% 0%, rgba(255,255,255,.10), transparent 60%),
-    linear-gradient(135deg, #1a1a1f, #0d0d10);
-}
-[data-theme="orbit-dark"] .pm-avring {
-  background: conic-gradient(from 130deg, #3a3a42, #1c1c21, #2a2a30, #3a3a42);
-}
 
 /* ============ PROFILE MODAL (stunning centered card) ============ */
 .pm-backdrop {
@@ -1332,9 +1213,6 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .pm-skeleton i:nth-child(2) { width: 85%; } .pm-skeleton i:nth-child(3) { width: 70%; }
 @keyframes pm-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .pm-badge--op { background: #3a2a17; color: #e0a35e; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .pm-badge--bot { background: #222a4a; color: #8fa0ee; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .pm-status--away { background: #3a2a17; color: #e0a35e; }
 
 /* ============ CONSOLE = REAL TERMINAL (theme-independent dark) ============ */
 :root {
@@ -1492,175 +1370,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-/* ============================================================================
-   yomIRC — classic mIRC / Windows-95 skin
-   - silver 3D-bevelled chrome (Tahoma), Fixedsys-style monospace chat
-   - FLAT nick list: no access-level sections, all nicks inline (real mIRC)
-   ============================================================================ */
-/* Tokens — light (yomirc) and dark (yomirc-dark); structure below is shared via [data-theme^="yomirc"] */
-/* yomirc — a faithful recreation of the classic mIRC client (Win95/98/XP era):
-   silver 3D chrome, sunken white panes, a navy→blue caption bar, the exact mIRC
-   16-colour log, and a fixed-width Lucida/Fixedsys feel. Dark = "mIRC at night":
-   a pure-black message log where the 16 colours blaze. */
-/* No Windows-98 chrome. The colour is the mIRC 16-colour TEXT on a clean canvas;
-   everything else is flat and quiet. Blue is gone entirely; the one accent is the
-   classic IRC/terminal green. Bevel tokens are transparent so the old 3D vanishes. */
-[data-theme="yomirc"] {
-  --mirc-silver: #ececec; --mirc-face: #f7f7f5; --mirc-light: transparent;
-  --mirc-shadow: #e0e0dc; --mirc-dark: transparent; --mirc-navy: #daf1e2; --mirc-navy-2: #daf1e2;
-  --mirc-paper: #ffffff; --mirc-hover: #f0f4ee; --mirc-bevel-hi: transparent; --mirc-sel-ink: #0a5c2b;
-  --mirc-join: #0a7a2f; --mirc-quit: #c01717;
-  --mono: "Lucida Console", "Fixedsys Excelsior", Consolas, "Courier New", monospace;
-  --ink: #101010; --ink-2: #101010; --muted: #7d7d7d; --faint: #9a9a9a;
-  --bg: #ffffff; --bg-soft: #f2f2ee; --bg-soft-2: #e8e8e2; --bg-active: #daf1e2; --rail-bg: #f2f2ee;
-  --border: #dcdcd6; --border-2: #ccccc6;
-  --green: #0a8f3c; --green-d: #0a5c2b; --green-soft: #daf1e2;
-  --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
-  --shadow-pop: 0 6px 20px -6px rgba(0,0,0,.25);
-}
-[data-theme="yomirc-dark"] {
-  --mirc-silver: #16161a; --mirc-face: #0c0c0f; --mirc-light: transparent;
-  --mirc-shadow: #23232a; --mirc-dark: transparent; --mirc-navy: #113a22; --mirc-navy-2: #113a22;
-  --mirc-paper: #000000; --mirc-hover: #121212; --mirc-bevel-hi: transparent; --mirc-sel-ink: #b9ffcf;
-  --mirc-join: #35c46a; --mirc-quit: #ff5a5a;   /* bright on black, like real mIRC colours */
-  --mono: "Lucida Console", "Fixedsys Excelsior", Consolas, "Courier New", monospace;
-  --ink: #d2d2d2; --ink-2: #c4c4c4; --muted: #7d7d7d; --faint: #565656;
-  --bg: #000000; --bg-soft: #0c0c0f; --bg-soft-2: #16161a; --bg-active: #113a22; --rail-bg: #090909;
-  --border: #262630; --border-2: #33333c;
-  --green: #35c46a; --green-d: #57d07a; --green-soft: rgba(53,196,106,.14);
-  --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
-  --shadow-pop: 0 8px 26px -8px rgba(0,0,0,.85);
-}
-[data-theme^="yomirc"] body { background: var(--mirc-face); }
+/* Alternate themes (dark, orbit, yomirc families) live in src/themes/*.css. */
 
-/* 3D bevel helpers (raised = panels/buttons, sunken = lists/inputs) */
-[data-theme^="yomirc"] .rail,
-[data-theme^="yomirc"] .topbar,
-[data-theme^="yomirc"] .members__h {
-  background: var(--mirc-face);
-  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow);
-  border-color: var(--mirc-shadow);
-}
-[data-theme^="yomirc"] .app { background: var(--mirc-face); gap: 2px; padding: 2px; }
-[data-theme^="yomirc"] .sidebar { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
-[data-theme^="yomirc"] .members { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 
-/* Flat caption bar — no Windows title-bar gradient, no blue */
-[data-theme^="yomirc"] .topbar {
-  padding: .45rem .7rem; gap: .5rem;
-  background: var(--mirc-face); box-shadow: none; border-bottom: 1px solid var(--border);
-}
-[data-theme^="yomirc"] .topbar__title { color: var(--green-d); font-weight: 700; text-shadow: none; }
-[data-theme^="yomirc"] .topbar__topic { color: var(--ink-2); text-shadow: none; }
-[data-theme^="yomirc"] .topbar__modes { color: var(--muted); text-shadow: none; }
-[data-theme^="yomirc"] .topbar__topic--muted { color: rgba(255,255,255,.82); }
-[data-theme^="yomirc"] .topbar__av { border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
+   
 
-/* Left rail icons — square raised buttons */
-[data-theme^="yomirc"] .rail__item,
-[data-theme^="yomirc"] .rail__me {
-  border-radius: 0; background: var(--mirc-face); color: var(--ink);
-  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow), inset 2px 2px 0 var(--mirc-bevel-hi), inset -2px -2px 0 var(--mirc-dark);
-}
-[data-theme^="yomirc"] .rail__item.is-active { background: var(--mirc-silver); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-[data-theme^="yomirc"] .rail__item.is-active::before { display: none; }
-[data-theme^="yomirc"] .rail__brand { border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-dark); }
 
-/* Channel switcher (rooms) — sunken treebar */
-[data-theme^="yomirc"] .rooms { background: var(--mirc-paper); margin: 2px; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-[data-theme^="yomirc"] .room { border-radius: 0; padding: .25rem .4rem; gap: .4rem; }
-[data-theme^="yomirc"] .room__av { border-radius: 0; width: 18px; height: 18px; background: transparent; color: var(--green); }
-[data-theme^="yomirc"] .room__hash { font-size: 1rem; }
-[data-theme^="yomirc"] .room__sub { display: none; }
-[data-theme^="yomirc"] .room__name { font-weight: 400; color: var(--ink); }
-[data-theme^="yomirc"] .room:hover { background: var(--mirc-hover); }
-[data-theme^="yomirc"] .room.is-active { background: var(--mirc-navy); }
-[data-theme^="yomirc"] .room.is-active .room__name { color: var(--mirc-sel-ink); font-weight: 400; }
-[data-theme^="yomirc"] .room.is-active .room__av { color: var(--mirc-sel-ink); }
-[data-theme^="yomirc"] .room.is-active::before { display: none; }
-[data-theme^="yomirc"] .rooms-h { color: var(--green-d); }
-/* Status window pinned at the top of the switchbar (the real mIRC "Status") */
-[data-theme^="yomirc"] .room--status { border-bottom: 1px solid var(--mirc-shadow); margin-bottom: 2px; padding-bottom: .3rem; }
-[data-theme^="yomirc"] .room--status .room__name { font-weight: 700; }
-[data-theme^="yomirc"] .room--status .room__av { color: #2e9b4f; font-size: .7rem; }   /* green = connected */
-[data-theme="yomirc-dark"] .room--status .room__av { color: #4fd07a; }
-[data-theme^="yomirc"] .room--status.is-active .room__av { color: var(--mirc-sel-ink); }
+              
 
-/* Chat area */
-[data-theme^="yomirc"] .messages { background: var(--mirc-paper); margin: 2px 0; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-/* One log line per message: [HH:MM] <nick> text */
-[data-theme^="yomirc"] .mircline {
-  position: relative; font-family: var(--mono); font-size: .9rem; line-height: 1.55;
-  padding: .05rem .6rem; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere;
-}
-[data-theme^="yomirc"] .mircline:hover { background: var(--mirc-hover); }
-[data-theme^="yomirc"] .mircline__time { color: var(--muted); }
-[data-theme^="yomirc"] .mircline__nick { font-family: var(--mono); font-weight: 700; border: 0; background: none; padding: 0; cursor: pointer; vertical-align: baseline; }
-[data-theme^="yomirc"] .mircline__nick:hover { text-decoration: underline; }
-[data-theme^="yomirc"] .mircline--action .mircline__txt { font-style: italic; }
-[data-theme^="yomirc"] .mircline.is-redacted { opacity: .55; font-style: italic; }
-[data-theme^="yomirc"] .mircline .reactions--inline { display: inline-flex; gap: .25rem; margin-left: .4rem; vertical-align: middle; }
-[data-theme^="yomirc"] .mircline .msg-actions { top: 0; }
-/* dark: lift the hashed nick colours so they pop on the near-black log */
-[data-theme="yomirc-dark"] .mircline__nick { filter: brightness(1.55) saturate(1.15); }
-
-/* Server events as classic mIRC status lines: whole line tinted green (join) / red (leave) */
-[data-theme^="yomirc"] .mircline--sys { color: var(--muted); }
-[data-theme^="yomirc"] .mircline__star { font-weight: 700; }     /* inherits the line colour */
-[data-theme^="yomirc"] .mircline__host { opacity: .72; }         /* dimmer host, same hue */
-[data-theme^="yomirc"] .mircline--sys-join { color: var(--mirc-join); }
-[data-theme^="yomirc"] .mircline--sys-part,
-[data-theme^="yomirc"] .mircline--sys-quit,
-[data-theme^="yomirc"] .mircline--sys-kick,
-[data-theme^="yomirc"] .mircline--sys-ban { color: var(--mirc-quit); }
-[data-theme^="yomirc"] .mircline--sys-mode,
-[data-theme^="yomirc"] .mircline--sys-nick,
-[data-theme^="yomirc"] .mircline--sys-topic { color: var(--green-d); }
-
-/* ---- THE NICK LIST: flat & inline, no access-level groups (real mIRC) ---- */
-[data-theme^="yomirc"] .members__list { background: var(--mirc-paper); margin: 0 2px 2px; padding: 1px; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-[data-theme^="yomirc"] .members__h { color: var(--green-d); padding: .35rem .6rem; }
-[data-theme^="yomirc"] .mgroup { margin: 0; }
-[data-theme^="yomirc"] .mgroup__h { display: none; }
-[data-theme^="yomirc"] .member { border-radius: 0; padding: .05rem .4rem; gap: .25rem; }
-[data-theme^="yomirc"] .member .avatar { display: none; }
-[data-theme^="yomirc"] .member__name { font-family: var(--mono); font-size: .9rem; font-weight: 400; color: var(--ink); }
-[data-theme^="yomirc"] .member__prefix { color: var(--green); font-weight: 700; }
-[data-theme^="yomirc"] .member:hover:not(:disabled) { background: var(--mirc-navy); }
-[data-theme^="yomirc"] .member:hover:not(:disabled) .member__name,
-[data-theme^="yomirc"] .member:hover:not(:disabled) .member__prefix { color: var(--mirc-sel-ink); }
-[data-theme^="yomirc"] .member__bot { background: var(--mirc-silver); color: var(--ink); border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
-[data-theme^="yomirc"] .members__search input { border-radius: 0; background: var(--mirc-paper); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-
-/* Composer — sunken input + raised toolbar buttons */
-[data-theme^="yomirc"] .composer__box { border-radius: 0; background: var(--mirc-face); box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
-[data-theme^="yomirc"] .composer__rich { font-family: var(--mono); background: var(--mirc-paper); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); padding: .35rem .4rem; }
-[data-theme^="yomirc"] .composer__fmtbtn,
-[data-theme^="yomirc"] .composer__add,
-[data-theme^="yomirc"] .composer__emoji,
-[data-theme^="yomirc"] .composer__send {
-  border-radius: 0; background: var(--mirc-face); color: var(--ink);
-  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow), inset 2px 2px 0 var(--mirc-bevel-hi), inset -2px -2px 0 var(--mirc-dark);
-}
-[data-theme^="yomirc"] .composer__send { background: var(--mirc-silver); }
-[data-theme^="yomirc"] .composer__fmtbtn.is-on { box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); background: var(--mirc-silver); }
-
-/* Sidebar controls squared to match: sunken search field + raised filter tabs */
-[data-theme^="yomirc"] .side-search { border-radius: 0; background: var(--mirc-paper); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-[data-theme^="yomirc"] .side-search input { background: transparent; color: var(--ink); font-family: var(--mono); }
-[data-theme^="yomirc"] .pill {
-  border-radius: 0; background: var(--mirc-face); color: var(--ink); border: 0;
-  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow), inset 2px 2px 0 var(--mirc-bevel-hi), inset -2px -2px 0 var(--mirc-dark);
-}
-[data-theme^="yomirc"] .pill:hover { background: var(--mirc-face); color: var(--ink); }
-[data-theme^="yomirc"] .pill.is-on { background: var(--mirc-silver); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-[data-theme^="yomirc"] .nettab__main { border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
-
-/* Retro scrollbars + selection */
-[data-theme^="yomirc"] *::-webkit-scrollbar { width: 16px; height: 16px; }
-[data-theme^="yomirc"] *::-webkit-scrollbar-track { background: var(--mirc-face); }
-[data-theme^="yomirc"] *::-webkit-scrollbar-thumb { background: var(--mirc-silver); border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-dark); }
-[data-theme^="yomirc"] ::selection { background: var(--mirc-navy); color: var(--mirc-sel-ink); }
 
 /* ============================================================================
    MOBILE OVERRIDES — authoritative, placed LAST so they beat the base
@@ -1868,7 +1585,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
    render exactly as before, so small channels are unchanged. Degrades to normal
    rendering on browsers without content-visibility. */
 .member { content-visibility: auto; contain-intrinsic-size: auto 44px; }
-[data-theme^="yomirc"] .member { contain-intrinsic-size: auto 20px; }
+
 
 /* Last-resort crash screen (AppErrorBoundary) */
 .crash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 2rem;

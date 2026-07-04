@@ -1,0 +1,84 @@
+/* Theme: orbit + orbit-dark. Loaded after index.css (see main.tsx) so these override the
+   base component styles; only one [data-theme] is ever active at a time. */
+
+/* ============ ORBIT THEME — mirrors orbit.tchatou.fr (near-black slate, green accent) ============ */
+[data-theme="orbit"] {
+  --green: #2ea043; --green-d: #46c35c; --green-soft: rgba(46,160,67,.16);
+  --online: #2ea043; --online-d: #46c35c; --online-soft: rgba(46,160,67,.13);
+  --ink: #dde4ee; --ink-2: #c2ccd9; --muted: #8b97a8; --faint: #5f6b7a;
+  --bg: #10151d; --bg-soft: #0b0e13; --bg-soft-2: #19212c; --bg-active: #1b2533; --rail-bg: #07090d;
+  --border: #1f2733; --border-2: #2a3340;
+  --shadow-pop: 0 14px 40px -12px rgba(0,0,0,.72), 0 2px 8px -2px rgba(0,0,0,.55);
+  /* dim the hash-coloured avatar bubbles — easy on the eyes at night */
+  --av-s1: 45%; --av-l1: 42%; --av-s2: 42%; --av-l2: 32%;
+  color-scheme: dark;
+}
+[data-theme="orbit"] body { background: #07090d; }
+/* green-ify the accent glows that are hardcoded blue in the base sheet */
+[data-theme="orbit"] .composer__send { box-shadow: 0 6px 16px -6px rgba(46,160,67,.55); }
+[data-theme="orbit"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(46,160,67,.16); }
+[data-theme="orbit"] .room.is-active::before { box-shadow: 0 0 10px 0 rgba(46,160,67,.55); }
+[data-theme="orbit"] .room__badge { box-shadow: 0 2px 6px -1px rgba(46,160,67,.45); }
+[data-theme="orbit"] .pill.is-on { box-shadow: 0 4px 12px -4px rgba(46,160,67,.45); }
+[data-theme="orbit"] .pm-btn--primary { box-shadow: 0 10px 24px -8px rgba(46,160,67,.5); }
+[data-theme="orbit"] .pm-btn--primary:hover { box-shadow: 0 14px 30px -8px rgba(46,160,67,.65); }
+/* profile banner + avatar ring: drop the per-nick hue, use a deep site green */
+[data-theme="orbit"] .pm-cover {
+  background:
+    radial-gradient(130% 150% at 18% 0%, rgba(46,160,67,.34), transparent 60%),
+    radial-gradient(120% 160% at 92% 0%, rgba(33,122,52,.32), transparent 55%),
+    linear-gradient(135deg, #207a39, #0f4423);
+}
+[data-theme="orbit"] .pm-avring {
+  background: conic-gradient(from 130deg, #2ea043, #22813a, #176430, #2ea043);
+}
+/* ============ ORBIT-DARK — mirrors tchatou.fr (near-black, monochrome white accent, Geist) ============ */
+[data-theme="orbit-dark"] {
+  --ink: #f3f4f6; --ink-2: #c9cace; --muted: #8b8c95; --faint: #5c5d66;
+  --bg: #0d0d0f; --bg-soft: #141416; --bg-soft-2: #1b1b1e; --bg-active: #212126; --rail-bg: #060607;
+  --border: #232327; --border-2: #34343a;
+  --green: #f2f3f5; --green-d: #ffffff; --green-soft: rgba(255,255,255,.10);
+  --online: #2ec27e; --online-d: #25a76c; --online-soft: rgba(46,194,126,.16);
+  --danger: #f0556e;
+  --shadow-pop: 0 14px 44px -14px rgba(0,0,0,.8), 0 2px 8px -2px rgba(0,0,0,.6);
+  /* muted hash avatars + tchatou's Geist face */
+  --av-s1: 30%; --av-l1: 52%; --av-s2: 28%; --av-l2: 42%;
+  --font: "Geist", "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+  --display: "Geist", "Hanken Grotesk", system-ui, sans-serif;
+  color-scheme: dark;
+}
+[data-theme="orbit-dark"] body { background: #060607; }
+/* white accent -> dark text on accent-filled controls (Grok-style white buttons) */
+[data-theme="orbit-dark"] .composer__send,
+[data-theme="orbit-dark"] .cjoin__send,
+[data-theme="orbit-dark"] .pill.is-on,
+[data-theme="orbit-dark"] .upbtn--primary,
+[data-theme="orbit-dark"] .sseg button.is-on,
+[data-theme="orbit-dark"] .pm-check,
+[data-theme="orbit-dark"] .pm-btn--primary,
+[data-theme="orbit-dark"] .room__badge,
+[data-theme="orbit-dark"] .settings__navitem.is-on .settings__navic { color: #0a0a0b; }
+[data-theme="orbit-dark"] .switch.is-on .switch__dot { background: #0a0a0b; }
+/* drop the hardcoded blue glows now that the controls are white */
+[data-theme="orbit-dark"] .composer__send,
+[data-theme="orbit-dark"] .pm-btn--primary,
+[data-theme="orbit-dark"] .pm-check,
+[data-theme="orbit-dark"] .pill.is-on,
+[data-theme="orbit-dark"] .sseg button.is-on { box-shadow: 0 2px 12px -3px rgba(0,0,0,.6); }
+[data-theme="orbit-dark"] .room.is-active::before { box-shadow: none; }
+[data-theme="orbit-dark"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(255,255,255,.12); }
+/* connect/welcome screen -> near-black monochrome (not the green cosmic) */
+[data-theme="orbit-dark"] .connect {
+  color: var(--ink);
+  background: radial-gradient(70% 55% at 50% -8%, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, #0c0c0e, #08080a 62%, #050506);
+}
+[data-theme="orbit-dark"] .cjoin__composer:focus-within { border-color: rgba(255,255,255,.5); box-shadow: 0 0 0 4px rgba(255,255,255,.1); }
+/* profile banner + avatar ring: monochrome, not the per-nick hue */
+[data-theme="orbit-dark"] .pm-cover {
+  background:
+    radial-gradient(130% 150% at 18% 0%, rgba(255,255,255,.10), transparent 60%),
+    linear-gradient(135deg, #1a1a1f, #0d0d10);
+}
+[data-theme="orbit-dark"] .pm-avring {
+  background: conic-gradient(from 130deg, #3a3a42, #1c1c21, #2a2a30, #3a3a42);
+}
