@@ -5,12 +5,14 @@
 // Sources are bundled as raw strings (compiled into the app) and evaluated inside
 // the opaque-origin guest, so a bundled feature still can't reach the page/session.
 import diceSource from './features/dice.js?raw';
+import pulseSource from './features/pulse.js?raw';
 import { mountSandboxed } from './host';
 import { getConfig } from '../../core/config';
 
 // The registry of built-in feature modules. To add one, see features/README.md.
 const BUILTINS = [
   { name: 'dice', source: diceSource, permissions: ['irc', 'storage'] },
+  { name: 'pulse', source: pulseSource, permissions: [] },
 ];
 
 // Mount only the built-ins an operator opted into via config.json `builtins: [...]`.
