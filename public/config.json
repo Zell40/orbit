@@ -38,5 +38,5 @@
     "imageUpload": true,
     "register": true
   },
-  "plugins": ["/app/plugins/orbit-clock.js", "/app/plugins/orbit-copy.js", "/app/plugins/orbit-games.js", "/app/plugins/orbit-invite.js", { "url": "/app/plugins/orbit-sandbox-demo.js", "sandbox": true, "permissions": ["irc", "storage"] }]
+  "plugins": ["/app/plugins/orbit-clock.js", "/app/plugins/orbit-copy.js", "/app/plugins/orbit-games.js", "/app/plugins/orbit-invite.js"]
 }
