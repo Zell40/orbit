@@ -989,6 +989,10 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .challenge__busy { font-size: .85rem; font-weight: 700; color: var(--green-d); }
 .challenge__link { display: inline-block; margin-top: .3rem; font-weight: 600; color: var(--accent); text-decoration: none; }
 .challenge__link:hover { text-decoration: underline; }
+
+/* ||spoiler|| — hidden until clicked */
+.spoiler { background: var(--muted); color: transparent; border-radius: 3px; padding: 0 .15em; cursor: pointer; transition: color .12s; }
+.spoiler.is-shown { background: rgba(127, 127, 127, .16); color: inherit; cursor: text; }
 .turnstile-widget { min-height: 65px; }
 
 /* ---- compact density ---- */

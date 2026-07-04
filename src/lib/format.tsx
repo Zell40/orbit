@@ -114,15 +114,32 @@ function YouTubeEmbed({ id, url }: { id: string; url: string }) {
   );
 }
 
+// ||text|| hides content until clicked.
+function Spoiler({ text }: { text: string }) {
+  const [shown, setShown] = useState(false);
+  return (
+    <span className={`spoiler ${shown ? 'is-shown' : ''}`} role="button" tabIndex={0}
+      onClick={() => setShown(true)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShown(true); } }}>
+      {text}
+    </span>
+  );
+}
+
 function linkify(text: string, selfMsg = false): ReactNode {
-  const parts = text.split(/(https?:\/\/[^\s]+)/g);
-  return parts.map((p, i) => {
-    if (!/^https?:\/\//.test(p)) return <span key={i}>{p}</span>;
-    if (isImageUrl(p)) return <ImageAttachment key={i} url={p} defaultShown={selfMsg} />;
-    if (isAudioUrl(p)) return <AudioAttachment key={i} url={p} />;
-    const yt = youtubeId(p);
-    if (yt) return <YouTubeEmbed key={i} id={yt} url={p} />;
-    return <a key={i} href={p} target="_blank" rel="noopener noreferrer">{p}</a>;
+  // Pull out ||spoilers|| first, then linkify the remaining runs.
+  return text.split(/(\|\|.+?\|\|)/g).map((seg, si) => {
+    const sp = /^\|\|(.+)\|\|$/.exec(seg);
+    if (sp) return <Spoiler key={`sp${si}`} text={sp[1]} />;
+    return seg.split(/(https?:\/\/[^\s]+)/g).map((p, i) => {
+      const k = `${si}-${i}`;
+      if (!/^https?:\/\//.test(p)) return <span key={k}>{p}</span>;
+      if (isImageUrl(p)) return <ImageAttachment key={k} url={p} defaultShown={selfMsg} />;
+      if (isAudioUrl(p)) return <AudioAttachment key={k} url={p} />;
+      const yt = youtubeId(p);
+      if (yt) return <YouTubeEmbed key={k} id={yt} url={p} />;
+      return <a key={k} href={p} target="_blank" rel="noopener noreferrer">{p}</a>;
+    });
   });
 }
 
