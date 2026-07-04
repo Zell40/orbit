@@ -248,7 +248,9 @@
       "timeFormat": "Zeitformat",
       "compact": "Kompakte Nachrichten",
       "textSize": "Textgröße",
-      "compactHint": "Dichtere Nachrichten, mehr auf dem Bildschirm."
+      "compactHint": "Dichtere Nachrichten, mehr auf dem Bildschirm.",
+      "hoverActions": "Aktionen beim Überfahren",
+      "hoverActionsHint": "Reaktion, Antwort und Pin beim Überfahren einer Nachricht."
     },
     "notifications": {
       "browser": "Browser-Benachrichtigungen",

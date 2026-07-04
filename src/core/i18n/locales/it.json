@@ -248,7 +248,9 @@
       "timeFormat": "Formato ora",
       "compact": "Messaggi compatti",
       "textSize": "Dimensione testo",
-      "compactHint": "Messaggi più compatti, più contenuti a schermo."
+      "compactHint": "Messaggi più compatti, più contenuti a schermo.",
+      "hoverActions": "Azioni al passaggio",
+      "hoverActionsHint": "Pulsanti di reazione, risposta e fissaggio al passaggio su un messaggio."
     },
     "notifications": {
       "browser": "Notifiche del browser",

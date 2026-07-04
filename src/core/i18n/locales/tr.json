@@ -248,7 +248,9 @@
       "timeFormat": "Saat biçimi",
       "compact": "Kompakt mesajlar",
       "textSize": "Metin boyutu",
-      "compactHint": "Daha sık mesajlar, ekranda daha fazlası."
+      "compactHint": "Daha sık mesajlar, ekranda daha fazlası.",
+      "hoverActions": "Fareyle eylemler",
+      "hoverActionsHint": "Bir mesajın üzerine gelince hızlı tepki, yanıt ve sabitleme düğmeleri."
     },
     "notifications": {
       "browser": "Tarayıcı bildirimleri",

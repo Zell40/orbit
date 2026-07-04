@@ -498,7 +498,8 @@ input, textarea { font-family: inherit; }
   background: var(--bg); border: 1px solid var(--border); box-shadow: var(--shadow-pop);
   opacity: 0; transform: translateY(3px); pointer-events: none; transition: opacity .13s, transform .13s;
 }
-.group:hover .msg-actions { opacity: 1; transform: none; pointer-events: auto; }
+.group:hover .msg-actions, [data-theme^="yomirc"] .mircline:hover .msg-actions { opacity: 1; transform: none; pointer-events: auto; }
+html[data-actions="off"] .msg-actions { display: none; }
 .msg-actions button { border: 0; background: none; font-size: 1rem; padding: 4px 6px; border-radius: 7px; transition: background .12s, transform .12s; }
 .msg-actions button:hover { background: var(--bg-soft-2); transform: scale(1.12); }
 

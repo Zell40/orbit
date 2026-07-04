@@ -198,7 +198,7 @@ function PushRow() {
   );
 }
 
-function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string; hint?: string; prefKey: 'sound' | 'hideJoinQuit' | 'compact' | 'linkPreviews' }) {
+function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string; hint?: string; prefKey: 'sound' | 'hideJoinQuit' | 'compact' | 'linkPreviews' | 'hoverActions' }) {
   const value = useActiveChat((s) => s.prefs[prefKey]);
   const setPref = useActiveChat((s) => s.setPref);
   return (
@@ -339,6 +339,7 @@ function AppearanceSection() {
           </div>
         </div>
         <ToggleRow icon="🗜️" label={t('settings.appearance.compact')} hint={t('settings.appearance.compactHint')} prefKey="compact" />
+        <ToggleRow icon="🖱️" label={t('settings.appearance.hoverActions')} hint={t('settings.appearance.hoverActionsHint')} prefKey="hoverActions" />
         <div className="srow">
           <span className="srow__ic" aria-hidden>🕓</span>
           <div className="srow__txt"><div className="srow__label">{t('settings.appearance.timeFormat')}</div></div>

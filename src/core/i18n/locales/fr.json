@@ -248,7 +248,9 @@
       "timeFormat": "Format de l'heure",
       "compact": "Messages compacts",
       "textSize": "Taille du texte",
-      "compactHint": "Messages plus denses, plus d’infos à l’écran."
+      "compactHint": "Messages plus denses, plus d’infos à l’écran.",
+      "hoverActions": "Actions au survol",
+      "hoverActionsHint": "Boutons de réaction, réponse et épingle au survol d'un message."
     },
     "notifications": {
       "browser": "Notifications navigateur",

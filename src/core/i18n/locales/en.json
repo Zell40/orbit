@@ -248,7 +248,9 @@
       "timeFormat": "Time format",
       "compact": "Compact messages",
       "textSize": "Text size",
-      "compactHint": "Denser messages, more on screen."
+      "compactHint": "Denser messages, more on screen.",
+      "hoverActions": "Hover actions",
+      "hoverActionsHint": "Quick react, reply and pin buttons when you hover a message."
     },
     "notifications": {
       "browser": "Browser notifications",
