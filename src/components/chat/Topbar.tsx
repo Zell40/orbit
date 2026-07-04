@@ -4,6 +4,7 @@ import { useChat, SERVER } from '../../store';
 import { avatarBg, formatIrc } from '../../lib/format';
 import { stripFormatting } from '../../store/text';
 import { NotifyMenu } from './NotifyMenu';
+import { PinMenu } from './PinMenu';
 import { usePluginRegistry } from '../../plugins/registry';
 import { PluginBoundary } from '../PluginBoundary';
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
@@ -64,6 +65,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       </div>
       {topbarItems.filter((u) => u.slot === 'topbar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}
       {!isServer && <button className="topbar__search" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}>🔍</button>}
+      {isChannel && <PinMenu />}
       {isChannel && <NotifyMenu />}
       {isChannel && amOp && <button className="topbar__search" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}>🛠️</button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}

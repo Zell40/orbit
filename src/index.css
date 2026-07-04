@@ -1798,6 +1798,28 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .nmenu__txt b { font-size: .88rem; font-weight: 600; }
 .nmenu__txt span { font-size: .73rem; color: var(--muted); }
 .nmenu__check { flex: none; color: var(--green-d); font-weight: 700; }
+/* count bubble on the topbar pin button */
+.nmenu__badge { position: absolute; top: -2px; right: -2px; min-width: 15px; height: 15px; padding: 0 3px;
+  font-size: .62rem; font-weight: 700; line-height: 15px; text-align: center; color: #fff;
+  background: var(--accent); border-radius: 8px; }
+.topbar__search { position: relative; }
+
+/* pinned-messages popover */
+.nmenu__pop--pins { width: 300px; max-height: 60vh; overflow-y: auto; }
+.pinrow { display: flex; align-items: stretch; gap: .2rem; }
+.pinrow__go { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left;
+  border: 0; background: transparent; color: var(--ink); padding: .45rem .55rem; border-radius: 8px; cursor: pointer; }
+.pinrow__go:hover { background: var(--green-soft); }
+.pinrow__from { font-size: .8rem; font-weight: 600; }
+.pinrow__txt { font-size: .78rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pinrow__x { flex: none; border: 0; background: transparent; color: var(--muted); cursor: pointer;
+  padding: 0 .5rem; border-radius: 8px; font-size: .8rem; }
+.pinrow__x:hover { background: var(--green-soft); color: var(--ink); }
+/* the pin action, lit when the line is pinned */
+.msg-actions .is-pinned { background: var(--green-soft); }
+/* brief highlight when jumping to a pinned line */
+.is-flash { animation: pinflash 1.2s ease; }
+@keyframes pinflash { 0%, 40% { background: var(--green-soft); } 100% { background: transparent; } }
 
 /* Plugin message decorators (appended inline after a message's text) */
 .msg-deco { display: inline-flex; align-items: center; gap: .25rem; margin-left: .35rem; vertical-align: middle; }
