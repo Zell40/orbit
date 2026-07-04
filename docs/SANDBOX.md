@@ -38,8 +38,15 @@ The sandboxed API (`src/plugins/sandbox/host.ts` + `public/plugin-sandbox.html`)
 `orbit.log`, `orbit.on(event, fn)` (forwarded `connected` / `message` /
 `buffer.active` / `status`), `orbit.irc.*`, `orbit.notify`,
 `orbit.state.active/nick/account/buffers` (from a pushed snapshot, synchronous),
-`orbit.storage.get/set`, and `orbit.ui(slot, build)` where `build(document.body)`
-populates the plugin's own iframe and the host sizes it to the content.
+`orbit.storage.get/set`, and `orbit.ui(slot, build)` where `build(el)` populates the
+plugin's own iframe and the host sizes the frame to the content.
+
+The app's theme CSS vars (`--bg`, `--ink`, `--accent`, `--muted`, `--border`,
+`--panel`, `--green-soft`) are mirrored into the sandbox and kept in sync on theme
+change, so plugin UI can use `var(--accent)` and look native in light + dark.
+
+Examples: `public/plugins/orbit-sandbox-demo.js` (minimal) and
+`public/plugins/orbit-dice.js` (a real themed dice/coin plugin, `["irc","storage"]`).
 
 ## Required CSP (APPLIED 2026-07-04)
 
