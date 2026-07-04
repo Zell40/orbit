@@ -41,6 +41,8 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   const openUser = useChat((s) => s.openUser);
   const setActive = useChat((s) => s.setActive);
   const setReply = useChat((s) => s.setReplyTarget);
+  const togglePin = useChat((s) => s.togglePin);
+  const pinned = useChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
   const isOper = useChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
   // Avatars resolve by ACCOUNT. Live messages carry the account tag, but
   // chathistory-replayed ones (e.g. on a fresh mobile join) often don't — so
@@ -68,7 +70,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   if (mirc) {
     const nickStyle = { color: isOper ? IRCOP_COLOR : nickColor(m.from) };
     return (
-      <div className={`mircline ${m.kind === 'action' ? 'mircline--action' : ''} ${m.redacted ? 'is-redacted' : ''}`}>
+      <div data-mid={m.id} className={`mircline ${m.kind === 'action' ? 'mircline--action' : ''} ${m.redacted ? 'is-redacted' : ''}`}>
         <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
         <button className="mircline__nick" style={nickStyle} onClick={() => openUser(m.from)}>
           {m.kind === 'action' ? `* ${m.from}` : `<${m.from}>`}
@@ -90,6 +92,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           <span className="msg-actions">
             {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
             <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
+            <button className={pinned ? 'is-pinned' : ''} title={t(pinned ? 'pins.unpin' : 'pins.pin')} onClick={() => togglePin(m.id)}>📌</button>
             {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
           </span>
         )}
@@ -98,7 +101,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   }
 
   return (
-    <div className={`group ${cont ? 'group--cont' : ''}`}>
+    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''}`}>
       {cont
         ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
         : <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} /></button>}
@@ -143,6 +146,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
         <div className="msg-actions">
           {QUICK.map((e) => <button key={e} title={t('messages.react')} aria-label={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
           <button title={t('messages.respond')} aria-label={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
+          <button className={pinned ? 'is-pinned' : ''} title={t(pinned ? 'pins.unpin' : 'pins.pin')} aria-label={t(pinned ? 'pins.unpin' : 'pins.pin')} onClick={() => togglePin(m.id)}>📌</button>
           <MsgActions m={m} />
           {m.self && <button title={t('messages.delete')} aria-label={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
         </div>
