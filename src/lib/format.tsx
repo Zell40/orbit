@@ -34,7 +34,10 @@ function AudioAttachment({ url }: { url: string }) {
   return (
     <div className="audcard">
       <span className="audcard__ic" aria-hidden="true">🎤</span>
-      <audio className="audcard__player" src={url} controls preload="metadata" />
+      {/* preload="none": don't fetch the media until the user hits play, so a posted
+          audio link can't passively harvest every viewer's IP on render (images are
+          click-to-load for the same reason). */}
+      <audio className="audcard__player" src={url} controls preload="none" />
       <a className="audcard__act" href={url} target="_blank" rel="noopener noreferrer">{t('media.open')}</a>
     </div>
   );
