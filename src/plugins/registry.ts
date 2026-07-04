@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import type { ReactNode } from 'react';
 
 // The UI slots the core currently exposes. Add more as components grow homes.
-export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'sidebar_item';
+export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'sidebar_item' | 'footer_item';
 
 export interface PluginUi {
   id: string;

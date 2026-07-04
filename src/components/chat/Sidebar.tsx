@@ -17,6 +17,7 @@ export function TabBar() {
   const setAway = useChat((s) => s.setAway);
   const setModal = useChat((s) => s.setModal);
   const openUser = useChat((s) => s.openUser);
+  const footerItems = usePluginRegistry((s) => s.ui);
   return (
     <footer className="appbar">
       <button className={`appbar__me ${away ? 'is-away' : ''}`} onClick={() => openUser(nick)} title={t('sidebar.viewProfile')}>
@@ -38,6 +39,7 @@ export function TabBar() {
         <TabFriends onOpen={() => setModal('friends')} />
       </nav>
       <div className="appbar__actions">
+        {footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
         <button className={`appbar__act appbar__act--away ${away ? 'is-on' : ''}`} onClick={() => setAway(away ? '' : t('sidebar.away'))}
           title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')} aria-pressed={!!away}>💤</button>
         <button className="appbar__act" onClick={() => setModal('settings')}

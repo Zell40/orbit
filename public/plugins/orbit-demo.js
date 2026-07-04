@@ -4,7 +4,7 @@
  * Load it by adding to config.json:  "plugins": ["/app/plugins/orbit-demo.js"]
  *
  * Shows the core API surface: Orbit.plugin(), the html`` tagged-template (HTM),
- * a composer-button UI slot, an IRC action, and event hooks.
+ * composer-button + footer-item UI slots, an IRC action, and event hooks.
  */
 Orbit.plugin('orbit-demo', (orbit, log) => {
   log('hello from the demo plugin — Orbit v' + orbit.version + ' (' + orbit.commit + ')');
@@ -21,6 +21,18 @@ Orbit.plugin('orbit-demo', (orbit, log) => {
         title="Roll a die (demo plugin)"
         onClick=${() => orbit.irc.say('🎲 rolled a ' + (1 + Math.floor(Math.random() * 6)))}
       >🎲</button>
+    `,
+  );
+
+  // Add a button to the app footer bar (next to away / settings). Use the native
+  // `appbar__act` class so it matches the built-in footer buttons.
+  orbit.addUi('footer_item', () =>
+    orbit.html`
+      <button
+        class="appbar__act"
+        title=${orbit.i18n.pick({ en: 'Wave (demo plugin)', fr: 'Coucou (plugin démo)' })}
+        onClick=${() => orbit.irc.say('👋')}
+      >👋</button>
     `,
   );
 });
