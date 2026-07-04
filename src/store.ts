@@ -10,7 +10,7 @@ import { usePluginRegistry } from './plugins/registry';
 import { casefold } from './irc/casemap';
 import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting } from './store/text';
-import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, type NotifyLevel, type Pin } from './store/persistence';
+import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 
 let localId = 0;
 let lastTypingSent = 0;
@@ -1373,22 +1373,12 @@ export const useChat = create<ChatState>((set, get) => {
       const key = get().active;
       const m = get().buffers[key]?.messages.find((x) => x.id === msgid);
       if (!m) return;
-      const cur = get().pins[key] || [];
-      const next = { ...get().pins };
-      // Toggle: drop it if already pinned, else add to the front (cap the list).
-      next[key] = cur.some((p) => p.id === msgid)
-        ? cur.filter((p) => p.id !== msgid)
-        : [{ id: m.id, from: m.from, text: m.text, ts: m.ts }, ...cur].slice(0, 30);
-      if (!next[key].length) delete next[key];
+      const next = togglePinIn(get().pins, key, { id: m.id, from: m.from, text: m.text, ts: m.ts });
       savePins(next);
       set({ pins: next });
     },
     unpin(channel, id) {
-      const key = canon(channel);
-      const cur = get().pins[key] || [];
-      const next = { ...get().pins };
-      next[key] = cur.filter((p) => p.id !== id);
-      if (!next[key].length) delete next[key];
+      const next = unpinIn(get().pins, canon(channel), id);
       savePins(next);
       set({ pins: next });
     },

@@ -41,6 +41,27 @@ export function savePins(map: Record<string, Pin[]>): void {
   try { localStorage.setItem(PINS_KEY, JSON.stringify(map)); } catch { /* ignore */ }
 }
 
+export const PIN_CAP = 30; // most-recent pins kept per channel
+
+// Pure reducers over the pin map — toggle a line in/out, or drop one. An empty
+// channel key is removed so the map stays sparse. Kept pure so they're unit-testable
+// without the store; the store just wraps these with savePins()/set().
+export function togglePinIn(pins: Record<string, Pin[]>, key: string, pin: Pin): Record<string, Pin[]> {
+  const cur = pins[key] || [];
+  const next = { ...pins };
+  next[key] = cur.some((p) => p.id === pin.id)
+    ? cur.filter((p) => p.id !== pin.id)
+    : [pin, ...cur].slice(0, PIN_CAP);
+  if (!next[key].length) delete next[key];
+  return next;
+}
+export function unpinIn(pins: Record<string, Pin[]>, key: string, id: string): Record<string, Pin[]> {
+  const next = { ...pins };
+  next[key] = (pins[key] || []).filter((p) => p.id !== id);
+  if (!next[key].length) delete next[key];
+  return next;
+}
+
 export const loadIgnored = () => loadStr(IGNORE_KEY);
 export const saveIgnored = (list: string[]) => saveStr(IGNORE_KEY, list);
 export const loadFriends = () => loadStr(FRIENDS_KEY);
