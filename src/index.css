@@ -295,7 +295,13 @@ input, textarea { font-family: inherit; }
 /* active pill: --ink bg flips with theme, so text uses --bg (always the opposite) */
 .pill.is-on { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 12px -4px rgba(20,82,204,.5); }
 
-.rooms { flex: 1; overflow-y: auto; padding: .15rem .45rem 1rem; }
+.rooms { flex: 1; overflow-y: auto; padding: .15rem .45rem 1rem; display: flex; flex-direction: column; }
+/* Discovery invitation — fills the space under a short room list; margin-top:auto
+   anchors it to the bottom, and it collapses out of the way when the list is long. */
+.room-discover { margin: auto .15rem .25rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .62rem .75rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-soft); color: var(--muted); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
+.room-discover:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.room-discover__arrow { transition: transform .15s; }
+.room-discover:hover .room-discover__arrow { transform: translateX(3px); }
 .rooms-h { padding: .7rem .6rem .3rem; font-size: .7rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
 .rooms-empty { padding: 1.4rem .7rem; color: var(--faint); font-size: .88rem; text-align: center; }
 

@@ -2,6 +2,7 @@ import { useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
 import { avatarBg } from '../../lib/format';
+import { stripFormatting } from '../../core/store/text';
 import { useTheme } from '../../themes';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../modules/registry';
@@ -75,6 +76,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const buffers = useActiveChat((s) => s.buffers);
   const setActive = useActiveChat((s) => s.setActive);
   const setModal = useActiveChat((s) => s.setModal);
+  const refreshChannels = useActiveChat((s) => s.refreshChannels);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const sidebarItems = usePluginRegistry((s) => s.ui);
   const serverName = useActiveChat((s) => s.serverName);
@@ -103,7 +105,11 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         </span>
         <span className="room__body">
           <span className="room__name">{label}</span>
-          <span className="room__sub">{b.isChannel ? t('sidebar.publicRoom') : isServer ? (serverName || t('sidebar.system')) : t('sidebar.privateMessage')}</span>
+          <span className="room__sub">{
+            isServer ? (serverName || t('sidebar.system'))
+              : b.isChannel ? (stripFormatting(b.topic || '').trim() || t('sidebar.publicRoom'))
+                : t('sidebar.privateMessage')
+          }</span>
         </span>
         {b.unread > 0 && <span className="room__badge">{b.unread}</span>}
         {!isServer && (
@@ -150,6 +156,13 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {showQueries && queries.map(item)}
         {!mirc && hasServer && item(SERVER)}
         {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
+        {/* Fill the space under a short list with a way to find more rooms. */}
+        {!mirc && showChannels && !q && (
+          <button className="room-discover" onClick={() => { refreshChannels(); setModal('explore'); }}>
+            <span>{t('nav.explore')}</span>
+            <span className="room-discover__arrow" aria-hidden>→</span>
+          </button>
+        )}
       </div>
 
       {/* On mobile the app bar docks at the bottom of this drawer instead of over
