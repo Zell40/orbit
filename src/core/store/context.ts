@@ -28,10 +28,13 @@ export function canon(name: string): string {
 // Open IRCv3 BATCHes (ref → info). "quiet" batches (netsplit/netjoin) suppress the
 // per-user join/quit noise; "chathistory" batches collect their PRIVMSGs to be
 // PREPENDED as older history rather than appended live.
-export const openBatches: Record<string, { type: string; quiet: boolean; target?: string }> = {};
-export const historyCollect: Record<string, ChatMessage[]> = {}; // batchRef → collected old messages
+// Null-prototype maps: batch refs are server-controlled, and a ref of "__proto__"
+// (from `BATCH +__proto__ …`) would otherwise hit the object's prototype setter and
+// corrupt the map instead of storing a key. No prototype → any ref is a plain key.
+export const openBatches: Record<string, { type: string; quiet: boolean; target?: string }> = Object.create(null);
+export const historyCollect: Record<string, ChatMessage[]> = Object.create(null); // batchRef → collected old messages
 // draft/multiline: gather the lines of one batch to render as a single message.
-export const multilineCollect: Record<string, { base: ChatMessage; lines: { text: string; concat: boolean }[] }> = {};
+export const multilineCollect: Record<string, { base: ChatMessage; lines: { text: string; concat: boolean }[] }> = Object.create(null);
 // Discard any half-open batches. A batch the server opens but never closes (a
 // bug, or a mid-batch netsplit) would otherwise linger and keep diverting live
 // messages into the collectors instead of the buffer. Called on (re)connect.
