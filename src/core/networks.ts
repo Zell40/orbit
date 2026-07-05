@@ -67,6 +67,9 @@ export const useNetworks = create<NetworksState>((set) => ({
   remove: (id) => {
     set((s) => {
       if (s.networks.length <= 1) return s;
+      // Tear down the removed network's client — otherwise its socket, timers and
+      // keepalive/reconnect keep running for a network the user closed.
+      s.networks.find((n) => n.id === id)?.store.getState().client?.disconnect();
       const networks = s.networks.filter((n) => n.id !== id);
       const activeId = s.activeId === id ? networks[0].id : s.activeId;
       networks.forEach((n) => n.store.setState({ isActive: n.id === activeId }));
