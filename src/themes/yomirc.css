@@ -131,6 +131,13 @@
    separate # avatar icon. Queries/status keep their avatar glyph. */
 [data-theme^="yomirc"] .room:has(.room__hash) .room__av { display: none; }
 [data-theme^="yomirc"] .room:has(.room__hash) .room__name::before { content: "#"; }
+/* Query/DM window buttons get a distinct "@nick" glyph instead of the channel #. */
+[data-theme^="yomirc"] .room:not(.room--status):not(:has(.room__hash)) .room__av { display: none; }
+[data-theme^="yomirc"] .room:not(.room--status):not(:has(.room__hash)) .room__name::before { content: "@"; opacity: .7; }
+/* Unread activity, mIRC-style: bold accent on a window with a new message, red on
+   a mention/highlight — colours the switchbar (and the mobile drawer list). */
+[data-theme^="yomirc"] .room.has-unread .room__name { font-weight: 700; color: var(--accent-d); }
+[data-theme^="yomirc"] .room.has-mention .room__name { font-weight: 700; color: #d6465f; }
 [data-theme^="yomirc"] .room__sub { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
 [data-theme^="yomirc"] .room__sub--generic { display: none; } /* channels with no topic stay a tight single line */
 [data-theme^="yomirc"] .room__name { font-weight: 400; color: var(--ink); }
