@@ -10,6 +10,7 @@ import { stripFormatting, tidyOutgoing } from './store/text';
 import { isService, maskSecret, detectServiceLeak } from './services';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, newId, canon, isChannelName, resetBatches } from './store/context';
+import { fetchTimeout } from '../lib/net';
 import { getTheme } from '../themes';
 export { SERVER } from './store/context';
 import { makeHelpers } from './store/helpers';
@@ -643,7 +644,7 @@ export function createChatStore(ns = '') {
         // 2) Upload the file to the Tchatou filehost (same origin as the app).
         const fd = new FormData();
         fd.append('file', file);
-        const res = await fetch(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
+        const res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
         if (!res.ok) {
           let detail = `http_${res.status}`;
           try { const j = await res.json(); if (j?.detail) detail = `${res.status}:${j.detail}`; } catch { /* ignore */ }
@@ -696,7 +697,7 @@ export function createChatStore(ns = '') {
         });
         const fd = new FormData();
         fd.append('file', new File([blob], `voice.${ext}`, { type: blob.type || 'audio/webm' }));
-        const res = await fetch(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
+        const res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
         if (!res.ok) {
           let detail = `http_${res.status}`;
           try { const j = await res.json(); if (j?.detail) detail = `${res.status}:${j.detail}`; } catch { /* ignore */ }
@@ -754,7 +755,7 @@ export function createChatStore(ns = '') {
       const account = get().account;
       if (!account) return { ok: false, message: i18n.t('reg.needAccount') };
       try {
-        const res = await fetch('/accounts/api/change_password/', {
+        const res = await fetchTimeout('/accounts/api/change_password/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ account, current_password: currentPassword, new_password: newPassword }),
@@ -777,7 +778,7 @@ export function createChatStore(ns = '') {
       try { jwt = new URL(reg.challengeUrl).searchParams.get('token') || ''; } catch { /* bad url */ }
       set({ reg: { ...reg, busy: true, error: '' } });
       try {
-        const res = await fetch('/cloudflare/verify_complete/', {
+        const res = await fetchTimeout('/cloudflare/verify_complete/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: jwt, verification_method: 'turnstile', turnstile_token: turnstileToken }),
