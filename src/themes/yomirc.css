@@ -145,9 +145,10 @@
 [data-theme^="yomirc"] .member:hover:not(:disabled) { background: var(--mirc-navy); }
 [data-theme^="yomirc"] .member:hover:not(:disabled) .member__name,
 [data-theme^="yomirc"] .member:hover:not(:disabled) .member__prefix { color: var(--mirc-sel-ink); }
-/* Bot tag = just a robot icon right after the nick — no "BOT" label, no badge box,
-   and no base margin-left:auto shoving it to the far right of the row. */
-[data-theme^="yomirc"] .member__bot { margin-left: .3rem; padding: 0; font-size: 0; background: none; box-shadow: none; }
+/* Bot tag = just a robot icon, no "BOT" label / badge box. Right-align it (the row
+   fills the tight fit-content column) so every bot's icon lines up in a neat column
+   at the edge instead of floating ragged after each different-length nick. */
+[data-theme^="yomirc"] .member__bot { margin-left: auto; padding: 0 0 0 .4rem; font-size: 0; background: none; box-shadow: none; }
 [data-theme^="yomirc"] .member__bot::before { content: "🤖"; font-size: .8rem; line-height: 1; }
 [data-theme^="yomirc"] .members__search input { border-radius: 0; background: var(--mirc-paper); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
 /* Composer — sunken input + raised toolbar buttons */
