@@ -224,17 +224,17 @@
 [data-theme^="yomirc"] .member__bot { margin-left: auto; padding: 0 0 0 .4rem; font-size: 0; background: none; box-shadow: none; }
 [data-theme^="yomirc"] .member__bot::before { content: "🤖"; font-size: .8rem; line-height: 1; }
 [data-theme^="yomirc"] .members__search input { border-radius: 0; background: var(--mirc-paper); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-/* Composer — sunken input + raised toolbar buttons */
-[data-theme^="yomirc"] .composer__box { border-radius: 0; background: var(--mirc-face); box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
-[data-theme^="yomirc"] .composer__rich { font-family: var(--mono); background: var(--mirc-paper); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); padding: .35rem .4rem; }
+/* Composer — one sunken paper editbox (same surface as the message log), flat glyph
+   tools inside it, and a single raised Send button. No grey box framing a black input. */
+[data-theme^="yomirc"] .composer__box { border-radius: 0; background: var(--mirc-paper); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
+[data-theme^="yomirc"] .composer__rich { font-family: var(--mono); background: transparent; color: var(--ink); box-shadow: none; padding: .35rem .4rem; }
 [data-theme^="yomirc"] .composer__fmtbtn,
 [data-theme^="yomirc"] .composer__add,
-[data-theme^="yomirc"] .composer__emoji,
+[data-theme^="yomirc"] .composer__emoji { border-radius: 0; background: transparent; color: var(--ink); box-shadow: none; }
 [data-theme^="yomirc"] .composer__send {
-  border-radius: 0; background: var(--mirc-face); color: var(--ink);
-  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow), inset 2px 2px 0 var(--mirc-bevel-hi), inset -2px -2px 0 var(--mirc-dark);
+  border-radius: 0; background: var(--mirc-silver); color: var(--ink);
+  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow);
 }
-[data-theme^="yomirc"] .composer__send { background: var(--mirc-silver); }
 [data-theme^="yomirc"] .composer__fmtbtn.is-on { box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); background: var(--mirc-silver); }
 /* Sidebar controls squared to match: sunken search field + raised filter tabs */
 [data-theme^="yomirc"] .side-search { border-radius: 0; background: var(--mirc-paper); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
