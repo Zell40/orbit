@@ -138,7 +138,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {sidebarItems.filter((u) => u.slot === 'sidebar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="sidebar_item" />)}
         <button className="side-compose" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => setModal('join')}>✎</button>
         {/* mIRC toolbar: a channels-list button (the vertical Explore CTA is hidden in the switchbar). */}
-        {mirc && <button className="side-compose side-explore" title={t('nav.explore')} aria-label={t('nav.explore')} onClick={() => { refreshChannels(); setModal('explore'); }}>🧭</button>}
+        {mirc && <button className="side-compose side-explore" title={t('nav.explore')} aria-label={t('nav.explore')} onClick={() => { refreshChannels(); setModal('explore'); }}>📋</button>}
       </div>
 
       {getConfig().features.multiNetwork && <NetworkTabs />}
