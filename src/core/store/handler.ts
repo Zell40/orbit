@@ -1,7 +1,7 @@
 import i18n from '../i18n';
-import {} from '../irc/client';
 import { desktopNotify, blip } from '../../services/notify';
-import type { ChatMessage, IrcMessage, Member, MessageKind } from '../irc/types';
+import { fmtDuration, formatUserModes } from '../../lib/format';
+import type { ChatMessage, IrcMessage, Member, MessageKind, WhoisInfo } from '../irc/types';
 import { NUMERICS, ERROR_NUMERICS } from '../irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { usePluginRegistry } from '../../modules/registry';
@@ -29,6 +29,37 @@ const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '366
 export function makeHandler(ctx: HandlerCtx) {
   const { set, get, helpers, closedChannels, lastCantSend, lastAwayNotice, filehost } = ctx;
   const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sysLine, serverLine, patchWhois } = helpers;
+
+  // yomirc /whois: print the collected WHOIS to its origin window as classic mIRC
+  // text lines (WhoisInfo.printTo) instead of opening the profile panel.
+  function clearWhois(nick: string): void {
+    const rest = { ...get().whois }; delete rest[nick]; set({ whois: rest });
+  }
+  function printWhois(w: WhoisInfo): void {
+    const to = w.printTo!;
+    const n = w.nick;
+    const p = (text: string) => sysLine(to, text, 'info');
+    if (w.user || w.host) p(`${n} is ${w.user ?? '?'}@${w.host ?? '?'}${w.realname ? ` * ${w.realname}` : ''}`);
+    if (w.account) p(`${n} is logged in as ${w.account}`);
+    if (w.channels) p(`${n} is on ${w.channels}`);
+    if (w.server) p(`${n} is using ${w.server}${w.serverInfo ? ` (${w.serverInfo})` : ''}`);
+    if (w.oper) p(`${n} is an IRC operator`);
+    if (w.bot) p(`${n} is a bot`);
+    if (w.modes) p(`${n} is using modes ${formatUserModes(w.modes)}`);
+    if (w.secure) p(`${n} is using a secure connection (TLS)`);
+    if (w.certfp) p(`${n} has client certificate ${w.certfp}`);
+    if (w.actualHost) p(`${n} is actually using ${w.actualHost}`);
+    for (const sp of w.special ?? []) p(`${n} ${sp}`);
+    if (w.away) p(`${n} is away: ${w.away}`);
+    if (w.idle != null || w.signon) {
+      const idle = w.idle != null ? `has been idle ${fmtDuration(w.idle)}` : '';
+      const signon = w.signon ? `signed on ${new Date(w.signon * 1000).toLocaleString()}` : '';
+      p(`${n} ${[idle, signon].filter(Boolean).join(', ')}`);
+    }
+    p(`${n} End of /WHOIS list.`);
+    clearWhois(n);
+  }
+
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
     const me = get().nick;
@@ -133,9 +164,13 @@ export function makeHandler(ctx: HandlerCtx) {
       case '369': // RPL_ENDOFWHOWAS
         patchWhois(msg.params[1], (w) => ({ ...w, loading: false }));
         return;
-      case '318': // RPL_ENDOFWHOIS
-        patchWhois(msg.params[1], (w) => ({ ...w, loading: false }));
+      case '318': { // RPL_ENDOFWHOIS
+        const nk = msg.params[1];
+        patchWhois(nk, (w) => ({ ...w, loading: false }));
+        const w = get().whois[nk];
+        if (w?.printTo) printWhois(w); // yomirc: dump it to the active window as text
         return;
+      }
       case '352': { // RPL_WHOREPLY: <me> <chan> <user> <host> <server> <nick> <flags> :<hop> <real>
         const chan = msg.params[1];
         const who = msg.params[5];
@@ -285,14 +320,19 @@ export function makeHandler(ctx: HandlerCtx) {
       case '732': // RPL_MONLIST
       case '733': // RPL_ENDOFMONLIST
         return;
-      case '401': // ERR_NOSUCHNICK
-        if (get().whois[msg.params[1]]) {
+      case '401': { // ERR_NOSUCHNICK
+        const nk = msg.params[1];
+        const w = get().whois[nk];
+        if (w) {
+          // yomirc text WHOIS: print the miss to its window and drop the entry.
+          if (w.printTo) { sysLine(w.printTo, `${nk} No such nick/channel`, 'info'); clearWhois(nk); return; }
           // The user is offline — fall back to WHOWAS for their last-known info.
-          if (get().profileUser === msg.params[1]) { get().client?.whowas(msg.params[1]); return; }
-          patchWhois(msg.params[1], (w) => ({ ...w, loading: false }));
+          if (get().profileUser === nk) { get().client?.whowas(nk); return; }
+          patchWhois(nk, (ww) => ({ ...ww, loading: false }));
           return;
         }
         break;
+      }
       case '404': { // ERR_CANNOTSENDTOCHAN: we tried to talk but we're banned / channel is moderated
         const ch = msg.params[1];
         if (!isChannelName(ch)) return;

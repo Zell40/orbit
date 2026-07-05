@@ -9,6 +9,7 @@ import { getConfig } from './config';
 import { isService, maskSecret, detectServiceLeak, stripFormatting, tidyOutgoing } from './store/text';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, newId, canon, isChannelName } from './store/context';
+import { getTheme } from '../themes';
 export { SERVER } from './store/context';
 import { makeHelpers } from './store/helpers';
 import { makeHandler } from './store/handler';
@@ -84,6 +85,7 @@ export interface ChatState {
   closeBuffer: (name: string) => void;
   openUser: (nick: string) => void;
   refreshUser: (nick: string) => void;
+  whoisText: (nick: string) => void;
   closeProfile: () => void;
   setModal: (m: Modal) => void;
   dismissKick: () => void;
@@ -238,6 +240,15 @@ export function createChatStore(ns = '') {
       if (!nick) return;
       const s = get();
       set({ profileUser: nick, whois: { ...s.whois, [nick]: { nick, loading: true } } });
+      s.client?.whois(nick);
+    },
+
+    // Classic-mIRC WHOIS: collect the reply but print it to the window it was run
+    // from (printTo) as text lines instead of opening the panel. No profileUser set.
+    whoisText(nick) {
+      if (!nick) return;
+      const s = get();
+      set({ whois: { ...s.whois, [nick]: { nick, loading: true, printTo: s.active } } });
       s.client?.whois(nick);
     },
 
@@ -436,7 +447,12 @@ export function createChatStore(ns = '') {
           case 'join': client.join(arg); get().setActive(arg.split(' ')[0]); break;
           case 'part': client.part(active); break;
           case 'nick': client.setNick(arg); break;
-          case 'whois': get().openUser(arg.trim().split(' ')[0] || active); break;
+          case 'whois': {
+            const who = arg.trim().split(' ')[0] || active;
+            // yomirc mimics classic mIRC: print WHOIS to the active window as text.
+            if (getTheme().startsWith('yomirc')) get().whoisText(who); else get().openUser(who);
+            break;
+          }
           case 'msg': {
             const [t, ...m] = rest; const body = m.join(' ');
             if (!t || !body) break;
