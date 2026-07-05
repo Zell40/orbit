@@ -58,7 +58,45 @@
    so a short nick list doesn't leave a wide empty gap out to the right wall. Rows
    keep width:100% (fill the tight column, long nicks ellipsis-truncate); content-
    visibility must be visible here so the grid can measure real nick widths. */
-[data-theme^="yomirc"] .app { grid-template-columns: 248px 1fr fit-content(240px); }
+/* ── mIRC layout: the "home" sidebar becomes a horizontal toolbar + switchbar
+   across the TOP; chat + nicklist below, account bar at the bottom. Desktop only
+   — the ≤880px flex layout keeps its own drawer. Members column still hugs its
+   content (fit-content) so the nicklist stays tight. */
+@media (min-width: 881px) {
+[data-theme^="yomirc"] .app {
+  grid-template-columns: 1fr fit-content(240px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "bar bar" "main members" "foot foot";
+}
+[data-theme^="yomirc"] .sidebar { grid-area: bar; }
+[data-theme^="yomirc"] .main { grid-area: main; }
+[data-theme^="yomirc"] .members { grid-area: members; }
+[data-theme^="yomirc"] .app > .appbar { grid-area: foot; }
+
+/* Sidebar → horizontal toolbar strip */
+[data-theme^="yomirc"] .sidebar {
+  flex-direction: row; align-items: center; gap: 3px; min-width: 0;
+  overflow-x: auto; overflow-y: hidden; padding: 2px 3px;
+  border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow);
+}
+[data-theme^="yomirc"] .side-title,
+[data-theme^="yomirc"] .side-search,
+[data-theme^="yomirc"] .pills,
+[data-theme^="yomirc"] .rooms-h,
+[data-theme^="yomirc"] .room__close,
+[data-theme^="yomirc"] .room-discover { display: none; }
+[data-theme^="yomirc"] .side-top { flex: none; padding: 0; gap: 3px; }
+[data-theme^="yomirc"] .side-compose { border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
+
+/* Rooms → horizontal window buttons (the switchbar) */
+[data-theme^="yomirc"] .rooms { flex-direction: row; align-items: center; overflow-x: auto; overflow-y: hidden; padding: 0; gap: 3px; flex: 1; min-width: 0; margin: 0; background: transparent; box-shadow: none; }
+[data-theme^="yomirc"] .room { flex: 0 0 auto; width: auto; min-width: 0; max-width: 14rem; padding: .18rem .55rem; gap: .3rem; border-radius: 0; background: var(--mirc-face); box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
+[data-theme^="yomirc"] .room__body { flex-direction: row; align-items: center; gap: 0; }
+[data-theme^="yomirc"] .room__sub { display: none; }
+[data-theme^="yomirc"] .room:hover { background: var(--mirc-silver); }
+[data-theme^="yomirc"] .room.is-active { background: var(--mirc-silver); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
+[data-theme^="yomirc"] .room.is-active .room__name { color: var(--accent-d); }
+} /* end @media min-width:881px — mIRC top navbar */
 [data-theme^="yomirc"] .member { content-visibility: visible; }
 [data-theme^="yomirc"] .member__name { min-width: 0; max-width: 240px; } /* cap the name's intrinsic width so one long nick can't force the whole column wide; it ellipsis-truncates instead */
 [data-theme^="yomirc"] .sidebar { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
