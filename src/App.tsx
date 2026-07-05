@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { refreshPush } from './services/push';
+import { dismissUpdateCurtain } from './ui/appUpdate';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
 import { activeStore, useAllNetworksUnread } from './core/networks';
@@ -37,6 +38,10 @@ export default function App() {
     const name = getConfig().branding.name;
     document.title = unread > 0 ? `(${unread}) ${name}` : name;
   }, [unread]);
+
+  // App is mounted and painting — fade out any update curtain held over from a
+  // seamless-refresh reload, revealing the fresh build.
+  useEffect(() => { dismissUpdateCurtain(); }, []);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives
   // server-side expiry and reconnects (cheap no-op if push isn't enabled).

@@ -1,7 +1,7 @@
 // Tchatou service worker — installable PWA + offline app shell.
 // Scope: /app/. Only handles same-origin /app/ GETs; the IRC websocket and all
 // API calls (cloudflare, change_password, upload) pass straight through.
-const CACHE = 'tchatou-v81';
+const CACHE = 'tchatou-v82';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/orbit-icon.svg', '/app/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
@@ -107,6 +107,9 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(req).catch(() => caches.match('/app/index.html')));
     return;
   }
+  // version.json: the update probe — always straight to network, never cached, so
+  // a poll (src/ui/appUpdate.ts) sees the freshly deployed build id immediately.
+  if (url.pathname === '/app/version.json') { e.respondWith(fetch(req)); return; }
   // config.json: network-first so a deployer's edits apply WITHOUT a rebuild;
   // fall back to the last cached copy when offline.
   if (url.pathname === '/app/config.json') {

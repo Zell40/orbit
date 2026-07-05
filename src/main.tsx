@@ -8,8 +8,13 @@ import './themes/dark.css'
 import './themes/orbit.css'
 import './themes/yomirc.css'
 import { initViewport } from './ui/viewport.ts'
+import { registerAppUpdates, markUpdateCurtain } from './ui/appUpdate.ts'
 import { loadConfig, getConfig } from './core/config.ts'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
+
+// If the last load reloaded to pick up a new build, hold a themed curtain up until
+// the app mounts (dismissed in App) so the fresh page fades in instead of popping.
+markUpdateCurtain()
 
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()
@@ -116,27 +121,7 @@ loadConfig().then(async () => {
   )
 })
 
-// PWA: register the service worker (installable + offline app shell) and
-// auto-apply updates. The SW calls skipWaiting()+clients.claim(), so when a new
-// build is deployed it takes control and fires `controllerchange` — we reload
-// once (guarded against loops) so users always get the latest app without a
-// manual hard-refresh.
-if ('serviceWorker' in navigator) {
-  // Only an *existing* controller means this is an update (not the first-ever
-  // install, where clients.claim() also fires controllerchange).
-  const hadController = !!navigator.serviceWorker.controller;
-  let reloading = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController || reloading) return;
-    reloading = true;
-    window.location.reload();
-  });
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' })
-      .then((reg) => {
-        // Poll for a new SW occasionally (e.g. long-lived PWA sessions).
-        setInterval(() => { void reg.update(); }, 60 * 60 * 1000);
-      })
-      .catch(() => { /* ignore */ });
-  });
-}
+// PWA + seamless updates: registers the service worker (installable, offline app
+// shell, web push) and polls version.json so a fresh deploy refreshes the tab in
+// place — a themed cross-fade instead of a manual hard reload. See ./ui/appUpdate.
+registerAppUpdates()
