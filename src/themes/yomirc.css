@@ -54,6 +54,13 @@
   border-color: var(--mirc-shadow);
 }
 [data-theme^="yomirc"] .app { background: var(--mirc-face); gap: 2px; padding: 2px; }
+/* mIRC-tight nicklist: the member column hugs its content instead of a fixed 240px,
+   so a short nick list doesn't leave a wide empty gap out to the right wall. Rows
+   keep width:100% (fill the tight column, long nicks ellipsis-truncate); content-
+   visibility must be visible here so the grid can measure real nick widths. */
+[data-theme^="yomirc"] .app { grid-template-columns: 248px 1fr fit-content(240px); }
+[data-theme^="yomirc"] .member { content-visibility: visible; }
+[data-theme^="yomirc"] .member__name { min-width: 0; max-width: 240px; } /* cap the name's intrinsic width so one long nick can't force the whole column wide; it ellipsis-truncates instead */
 [data-theme^="yomirc"] .sidebar { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 [data-theme^="yomirc"] .members { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 /* Flat caption bar — no Windows title-bar gradient, no blue */
