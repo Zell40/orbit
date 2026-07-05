@@ -143,6 +143,7 @@ export function ConnectScreen() {
     raw.split(',').map((c) => c.trim()).filter(Boolean)
       .map((c) => (c.startsWith('#') || c.startsWith('&') ? c : `#${c}`));
   const chan = parseChannels(chanField)[0] || cfg.startup.channels[0];
+  const suggestions = cfg.startup.suggestions?.length ? cfg.startup.suggestions : cfg.startup.channels;
 
   const connecting = status === 'connecting';
   const ready = nick.trim().length >= 2;
@@ -169,10 +170,10 @@ export function ConnectScreen() {
         </div>
 
         <h1 className="cjoin__title">
-          {cfg.branding.tagline}<br />
-          <em>{cfg.branding.taglineEm}</em>
+          {cfg.branding.tagline || t('connect.tagline')}<br />
+          <em>{cfg.branding.taglineEm || t('connect.taglineEm')}</em>
         </h1>
-        <p className="cjoin__sub">{cfg.branding.subtitle}</p>
+        <p className="cjoin__sub">{cfg.branding.subtitle || t('connect.subtitle')}</p>
 
         <form onSubmit={(e) => { e.preventDefault(); go(); }}>
           <div className="cjoin__composer">
@@ -192,11 +193,15 @@ export function ConnectScreen() {
               {connecting ? <span className="cjoin__sendspin" /> : <span className="arr">➔</span>}
             </button>
           </div>
+          <p className="cjoin__hint">{t('connect.nickHint')}</p>
 
           <div className="cjoin__row">
             <label className="cjoin__chan">{t('connect.joinHint')}
               <input className="cjoin__chan-in" value={chanField} spellCheck={false} autoComplete="off"
-                aria-label={t('connect.joinHint')} onChange={(e) => setChanField(e.target.value)} />
+                list="cjoin-chans" aria-label={t('connect.channelAria')} onChange={(e) => setChanField(e.target.value)} />
+              <datalist id="cjoin-chans">
+                {suggestions.map((c) => <option key={c} value={c} />)}
+              </datalist>
             </label>
             <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
               {showPw ? t('connect.hidePassword') : t('connect.registered')}

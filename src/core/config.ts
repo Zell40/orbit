@@ -17,6 +17,8 @@ export interface AppConfig {
   startup: {
     /** Channels auto-joined on connect (the first is the primary/active one). */
     channels: string[];
+    /** Suggested channels offered in the connect-screen channel picker (datalist). */
+    suggestions?: string[];
   };
   branding: {
     name: string;       // app/network name shown in the UI
@@ -88,14 +90,14 @@ export type PluginEntry =
 
 const DEFAULT_CONFIG: AppConfig = {
   server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité' },
-  startup: { channels: ['#accueil'] },
+  startup: { channels: ['#accueil'], suggestions: ['#accueil', '#taverne', '#musique', '#devs', '#orbit'] },
   branding: {
     name: 'Tchatou',
     icon: 'https://tchatou.fr/static/img/favicon.svg',
     url: 'https://tchatou.fr',
-    tagline: 'Le tchat français,',
-    taglineEm: 'en direct.',
-    subtitle: 'Salons publics, messages privés, modération — et zéro inscription. Choisis un pseudo et rejoins la conversation, avec toute la France.',
+    tagline: '',      // empty → connect screen falls back to the localised connect.tagline
+    taglineEm: '',
+    subtitle: '',
     projectUrl: 'https://orbit.tchatou.fr',
   },
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
