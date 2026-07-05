@@ -275,9 +275,13 @@ export class IrcClient {
   private sendRaw(line: string): void {
     const ws = this.ws;
     if (ws?.readyState !== WebSocket.OPEN) return;
+    // Strip CR/LF/NUL so a newline in any argument (nick, topic, a raw console
+    // line, …) can't smuggle a second protocol command onto the wire. Single
+    // choke-point: every outbound write passes through here.
+    const safe = line.replace(/[\r\n\0]/g, '');
     try {
-      ws.send(line + '\r\n');
-      this.emit('raw-out', line);
+      ws.send(safe + '\r\n');
+      this.emit('raw-out', safe);
     } catch {
       /* socket died between the readyState check and send — onclose/onerror
          will run the recovery path; nothing to do here. */
