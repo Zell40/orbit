@@ -78,6 +78,7 @@ export function mountSandboxed(spec: SandboxSpec): void {
   const log = (...a: unknown[]) => { if (pluginDebug()) console.log(`%c[${name}]`, 'color:#8957e5', ...a); };
 
   let claimed = false;
+  let lastNotify = 0;
   let removeUi: () => void = () => {};
   const impl: Record<string, (args: unknown[]) => unknown> = {
     log: (a) => log(...a),
@@ -87,7 +88,12 @@ export function mountSandboxed(spec: SandboxSpec): void {
     'irc.join': (a) => { const s = activeStore().getState(); const c = String(a[0] ?? ''); s.client?.join(c); s.setActive(c); },
     'irc.part': (a) => activeStore().getState().client?.part(String(a[0] ?? '')),
     'irc.list': () => activeStore().getState().client?.list(),
-    notify: (a) => pluginNotify(String(a[0] ?? ''), a[1] != null ? String(a[1]) : undefined),
+    notify: (a) => {
+      const now = Date.now();
+      if (now - lastNotify < 4000) return; // rate-limit: at most one desktop notification / 4s per plugin
+      lastNotify = now;
+      pluginNotify(String(a[0] ?? ''), a[1] != null ? String(a[1]) : undefined);
+    },
     'storage.set': (a) => persistStorage(name, String(a[0]), a[1]),
     'ui.claim': (a) => {
       if (claimed) return; claimed = true;
