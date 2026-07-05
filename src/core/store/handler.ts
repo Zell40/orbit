@@ -441,8 +441,12 @@ export function makeHandler(ctx: HandlerCtx) {
         // display (e.g. a service's machine-readable control lines). The plugin
         // still receives it via on('raw').
         const mfilters = usePluginRegistry.getState().messageFilters;
-        if (mfilters.length && mfilters.some((f) => f.fn({ nick: msg.nick || '', command: msg.command, target, text })))
-          return;
+        // A plugin filter that throws must not abort handling of the message.
+        const filtered = mfilters.some((f) => {
+          try { return f.fn({ nick: msg.nick || '', command: msg.command, target, text }); }
+          catch (e) { console.error('[plugins] message filter threw', e); return false; }
+        });
+        if (filtered) return;
         let kind: MessageKind = msg.command === 'NOTICE' ? 'notice' : 'privmsg';
         // CTCP ACTION
         if (text.startsWith('\x01ACTION ') && text.endsWith('\x01')) {

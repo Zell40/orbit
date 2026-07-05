@@ -52,7 +52,13 @@ export class IrcClient {
   }
 
   private emit(event: string, ...args: unknown[]): void {
-    for (const fn of this.listeners[event] ?? []) fn(...args);
+    // A throwing listener (e.g. the message handler hitting an unexpected server
+    // line, or a buggy plugin) must not escape into the WebSocket callback and
+    // kill the receive loop. Isolate each listener; log and carry on.
+    for (const fn of this.listeners[event] ?? []) {
+      try { fn(...args); }
+      catch (e) { console.error(`[irc] listener for '${event}' threw`, e); }
+    }
   }
 
   private wantConnected = false;       // true between connect() and disconnect()
