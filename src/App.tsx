@@ -95,7 +95,7 @@ export default function App() {
     if (!('serviceWorker' in navigator)) return;
     const onMsg = (ev: MessageEvent) => {
       const target = ev.data?.type === 'open-buffer' ? ev.data.target : null;
-      if (!target) return;
+      if (typeof target !== 'string' || !target) return; // only act on a well-formed buffer name
       const st = activeStore().getState();
       if (/^[#&]/.test(target)) st.setActive(target);
       else st.openQuery(target);
