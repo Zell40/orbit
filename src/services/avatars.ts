@@ -40,7 +40,7 @@ function flush() {
 
 function schedule() { if (timer == null) timer = setTimeout(flush, 40); }
 
-export function fetchAvatar(account: string): Promise<string | null> {
+function fetchAvatar(account: string): Promise<string | null> {
   const key = account.toLowerCase();
   if (cache.has(key)) return Promise.resolve(cache.get(key) ?? null);
   return new Promise((resolve) => {

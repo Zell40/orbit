@@ -86,7 +86,7 @@ export type PluginEntry =
   | string
   | { url: string; integrity?: string; crossorigin?: string; sandbox?: boolean; permissions?: string[] };
 
-export const DEFAULT_CONFIG: AppConfig = {
+const DEFAULT_CONFIG: AppConfig = {
   server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité' },
   startup: { channels: ['#accueil'] },
   branding: {

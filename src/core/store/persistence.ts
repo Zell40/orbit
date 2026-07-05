@@ -1,11 +1,11 @@
 // localStorage-backed lists (ignored nicks, friends, muted channels, highlight
 // words). Pure persistence helpers — no store state.
-export const IGNORE_KEY = 'tchatou-ignored';
-export const FRIENDS_KEY = 'tchatou-friends';
-export const MUTED_KEY = 'tchatou-muted';
+const IGNORE_KEY = 'tchatou-ignored';
+const FRIENDS_KEY = 'tchatou-friends';
+const MUTED_KEY = 'tchatou-muted';
 export const HIGHLIGHT_KEY = 'tchatou-highlights';
-export const NOTIFY_KEY = 'tchatou-notify';
-export const PINS_KEY = 'tchatou-pins';
+const NOTIFY_KEY = 'tchatou-notify';
+const PINS_KEY = 'tchatou-pins';
 
 export function loadStr(key: string): string[] {
   try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }

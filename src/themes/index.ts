@@ -22,7 +22,7 @@ interface ThemeState {
 
 // Reflect the theme on <html> and set the mobile chrome tint from the theme's own
 // --bg (single source of truth); plugin themes fall back to their registered colour.
-export function applyTheme(t: string): void {
+function applyTheme(t: string): void {
   document.documentElement.dataset.theme = t;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (!meta) return;
