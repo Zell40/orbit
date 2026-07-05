@@ -12,6 +12,7 @@ import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripF
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, newId, isupport, canon, isChannelName, openBatches, historyCollect, multilineCollect, inQuietBatch, inHistoryBatch, inMultilineBatch } from './store/context';
 export { SERVER } from './store/context';
+import { makeHelpers } from './store/helpers';
 
 
 
@@ -28,7 +29,7 @@ export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmi
 export interface ChannelInfo { name: string; users: number; topic: string }
 export interface KickInfo { channel: string; by: string; reason: string; kind: 'kick' | 'ban' | 'mute' }
 
-interface ChatState {
+export interface ChatState {
   status: 'idle' | 'connecting' | 'registered' | 'closed' | 'error' | 'sasl-failed';
   nick: string;
   buffers: Record<string, Buffer>;
@@ -127,106 +128,8 @@ export function createChatStore(ns = '') {
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
   const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
   const store = create<ChatState>((set, get) => {
-  // ---- helpers that mutate state immutably -------------------------------
-  // Buffers are keyed by the CASEMAPPING-folded name (canon); Buffer.name keeps
-  // the original display case so the UI shows "#Taverne" while "#taverne" maps
-  // to the same buffer.
-  function ensureBuffer(name: string): void {
-    const key = canon(name);
-    const s = get();
-    if (s.buffers[key]) return;
-    if (isChannelName(name) && closedChannels.has(key)) return; // don't resurrect a closed channel
-    const buf: Buffer = {
-      name, isChannel: isChannelName(name), messages: [], members: {},
-      topic: '', unread: 0, joined: false, readTs: 0, typing: {},
-    };
-    set({ buffers: { ...s.buffers, [key]: buf }, order: [...s.order, key] });
-  }
-
-  function patchBuffer(name: string, fn: (b: Buffer) => Buffer): void {
-    const key = canon(name);
-    const s = get();
-    const cur = s.buffers[key];
-    if (!cur) return;
-    set({ buffers: { ...s.buffers, [key]: fn(cur) } });
-  }
-
-  // Apply a member patch in every channel where the nick is present — used by the
-  // IRCv3 state-update messages (AWAY / ACCOUNT / CHGHOST / SETNAME) so we never
-  // have to re-poll WHO to keep away/account/host/realname fresh.
-  // Remove a buffer (by any-case name) and pick a sensible next active buffer.
-  function dropBuffer(name: string): void {
-    const key = canon(name);
-    const s = get();
-    if (!s.buffers[key]) return;
-    const buffers = { ...s.buffers }; delete buffers[key];
-    const order = s.order.filter((n) => n !== key);
-    let active = s.active;
-    if (active === key) active = order.find((n) => buffers[n]?.isChannel) || order[0] || '';
-    set({ buffers, order, active });
-  }
-
-  function patchMemberEverywhere(nick: string, patch: Partial<Member>): void {
-    const s = get();
-    for (const name of s.order) {
-      const b = s.buffers[name];
-      const m = b.members[nick];
-      if (m) patchBuffer(name, (bb) => ({ ...bb, members: { ...bb.members, [nick]: { ...m, ...patch } } }));
-    }
-  }
-
-  function addMessage(name: string, m: ChatMessage): void {
-    ensureBuffer(name);
-    const key = canon(name);
-    const s = get();
-    patchBuffer(name, (b) => {
-      // Reconcile: a server-stamped copy of OUR OWN message (real msgid, arriving
-      // via echo-message or a history replay) matching a still-optimistic local
-      // copy → upgrade that copy in place instead of adding a duplicate.
-      if (m.self && !m.id.startsWith('local-') && (m.kind === 'privmsg' || m.kind === 'action')) {
-        const i = b.messages.findIndex((x) => x.self && x.id.startsWith('local-') && x.kind === m.kind && x.text === m.text);
-        if (i !== -1) {
-          const msgs = b.messages.slice();
-          msgs[i] = { ...msgs[i], id: m.id, ts: m.ts, reactions: m.reactions ?? msgs[i].reactions };
-          return { ...b, messages: msgs };
-        }
-      }
-      // Idempotent: the exact same message id already present → ignore.
-      if (m.id && b.messages.some((x) => x.id === m.id)) return b;
-      return {
-        ...b,
-        messages: [...b.messages, m].slice(-500),
-        unread: key === s.active ? 0 : b.unread + ((name === SERVER || m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice') ? 1 : 0),
-      };
-    });
-  }
-
-  const tsOf = (msg: IrcMessage): number => {
-    const t = msg.tags['time'];
-    return t ? Date.parse(t) : Date.now();
-  };
-
-  // Content signature for dedup across history sources (+H replay vs CHATHISTORY).
-  // Second-precision ts tolerates ms differences between the two replays.
-  const msgSig = (m: ChatMessage): string =>
-    `${m.kind} ${m.from} ${Math.floor(m.ts / 1000)} ${m.text}`;
-
-  function sysLine(name: string, text: string, kind: MessageKind, from = '', mask = ''): void {
-    addMessage(name, { id: newId(), bufferName: name, from, text, ts: Date.now(), kind, self: false, mask: mask || undefined });
-  }
-
-  function serverLine(text: string, kind: MessageKind = 'system'): void {
-    if (!text) return;
-    ensureBuffer(SERVER);
-    if (!get().active) set({ active: SERVER });
-    addMessage(SERVER, { id: newId(), bufferName: SERVER, from: '', text, ts: Date.now(), kind, self: false });
-  }
-
-  function patchWhois(nick: string, fn: (w: WhoisInfo) => WhoisInfo): void {
-    const s = get();
-    const cur = s.whois[nick] ?? { nick, loading: true };
-    set({ whois: { ...s.whois, [nick]: fn(cur) } });
-  }
+  // Buffer/message helpers live in store/helpers.ts.
+  const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sysLine, serverLine, patchWhois } = makeHelpers(set, get, closedChannels);
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
