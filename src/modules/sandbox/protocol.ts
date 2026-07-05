@@ -11,7 +11,11 @@
 // on its own — the part that must never regress.
 
 /** Permissions an operator can grant a sandboxed plugin in config.json. */
-export const PERMISSIONS = ['irc', 'notify', 'storage'] as const;
+// 'irc-raw' is deliberately separate from 'irc': the structured verbs (say/msg/
+// join/part/list) are far less dangerous than raw wire access (irc.send can issue
+// ANY command as the user — MODE, KICK, QUIT, …), so an operator must grant it on
+// purpose rather than getting it bundled with 'irc'.
+export const PERMISSIONS = ['irc', 'irc-raw', 'notify', 'storage'] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
 /** RPC methods the guest may call, mapped to the permission each one needs.
@@ -19,7 +23,7 @@ export type Permission = (typeof PERMISSIONS)[number];
 export const RPC_CAPABILITY: Record<string, Permission | null> = {
   'irc.say': 'irc',
   'irc.msg': 'irc',
-  'irc.send': 'irc',
+  'irc.send': 'irc-raw',
   'irc.join': 'irc',
   'irc.part': 'irc',
   'irc.list': 'irc',
