@@ -110,7 +110,7 @@ input, textarea { font-family: inherit; }
 .cjoin__sendspin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; animation: c-spin .7s linear infinite; }
 @keyframes c-spin { to { transform: rotate(360deg); } }
 
-.cjoin__hint { margin: .55rem 0 0 .2rem; font-size: .76rem; color: var(--faint); }
+.cjoin__hint { margin: .55rem 0 0 .2rem; font-size: .76rem; color: var(--muted); }
 .cjoin__row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: .9rem; }
 .cjoin__chip { font-size: .84rem; color: var(--muted); }
 .cjoin__chip b { color: var(--ink); font-weight: 700; }
@@ -123,7 +123,7 @@ input, textarea { font-family: inherit; }
 .cjoin__pw::placeholder { color: var(--faint); }
 .cjoin__pw:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .cjoin__err { margin-top: .9rem; color: var(--danger); font-size: .9rem; font-weight: 600; }
-.cjoin__trust { margin-top: 1.8rem; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; font-size: .78rem; color: var(--faint); }
+.cjoin__trust { margin-top: 1.8rem; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; font-size: .78rem; color: var(--muted); }
 .cjoin__trust .sep { opacity: .5; }
 
 /* RIGHT — the live room you're peeking into */
