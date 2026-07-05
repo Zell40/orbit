@@ -8,16 +8,27 @@ export function hostmask(msg: IrcMessage): string {
   return msg.user && msg.host ? `${msg.user}@${msg.host}` : '';
 }
 
+// Linear-time glob matcher for `*` (any run) and `?` (any one char). Iterative
+// with a single backtrack point, so it can't blow up the way a `.*.*.*…` regex
+// does — a mask packed with wildcards is O(len(pat)·len(str)), not exponential.
+function globMatch(pat: string, str: string): boolean {
+  let p = 0, s = 0, star = -1, mark = 0;
+  while (s < str.length) {
+    if (p < pat.length && (pat[p] === '?' || pat[p] === str[s])) { p++; s++; }
+    else if (p < pat.length && pat[p] === '*') { star = p++; mark = s; }
+    else if (star !== -1) { p = star + 1; s = ++mark; }
+    else return false;
+  }
+  while (p < pat.length && pat[p] === '*') p++;
+  return p === pat.length;
+}
+
 // Match an IRC ban mask (nick!user@host with * and ? wildcards) against `who`,
 // so we can list which present members a +b/-b actually hits (like mIRC).
 export function maskMatches(mask: string, who: string): boolean {
   if (!mask || !who) return false;
   const m = mask.includes('!') || mask.includes('@') ? mask : `${mask}!*@*`;
-  const re = new RegExp(
-    '^' + m.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$',
-    'i',
-  );
-  return re.test(who);
+  return globMatch(m.toLowerCase(), who.toLowerCase());
 }
 
 // Strip IRC formatting control codes (bold/italic/underline/strike/mono/reverse/
