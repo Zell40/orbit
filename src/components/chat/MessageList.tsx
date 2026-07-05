@@ -5,7 +5,7 @@ import type { ChatMessage } from '../../core/irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, firstPreviewableUrl, LinkPreview } from '../../lib/format';
 import { stripFormatting } from '../../core/store/text';
 import { getConfig } from '../../core/config';
-import { useTheme } from '../../ui/theme';
+import { useTheme } from '../../themes';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry, type MessageInfo } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';

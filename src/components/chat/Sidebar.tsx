@@ -2,7 +2,7 @@ import { useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
 import { avatarBg } from '../../lib/format';
-import { useTheme } from '../../ui/theme';
+import { useTheme } from '../../themes';
 import { Avatar } from '../Avatar';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';

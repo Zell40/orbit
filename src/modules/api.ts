@@ -13,7 +13,7 @@ import { useChat } from '../core/store';
 import { activeStore } from '../core/networks';
 import i18n from '../core/i18n';
 import { pluginNotify } from '../services/notify';
-import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../ui/theme';
+import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../themes';
 import { getConfig, pluginDebug } from '../core/config';
 import { bus } from './bus';
 import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type FilterableMessage } from './registry';

@@ -8,7 +8,7 @@
 // features the app bundles (see ./builtins) and operator-listed sandboxed plugins.
 import { createElement } from 'react';
 import { activeStore } from '../../core/networks';
-import { useThemeStore } from '../../ui/theme';
+import { useThemeStore } from '../../themes';
 import { pluginDebug, type PluginEntry } from '../../core/config';
 import { bus } from '../bus';
 import { usePluginRegistry, type UiSlot } from '../registry';

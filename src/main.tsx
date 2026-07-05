@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { getTheme, hydrateTheme, useThemeStore } from './ui/theme.ts'
+import { getTheme, hydrateTheme, useThemeStore } from './themes'
 import i18n, { applyConfigDefaultLang } from './core/i18n'
 import './index.css'
 // Alternate themes, loaded after the base so their [data-theme] rules win.
