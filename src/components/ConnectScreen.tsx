@@ -135,15 +135,14 @@ export function ConnectScreen() {
   const [nick, setNick] = useState(param('nick', ''));
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  // `channel` may be a comma-separated list, e.g. "#rencontre,#taverne" — join
-  // them all (the first is the active/primary one). Defaults come from config.
-  const channels = param('channel', cfg.startup.channels.join(','))
-    .split(',')
-    .map((c) => c.trim())
-    .filter(Boolean)
-    .map((c) => (c.startsWith('#') || c.startsWith('&') ? c : `#${c}`));
-  if (!channels.length) channels.push(...cfg.startup.channels);
-  const chan = channels[0];
+  // The channel(s) to join — a comma-separated list, e.g. "#rencontre,#taverne"
+  // (the first is the active/primary one). Prefilled from the URL ?channel= param
+  // or config, but editable on the form so the user picks where they land.
+  const [chanField, setChanField] = useState(param('channel', cfg.startup.channels.join(',')));
+  const parseChannels = (raw: string) =>
+    raw.split(',').map((c) => c.trim()).filter(Boolean)
+      .map((c) => (c.startsWith('#') || c.startsWith('&') ? c : `#${c}`));
+  const chan = parseChannels(chanField)[0] || cfg.startup.channels[0];
 
   const connecting = status === 'connecting';
   const ready = nick.trim().length >= 2;
@@ -155,6 +154,8 @@ export function ConnectScreen() {
 
   function go() {
     if (!ready) return;
+    const channels = parseChannels(chanField);
+    if (!channels.length) channels.push(...cfg.startup.channels);
     connect({ url: cfg.server.url, nick: nick.trim(), password: password || undefined, channels });
   }
 
@@ -193,7 +194,10 @@ export function ConnectScreen() {
           </div>
 
           <div className="cjoin__row">
-            <span className="cjoin__chip">{t('connect.joinHint')}&nbsp;<b>{chan}</b></span>
+            <label className="cjoin__chan">{t('connect.joinHint')}
+              <input className="cjoin__chan-in" value={chanField} spellCheck={false} autoComplete="off"
+                aria-label={t('connect.joinHint')} onChange={(e) => setChanField(e.target.value)} />
+            </label>
             <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
               {showPw ? t('connect.hidePassword') : t('connect.registered')}
             </button>
