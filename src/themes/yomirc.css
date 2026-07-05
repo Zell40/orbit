@@ -68,7 +68,10 @@
   padding: .45rem .7rem; gap: .5rem;
   background: var(--mirc-face); box-shadow: none; border-bottom: 1px solid var(--border);
 }
-[data-theme^="yomirc"] .topbar__title { color: var(--accent-d); font-weight: 700; text-shadow: none; }
+[data-theme^="yomirc"] .topbar__title { color: var(--accent-d); font-weight: 800; text-shadow: none; }
+/* Channel header reads as bold "#name" text like the room switcher — no # avatar box. */
+[data-theme^="yomirc"] .topbar--channel .topbar__av { display: none; }
+[data-theme^="yomirc"] .topbar--channel .topbar__title::before { content: "#"; margin-right: -.5rem; } /* -gap so # attaches: "#accueil" not "# accueil" */
 [data-theme^="yomirc"] .topbar__topic { color: var(--ink-2); text-shadow: none; }
 [data-theme^="yomirc"] .topbar__modes { color: var(--muted); text-shadow: none; }
 [data-theme^="yomirc"] .topbar__topic--muted { color: rgba(255,255,255,.82); }

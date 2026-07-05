@@ -46,7 +46,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
     );
   }
   return (
-    <div className={`topbar ${isServer ? 'topbar--console' : ''}`}>
+    <div className={`topbar ${isServer ? 'topbar--console' : ''} ${isChannel ? 'topbar--channel' : ''}`}>
       <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button>
       {isServer
         ? <span className="term-lights"><i /><i /><i /></span>
