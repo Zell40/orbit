@@ -26,10 +26,28 @@
   var listeners = {};                 // event name -> [fn]
   var pending = new Map(), rpcId = 0;  // in-flight RPCs
 
+  // Is this background colour a dark one? Rough luminance on a #rgb/#rrggbb or
+  // rgb(...) string; anything unparseable counts as light.
+  function isDark(c) {
+    if (!c) return false;
+    var m = String(c).trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i), r, g, b;
+    if (m) {
+      var h = m[1]; if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16);
+    } else {
+      var n = String(c).match(/(\d+)\D+(\d+)\D+(\d+)/); if (!n) return false;
+      r = +n[1]; g = +n[2]; b = +n[3];
+    }
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) < 128;
+  }
+
   // Mirror the app's theme CSS vars onto our root so plugin UI can use var(--accent) etc.
+  // Also pin color-scheme to the APP theme (from its background), not the visitor's OS,
+  // so native controls don't render dark chrome under a light theme or vice-versa.
   function applyTheme(vars) {
     if (!vars) return;
     for (var k in vars) { try { document.documentElement.style.setProperty(k, vars[k]); } catch (e) {} }
+    if (vars['--bg']) document.documentElement.style.colorScheme = isDark(vars['--bg']) ? 'dark' : 'light';
   }
 
   function rpc(method) {

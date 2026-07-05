@@ -19,9 +19,9 @@ Orbit.plugin('dice', function (orbit, log) {
     b.style.cssText =
       'font:600 13px system-ui,sans-serif;cursor:pointer;line-height:1;' +
       'padding:.3rem .5rem;border-radius:9px;white-space:nowrap;' +
-      'border:1px solid var(--border,#8884);background:var(--panel,transparent);color:var(--ink,inherit)';
-    b.onmouseenter = function () { b.style.background = 'var(--green-soft,rgba(127,127,127,.14))'; };
-    b.onmouseleave = function () { b.style.background = 'var(--panel,transparent)'; };
+      'border:1px solid var(--border,#8884);background:var(--accent-soft,rgba(127,127,127,.14));color:var(--ink,inherit)';
+    b.onmouseenter = function () { b.style.background = 'var(--accent,#3a7)'; b.style.color = 'var(--bg,#fff)'; };
+    b.onmouseleave = function () { b.style.background = 'var(--accent-soft,rgba(127,127,127,.14))'; b.style.color = 'var(--ink,inherit)'; };
     return b;
   }
 
