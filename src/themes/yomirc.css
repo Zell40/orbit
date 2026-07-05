@@ -266,3 +266,15 @@
 [data-theme^="yomirc"] .topbar--console .topbar__title { color: var(--ink); font-family: var(--mono); }
 [data-theme^="yomirc"] .topbar--console .nav-toggle { background: var(--mirc-face); border-color: var(--mirc-shadow); color: var(--ink); }
 [data-theme^="yomirc"] .topbar--console .term-lights { display: none; }
+
+/* Status-window composer: the default skin makes it a dark terminal input, which
+   shows as a black band in the light mIRC theme. Re-skin it to the paper look so
+   it matches the (now paper) console pane above it. */
+[data-theme^="yomirc"] .composer--console { background: var(--bg); border-top-color: var(--mirc-shadow); }
+[data-theme^="yomirc"] .composer--console .composer__box { background: var(--mirc-paper); border-color: var(--mirc-shadow); }
+[data-theme^="yomirc"] .composer--console .composer__box:focus-within { border-color: var(--mirc-sel-ink); box-shadow: none; }
+[data-theme^="yomirc"] .composer--console .composer__box::before { color: var(--mirc-sel-ink); }
+[data-theme^="yomirc"] .composer--console .composer__rich { color: var(--ink); caret-color: var(--mirc-sel-ink); }
+[data-theme^="yomirc"] .composer--console .composer__rich.is-empty::before { color: var(--muted); }
+[data-theme^="yomirc"] .composer--console .composer__send { background: var(--mirc-face); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
+[data-theme^="yomirc"] .composer--console .composer__send:hover:not(:disabled) { background: var(--mirc-hover); }
