@@ -351,6 +351,9 @@ export class IrcClient {
   }
 
   private handleLine(line: string): void {
+    // Real IRC lines are ≤512 bytes on the wire (a few KiB with message-tags).
+    // Drop pathological oversized input rather than parse and format it.
+    if (line.length > 16384) return;
     const msg = parseLine(line);
     this.emit('raw-in', line);
 
