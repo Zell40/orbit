@@ -240,7 +240,8 @@ export function makeHandler(ctx: HandlerCtx) {
         const name = msg.params[1];
         if (isChannelName(name)) {
           const entry = { name, users: Number(msg.params[2]) || 0, topic: (msg.params[3] || '').replace(/^\[\+[^\]]*\]\s*/, '') };
-          set({ channels: [...get().channels, entry] });
+          const cur = get().channels;
+          if (cur.length < 50000) set({ channels: [...cur, entry] }); // covers the largest real networks; caps a hostile stream
         }
         return;
       }
@@ -270,7 +271,8 @@ export function makeHandler(ctx: HandlerCtx) {
         if (isChannelName(ch) && mask) {
           const key = canon(ch);
           const entry = { mask, by: (msg.params[3] || '').split('!')[0], ts: Number(msg.params[4]) * 1000 || 0 };
-          set({ banlists: { ...get().banlists, [key]: [...(get().banlists[key] || []), entry] } });
+          const cur = get().banlists[key] || [];
+          if (cur.length < 5000) set({ banlists: { ...get().banlists, [key]: [...cur, entry] } }); // bound a flood of 367s
         }
         return;
       }
