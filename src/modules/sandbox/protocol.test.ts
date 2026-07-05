@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isGranted, sanitizePermissions, RPC_CAPABILITY } from './protocol';
+import { isGranted, sanitizePermissions, RPC_CAPABILITY, PERMISSIONS } from './protocol';
 
 describe('sandbox capability gate', () => {
   it('allows a capability only when its permission is granted', () => {
@@ -24,7 +24,7 @@ describe('sandbox capability gate', () => {
 
   it('every declared RPC maps to a known permission or null', () => {
     for (const need of Object.values(RPC_CAPABILITY)) {
-      expect(need === null || ['irc', 'notify', 'storage'].includes(need)).toBe(true);
+      expect(need === null || (PERMISSIONS as readonly string[]).includes(need)).toBe(true);
     }
   });
 
