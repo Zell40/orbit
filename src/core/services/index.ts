@@ -8,11 +8,15 @@
 const SERVICE_RE = /^(nick|chan|host|oper|bot|memo|help|sasl|group|stat|game)serv$/i;
 export function isService(name: string): boolean { return SERVICE_RE.test(name); }
 
-// The server's authoritative "this came from a services pseudo-client" signal:
-// server's m_services tags every message sourced from a U-lined server with it,
-// delivered to any client holding the message-tags cap. Name-agnostic, so it also
-// covers services that don't follow the *Serv convention (Global, Q, custom bots).
-export const SERVICE_TAG = 'example.org/service';
+// True when the server flagged this message as coming from a services pseudo-client.
+// server's m_services adds `example.org/service` (on any message from a U-lined
+// server, delivered on the message-tags cap). We accept any server-sent vendor
+// `<host>/service` tag, so another ircd adopting the same idea works with no code
+// change; ircds without such a tag (UnrealIRCd, Ergo, Solanum, …) simply fall back
+// to the *Serv name rule below. Client (`+`-prefixed) tags are never a service marker.
+export function hasServiceTag(tags: Record<string, string>): boolean {
+  return Object.keys(tags).some((k) => !k.startsWith('+') && k.endsWith('/service'));
+}
 
 // Where a one-to-one PRIVMSG/NOTICE belongs. Neither a NOTICE nor anything to/from
 // a services pseudo-client is a real conversation, so it surfaces in whatever

@@ -7,7 +7,7 @@ import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } 
 import { usePluginRegistry } from '../../modules/registry';
 import { getConfig } from '../config';
 import { hostmask, maskMatches } from './text';
-import { isService, maskSecret, routeMessage, SERVICE_TAG } from '../services';
+import { isService, maskSecret, routeMessage, hasServiceTag } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, openBatches, historyCollect, multilineCollect, inQuietBatch, inHistoryBatch, inMultilineBatch } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -466,14 +466,13 @@ export function makeHandler(ctx: HandlerCtx) {
         const otherParty = (self ? chanTarget : msg.nick) || '';
         const isChan = isChannelName(chanTarget);
         const toReportSvc = !!reportSvc && !isChan && otherParty.toLowerCase() === reportSvc;
-        // The server tags anything from a U-lined services pseudo-client with
-        // SERVICE_TAG (delivered on the message-tags cap). It's authoritative and
-        // name-agnostic, so remember the nick and treat it as a service for our own
-        // later messages to it too (those won't carry the tag) — falling back to the
-        // *Serv name convention when the tag and memory are both absent.
-        if (!self && msg.tags[SERVICE_TAG] !== undefined && msg.nick) knownServices.add(canon(msg.nick));
+        // Some ircds (server) tag anything from a U-lined services pseudo-client,
+        // delivered on the message-tags cap — authoritative and name-agnostic. Remember
+        // the nick so our own later messages to it (which carry no tag) route the same,
+        // and fall back to the *Serv name convention when neither tag nor memory apply.
+        if (!self && hasServiceTag(msg.tags) && msg.nick) knownServices.add(canon(msg.nick));
         const svcParty = !isChan && !!otherParty &&
-          (msg.tags[SERVICE_TAG] !== undefined || isService(otherParty) || knownServices.has(canon(otherParty)));
+          (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
         // Neither a NOTICE nor any message exchanged with a services pseudo-client is a
         // real conversation, so it must never open or land in a PM query — it shows in
         // the window the user currently has open (falling back to the console).

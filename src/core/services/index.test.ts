@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isService, maskSecret, detectServiceLeak, routeMessage } from './index';
+import { isService, maskSecret, detectServiceLeak, routeMessage, hasServiceTag } from './index';
 
 describe('isService', () => {
   it('recognises the standard services (case-insensitive)', () => {
@@ -31,6 +31,20 @@ describe('maskSecret', () => {
   });
   it('leaves non-credential text untouched', () => {
     expect(maskSecret('hello world')).toBe('hello world');
+  });
+});
+
+describe('hasServiceTag', () => {
+  it('detects the server example.org/service tag', () => {
+    expect(hasServiceTag({ 'example.org/service': '', msgid: 'x' })).toBe(true);
+  });
+  it('detects any vendor <host>/service tag (ircd-agnostic)', () => {
+    expect(hasServiceTag({ 'example.net/service': '' })).toBe(true);
+  });
+  it('ignores client (+) tags and unrelated tags', () => {
+    expect(hasServiceTag({ '+draft/reply': 'x', 'server-time': 't' })).toBe(false);
+    expect(hasServiceTag({ '+weird/service': '' })).toBe(false);
+    expect(hasServiceTag({})).toBe(false);
   });
 });
 
