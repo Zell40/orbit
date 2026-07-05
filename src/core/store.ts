@@ -430,10 +430,14 @@ export function createChatStore(ns = '') {
       // the leading '/' and send the command as a plain (formatted) message.
       const cmdline = stripFormatting(text).trimStart();
 
-      // The Console buffer is a raw IRC command line (leading '/' optional).
-      if (active === SERVER) {
-        const raw = cmdline.startsWith('/') ? cmdline.slice(1) : cmdline;
-        if (!raw.trim()) return;
+      // The Console: a bare line (no leading slash) is a raw IRC command line — the
+      // classic mIRC status-window convenience. Slash-commands fall through to the
+      // normal dispatch below so /whois, /msg, /join … actually behave (raw-sending
+      // them would swallow /whois's reply and mangle /msg into an invalid command);
+      // channel commands run from here have no active channel so they go raw too.
+      if (active === SERVER && !cmdline.startsWith('/')) {
+        const raw = cmdline.trim();
+        if (!raw) return;
         sysLine(SERVER, `» ${raw}`, 'system');
         client.send(raw);
         return;
@@ -442,13 +446,24 @@ export function createChatStore(ns = '') {
       if (cmdline.startsWith('/')) {
         const [cmd, ...rest] = cmdline.slice(1).split(' ');
         const arg = rest.join(' ');
+        // From the Console there's no active channel to act on: a channel command
+        // (the user supplies #chan in the args, e.g. /kick #c nick) is sent raw and
+        // its reply returns here. Returns true when it handled the line.
+        const rawFromConsole = (): boolean => {
+          if (active !== SERVER) return false;
+          const raw = cmdline.slice(1);
+          sysLine(SERVER, `» ${raw}`, 'system');
+          client.send(raw);
+          return true;
+        };
         switch (cmd.toLowerCase()) {
-          case 'me': client.action(active, arg); break;
+          case 'me': if (active !== SERVER) client.action(active, arg); break;
           case 'join': client.join(arg); get().setActive(arg.split(' ')[0]); break;
-          case 'part': client.part(active); break;
+          case 'part': if (!rawFromConsole()) client.part(active); break;
           case 'nick': client.setNick(arg); break;
           case 'whois': {
-            const who = arg.trim().split(' ')[0] || active;
+            const who = arg.trim().split(' ')[0] || (active === SERVER ? get().nick : active);
+            if (!who) break;
             // yomirc mimics classic mIRC: print WHOIS to the active window as text.
             if (getTheme().startsWith('yomirc')) get().whoisText(who); else get().openUser(who);
             break;
@@ -484,8 +499,8 @@ export function createChatStore(ns = '') {
             }
             break;
           }
-          case 'topic': if (isChannelName(active)) client.setTopic(active, arg); break;
-          case 'kick': { const [t, ...r] = rest; if (isChannelName(active) && t) client.kick(active, t, r.join(' ')); break; }
+          case 'topic': if (!rawFromConsole() && isChannelName(active)) client.setTopic(active, arg); break;
+          case 'kick': { if (rawFromConsole()) break; const [t, ...r] = rest; if (isChannelName(active) && t) client.kick(active, t, r.join(' ')); break; }
           case 'op': if (isChannelName(active) && arg) client.setUserMode(active, 'o', true, arg.trim()); break;
           case 'deop': if (isChannelName(active) && arg) client.setUserMode(active, 'o', false, arg.trim()); break;
           case 'voice': if (isChannelName(active) && arg) client.setUserMode(active, 'v', true, arg.trim()); break;
@@ -495,7 +510,7 @@ export function createChatStore(ns = '') {
           default: {
             const pc = usePluginRegistry.getState().commands.find((c) => c.name === cmd.toLowerCase());
             if (pc) { try { pc.run(rest, arg); } catch (e) { console.error(`[plugins] /${cmd} threw`, e); } }
-            else client.send(cmdline.slice(1)); // raw passthrough (formatting stripped)
+            else { if (active === SERVER) sysLine(SERVER, `» ${cmdline.slice(1)}`, 'system'); client.send(cmdline.slice(1)); } // raw passthrough (formatting stripped)
           }
         }
         return;
