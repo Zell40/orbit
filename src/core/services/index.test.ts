@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isService, maskSecret, detectServiceLeak } from './index';
+import { isService, maskSecret, detectServiceLeak, routeMessage } from './index';
 
 describe('isService', () => {
   it('recognises the standard services (case-insensitive)', () => {
@@ -26,8 +26,29 @@ describe('maskSecret', () => {
     expect(maskSecret('REGISTER s3cret me@x.fr')).toBe('REGISTER •••••••• me@x.fr');
     expect(maskSecret('SET PASSWORD s3cret')).toBe('SET PASSWORD ••••••••');
   });
+  it('masks an oper SASET <nick> PASSWORD <pw> (keeps the nick)', () => {
+    expect(maskSecret('SASET Mik PASSWORD s3cret')).toBe('SASET Mik PASSWORD ••••••••');
+  });
   it('leaves non-credential text untouched', () => {
     expect(maskSecret('hello world')).toBe('hello world');
+  });
+});
+
+describe('routeMessage', () => {
+  const base = { isChannel: false, reportService: false, serviceParty: false, isNotice: false };
+  it('sends channel targets to the channel', () => {
+    expect(routeMessage({ ...base, isChannel: true })).toBe('channel');
+  });
+  it('sends the report service to the status window', () => {
+    expect(routeMessage({ ...base, reportService: true })).toBe('report');
+  });
+  it('keeps notices and services traffic in the active window', () => {
+    expect(routeMessage({ ...base, isNotice: true })).toBe('active');
+    expect(routeMessage({ ...base, serviceParty: true })).toBe('active');
+    expect(routeMessage({ ...base, serviceParty: true, isNotice: false })).toBe('active');
+  });
+  it('opens a query only for a genuine user PRIVMSG', () => {
+    expect(routeMessage(base)).toBe('query');
   });
 });
 

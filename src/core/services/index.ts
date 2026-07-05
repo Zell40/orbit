@@ -8,6 +8,29 @@
 const SERVICE_RE = /^(nick|chan|host|oper|bot|memo|help|sasl|group|stat|game)serv$/i;
 export function isService(name: string): boolean { return SERVICE_RE.test(name); }
 
+// The server's authoritative "this came from a services pseudo-client" signal:
+// server's m_services tags every message sourced from a U-lined server with it,
+// delivered to any client holding the message-tags cap. Name-agnostic, so it also
+// covers services that don't follow the *Serv convention (Global, Q, custom bots).
+export const SERVICE_TAG = 'example.org/service';
+
+// Where a one-to-one PRIVMSG/NOTICE belongs. Neither a NOTICE nor anything to/from
+// a services pseudo-client is a real conversation, so it surfaces in whatever
+// window is already open ('active') rather than spawning a private query. A
+// channel target goes to the channel; the report service to the status window.
+export type ServiceRoute = 'channel' | 'report' | 'active' | 'query';
+export function routeMessage(o: {
+  isChannel: boolean;
+  reportService: boolean;
+  serviceParty: boolean;
+  isNotice: boolean;
+}): ServiceRoute {
+  if (o.isChannel) return 'channel';
+  if (o.reportService) return 'report';
+  if (o.isNotice || o.serviceParty) return 'active';
+  return 'query';
+}
+
 const SECRET_MASK = '••••••••';
 // Replace passwords in services auth commands so they never appear in clear
 // text in the message log (IDENTIFY [account] pass, GHOST nick pass, REGISTER
@@ -17,7 +40,8 @@ export function maskSecret(text: string): string {
     .replace(/\b(IDENTIFY|LOGIN)\s+(\S+)(?:\s+(\S+))?/i, (_m, c, a, b) => (b ? `${c} ${a} ${SECRET_MASK}` : `${c} ${SECRET_MASK}`))
     .replace(/\b(GHOST|RELEASE|RECOVER|REGAIN)\s+(\S+)\s+(\S+)/i, (_m, c, n) => `${c} ${n} ${SECRET_MASK}`)
     .replace(/\b(REGISTER)\s+(\S+)/i, (_m, c) => `${c} ${SECRET_MASK}`)
-    .replace(/\b(SET\s+PASSWORD)\s+(\S+)/i, (_m, c) => `${c} ${SECRET_MASK}`);
+    .replace(/\b(SET\s+PASSWORD)\s+(\S+)/i, (_m, c) => `${c} ${SECRET_MASK}`)
+    .replace(/\b(SASET\s+\S+\s+PASSWORD)\s+(\S+)/i, (_m, c) => `${c} ${SECRET_MASK}`);
 }
 
 // Detect a services command typed WITHOUT the leading slash — the classic

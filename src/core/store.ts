@@ -124,6 +124,7 @@ export interface ChatState {
 export function createChatStore(ns = '') {
   let lastTypingSent = 0;
   const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
+  const knownServices = new Set<string>(); // canon nicks the server tagged as services (example.org/service)
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
   const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
   const store = create<ChatState>((set, get) => {
@@ -131,7 +132,7 @@ export function createChatStore(ns = '') {
   const helpers = makeHelpers(set, get, closedChannels);
   const { ensureBuffer, patchBuffer, dropBuffer, addMessage, sysLine } = helpers;
 
-  const handle = makeHandler({ set, get, helpers, closedChannels, lastCantSend, lastAwayNotice, filehost });
+  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost });
 
   return {
     status: 'idle',

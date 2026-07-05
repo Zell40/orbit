@@ -7,7 +7,7 @@ import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } 
 import { usePluginRegistry } from '../../modules/registry';
 import { getConfig } from '../config';
 import { hostmask, maskMatches } from './text';
-import { isService, maskSecret } from '../services';
+import { isService, maskSecret, routeMessage, SERVICE_TAG } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, openBatches, historyCollect, multilineCollect, inQuietBatch, inHistoryBatch, inMultilineBatch } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -18,6 +18,7 @@ interface HandlerCtx {
   get: StoreApi<ChatState>['getState'];
   helpers: StoreHelpers;
   closedChannels: Set<string>;
+  knownServices: Set<string>;
   lastCantSend: Record<string, number>;
   lastAwayNotice: Record<string, number>;
   filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
@@ -28,7 +29,7 @@ const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '366
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
-  const { set, get, helpers, closedChannels, lastCantSend, lastAwayNotice, filehost } = ctx;
+  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost } = ctx;
   const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sysLine, serverLine, patchWhois } = helpers;
 
   // yomirc /whois: print the collected WHOIS to its origin window as classic mIRC
@@ -463,23 +464,30 @@ export function makeHandler(ctx: HandlerCtx) {
         // report never spawns a ReportServ PM buffer.
         const reportSvc = (getConfig().report.service || '').toLowerCase();
         const otherParty = (self ? chanTarget : msg.nick) || '';
-        const toReportSvc = !!reportSvc && !isChannelName(chanTarget) && otherParty.toLowerCase() === reportSvc;
-        // Traffic to/from a services pseudo-client (NickServ, ChanServ, …).
-        const svcParty = !isChannelName(chanTarget) && isService(otherParty);
+        const isChan = isChannelName(chanTarget);
+        const toReportSvc = !!reportSvc && !isChan && otherParty.toLowerCase() === reportSvc;
+        // The server tags anything from a U-lined services pseudo-client with
+        // SERVICE_TAG (delivered on the message-tags cap). It's authoritative and
+        // name-agnostic, so remember the nick and treat it as a service for our own
+        // later messages to it too (those won't carry the tag) — falling back to the
+        // *Serv name convention when the tag and memory are both absent.
+        if (!self && msg.tags[SERVICE_TAG] !== undefined && msg.nick) knownServices.add(canon(msg.nick));
+        const svcParty = !isChan && !!otherParty &&
+          (msg.tags[SERVICE_TAG] !== undefined || isService(otherParty) || knownServices.has(canon(otherParty)));
         // Neither a NOTICE nor any message exchanged with a services pseudo-client is a
-        // real conversation, so it must never open or land in a PM query. Both show in
-        // the window the user currently has open (falling back to the console) — no
-        // NickServ/ChanServ/… private window is ever spawned.
-        const toActive = !isChannelName(chanTarget) && !toReportSvc && (kind === 'notice' || svcParty);
-        const bufferName = isChannelName(chanTarget)
+        // real conversation, so it must never open or land in a PM query — it shows in
+        // the window the user currently has open (falling back to the console).
+        const route = routeMessage({ isChannel: isChan, reportService: toReportSvc, serviceParty: svcParty, isNotice: kind === 'notice' });
+        const toActive = route === 'active';
+        const bufferName = route === 'channel'
           ? chanTarget
-          : toReportSvc
+          : route === 'report'
             ? SERVER
-            : toActive
+            : route === 'active'
               ? (get().active || SERVER)
               : (self ? chanTarget : msg.nick);
         // +draft/channel-context: this DM relates to a channel. Only meaningful on PMs.
-        const chanCtx = !toActive && !isChannelName(chanTarget) ? msg.tags['+draft/channel-context'] : undefined;
+        const chanCtx = route !== 'active' && !isChan ? msg.tags['+draft/channel-context'] : undefined;
         // One we send shows the recipient; one we receive shows the sender.
         const noticeText = toActive && self ? `→ ${chanTarget} : ${text}` : statusTag + text;
         const cm: ChatMessage = {
