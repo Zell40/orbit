@@ -942,7 +942,8 @@ export function makeHandler(ctx: HandlerCtx) {
         // reactions (draft/react on a draft/reply target)
         const reply = msg.tags['+draft/reply'];
         const react = msg.tags['+draft/react'];
-        if (reply && react) {
+        // A react tag is a short emoji; drop absurdly long values a server might send.
+        if (reply && react && react.length <= 32) {
           patchBuffer(target, (b) => ({
             ...b,
             messages: b.messages.map((m) => {
@@ -950,6 +951,7 @@ export function makeHandler(ctx: HandlerCtx) {
               const reactions = [...(m.reactions ?? [])];
               const i = reactions.findIndex((r) => r.emoji === react);
               if (i === -1) {
+                if (reactions.length >= 50) return m; // cap distinct reactions per message
                 reactions.push({ emoji: react, count: 1, mine: fromMe });
               } else if (fromMe && reactions[i].mine) {
                 // my second identical react = toggle off
