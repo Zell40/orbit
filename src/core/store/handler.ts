@@ -121,7 +121,7 @@ export function makeHandler(ctx: HandlerCtx) {
         const add = (msg.params[2] ?? '').split(' ').filter(Boolean);
         patchWhois(msg.params[1], (w) => {
           const seen = new Set((w.channels ? w.channels.split(' ') : []).filter(Boolean));
-          for (const c of add) seen.add(c);
+          for (const c of add) { if (seen.size >= 300) break; seen.add(c); } // bound server-streamed 319s
           return { ...w, channels: [...seen].join(' ') };
         });
         return;
@@ -159,7 +159,7 @@ export function makeHandler(ctx: HandlerCtx) {
         patchWhois(msg.params[1], (w) => ({ ...w, regnick: true }));
         return;
       case '320': // RPL_WHOISSPECIAL: free-form extra whois line
-        patchWhois(msg.params[1], (w) => ({ ...w, special: [...(w.special ?? []), msg.params[2]] }));
+        patchWhois(msg.params[1], (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), msg.params[2]] }));
         return;
       case '379': // RPL_WHOISMODES: <me> <nick> :is using modes <modes>
         patchWhois(msg.params[1], (w) => ({ ...w, modes: (msg.params[2] || '').replace(/^.*modes\s*/i, '') }));
