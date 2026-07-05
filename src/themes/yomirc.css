@@ -86,7 +86,10 @@
 [data-theme^="yomirc"] .rooms { background: var(--mirc-paper); margin: 2px; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
 [data-theme^="yomirc"] .room { border-radius: 0; padding: .25rem .4rem; gap: .4rem; }
 [data-theme^="yomirc"] .room__av { border-radius: 0; width: 18px; height: 18px; background: transparent; color: var(--accent); }
-[data-theme^="yomirc"] .room__hash { font-size: 1rem; }
+/* Channels read as plain "#name" text in the switcher (like the topbar), not a
+   separate # avatar icon. Queries/status keep their avatar glyph. */
+[data-theme^="yomirc"] .room:has(.room__hash) .room__av { display: none; }
+[data-theme^="yomirc"] .room:has(.room__hash) .room__name::before { content: "#"; }
 [data-theme^="yomirc"] .room__sub { display: none; }
 [data-theme^="yomirc"] .room__name { font-weight: 400; color: var(--ink); }
 [data-theme^="yomirc"] .room:hover { background: var(--mirc-hover); }
