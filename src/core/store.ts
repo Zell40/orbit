@@ -7,14 +7,12 @@ import type { Buffer, ChatMessage, ConnectOptions, IrcMessage, Member, MessageKi
 import { NUMERICS, ERROR_NUMERICS } from './irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from './irc/modes';
 import { usePluginRegistry } from '../modules/registry';
-import { casefold } from './irc/casemap';
 import { getConfig } from './config';
 import { hostmask, maskMatches, isService, maskSecret, detectServiceLeak, stripFormatting, tidyOutgoing } from './store/text';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
+import { SERVER, newId, isupport, canon, isChannelName, openBatches, historyCollect, multilineCollect, inQuietBatch, inHistoryBatch, inMultilineBatch } from './store/context';
+export { SERVER } from './store/context';
 
-let localId = 0; // globally-unique local id source (shared across networks is fine)
-
-const newId = () => `local-${Date.now()}-${localId++}`;
 
 
 // Pending /FILEHOST token request (resolved when the server NOTICEs the upload URL).
@@ -23,44 +21,8 @@ let filehostReject: ((err: Error) => void) | null = null;
 let filehostTimer: ReturnType<typeof setTimeout> | null = null;
 
 
-export const SERVER = '$server'; // pseudo-buffer key for the server/network console
 const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '366', '900', '901', '321', '322', '323', '354']);
 
-// Live from ISUPPORT (synced from the client each message). CHANTYPES decides
-// what's a channel; CASEMAPPING decides how we fold names to a canonical key.
-let chanTypes = '#&';
-let casemapping = 'rfc1459';
-let statusPrefixes = ''; // ISUPPORT STATUSMSG, e.g. "@%+" — targets like @#chan
-// Open IRCv3 BATCHes (ref → info). "quiet" batches (netsplit/netjoin) suppress the
-// per-user join/quit noise; "chathistory" batches collect their PRIVMSGs to be
-// PREPENDED as older history rather than appended live.
-const openBatches: Record<string, { type: string; quiet: boolean; target?: string }> = {};
-const historyCollect: Record<string, ChatMessage[]> = {}; // batchRef → collected old messages
-// draft/multiline: gather the lines of one batch to render as a single message.
-const multilineCollect: Record<string, { base: ChatMessage; lines: { text: string; concat: boolean }[] }> = {};
-function inQuietBatch(msg: IrcMessage): boolean {
-  const ref = msg.tags['batch'];
-  return !!ref && !!openBatches[ref]?.quiet;
-}
-function inHistoryBatch(msg: IrcMessage): string | undefined {
-  const ref = msg.tags['batch'];
-  return ref && openBatches[ref]?.type === 'chathistory' ? ref : undefined;
-}
-function inMultilineBatch(msg: IrcMessage): string | undefined {
-  const ref = msg.tags['batch'];
-  return ref && openBatches[ref]?.type === 'draft/multiline' ? ref : undefined;
-}
-
-function isChannelName(name: string): boolean {
-  return !!name && chanTypes.includes(name[0]);
-}
-
-// Canonical key for a buffer/member name (channel or nick), per CASEMAPPING, so
-// "#Taverne" and "#taverne" never become two buffers. Display names keep their
-// original case (Buffer.name / Member.nick); only the map KEY is folded.
-function canon(name: string): string {
-  return casefold(name, casemapping);
-}
 
 export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'report' | 'switcher' | 'shortcuts';
 export interface ChannelInfo { name: string; users: number; topic: string }
@@ -271,7 +233,7 @@ export function createChatStore(ns = '') {
     const me = get().nick;
     // Keep CHANTYPES/CASEMAPPING/STATUSMSG current from the negotiated ISUPPORT.
     const cl = get().client;
-    if (cl) { chanTypes = cl.chantypes; casemapping = cl.casemapping; statusPrefixes = cl.isupport['STATUSMSG'] || ''; }
+    if (cl) { isupport.chanTypes = cl.chantypes; isupport.casemapping = cl.casemapping; isupport.statusPrefixes = cl.isupport['STATUSMSG'] || ''; }
 
     // draft/event-playback: a JOIN/PART/QUIT/KICK/NICK/TOPIC inside a chathistory
     // batch is HISTORICAL — collect it as a system line (prepended with the rest of
@@ -649,7 +611,7 @@ export function createChatStore(ns = '') {
         // that status. Strip the prefix, route to the channel, and tag the line.
         let chanTarget = target;
         let statusTag = '';
-        if (target && statusPrefixes.includes(target[0]) && isChannelName(target.slice(1))) {
+        if (target && isupport.statusPrefixes.includes(target[0]) && isChannelName(target.slice(1))) {
           const lvl = target[0];
           chanTarget = target.slice(1);
           statusTag = lvl === '+' ? '🔉 voix+ · ' : lvl === '%' ? '🛡 halfops+ · ' : '🔒 ops · ';
