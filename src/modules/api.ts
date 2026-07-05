@@ -129,7 +129,10 @@ function makeApi(name: string): OrbitPluginApi {
       nick: () => activeStore().getState().nick,
       account: () => activeStore().getState().account,
       buffers: () => Object.keys(activeStore().getState().buffers),
-      get: () => activeStore().getState(),
+      // Redact the live IrcClient: it carries opts.password (plaintext SASL /
+      // server password). Plugins read state through this projection and act
+      // through the curated irc.* methods; they never get a credential handle.
+      get: () => ({ ...activeStore().getState(), client: null }),
     },
     irc: {
       send: (line) => activeStore().getState().client?.send(line),
