@@ -663,7 +663,9 @@ html[data-actions="off"] .msg-actions { display: none; }
 
 /* ============ AVATAR ============ */
 .avatar { border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; flex: none; font-family: var(--font); box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
-.avatar--img { overflow: hidden; background: var(--bg-soft-2); }
+/* No overflow:hidden — the <img> is already border-radius:50%, and clipping here
+   swallowed the presence-dot ::after (which overhangs the corner) on image avatars. */
+.avatar--img { background: var(--bg-soft-2); }
 .avatar--img img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 
 /* ============ MISC ============ */
