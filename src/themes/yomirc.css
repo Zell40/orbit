@@ -93,8 +93,13 @@
    separate # avatar icon. Queries/status keep their avatar glyph. */
 [data-theme^="yomirc"] .room:has(.room__hash) .room__av { display: none; }
 [data-theme^="yomirc"] .room:has(.room__hash) .room__name::before { content: "#"; }
-[data-theme^="yomirc"] .room__sub { display: none; }
+[data-theme^="yomirc"] .room__sub { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+[data-theme^="yomirc"] .room__sub--generic { display: none; } /* channels with no topic stay a tight single line */
 [data-theme^="yomirc"] .room__name { font-weight: 400; color: var(--ink); }
+/* Explore invitation — a flat mIRC push-button filling the empty switchbar space. */
+[data-theme^="yomirc"] .room-discover { margin: auto 2px 2px; border-radius: 0; background: var(--mirc-face); color: var(--ink); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); font-family: var(--mono); font-size: .8rem; }
+[data-theme^="yomirc"] .room-discover:hover { background: var(--mirc-silver); color: var(--accent-d); }
+[data-theme^="yomirc"] .room-discover:active { box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
 [data-theme^="yomirc"] .room:hover { background: var(--mirc-hover); }
 [data-theme^="yomirc"] .room.is-active { background: var(--mirc-navy); }
 [data-theme^="yomirc"] .room.is-active .room__name { color: var(--mirc-sel-ink); font-weight: 400; }

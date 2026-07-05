@@ -97,6 +97,10 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
     const isServer = name === SERVER;
     const label = isServer ? 'Status' : b.name.replace(/^#/, '');
     const glyph = isServer ? (mirc ? '●' : '✦') : label[0]?.toUpperCase() ?? '?';
+    // A channel's topic is the row's subtitle; mark topic-less channels so the
+    // minimal (yomirc) skin can hide the repetitive "Public channel" fallback.
+    const channelTopic = b.isChannel ? stripFormatting(b.topic || '').trim() : '';
+    const genericSub = !isServer && !channelTopic; // no real subtitle (topicless channel or a DM)
     return (
       <button key={name} className={`room ${name === active ? 'is-active' : ''} ${isServer ? 'room--status' : ''}`} onClick={() => { setActive(name); onNavigate(); }}>
         <span className="room__av" data-server={isServer || undefined}
@@ -105,9 +109,9 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         </span>
         <span className="room__body">
           <span className="room__name">{label}</span>
-          <span className="room__sub">{
+          <span className={`room__sub${genericSub ? ' room__sub--generic' : ''}`}>{
             isServer ? (serverName || t('sidebar.system'))
-              : b.isChannel ? (stripFormatting(b.topic || '').trim() || t('sidebar.publicRoom'))
+              : b.isChannel ? (channelTopic || t('sidebar.publicRoom'))
                 : t('sidebar.privateMessage')
           }</span>
         </span>
@@ -157,7 +161,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {!mirc && hasServer && item(SERVER)}
         {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
         {/* Fill the space under a short list with a way to find more rooms. */}
-        {!mirc && showChannels && !q && (
+        {showChannels && !q && (
           <button className="room-discover" onClick={() => { refreshChannels(); setModal('explore'); }}>
             <span>{t('nav.explore')}</span>
             <span className="room-discover__arrow" aria-hidden>→</span>
