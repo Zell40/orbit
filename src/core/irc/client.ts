@@ -409,6 +409,14 @@ export class IrcClient {
 
   private handleCap(msg: IrcMessage): void {
     const sub = msg.params[1];
+    // A CAP LS / CAP LIST arriving AFTER registration is a manual query (the user
+    // typed `cap ls` in the status window), not negotiation — forward it so the
+    // handler can print it, and DON'T re-run REQ/END, which would needlessly churn
+    // the negotiated cap set. cap-notify NEW/DEL and ACK/NAK still flow below.
+    if (this.registered && (sub === 'LS' || sub === 'LIST')) {
+      this.emit('message', msg);
+      return;
+    }
     if (sub === 'LS' || sub === 'NEW') {
       // CAP * LS * :cap1 cap2   (the '*' before ':' means more lines follow)
       const more = msg.params[2] === '*';

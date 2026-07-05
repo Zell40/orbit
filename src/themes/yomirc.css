@@ -252,3 +252,17 @@
 [data-theme^="yomirc"] *::-webkit-scrollbar-thumb { background: var(--mirc-silver); border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-dark); }
 [data-theme^="yomirc"] ::selection { background: var(--mirc-navy); color: var(--mirc-sel-ink); }
 [data-theme^="yomirc"] .member { contain-intrinsic-size: auto 20px; }
+
+/* Status/console window: the default skin dresses it as a dark terminal pane,
+   which clashes with the mIRC paper look. Re-skin it to match the rest of yomirc
+   so the Status window is the same classic mIRC surface as the channels. */
+[data-theme^="yomirc"] .messages--console {
+  background: var(--mirc-paper);
+  font-family: var(--mono);
+}
+[data-theme^="yomirc"] .messages--console .sysline { color: var(--ink); }
+[data-theme^="yomirc"] .messages--console .sysline .who { color: var(--mirc-sel-ink); }
+[data-theme^="yomirc"] .topbar--console { background: var(--mirc-face); border-bottom-color: var(--mirc-shadow); }
+[data-theme^="yomirc"] .topbar--console .topbar__title { color: var(--ink); font-family: var(--mono); }
+[data-theme^="yomirc"] .topbar--console .nav-toggle { background: var(--mirc-face); border-color: var(--mirc-shadow); color: var(--ink); }
+[data-theme^="yomirc"] .topbar--console .term-lights { display: none; }
