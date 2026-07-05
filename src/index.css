@@ -654,6 +654,8 @@ html[data-actions="off"] .msg-actions { display: none; }
 
 /* bot tag */
 .member__bot { margin-left: auto; flex: none; font-size: .58rem; font-weight: 800; letter-spacing: .06em; padding: .1rem .35rem; border-radius: 5px; background: #e8ecff; color: #4458c8; }
+/* Bot icon after a bot's nick in the message list. */
+.nick-bot { font-size: .82em; margin-left: .15em; vertical-align: baseline; }
 
 
 /* visible IRC operators (no +H) — IRCop nick colour (IRC colour 10), consistent everywhere */

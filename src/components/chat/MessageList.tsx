@@ -46,6 +46,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   const togglePin = useActiveChat((s) => s.togglePin);
   const pinned = useActiveChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
   const isOper = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
+  const isBot = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.bot);
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   // Avatars resolve by ACCOUNT. Live messages carry the account tag, but
   // chathistory-replayed ones (e.g. on a fresh mobile join) often don't — so
@@ -76,7 +77,9 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
       <div data-mid={m.id} className={`mircline ${m.kind === 'action' ? 'mircline--action' : ''} ${m.redacted ? 'is-redacted' : ''}`}>
         <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
         <button className="mircline__nick" style={nickStyle} onClick={() => openUser(m.from)}>
-          {m.kind === 'action' ? `* ${m.from}` : `<${m.from}>`}
+          {m.kind === 'action' ? '* ' : '<'}{m.from}
+          {isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
+          {m.kind !== 'action' && '>'}
         </button>{' '}
         <span className="mircline__txt">
           {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
@@ -111,7 +114,7 @@ function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
       <div className="group__body">
         {!cont && (
           <div className="group__head">
-            <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>{m.from}</button>
+            <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>{m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}</button>
             <span className="group__time">{fmtTime(m.ts)}</span>
           </div>
         )}

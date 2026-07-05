@@ -110,7 +110,8 @@
 [data-theme^="yomirc"] .appbar__act,
 [data-theme^="yomirc"] .composer__emoji,
 [data-theme^="yomirc"] .composer__fmtbtn,
-[data-theme^="yomirc"] .composer__add { filter: grayscale(1); opacity: .8; }
+[data-theme^="yomirc"] .composer__add,
+[data-theme^="yomirc"] .nick-bot { filter: grayscale(1); opacity: .8; }
 [data-theme^="yomirc"] .topbar__search:hover,
 [data-theme^="yomirc"] .tab:hover .tab__ic,
 [data-theme^="yomirc"] .appbar__act:hover,
