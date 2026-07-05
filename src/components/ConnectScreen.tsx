@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react';
+import { escapeHtml } from '../lib/escape';
 import { useTranslation } from 'react-i18next';
 
 import { getConfig } from '../core/config';
@@ -102,7 +103,7 @@ function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) 
   const cfg = getConfig();
   const site = cfg.branding.url.replace(/^https?:\/\//, '');
   const [open, setOpen] = useState(focus);
-  const vars = { name: cfg.branding.name, site, url: cfg.branding.url, project: cfg.branding.projectUrl };
+  const vars = { name: escapeHtml(cfg.branding.name), site: escapeHtml(site), url: escapeHtml(cfg.branding.url), project: escapeHtml(cfg.branding.projectUrl) };
   return (
     <div className="cfaq-scrim" onClick={onClose}>
       <div className="cfaq" role="dialog" aria-label={t('faq.aria')} onClick={(e) => e.stopPropagation()}>

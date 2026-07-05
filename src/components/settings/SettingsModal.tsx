@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { escapeHtml } from '../../lib/escape';
 import { useTranslation } from 'react-i18next';
 import { LANGS, setLang, getLang } from '../../core/i18n';
 
@@ -751,7 +752,7 @@ function RegisterForm() {
             </div>
           ) : (
             <div className="sfield"><div className="sfield__intro">
-              {reg.info ? reg.info : <span dangerouslySetInnerHTML={{ __html: t('settings.account.codeSentHtml', { email: email || t('settings.account.yourEmail'), account: reg.account }) }} />}
+              {reg.info ? reg.info : <span dangerouslySetInnerHTML={{ __html: t('settings.account.codeSentHtml', { email: escapeHtml(email || t('settings.account.yourEmail')), account: escapeHtml(reg.account) }) }} />}
             </div></div>
           )}
           <div className="sfield">
