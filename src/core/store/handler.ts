@@ -681,6 +681,7 @@ export function makeHandler(ctx: HandlerCtx) {
         const ref = msg.params[0] || '';
         const id = ref.slice(1);
         if (ref[0] === '+') {
+          if (Object.keys(openBatches).length >= 64) break; // bound server-opened batches
           const type = msg.params[1] || '';
           // chathistory replays old messages → collect+prepend, don't append live.
           const quiet = type === 'netsplit' || type === 'netjoin';

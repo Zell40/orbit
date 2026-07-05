@@ -32,6 +32,14 @@ export const openBatches: Record<string, { type: string; quiet: boolean; target?
 export const historyCollect: Record<string, ChatMessage[]> = {}; // batchRef → collected old messages
 // draft/multiline: gather the lines of one batch to render as a single message.
 export const multilineCollect: Record<string, { base: ChatMessage; lines: { text: string; concat: boolean }[] }> = {};
+// Discard any half-open batches. A batch the server opens but never closes (a
+// bug, or a mid-batch netsplit) would otherwise linger and keep diverting live
+// messages into the collectors instead of the buffer. Called on (re)connect.
+export function resetBatches(): void {
+  for (const k in openBatches) delete openBatches[k];
+  for (const k in historyCollect) delete historyCollect[k];
+  for (const k in multilineCollect) delete multilineCollect[k];
+}
 export function inQuietBatch(msg: IrcMessage): boolean {
   const ref = msg.tags['batch'];
   return !!ref && !!openBatches[ref]?.quiet;

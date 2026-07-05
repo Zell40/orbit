@@ -9,7 +9,7 @@ import { getConfig } from './config';
 import { stripFormatting, tidyOutgoing } from './store/text';
 import { isService, maskSecret, detectServiceLeak } from './services';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
-import { SERVER, newId, canon, isChannelName } from './store/context';
+import { SERVER, newId, canon, isChannelName, resetBatches } from './store/context';
 import { getTheme } from '../themes';
 export { SERVER } from './store/context';
 import { makeHelpers } from './store/helpers';
@@ -220,6 +220,7 @@ export function createChatStore(ns = '') {
         }
       });
       client.on('reconnecting', (secs) => {
+        resetBatches(); // drop any batch left half-open when the socket dropped
         set({ reconnectIn: secs as number });
         sysLine(SERVER, i18n.t('system.reconnecting', { secs }), 'system');
       });
