@@ -101,26 +101,36 @@ export class IrcClient {
   // the server's PING and gets timed out (~pingfreq later). When the tab wakes
   // (visible / network back / focus), check the link at once and reconnect
   // immediately instead of waiting on the exponential backoff.
+  private onResume = (): void => {
+    if (!this.wantConnected) return;
+    const rs = this.ws?.readyState;
+    if (rs === WebSocket.OPEN) {
+      // Socket looks open but may be a zombie after a freeze — probe it; the
+      // keepalive watchdog will recycle it if no data comes back.
+      this.sendRaw('PING :ka');
+    } else if (rs !== WebSocket.CONNECTING) {
+      // Closed/closing (or none) — try now instead of waiting on backoff.
+      this.reconnectNow();
+    }
+  };
+  private onVisible = (): void => { if (!document.hidden) this.onResume(); };
   private hookResume(): void {
     if (this.resumeHooked || typeof window === 'undefined') return;
     this.resumeHooked = true;
-    const onResume = () => {
-      if (!this.wantConnected) return;
-      const rs = this.ws?.readyState;
-      if (rs === WebSocket.OPEN) {
-        // Socket looks open but may be a zombie after a freeze — probe it; the
-        // keepalive watchdog will recycle it if no data comes back.
-        this.sendRaw('PING :ka');
-      } else if (rs !== WebSocket.CONNECTING) {
-        // Closed/closing (or none) — try now instead of waiting on backoff.
-        this.reconnectNow();
-      }
-    };
-    if (typeof document !== 'undefined')
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) onResume(); });
-    window.addEventListener('online', onResume);
-    window.addEventListener('focus', onResume);
-    window.addEventListener('pageshow', onResume);
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', this.onVisible);
+    window.addEventListener('online', this.onResume);
+    window.addEventListener('focus', this.onResume);
+    window.addEventListener('pageshow', this.onResume);
+  }
+  // Detach the resume listeners so a disconnected client can be GC'd (the closures
+  // otherwise pin it, and every leaked client would keep listening for app life).
+  private unhookResume(): void {
+    if (!this.resumeHooked || typeof window === 'undefined') return;
+    this.resumeHooked = false;
+    if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', this.onVisible);
+    window.removeEventListener('online', this.onResume);
+    window.removeEventListener('focus', this.onResume);
+    window.removeEventListener('pageshow', this.onResume);
   }
 
   // Reconnect right now (bring any pending backoff forward), e.g. on resume.
@@ -247,6 +257,7 @@ export class IrcClient {
 
   disconnect(reason = 'Au revoir'): void {
     this.wantConnected = false; // stop auto-reconnect
+    this.unhookResume();
     this.stopKeepalive();
     this.clearConnectTimer();
     if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
