@@ -138,10 +138,10 @@
 [data-theme^="yomirc"] .member:hover:not(:disabled) { background: var(--mirc-navy); }
 [data-theme^="yomirc"] .member:hover:not(:disabled) .member__name,
 [data-theme^="yomirc"] .member:hover:not(:disabled) .member__prefix { color: var(--mirc-sel-ink); }
-/* Sit the bot tag right after the nick (not shoved to the far right by the base
-   margin-left:auto, which left a big white gap) and give it a robot icon. */
-[data-theme^="yomirc"] .member__bot { margin-left: .35rem; display: inline-flex; align-items: center; gap: .18em; font-size: .62rem; background: var(--mirc-silver); color: var(--ink); border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
-[data-theme^="yomirc"] .member__bot::before { content: "🤖"; font-size: 1.05em; line-height: 1; }
+/* Bot tag = just a robot icon right after the nick — no "BOT" label, no badge box,
+   and no base margin-left:auto shoving it to the far right of the row. */
+[data-theme^="yomirc"] .member__bot { margin-left: .3rem; padding: 0; font-size: 0; background: none; box-shadow: none; }
+[data-theme^="yomirc"] .member__bot::before { content: "🤖"; font-size: .8rem; line-height: 1; }
 [data-theme^="yomirc"] .members__search input { border-radius: 0; background: var(--mirc-paper); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
 /* Composer — sunken input + raised toolbar buttons */
 [data-theme^="yomirc"] .composer__box { border-radius: 0; background: var(--mirc-face); box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
