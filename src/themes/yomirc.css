@@ -101,6 +101,22 @@
 [data-theme^="yomirc"] .member__name { min-width: 0; max-width: 240px; } /* cap the name's intrinsic width so one long nick can't force the whole column wide; it ellipsis-truncates instead */
 [data-theme^="yomirc"] .sidebar { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 [data-theme^="yomirc"] .members { background: var(--mirc-face); border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
+/* Monochrome the whole skin: desaturate the remaining colour emoji icons (topbar
+   search/notify/manage, bottom-bar nav + away/settings, composer tools). Neutral
+   button backgrounds are unaffected by grayscale — same trick the away button uses. */
+[data-theme^="yomirc"] .topbar__search,
+[data-theme^="yomirc"] .topbar__searchicon,
+[data-theme^="yomirc"] .tab__ic,
+[data-theme^="yomirc"] .appbar__act,
+[data-theme^="yomirc"] .composer__emoji,
+[data-theme^="yomirc"] .composer__fmtbtn,
+[data-theme^="yomirc"] .composer__add { filter: grayscale(1); opacity: .8; }
+[data-theme^="yomirc"] .topbar__search:hover,
+[data-theme^="yomirc"] .tab:hover .tab__ic,
+[data-theme^="yomirc"] .appbar__act:hover,
+[data-theme^="yomirc"] .composer__emoji:hover,
+[data-theme^="yomirc"] .composer__add:hover { opacity: 1; }
+
 /* Flat caption bar — no Windows title-bar gradient, no blue */
 [data-theme^="yomirc"] .topbar {
   padding: .45rem .7rem; gap: .5rem;
