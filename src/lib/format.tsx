@@ -121,6 +121,7 @@ function YouTubeEmbed({ id, url }: { id: string; url: string }) {
 interface Preview { url: string; title?: string | null; description?: string | null; image?: string | null; siteName?: string | null }
 const UNFURL = '/accounts/api/unfurl/?url=';
 const previewCache = new Map<string, Promise<Preview | null>>();
+const PREVIEW_CACHE_MAX = 200; // bound: evict oldest so a long-lived tab can't grow forever
 
 // The first http(s) URL in a message worth a card — i.e. not one that already
 // renders its own inline embed (image / audio / YouTube).
@@ -134,10 +135,14 @@ export function firstPreviewableUrl(text: string): string | null {
 function fetchPreview(url: string): Promise<Preview | null> {
   let p = previewCache.get(url);
   if (!p) {
-    p = fetch(UNFURL + encodeURIComponent(url))
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000); // don't hang on a slow unfurl endpoint
+    p = fetch(UNFURL + encodeURIComponent(url), { signal: ctrl.signal })
       .then((r) => (r.ok ? r.json() : null))
       .then((d: Preview | null) => (d && (d.title || d.description || d.image) ? d : null))
-      .catch(() => null);
+      .catch(() => null)
+      .finally(() => clearTimeout(timer));
+    if (previewCache.size >= PREVIEW_CACHE_MAX) previewCache.delete(previewCache.keys().next().value!);
     previewCache.set(url, p);
   }
   return p;
