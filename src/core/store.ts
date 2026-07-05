@@ -226,6 +226,7 @@ export function createChatStore(ns = '') {
       });
       client.on('reconnecting', (secs) => {
         resetBatches(); // drop any batch left half-open when the socket dropped
+        knownServices.clear(); // re-learn services after reconnect rather than accrete forever
         set({ reconnectIn: secs as number });
         sysLine(SERVER, i18n.t('system.reconnecting', { secs }), 'system');
       });

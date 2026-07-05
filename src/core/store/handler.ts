@@ -26,6 +26,10 @@ interface HandlerCtx {
 
 const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '366', '900', '901', '321', '322', '323', '354']);
 
+// Real networks have a handful of services; the cap only bites a server minting
+// endless fake service-tagged nicks to grow the learned set without bound.
+const KNOWN_SERVICES_CAP = 256;
+
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
@@ -482,7 +486,7 @@ export function makeHandler(ctx: HandlerCtx) {
         // delivered on the message-tags cap — authoritative and name-agnostic. Remember
         // the nick so our own later messages to it (which carry no tag) route the same,
         // and fall back to the *Serv name convention when neither tag nor memory apply.
-        if (!self && hasServiceTag(msg.tags) && msg.nick) knownServices.add(canon(msg.nick));
+        if (!self && hasServiceTag(msg.tags) && msg.nick && knownServices.size < KNOWN_SERVICES_CAP) knownServices.add(canon(msg.nick));
         const svcParty = !isChan && !!otherParty &&
           (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
         // Neither a NOTICE nor any message exchanged with a services pseudo-client is a
