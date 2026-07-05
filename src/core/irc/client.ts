@@ -408,7 +408,9 @@ export class IrcClient {
   }
 
   private handleCap(msg: IrcMessage): void {
-    const sub = msg.params[1];
+    // The subcommand is case-insensitive and server echoes back the exact case
+    // the client sent (`cap ls` → `ls`), so normalise before matching.
+    const sub = (msg.params[1] || '').toUpperCase();
     // A CAP LS / CAP LIST arriving AFTER registration is a manual query (the user
     // typed `cap ls` in the status window), not negotiation — forward it so the
     // handler can print it, and DON'T re-run REQ/END, which would needlessly churn

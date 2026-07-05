@@ -385,7 +385,7 @@ export function makeHandler(ctx: HandlerCtx) {
       case 'CAP': {
         // Only reached for a manual `cap ls` / `cap list` typed in the console
         // (client.ts forwards those post-registration) → list the caps in Status.
-        const sub = msg.params[1];
+        const sub = (msg.params[1] || '').toUpperCase();
         const list = msg.params[msg.params[2] === '*' ? 3 : 2] ?? '';
         serverLine(`[CAP ${sub}] ${list}`);
         return;
