@@ -129,6 +129,9 @@
     var m = e.data;
     if (!m || !m.type) return;
     if (m.type === 'init' && e.ports && e.ports[0]) {
+      // The init message carries the plugin source that gets eval'd below, so
+      // accept it only from the host frame, and only once (no port swap).
+      if (e.source !== window.parent || port) return;
       port = e.ports[0];
       snap = m.snapshot || snap;
       store = m.storage || {};
