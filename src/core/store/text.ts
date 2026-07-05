@@ -20,7 +20,7 @@ export function maskMatches(mask: string, who: string): boolean {
 }
 
 // --- credential safety -----------------------------------------------------
-const SERVICE_RE = /^(nick|chan|host|oper|bot|memo)serv$/i;
+const SERVICE_RE = /^(nick|chan|host|oper|bot|memo|help|sasl|group|stat|game)serv$/i;
 export function isService(name: string): boolean { return SERVICE_RE.test(name); }
 
 const SECRET_MASK = '••••••••';

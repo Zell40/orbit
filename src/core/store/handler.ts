@@ -463,26 +463,31 @@ export function makeHandler(ctx: HandlerCtx) {
         const reportSvc = (getConfig().report.service || '').toLowerCase();
         const otherParty = (self ? chanTarget : msg.nick) || '';
         const toReportSvc = !!reportSvc && !isChannelName(chanTarget) && otherParty.toLowerCase() === reportSvc;
-        // A NOTICE is not a conversation: a user/service NOTICE addressed to us must
-        // never open or land in a PM query. Per convention it shows in the buffer the
-        // user currently has open (active window), falling back to the console.
-        const noticeToActive = kind === 'notice' && !isChannelName(chanTarget) && !toReportSvc;
+        // Traffic to/from a services pseudo-client (NickServ, ChanServ, …).
+        const svcParty = !isChannelName(chanTarget) && isService(otherParty);
+        // Neither a NOTICE nor any message exchanged with a services pseudo-client is a
+        // real conversation, so it must never open or land in a PM query. Both show in
+        // the window the user currently has open (falling back to the console) — no
+        // NickServ/ChanServ/… private window is ever spawned.
+        const toActive = !isChannelName(chanTarget) && !toReportSvc && (kind === 'notice' || svcParty);
         const bufferName = isChannelName(chanTarget)
           ? chanTarget
           : toReportSvc
             ? SERVER
-            : noticeToActive
+            : toActive
               ? (get().active || SERVER)
               : (self ? chanTarget : msg.nick);
         // +draft/channel-context: this DM relates to a channel. Only meaningful on PMs.
-        const chanCtx = !noticeToActive && !isChannelName(chanTarget) ? msg.tags['+draft/channel-context'] : undefined;
-        // A notice we send shows the recipient; one we receive shows the sender.
-        const noticeText = noticeToActive && self ? `→ ${chanTarget} : ${text}` : statusTag + text;
+        const chanCtx = !toActive && !isChannelName(chanTarget) ? msg.tags['+draft/channel-context'] : undefined;
+        // One we send shows the recipient; one we receive shows the sender.
+        const noticeText = toActive && self ? `→ ${chanTarget} : ${text}` : statusTag + text;
         const cm: ChatMessage = {
           id: msg.tags['msgid'] || newId(),
           msgid: msg.tags['msgid'] || undefined,
           bufferName, from: msg.nick, account: msg.tags['account'],
-          text: self && isService(bufferName) ? maskSecret(noticeText) : noticeText, ts: tsOf(msg), kind, self,
+          // Mask passwords in our own services-auth commands even now that they land in
+          // the active window rather than a dedicated services buffer.
+          text: self && (svcParty || isService(bufferName)) ? maskSecret(noticeText) : noticeText, ts: tsOf(msg), kind, self,
           replyTo: msg.tags['+draft/reply'],
           channelContext: chanCtx,
         };
@@ -509,7 +514,7 @@ export function makeHandler(ctx: HandlerCtx) {
         // 'mentions' (default) only on your nick / a highlight word, 'mute' never.
         // A mention = your nick OR any of your highlight words; PMs always alert.
         if (!self && kind !== 'notice') {
-          const isPM = !isChannelName(chanTarget);
+          const isPM = !isChannelName(chanTarget) && !svcParty;
           const level = isPM ? 'all' : (get().notifyLevel[canon(bufferName)] || 'mentions');
           const lc = text.toLowerCase();
           const mention = (me.length > 1 && lc.includes(me.toLowerCase()))

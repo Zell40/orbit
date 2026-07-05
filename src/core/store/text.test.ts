@@ -26,7 +26,12 @@ describe('isService', () => {
   it('recognises the standard services (case-insensitive)', () => {
     expect(isService('NickServ')).toBe(true);
     expect(isService('chanserv')).toBe(true);
+    expect(isService('HostServ')).toBe(true);
+    expect(isService('MemoServ')).toBe(true);
+    expect(isService('BotServ')).toBe(true);
+    expect(isService('OperServ')).toBe(true);
     expect(isService('alice')).toBe(false);
+    expect(isService('observer')).toBe(false);
   });
 });
 
