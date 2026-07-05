@@ -176,6 +176,10 @@ export function createChatStore(ns = '') {
     kicked: null,
 
     connect(opts) {
+      // Retrying after a failed/closed attempt re-enters connect() on the same
+      // store; tear down the previous client first so it can't keep reconnecting
+      // in the background and process every inbound line a second time.
+      get().client?.disconnect();
       // Ident (the "user" in nick!user@host): logged-in members authenticate over
       // SASL (a password is present) and show their own nick; guests show the
       // configured guest ident. IRC idents are ASCII-only, so accents are folded.
