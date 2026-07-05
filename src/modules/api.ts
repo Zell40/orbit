@@ -12,7 +12,7 @@ import htm from 'htm';
 import { useChat } from '../core/store';
 import { activeStore } from '../core/networks';
 import i18n from '../core/i18n';
-import { pluginNotify } from '../services/notify';
+import { pluginNotify } from '../platform/notify';
 import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../themes';
 import { getConfig, pluginDebug } from '../core/config';
 import { bus } from './bus';

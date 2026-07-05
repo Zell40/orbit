@@ -1,4 +1,4 @@
-import { useAvatarUrl } from '../services/avatars';
+import { useAvatarUrl } from '../platform/avatars';
 
 function hue(nick: string): number {
   let h = 0;

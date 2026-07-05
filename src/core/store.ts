@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import i18n from './i18n';
 import { IrcClient } from './irc/client';
-import { initNotify } from '../services/notify';
+import { initNotify } from '../platform/notify';
 import { getPrefs, savePrefs, applyPrefs, type Prefs } from '../ui/prefs';
 import type { Buffer, ConnectOptions, IrcMessage, WhoisInfo } from './irc/types';
 import { usePluginRegistry } from '../modules/registry';

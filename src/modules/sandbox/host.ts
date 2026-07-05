@@ -12,7 +12,7 @@ import { useThemeStore } from '../../themes';
 import { pluginDebug, type PluginEntry } from '../../core/config';
 import { bus } from '../bus';
 import { usePluginRegistry, type UiSlot } from '../registry';
-import { pluginNotify } from '../../services/notify';
+import { pluginNotify } from '../../platform/notify';
 import { SandboxFrame } from './SandboxFrame';
 import {
   isGranted, sanitizePermissions, FORWARDED_EVENTS, THEME_VARS,

@@ -4,7 +4,7 @@ import { LANGS, setLang, getLang } from '../../core/i18n';
 
 import { getConfig } from '../../core/config';
 import { getTheme, setTheme, usePluginThemes, type Theme } from '../../themes';
-import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../services/push';
+import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../platform/push';
 import { CAP_INFO } from '../../core/irc/cap-info';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';

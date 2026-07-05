@@ -1,5 +1,5 @@
 import i18n from '../i18n';
-import { desktopNotify, blip } from '../../services/notify';
+import { desktopNotify, blip } from '../../platform/notify';
 import { fmtDuration, formatUserModes } from '../../lib/format';
 import type { ChatMessage, IrcMessage, Member, MessageKind, WhoisInfo } from '../irc/types';
 import { NUMERICS, ERROR_NUMERICS } from '../irc/numerics';

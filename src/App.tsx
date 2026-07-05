@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
-import { refreshPush } from './services/push';
+import { refreshPush } from './platform/push';
 import { dismissUpdateCurtain } from './ui/appUpdate';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
