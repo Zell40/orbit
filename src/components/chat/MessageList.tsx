@@ -219,12 +219,15 @@ export function MessageList() {
     const switched = prevActive.current !== active;
     prevActive.current = active;
     const grew = el.scrollHeight - prevHeight.current;
-    if (switched) {
+    if (switched || atBottom.current) {
+      // Buffer switch, or we were pinned to the bottom → follow the newest line.
+      // atBottom is checked BEFORE the prepend heuristic on purpose: in a short
+      // buffer the bottom itself sits at scrollTop < 80, so a burst of appended
+      // lines (e.g. a /cs HELP reply) must scroll down to them rather than be
+      // mistaken for a history prepend and leave them hidden under the composer.
       el.scrollTop = el.scrollHeight;
     } else if (el.scrollTop < 80 && grew > 0) {
-      el.scrollTop = el.scrollHeight - prevHeight.current; // prepend → keep position
-    } else if (atBottom.current) {
-      el.scrollTop = el.scrollHeight;
+      el.scrollTop = el.scrollHeight - prevHeight.current; // prepend while reading up → keep position
     }
     prevHeight.current = el.scrollHeight;
   }, [count, active, search]);
