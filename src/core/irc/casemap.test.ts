@@ -18,4 +18,8 @@ describe('casefold', () => {
   it('ascii mapping leaves the extra punctuation alone', () => {
     expect(casefold('A[]\\^', 'ascii')).toBe('a[]\\^');
   });
+  it('tolerates a missing/undefined name (crafted line with no target param)', () => {
+    expect(casefold(undefined as unknown as string)).toBe('');
+    expect(casefold('')).toBe('');
+  });
 });

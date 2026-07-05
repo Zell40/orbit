@@ -6,6 +6,7 @@
 //   rfc1459          — also []\^ fold to {}|~   (the IRC default)
 //   rfc1459-strict   — also []\  fold to {}|    (no ^/~)
 export function casefold(name: string, mapping = 'rfc1459'): string {
+  if (!name) return ''; // a crafted line with a missing target param passes undefined here
   let out = '';
   for (const ch of name) {
     const c = ch.charCodeAt(0);
