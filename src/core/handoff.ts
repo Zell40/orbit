@@ -17,7 +17,7 @@ export interface Handoff {
 // Read and immediately clear the marker. Returns null when there is no fresh
 // handoff (normal direct visits), so the join form shows as usual.
 export function takeHandoff(): Handoff | null {
-  let raw: string | null = null;
+  let raw: string | null;
   try {
     raw = sessionStorage.getItem(KEY);
     sessionStorage.removeItem(KEY);
