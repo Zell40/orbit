@@ -370,7 +370,7 @@ export function makeHandler(ctx: HandlerCtx) {
         const ctx = msg.params[1];
         const dest = ctx && isChannelName(ctx) && get().buffers[canon(ctx)] ? ctx
           : isChannelName(get().active) ? get().active : SERVER;
-        sysLine(dest, `⚠ ${i18n.t(`numerics.${code}`, '') || serverText}`, 'system');
+        sysLine(dest, `⚠️ ${i18n.t(`numerics.${code}`, '') || serverText}`, 'system');
         if (get().prefs.sound) blip();
         return;
       }
@@ -984,7 +984,7 @@ export function makeHandler(ctx: HandlerCtx) {
         if (msg.command === 'NOTE') {
           sysLine(dest, `ℹ️ ${tag}${desc}`, 'info');
         } else {
-          sysLine(dest, `⚠ ${tag}${desc}`, 'system');
+          sysLine(dest, `⚠️ ${tag}${desc}`, 'system');
           if (msg.command === 'FAIL' && get().prefs.sound) blip();
         }
         break;

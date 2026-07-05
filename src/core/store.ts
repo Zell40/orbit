@@ -625,8 +625,8 @@ export function createChatStore(ns = '') {
     async uploadImage(file) {
       const { client, active } = get();
       if (!client || !active || active === SERVER) return;
-      if (!file.type.startsWith('image/')) { sysLine(active, `⚠ ${i18n.t('system.onlyImages')}`, 'system'); return; }
-      if (file.size > 16 * 1024 * 1024) { sysLine(active, `⚠ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
+      if (!file.type.startsWith('image/')) { sysLine(active, `⚠️ ${i18n.t('system.onlyImages')}`, 'system'); return; }
+      if (file.size > 16 * 1024 * 1024) { sysLine(active, `⚠️ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
 
       sysLine(active, `📤 ${i18n.t('system.sendingImage', { name: file.name })}`, 'system');
       try {
@@ -668,7 +668,7 @@ export function createChatStore(ns = '') {
         if (isPolicyHit) {
           sysLine(active, `\x01ALERT\x01${human}`, 'system');
         } else {
-          sysLine(active, `⚠ ${human}`, 'system');
+          sysLine(active, `⚠️ ${human}`, 'system');
         }
       }
     },
@@ -681,7 +681,7 @@ export function createChatStore(ns = '') {
     async uploadAudio(blob, ext) {
       const { client, active } = get();
       if (!client || !active || active === SERVER) return;
-      if (blob.size > 16 * 1024 * 1024) { sysLine(active, `⚠ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
+      if (blob.size > 16 * 1024 * 1024) { sysLine(active, `⚠️ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
 
       sysLine(active, `📤 ${i18n.t('system.sendingVoice')}`, 'system');
       try {
@@ -719,7 +719,7 @@ export function createChatStore(ns = '') {
         if (isPolicyHit) {
           sysLine(active, `\x01ALERT\x01${human}`, 'system');
         } else {
-          sysLine(active, `⚠ ${human}`, 'system');
+          sysLine(active, `⚠️ ${human}`, 'system');
         }
       }
     },

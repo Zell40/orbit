@@ -294,7 +294,7 @@ export function Composer() {
     if (recording || !canRecord) return;
     let stream: MediaStream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch { activeStore().getState().pushSystem?.(active, `⚠ ${t('composer.micDenied')}`); return; }
+    catch { activeStore().getState().pushSystem?.(active, `⚠️ ${t('composer.micDenied')}`); return; }
     const mime = bestAudioMime();
     recExt.current = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'm4a' : 'webm';
     const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
