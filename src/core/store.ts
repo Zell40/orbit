@@ -288,6 +288,9 @@ export function createChatStore(ns = '') {
       const client = s.client;
       const buf = s.buffers[key];
       if (!client || !buf || !client.hasCap('draft/chathistory')) return;
+      // A channel we've parted is no longer a valid CHATHISTORY target — the server
+      // would answer FAIL INVALID_TARGET, so don't ask.
+      if (isChannelName(buf.name) && !buf.joined) return;
       // anchor on the oldest real message currently shown
       const oldest = buf.messages.find((m) => m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice');
       if (!oldest) return;

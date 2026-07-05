@@ -569,7 +569,9 @@ export function makeHandler(ctx: HandlerCtx) {
         const ch = msg.params[0];
         patchBuffer(ch, (b) => {
           const members = { ...b.members }; delete members[msg.nick];
-          return { ...b, members };
+          // Self-part → no longer a member: clear `joined` so we stop firing
+          // chathistory/typing on a channel we left (CHATHISTORY would FAIL).
+          return { ...b, members, joined: msg.nick === me ? false : b.joined };
         });
         if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg));
         break;
@@ -985,6 +987,10 @@ export function makeHandler(ctx: HandlerCtx) {
           set({ reg: { ...get().reg, busy: false, error: desc || 'Échec.' } });
           break;
         }
+        // CHATHISTORY is an automatic client request (on-join replay / scroll-back),
+        // never a user command — its failures (e.g. INVALID_TARGET after parting a
+        // channel) are benign races, so don't surface them as a scary Status line.
+        if (msg.command === 'FAIL' && cmd === 'CHATHISTORY') break;
         // Otherwise surface it where the user is looking: FAIL/WARN as a ⚠ line,
         // NOTE as an info callout. Label with the command + code when present.
         const tag = cmd && cmd !== '*' ? `${cmd}${code && code !== '*' ? ` (${code})` : ''} — ` : '';
