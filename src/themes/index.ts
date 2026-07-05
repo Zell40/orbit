@@ -39,11 +39,14 @@ const savedTheme = (): string => {
 export const useThemeStore = create<ThemeState>((set, get) => ({
   theme: savedTheme(),
   pluginThemes: [],
-  setTheme: (t) => { localStorage.setItem(KEY, t); set({ theme: t }); applyTheme(t); },
+  // Apply to the DOM BEFORE set() so subscribers that read the live [data-theme]
+  // (the sandbox host mirrors getComputedStyle vars into its iframes) see the new
+  // theme, not the previous one.
+  setTheme: (t) => { localStorage.setItem(KEY, t); applyTheme(t); set({ theme: t }); },
   registerTheme: (pt) => {
     set((s) => ({ pluginThemes: [...s.pluginThemes.filter((x) => x.id !== pt.id), pt] }));
     // A saved theme that IS this plugin's (registered after boot) takes effect now.
-    if (localStorage.getItem(KEY) === pt.id && get().theme !== pt.id) { set({ theme: pt.id }); applyTheme(pt.id); }
+    if (localStorage.getItem(KEY) === pt.id && get().theme !== pt.id) { applyTheme(pt.id); set({ theme: pt.id }); }
     return () => set((s) => ({ pluginThemes: s.pluginThemes.filter((x) => x.id !== pt.id) }));
   },
 }));
@@ -63,8 +66,8 @@ export function hydrateTheme(): void {
   if (localStorage.getItem(KEY)) return;
   const d = getConfig().defaults.theme;
   const t = THEMES.includes(d as Theme) ? d : 'light';
-  useThemeStore.setState({ theme: t });
   applyTheme(t);
+  useThemeStore.setState({ theme: t });
 }
 
 // Apply immediately on import so there's no flash of the wrong theme.
