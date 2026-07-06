@@ -21,9 +21,4 @@ describe('Numerics (client.numerics)', () => {
     expect(n.isError('001')).toBe(false); // RPL_WELCOME
     expect(n.isError('999')).toBe(false); // unknown
   });
-
-  it('reports whether a numeric is known', () => {
-    expect(n.isKnown('372')).toBe(true);
-    expect(n.isKnown('999')).toBe(false);
-  });
 });

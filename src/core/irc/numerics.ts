@@ -72,6 +72,4 @@ export class Numerics {
   name(code: string): string | undefined { return NUMERIC_NAMES[code]; }
   /** True when the code is a user-facing error reply (shown as a ⚠ line). */
   isError(code: string): boolean { return ERROR_CODES.has(code); }
-  /** True when the numeric is in the known table. */
-  isKnown(code: string): boolean { return code in NUMERIC_NAMES; }
 }
