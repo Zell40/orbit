@@ -12,6 +12,16 @@ import { useActiveChat } from '../../core/networks';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
 
+// Scroll to a message by its data-mid and briefly flash it — the jump behind a
+// yomIRC reply line (Halloy's clickable reply preview jumps to the original too).
+function jumpToMessage(id: string): void {
+  const el = document.querySelector(`[data-mid="${CSS.escape(id)}"]`);
+  if (!el) return;
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  el.classList.add('mircline--flash');
+  window.setTimeout(() => el.classList.remove('mircline--flash'), 1100);
+}
+
 const msgInfo = (m: ChatMessage): MessageInfo =>
   ({ id: m.id, nick: m.from, text: stripFormatting(m.text), raw: m.text, kind: m.kind, ts: m.ts, mine: !!m.self });
 
@@ -75,42 +85,51 @@ export function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   // yomIRC: classic single log line — [HH:MM] <nick> text (nick on every line, no grouping/avatars).
   if (mirc) {
     const nickStyle = { color: isOper ? IRCOP_COLOR : nickColor(m.from) };
+    // Halloy-style reply line above the message: "   ┌── ↩ nick: snippet". The arm
+    // rides the mircline's mono grid so ┌ lands under the timestamp; the snippet is
+    // dimmed and a touch smaller, and clicking it jumps to the quoted message.
+    const quotedText = quoted ? stripFormatting(quoted.text) : '';
     return (
-      <div data-mid={m.id} className={`mircline ${m.kind === 'action' ? 'mircline--action' : ''} ${m.redacted ? 'is-redacted' : ''}`}>
-        <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
-        <button className="mircline__nick" style={nickStyle} onClick={() => openUser(m.from)}>
-          {m.kind === 'action' ? '* ' : '<'}{m.from}
-          {isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
-          {m.kind !== 'action' && '>'}
-        </button>{' '}
-        <span className="mircline__txt">
-          {quoted && !m.redacted && (
-            <span className="mircline__reply" title={quoted.redacted ? t('messages.deleted') : quoted.text.slice(0, 140)}>
-              ↪<b style={{ color: nickColor(quoted.from) }}>{quoted.from}</b>{' '}
+      <>
+        {quoted && !m.redacted && (
+          <button className="mircline-reply" title={quoted.redacted ? t('messages.deleted') : quotedText}
+            onClick={() => jumpToMessage(quoted.id)}>
+            {'   ┌── ↩ '}
+            <b style={{ color: nickColor(quoted.from) }}>{quoted.from}</b>{': '}
+            <span className="mircline-reply__txt">{quoted.redacted ? t('messages.deleted') : quotedText.replace(/\s+/g, ' ').slice(0, 140)}</span>
+          </button>
+        )}
+        <div data-mid={m.id} className={`mircline ${m.kind === 'action' ? 'mircline--action' : ''} ${m.redacted ? 'is-redacted' : ''}`}>
+          <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
+          <button className="mircline__nick" style={nickStyle} onClick={() => openUser(m.from)}>
+            {m.kind === 'action' ? '* ' : '<'}{m.from}
+            {isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
+            {m.kind !== 'action' && '>'}
+          </button>{' '}
+          <span className="mircline__txt">
+            {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
+            {!m.redacted && <MsgDecorations m={m} />}
+          </span>
+          {m.reactions && m.reactions.length > 0 && (
+            <span className="reactions reactions--inline">
+              {m.reactions.map((r) => (
+                <button key={r.emoji} className={`reaction ${r.mine ? 'mine' : ''}`} onClick={() => react(m.id, r.emoji)}>
+                  {r.emoji} <b>{r.count}</b>
+                </button>
+              ))}
             </span>
           )}
-          {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
-          {!m.redacted && <MsgDecorations m={m} />}
-        </span>
-        {m.reactions && m.reactions.length > 0 && (
-          <span className="reactions reactions--inline">
-            {m.reactions.map((r) => (
-              <button key={r.emoji} className={`reaction ${r.mine ? 'mine' : ''}`} onClick={() => react(m.id, r.emoji)}>
-                {r.emoji} <b>{r.count}</b>
-              </button>
-            ))}
-          </span>
-        )}
-        {!m.redacted && (
-          <span className="msg-actions">
-            {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
-            <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
-            <button className={pinned ? 'is-pinned' : ''} title={t(pinned ? 'pins.unpin' : 'pins.pin')} onClick={() => togglePin(m.id)}>📌</button>
-            <MsgActions m={m} />
-            {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
-          </span>
-        )}
-      </div>
+          {!m.redacted && (
+            <span className="msg-actions">
+              {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
+              <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
+              <button className={pinned ? 'is-pinned' : ''} title={t(pinned ? 'pins.unpin' : 'pins.pin')} onClick={() => togglePin(m.id)}>📌</button>
+              <MsgActions m={m} />
+              {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
+            </span>
+          )}
+        </div>
+      </>
     );
   }
 

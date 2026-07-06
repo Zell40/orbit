@@ -204,9 +204,21 @@
 [data-theme^="yomirc"] .mircline__star { font-weight: 700; }
 /* inherits the line colour */
 [data-theme^="yomirc"] .mircline__host { opacity: .72; }
-/* Compact reply indicator: "↪nick" before the text, quoted line in the tooltip. */
-[data-theme^="yomirc"] .mircline__reply { opacity: .85; font-weight: 700; cursor: help; }
-[data-theme="yomirc-dark"] .mircline__reply b { filter: brightness(1.55) saturate(1.15); }
+/* Halloy-style reply line above a message: "   ┌── ↩ nick: snippet". Same mono +
+   size as the line below, so the ┌ arm stays on the timestamp grid; the snippet is
+   dimmed and a touch smaller. Clicking it jumps to (and flashes) the quoted line. */
+[data-theme^="yomirc"] .mircline-reply {
+  display: block; width: 100%; text-align: left; border: 0; background: none;
+  font-family: var(--mono); font-size: .9rem; line-height: 1.25;
+  padding: .12rem .6rem 0; margin: 0; color: var(--muted); cursor: pointer;
+  white-space: pre; overflow: hidden; text-overflow: ellipsis;
+}
+[data-theme^="yomirc"] .mircline-reply__txt { font-size: .86em; opacity: .82; }
+[data-theme^="yomirc"] .mircline-reply:hover { color: var(--ink); background: var(--mirc-hover); }
+[data-theme^="yomirc"] .mircline-reply:hover .mircline-reply__txt { opacity: 1; }
+[data-theme="yomirc-dark"] .mircline-reply b { filter: brightness(1.55) saturate(1.15); }
+[data-theme^="yomirc"] .mircline--flash { animation: mircFlash 1.1s ease-out; }
+@keyframes mircFlash { from { background: rgba(53, 196, 106, .28); } to { background: transparent; } }
 /* dimmer host, same hue */
 [data-theme^="yomirc"] .mircline--sys-join { color: var(--mirc-join); }
 [data-theme^="yomirc"] .mircline--sys-part,
