@@ -1,6 +1,8 @@
-// Tchatou IRC client — IRCv3-aware connection over WebSocket to server.
+// Tchatou IRC client — orchestrates the WebSocket transport, the IRCv3 capability
+// layer, the registration handshake, and the high-level command senders.
 import { parseLine } from './parser';
 import { casefold } from './casemap';
+import { Transport } from './transport';
 import { Ircv3 } from './ircv3';
 import { CTCP_REPLIES } from './ctcp';
 import type { ConnectOptions, IrcMessage } from './types';
@@ -17,16 +19,23 @@ function b64utf8(input: string): string {
 }
 
 export class IrcClient {
-  private ws?: WebSocket;
-  private rxBuf = '';
-  private subproto = '';
   private listeners: Record<string, Listener[]> = {};
   private opts!: ConnectOptions;
 
+  // WebSocket transport: the socket lifecycle (connect, reconnect, keepalive,
+  // mobile resume), inbound line framing, and the outbound flood-control queues.
+  // It calls back through these hooks; the socket + timers + queues stay private
+  // to it. Reached as `client.transport`.
+  readonly transport = new Transport({
+    onOpen: () => this.onOpen(),
+    onLine: (l) => this.onLine(l),
+    onStatus: (s) => this.emit('status', s),
+    onReconnecting: (n) => this.emit('reconnecting', n),
+    onRawOut: (l) => this.emit('raw-out', l),
+  });
+
   // The IRCv3 capability layer: negotiation, the negotiated cap set, and every
-  // cap-gated extended-feature command. The rest of the app reaches these via
-  // `client.ircv3`. It calls back through this tiny transport so the send queues
-  // below stay private.
+  // cap-gated extended-feature command. Reached as `client.ircv3`.
   readonly ircv3 = new Ircv3({
     send: (l) => this.send(l),
     lowSend: (l) => this.lowSend(l),
@@ -67,307 +76,36 @@ export class IrcClient {
     }
   }
 
-  private wantConnected = false;       // true between connect() and disconnect()
-  private reconnectAttempts = 0;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private keepaliveTimer: ReturnType<typeof setInterval> | null = null;
-  private connectTimer: ReturnType<typeof setTimeout> | null = null;
-  private lastRx = 0;          // ms timestamp of the last inbound data
-  private resumeHooked = false;
-
-  // --- socket lifecycle tunables (named, not magic numbers) ---------------
-  private readonly keepaliveMs = 45_000;    // send a PING this often to keep NAT/proxy state warm
-  private readonly deadAfterMs = 150_000;   // no inbound data for this long ⇒ socket is dead, recycle it
-  private readonly connectTimeoutMs = 12_000; // handshake stuck in CONNECTING this long ⇒ give up & retry
-  private readonly maxBackoffMs = 30_000;   // ceiling for the reconnect backoff
-  private readonly rxBufLimit = 1 << 18;    // 256 KiB: drop a runaway buffer (server that never sends \n)
-
   connect(opts: ConnectOptions): void {
     this.opts = opts;
-    this.wantConnected = true;
-    this.reconnectAttempts = 0;
-    this.hookResume();
-    this.openSocket();
-  }
-
-  // Detach a socket's handlers and close it. Idempotent and safe on any
-  // readyState — used everywhere a socket must stop influencing us (replace
-  // on reconnect, intentional disconnect, stuck-handshake timeout).
-  private teardown(ws?: WebSocket): void {
-    if (!ws) return;
-    ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null;
-    try { ws.close(); } catch { /* already closing/closed */ }
-  }
-
-  private clearConnectTimer(): void {
-    if (this.connectTimer) { clearTimeout(this.connectTimer); this.connectTimer = null; }
-  }
-
-  // Mobile browsers FREEZE a backgrounded tab's JS, so the client can't answer
-  // the server's PING and gets timed out (~pingfreq later). When the tab wakes
-  // (visible / network back / focus), check the link at once and reconnect
-  // immediately instead of waiting on the exponential backoff.
-  private onResume = (): void => {
-    if (!this.wantConnected) return;
-    const rs = this.ws?.readyState;
-    if (rs === WebSocket.OPEN) {
-      // Socket looks open but may be a zombie after a freeze — probe it; the
-      // keepalive watchdog will recycle it if no data comes back.
-      this.sendRaw('PING :ka');
-    } else if (rs !== WebSocket.CONNECTING) {
-      // Closed/closing (or none) — try now instead of waiting on backoff.
-      this.reconnectNow();
-    }
-  };
-  private onVisible = (): void => { if (!document.hidden) this.onResume(); };
-  private hookResume(): void {
-    if (this.resumeHooked || typeof window === 'undefined') return;
-    this.resumeHooked = true;
-    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', this.onVisible);
-    window.addEventListener('online', this.onResume);
-    window.addEventListener('focus', this.onResume);
-    window.addEventListener('pageshow', this.onResume);
-  }
-  // Detach the resume listeners so a disconnected client can be GC'd (the closures
-  // otherwise pin it, and every leaked client would keep listening for app life).
-  private unhookResume(): void {
-    if (!this.resumeHooked || typeof window === 'undefined') return;
-    this.resumeHooked = false;
-    if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', this.onVisible);
-    window.removeEventListener('online', this.onResume);
-    window.removeEventListener('focus', this.onResume);
-    window.removeEventListener('pageshow', this.onResume);
-  }
-
-  // Reconnect right now (bring any pending backoff forward), e.g. on resume.
-  private reconnectNow(): void {
-    if (!this.wantConnected) return;
-    // Already up, or mid-handshake? Leave it — don't stack a second socket.
-    const rs = this.ws?.readyState;
-    if (rs === WebSocket.OPEN || rs === WebSocket.CONNECTING) return;
-    // Cancel the pending backoff timer and open immediately. NOTE: we do NOT
-    // reset reconnectAttempts here — resume events fire in bursts on flaky
-    // mobile links, and zeroing the backoff each time would hammer the server
-    // with 1-second retries. A successful registration (001) resets it.
-    if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
-    this.openSocket();
-  }
-
-  // Periodic keepalive + dead-connection watchdog. A PING every `keepaliveMs`
-  // keeps NAT/proxy state warm and elicits a PONG; if no inbound data arrives
-  // for `deadAfterMs` (server pings every ~2 min) the socket is dead → recycle.
-  private startKeepalive(): void {
-    this.stopKeepalive();
-    this.lastRx = Date.now();
-    this.keepaliveTimer = setInterval(() => {
-      if (this.ws?.readyState !== WebSocket.OPEN) return;
-      if (Date.now() - this.lastRx > this.deadAfterMs) {
-        this.teardown(this.ws); // detached close ⇒ recover via the explicit path below
-        this.ws = undefined;
-        this.stopKeepalive();
-        this.emit('status', 'closed');
-        this.scheduleReconnect();
-        return;
-      }
-      this.sendRaw('PING :ka');
-    }, this.keepaliveMs);
-  }
-
-  private stopKeepalive(): void {
-    if (this.keepaliveTimer) { clearInterval(this.keepaliveTimer); this.keepaliveTimer = null; }
-  }
-
-  private openSocket(): void {
-    const opts = this.opts;
-    this.nick = opts.nick;
-    // Tear down any previous socket FIRST, so we never run two in parallel.
-    // Mobile resume can fire onResume several times (focus + visibilitychange
-    // + pageshow), and a zombie socket left over from a freeze will eventually
-    // fire its own onclose. Detaching its handlers means that close can't spawn
-    // yet another reconnect.
-    this.teardown(this.ws);
-    this.ws = undefined;
-    this.clearConnectTimer();
-    // Reset per-connection state so a reconnect starts clean.
-    this.ircv3.reset(); this.capEnded = false;
-    this.registered = false; this.rxBuf = ''; this.sendQueue = []; this.tokens = this.burst;
-    this.lowQueue = []; if (this.lowTimer) { clearTimeout(this.lowTimer); this.lowTimer = null; }
-    this.emit('status', 'connecting');
-
-    let ws: WebSocket;
-    try {
-      ws = new WebSocket(opts.url, ['text.ircv3.net', 'binary.ircv3.net']);
-    } catch {
-      // Bad URL / blocked scheme — treat as a failed attempt and back off.
-      this.emit('status', 'error');
-      this.scheduleReconnect();
-      return;
-    }
-    ws.binaryType = 'arraybuffer';
-    this.ws = ws;
-
-    // Single, idempotent recovery path shared by close / error / connect-timeout.
-    let settled = false;
-    const fail = () => {
-      if (settled) return;
-      settled = true;
-      this.clearConnectTimer();
-      this.stopKeepalive();
-      this.teardown(ws);
-      if (this.ws === ws) this.ws = undefined;
-      this.emit('status', 'closed');
-      this.scheduleReconnect();
-    };
-
-    ws.onopen = () => {
-      this.clearConnectTimer();
-      this.subproto = ws.protocol;
-      this.startKeepalive();
-      // Spec registration order: CAP LS, [PASS], NICK, USER, …, CAP END.
-      this.send(`CAP LS 302`);
-      if (opts.serverPassword) this.send(`PASS :${opts.serverPassword}`);
-      this.send(`NICK ${opts.nick}`);
-      this.send(`USER ${opts.username || 'guest'} 0 * :${opts.realname || opts.nick}`);
-    };
-    ws.onmessage = (ev) => {
-      const text = typeof ev.data === 'string'
-        ? ev.data
-        : new TextDecoder().decode(ev.data as ArrayBuffer);
-      this.feed(text);
-    };
-    ws.onclose = fail;
-    ws.onerror = () => { this.emit('status', 'error'); fail(); };
-
-    // Captive portals / dead proxies can leave the handshake hanging in
-    // CONNECTING forever — onopen/onclose never fire, so nothing recovers.
-    // Force-recover if we don't reach OPEN within connectTimeoutMs.
-    this.connectTimer = setTimeout(() => {
-      if (this.ws === ws && ws.readyState === WebSocket.CONNECTING) fail();
-    }, this.connectTimeoutMs);
-  }
-
-  // Auto-reconnect with jittered exponential backoff (≈1s → 30s), unless we
-  // quit on purpose. Jitter prevents a thundering herd of clients all
-  // reconnecting in lockstep after a server restart.
-  private scheduleReconnect(): void {
-    if (!this.wantConnected || this.reconnectTimer) return;
-    const base = Math.min(this.maxBackoffMs, 1000 * 2 ** this.reconnectAttempts);
-    const delay = Math.round(base * (0.75 + Math.random() * 0.5)); // ±25% jitter
-    this.reconnectAttempts++;
-    this.emit('reconnecting', Math.round(delay / 1000));
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      if (this.wantConnected) this.openSocket();
-    }, delay);
+    this.transport.connect(opts.url);
   }
 
   disconnect(reason = 'Au revoir'): void {
-    this.wantConnected = false; // stop auto-reconnect
-    this.unhookResume();
-    this.stopKeepalive();
-    this.clearConnectTimer();
-    if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
-    const ws = this.ws;
-    if (ws?.readyState === WebSocket.OPEN) {
-      this.sendRaw(`QUIT :${reason}`); // send now, before we close the socket
-    }
-    // Close (and detach) regardless of state — a CONNECTING socket would
-    // otherwise leak and fire its handlers after we meant to quit.
-    this.teardown(ws);
-    this.ws = undefined;
+    this.transport.disconnect(reason);
   }
 
-  // ---- outbound flood protection (token bucket) ---------------------------
-  // Servers kill clients for "Excess Flood". We allow a generous burst (so
-  // registration + normal chatting are instant) then pace the rest at ~1/sec,
-  // which keeps a big multi-line paste under typical server limits.
-  private sendQueue: string[] = [];
-  private tokens = 8;
-  private readonly burst = 8;
-  private readonly refillMs = 1000;
-  private lastRefill = Date.now();
-  private drainTimer: ReturnType<typeof setTimeout> | null = null;
+  // Outbound writes go through the transport's flood-control queues.
+  send(line: string): void { this.transport.send(line); }
+  private sendRaw(line: string): void { this.transport.sendRaw(line); }
+  private lowSend(line: string): void { this.transport.lowSend(line); }
 
-  // Raw, un-throttled write (CRLF-terminated). For latency-critical lines only.
-  private sendRaw(line: string): void {
-    const ws = this.ws;
-    if (ws?.readyState !== WebSocket.OPEN) return;
-    // Strip CR/LF/NUL so a newline in any argument (nick, topic, a raw console
-    // line, …) can't smuggle a second protocol command onto the wire. Single
-    // choke-point: every outbound write passes through here.
-    const safe = line.replace(/[\r\n\0]/g, '');
-    try {
-      ws.send(safe + '\r\n');
-      this.emit('raw-out', safe);
-    } catch {
-      /* socket died between the readyState check and send — onclose/onerror
-         will run the recovery path; nothing to do here. */
-    }
+  // ---- registration handshake --------------------------------------------
+  // Socket reached OPEN → (re)start registration. Clear the negotiated caps and
+  // registration flags for a clean (re)connect, then send the handshake burst in
+  // spec order (CAP LS, [PASS], NICK, USER, …, CAP END once negotiated).
+  private onOpen(): void {
+    this.ircv3.reset();
+    this.capEnded = false;
+    this.registered = false;
+    this.nick = this.opts.nick;
+    this.send(`CAP LS 302`);
+    if (this.opts.serverPassword) this.send(`PASS :${this.opts.serverPassword}`);
+    this.send(`NICK ${this.opts.nick}`);
+    this.send(`USER ${this.opts.username || 'guest'} 0 * :${this.opts.realname || this.opts.nick}`);
   }
 
-  private drain(): void {
-    const now = Date.now();
-    const add = Math.floor((now - this.lastRefill) / this.refillMs);
-    if (add > 0) { this.tokens = Math.min(this.burst, this.tokens + add); this.lastRefill += add * this.refillMs; }
-    while (this.sendQueue.length && this.tokens > 0) { this.tokens--; this.sendRaw(this.sendQueue.shift()!); }
-    if (this.sendQueue.length && !this.drainTimer) {
-      this.drainTimer = setTimeout(() => { this.drainTimer = null; this.drain(); }, this.refillMs);
-    }
-  }
-
-  // Throttled send — queues behind the token bucket. CRLF added on the wire.
-  send(line: string): void {
-    this.sendQueue.push(line);
-    this.drain();
-  }
-
-  // ---- low-priority background queue (history prefetch) -------------------
-  // On (re)connect the client rejoins every channel; firing a CHATHISTORY per
-  // channel through the normal queue would starve the user's own typing. This
-  // queue drains ONE item at a time, slowly, and always yields to live traffic.
-  private lowQueue: string[] = [];
-  private lowTimer: ReturnType<typeof setTimeout> | null = null;
-  private lowSend(line: string): void {
-    if (!this.lowQueue.includes(line)) this.lowQueue.push(line);
-    this.drainLow();
-  }
-  private drainLow(): void {
-    if (this.lowTimer || !this.lowQueue.length) return;
-    this.lowTimer = setTimeout(() => {
-      this.lowTimer = null;
-      if (!this.lowQueue.length) return;
-      // Always let the user's own messages go first.
-      if (this.sendQueue.length || this.tokens <= 0) { this.drainLow(); return; }
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) this.sendRaw(this.lowQueue.shift()!);
-      this.drainLow();
-    }, 1400);
-  }
-
-  private feed(chunk: string): void {
-    this.lastRx = Date.now();
-    this.rxBuf += chunk;
-    let idx: number;
-    while ((idx = this.rxBuf.indexOf('\n')) !== -1) {
-      let line = this.rxBuf.slice(0, idx);
-      this.rxBuf = this.rxBuf.slice(idx + 1);
-      if (line.endsWith('\r')) line = line.slice(0, -1);
-      if (line) this.handleLine(line);
-    }
-    // text.ircv3.net frames each IRC message separately, with no trailing
-    // newline — flush the remainder as a complete line (binary mode keeps it
-    // buffered, since that's a CRLF-delimited byte stream).
-    if (this.rxBuf && this.subproto !== 'binary.ircv3.net') {
-      const line = this.rxBuf.replace(/\r$/, '');
-      this.rxBuf = '';
-      if (line) this.handleLine(line);
-    } else if (this.rxBuf.length > this.rxBufLimit) {
-      // Binary mode, but a misbehaving server sent 256 KiB with no newline:
-      // drop the runaway buffer rather than grow it without bound.
-      this.rxBuf = '';
-    }
-  }
-
-  private handleLine(line: string): void {
+  private onLine(line: string): void {
     // Real IRC lines are ≤512 bytes on the wire (a few KiB with message-tags).
     // Drop pathological oversized input rather than parse and format it.
     if (line.length > 16384) return;
@@ -428,7 +166,7 @@ export class IrcClient {
       }
       case '001':
         this.registered = true;
-        this.reconnectAttempts = 0; // healthy connection — reset backoff
+        this.transport.resetBackoff(); // healthy connection — clear the backoff
         this.nick = msg.params[0] ?? this.nick;
         this.emit('status', 'registered');
         for (const ch of this.opts.channels ?? []) this.join(ch);
@@ -589,7 +327,7 @@ export class IrcClient {
   }
   action(target: string, text: string): void {
     // Proper CTCP ACTION (\x01ACTION …\x01); reserve 9 bytes for the wrapper.
-    for (const part of this.splitForLine('PRIVMSG', target, text, 9)) this.send(`PRIVMSG ${target} :ACTION ${part}`);
+    for (const part of this.splitForLine('PRIVMSG', target, text, 9)) this.send(`PRIVMSG ${target} :ACTION ${part}`);
   }
   setNick(nick: string): void { this.send(`NICK ${nick}`); }
   // User modes (global, per-user). Query with no modestring → RPL_UMODEIS (221).
