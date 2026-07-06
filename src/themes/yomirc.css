@@ -190,6 +190,10 @@
 [data-theme^="yomirc"] .mircline.is-redacted { opacity: .55; font-style: italic; }
 [data-theme^="yomirc"] .mircline .reactions--inline { display: inline-flex; gap: .25rem; margin-left: .4rem; vertical-align: middle; }
 [data-theme^="yomirc"] .mircline .msg-actions { top: 0; }
+/* The reply arrow (↩) is a text glyph, not an emoji, so on the pure-black canvas it
+   falls back to the UA button colour (black) and vanishes. Paint the action glyphs
+   the classic terminal green so they read against the black. */
+[data-theme="yomirc-dark"] .msg-actions button { color: var(--accent); }
 /* dark: lift the hashed nick colours so they pop on the near-black log */
 [data-theme="yomirc-dark"] .mircline__nick { filter: brightness(1.55) saturate(1.15); }
 /* Server events as classic mIRC status lines: whole line tinted green (join) / red (leave) */
