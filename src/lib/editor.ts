@@ -1,8 +1,7 @@
 // contentEditable composer helpers: IRC-formatting ⇄ HTML serialization and
 // caret/selection utilities (used by the rich message composer).
 import { MIRC_PALETTE } from './format';
-
-const escHtml = (s: string) => s.replace(/[&<>]/g, (c) => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
+import { escapeHtml } from './escape';
 
 // hex (#rrggbb, lowercase) -> mIRC palette index, for the 16 base colours.
 const HEX2IDX: Record<string, number> = {};
@@ -92,7 +91,7 @@ export function ircToHtml(text: string): string {
     if (st.fg) p.push('color:' + st.fg);
     return p.join(';');
   };
-  const flush = () => { if (buf) { const s = style(); html += s ? `<span style="${s}">${escHtml(buf)}</span>` : escHtml(buf); buf = ''; } };
+  const flush = () => { if (buf) { const s = style(); html += s ? `<span style="${s}">${escapeHtml(buf)}</span>` : escapeHtml(buf); buf = ''; } };
   for (let i = 0; i < text.length; i++) {
     const c = text.charCodeAt(i);
     if (c === 0x02) { flush(); st.b = !st.b; continue; }

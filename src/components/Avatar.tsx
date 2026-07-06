@@ -1,16 +1,11 @@
 import { useAvatarUrl } from '../platform/avatars';
-
-function hue(nick: string): number {
-  let h = 0;
-  for (let i = 0; i < nick.length; i++) h = (h * 31 + nick.charCodeAt(i)) % 360;
-  return h;
-}
+import { hashHue } from '../lib/format';
 
 // `account` (when known) resolves a real uploaded avatar; otherwise fall back to
 // the deterministic gradient-initial avatar (the right default for guests).
 export function Avatar({ nick, size = 40, account }: { nick: string; size?: number; account?: string | null }) {
   const n = nick || '?';
-  const h = hue(n);
+  const h = hashHue(n);
   const url = useAvatarUrl(account);
   if (url) {
     return (
