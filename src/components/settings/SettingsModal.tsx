@@ -547,6 +547,7 @@ function LoginTab() {
   const client = useActiveChat((s) => s.client);
   const account = useActiveChat((s) => s.account);
   const nick = useActiveChat((s) => s.nick);
+  const status = useActiveChat((s) => s.status); // re-render once (re)registration acks the caps
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [acct, setAcct] = useState(nick);
   const [pw, setPw] = useState('');
@@ -609,8 +610,11 @@ function LoginTab() {
     );
   }
 
-  // Not logged in → login / register switcher (register hidden if disabled in config).
-  const canRegister = getConfig().features.register;
+  // Not logged in → login / register switcher. Registration needs BOTH the build
+  // to enable it AND the server to advertise draft/account-registration; otherwise
+  // REGISTER would just come back as an unknown command (e.g. a leaner ircd).
+  const canRegister = getConfig().features.register
+    && status === 'registered' && !!client?.hasCap('draft/account-registration');
   return (
     <>
       {canRegister && (
