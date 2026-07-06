@@ -102,14 +102,44 @@ loadConfig().then(async () => {
   // form. Direct visits (no marker) fall through to the normal join screen.
   const { takeHandoff } = await import('./core/handoff')
   const handoff = takeHandoff()
-  const nick = new URLSearchParams(window.location.search).get('nick')?.trim()
+  const params = new URLSearchParams(window.location.search)
+  const nick = params.get('nick')?.trim()
+  const { useChat } = await import('./core/store')
+  const cfg = getConfig()
+  // After an auto-connect, drop the entry params from the address bar so a later
+  // reload/reopen is param-less and resumes cleanly (the branch below).
+  const cleanUrl = () => { try { history.replaceState(null, '', window.location.pathname) } catch { /* ignore */ } }
   if (handoff && nick) {
-    const { useChat } = await import('./core/store')
-    const cfg = getConfig()
-    const channels = (new URLSearchParams(window.location.search).get('channel') || cfg.startup.channels.join(','))
+    const channels = (params.get('channel') || cfg.startup.channels.join(','))
       .split(',').map((c) => c.trim()).filter(Boolean)
     useChat.setState({ autoConnecting: true })
     useChat.getState().connect({ url: cfg.server.url, nick, password: handoff.password, channels })
+    cleanUrl()
+  } else if (!nick && cfg.features.sessionResume) {
+    // No fresh site entry — resume the last session (opt-in). A still-signed-in
+    // member gets a fresh single-use ticket from their website session; a guest
+    // just reconnects under the same nick. No password is ever read from storage.
+    const { loadResume } = await import('./core/resume')
+    const resume = loadResume()
+    if (resume) {
+      let password: string | undefined
+      let resumeNick = resume.nick
+      let go = !resume.account // guests reconnect unconditionally
+      if (resume.account) {
+        try {
+          const ctrl = new AbortController()
+          const to = setTimeout(() => ctrl.abort(), 4000) // never let a hung endpoint stall boot
+          const r = await fetch('/accounts/api/chat_resume/', { credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal }).finally(() => clearTimeout(to))
+          const j = r.ok ? await r.json() : null
+          if (j?.ok && j.ticket && j.nick) { password = j.ticket as string; resumeNick = j.nick as string; go = true }
+        } catch { /* offline / timeout / no endpoint → fall through to the connect screen */ }
+      }
+      if (go) {
+        useChat.setState({ autoConnecting: true })
+        useChat.getState().connect({ url: resume.url || cfg.server.url, nick: resumeNick, password, channels: resume.channels })
+        cleanUrl()
+      }
+    }
   }
 
   createRoot(document.getElementById('root')!).render(

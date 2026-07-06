@@ -44,7 +44,8 @@
     "imageUpload": true,
     "register": true,
     "linkPreviews": true,
-    "multiNetwork": true
+    "multiNetwork": true,
+    "sessionResume": true
   },
   "plugins": [
     "/app/plugins/orbit-clock.js",

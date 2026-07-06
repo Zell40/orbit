@@ -10,6 +10,7 @@ import { usePluginRegistry, matchShortcut } from './modules/registry';
 import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks';
 import { useChat } from './core/store';
 import { getPrefs } from './ui/prefs';
+import { saveResume } from './core/resume';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.
@@ -62,6 +63,19 @@ export default function App() {
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
+
+  // Persist NON-secret session context (nick, account label, open channels) while
+  // registered, so reopening the tab can resume it (see core/resume + main.tsx).
+  // Recomputes only when that signature actually changes, not on every message.
+  const resumeSig = useChat((s) => {
+    if (!getConfig().features.sessionResume || s.status !== 'registered') return '';
+    const channels = s.order.filter((n) => s.buffers[n]?.isChannel && s.buffers[n]?.joined);
+    return JSON.stringify({ nick: s.nick, account: s.account || '', channels });
+  });
+  useEffect(() => {
+    if (!resumeSig) return;
+    saveResume({ url: getConfig().server.url, ...(JSON.parse(resumeSig) as { nick: string; account: string; channels: string[] }) });
+  }, [resumeSig]);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives
   // server-side expiry and reconnects (cheap no-op if push isn't enabled).
