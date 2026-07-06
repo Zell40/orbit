@@ -54,7 +54,7 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | Member | Description |
 |---|---|
 | `Orbit.version` / `Orbit.commit` | app version + git commit (build-time) |
-| `Orbit.apiVersion` | plugin API contract version (bumped on breaking changes) — guard with `if (Orbit.apiVersion < N) …` |
+| `Orbit.apiVersion` | plugin API contract version (bumped on surface changes) — feature-detect with `if (Orbit.apiVersion >= N) …` |
 | `Orbit.plugin(name, fn)` | register a plugin; `fn(orbit, log)` |
 | `Orbit.on/once/off/emit(event, …)` | the app event bus |
 | `Orbit.config()` | the resolved runtime config |
@@ -68,6 +68,11 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `orbit.state.nick()` / `account()` | your nick / logged-in account |
 | `orbit.state.buffers()` | open buffer names |
 | `orbit.state.get()` | full store snapshot (read-only) |
+| `orbit.server.hasCap(cap)` | is an IRCv3 capability negotiated? — gate cap-dependent features so you never 421 a leaner server |
+| `orbit.server.caps()` | every cap Orbit negotiates, each `{name, available, enabled}` |
+| `orbit.server.isupport()` | read-only snapshot of the ISUPPORT (005) tokens |
+| `orbit.server.network()` | network name (ISUPPORT NETWORK) |
+| `orbit.server.numeric(code)` | RPL/ERR name for a numeric reply, e.g. `'433'` → `'ERR_NICKNAMEINUSE'` |
 | `orbit.irc.send(line)` | send a raw IRC line |
 | `orbit.irc.msg(target, text)` | PRIVMSG a target |
 | `orbit.irc.say(text)` | send to the active buffer |

@@ -1,10 +1,11 @@
 // The `window.Orbit` plugin API — the surface plugins register against.
 //
 // We deliberately expose only safe, stable capabilities (events, read-only
-// state, IRC actions, theming, namespaced storage, named UI slots) and keep
-// internal modules private so the app's still-evolving internals stay free to
-// change. UI authoring uses HTM (htm.bind to the app's React) so plugins write
-// template-literal markup at runtime, with no build step.
+// state, read-only server/capability info, IRC actions, theming, namespaced
+// storage, named UI slots) and keep internal modules private so the app's
+// still-evolving internals stay free to change. UI authoring uses HTM (htm.bind
+// to the app's React) so plugins write template-literal markup at runtime, with
+// no build step.
 import React, { type ReactNode } from 'react';
 import * as ReactJSXRuntime from 'react/jsx-runtime';
 import * as ReactDOM from 'react-dom';
@@ -21,9 +22,10 @@ import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, t
 const html = htm.bind(React.createElement);
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
 
-// Plugin API contract version. Bumped on a breaking change to the surface below
-// so plugins can guard (e.g. `if (Orbit.apiVersion < 2) …`). Still experimental.
-const API_VERSION = 5;
+// Plugin API contract version. Bumped on any change to the surface below so
+// plugins can feature-detect (e.g. `if (Orbit.apiVersion >= 6) orbit.server.hasCap(…)`).
+// Still experimental.
+const API_VERSION = 6;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -58,6 +60,20 @@ export interface OrbitPluginApi {
     account: () => string;
     buffers: () => string[];
     get: () => ReturnType<typeof useChat.getState>;
+  };
+  // ── read-only server / capability info (client.server + ircv3 + numerics) ──
+  server: {
+    /** Network name (ISUPPORT NETWORK), '' until known. */
+    network: () => string;
+    /** Read-only snapshot of the server's ISUPPORT (005) tokens. */
+    isupport: () => Record<string, string>;
+    /** True once the given IRCv3 capability is negotiated and in use — check this
+     *  before using a cap-dependent feature so you never 421 a leaner server. */
+    hasCap: (cap: string) => boolean;
+    /** Every cap Orbit negotiates + whether the server advertises / enabled it. */
+    caps: () => { name: string; available: boolean; enabled: boolean }[];
+    /** RPL/ERR name for a numeric reply seen via on('raw'), e.g. '433' → 'ERR_NICKNAMEINUSE'. */
+    numeric: (code: string) => string | undefined;
   };
   // ── IRC actions ──────────────────────────────────────────────────────────
   irc: {
@@ -133,6 +149,13 @@ function makeApi(name: string): OrbitPluginApi {
       // server password). Plugins read state through this projection and act
       // through the curated irc.* methods; they never get a credential handle.
       get: () => ({ ...activeStore().getState(), client: null }),
+    },
+    server: {
+      network: () => activeStore().getState().client?.server.network ?? '',
+      isupport: () => ({ ...(activeStore().getState().client?.server.isupport ?? {}) }),
+      hasCap: (cap) => activeStore().getState().client?.ircv3.hasCap(cap) ?? false,
+      caps: () => activeStore().getState().client?.ircv3.listCaps() ?? [],
+      numeric: (code) => activeStore().getState().client?.numerics.name(code),
     },
     irc: {
       send: (line) => activeStore().getState().client?.send(line),
