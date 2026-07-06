@@ -33,7 +33,7 @@ before opening a pull request — CI runs the same three on every push and PR.
 ## Documentation
 
 The docs site ([orbit.tchatou.fr/docs](https://orbit.tchatou.fr/docs/)) is its
-own repo: [`orbit-client-docs`](https://codeberg.org/reversefr/orbit-client-docs).
+own repo: [`orbit-client-docs`](https://git.devtronic.pro/orbit/orbit-client-docs).
 Pages are Markdown with a small `Section:` / `Order:` front-matter; drop a file
 in and it appears in the nav.
 

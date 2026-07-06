@@ -58,5 +58,5 @@ A full, production-ready release — Orbit powers tchatou.fr.
 
 - Initial public release.
 
-[1.0.0]: https://codeberg.org/reversefr/orbit/releases/tag/v1.0.0
-[0.1.0]: https://codeberg.org/reversefr/orbit/releases/tag/v0.1.0
+[1.0.0]: https://git.devtronic.pro/orbit/orbit/releases/tag/v1.0.0
+[0.1.0]: https://git.devtronic.pro/orbit/orbit/releases/tag/v0.1.0

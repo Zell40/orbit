@@ -4,9 +4,8 @@
 
 Please **do not** open a public issue for security problems.
 
-Instead, report it privately to a maintainer — on `#orbit` (Libera.Chat or the
-Tchatou network), or via the maintainer's Codeberg profile
-([@reverse](https://codeberg.org/reverse)). We'll acknowledge it, work on a fix,
+Instead, report it privately to a maintainer — message an op on `#orbit`
+(Libera.Chat or the Tchatou network). We'll acknowledge it, work on a fix,
 and credit you (if you'd like) once it's resolved.
 
 ## Supported versions
@@ -60,7 +59,8 @@ the parts you must adjust marked:
 ```nginx
 # Replace wss://YOUR-IRC-HOST with config.json → server.url's origin.
 # Add any off-origin plugin hosts to script-src. Drop the challenges.cloudflare.com
-# lines if you don't use the Turnstile challenge.
+# lines if you don't use the Turnstile challenge. frame-src 'self' is required for
+# sandboxed plugins; youtube-nocookie serves the inline YouTube link cards.
 add_header Content-Security-Policy "
   default-src 'self';
   script-src 'self' https://challenges.cloudflare.com;
@@ -68,7 +68,7 @@ add_header Content-Security-Policy "
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data: blob: https:;
   connect-src 'self' wss://YOUR-IRC-HOST;
-  frame-src https://challenges.cloudflare.com;
+  frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com;
   worker-src 'self';
   manifest-src 'self';
   base-uri 'self';

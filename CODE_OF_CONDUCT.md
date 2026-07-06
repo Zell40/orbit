@@ -25,6 +25,6 @@ This applies in all project spaces — the issue tracker, pull requests, the
 ## Enforcement
 
 If you experience or witness unacceptable behaviour, contact a maintainer
-privately (on `#orbit`, or via the maintainer's Codeberg profile). Reports are
+privately (message an op on `#orbit`). Reports are
 handled confidentially. Maintainers may remove, edit, or reject contributions
 and may warn or ban anyone who violates this code.
