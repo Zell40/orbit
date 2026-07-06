@@ -160,8 +160,15 @@ export class Ircv3 {
   }
   verify(account: string, code: string): void { this.tx.send(`VERIFY ${account} ${code}`); }
   resend(account: string): void { this.tx.send(`RESEND ${account}`); }
-  // draft/webpush: register/remove a Web Push subscription (gated at the call site on
-  // the VAPID ISUPPORT key). <keys> is "p256dh=<b64url>;auth=<b64url>".
-  webpushRegister(endpoint: string, keys: string): void { this.tx.send(`WEBPUSH REGISTER ${endpoint} ${keys}`); }
-  webpushUnregister(endpoint: string): void { this.tx.send(`WEBPUSH UNREGISTER ${endpoint}`); }
+  // draft/webpush: register/remove a Web Push subscription. Gated on the VAPID
+  // ISUPPORT key (where the server advertises its Web Push public key) so a server
+  // without Web Push never sees a 421. <keys> is "p256dh=<b64url>;auth=<b64url>".
+  webpushRegister(endpoint: string, keys: string): void {
+    if (this.tx.isupport()['VAPID'] === undefined) return;
+    this.tx.send(`WEBPUSH REGISTER ${endpoint} ${keys}`);
+  }
+  webpushUnregister(endpoint: string): void {
+    if (this.tx.isupport()['VAPID'] === undefined) return;
+    this.tx.send(`WEBPUSH UNREGISTER ${endpoint}`);
+  }
 }

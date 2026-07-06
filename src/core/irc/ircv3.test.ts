@@ -94,6 +94,16 @@ describe('Ircv3 cap-gated commands', () => {
     expect(on.sent).toEqual(['MONITOR + bob']); // per spec: "MONITOR + <nicklist>"
   });
 
+  it('only sends WEBPUSH when ISUPPORT advertises VAPID', () => {
+    const off = make();
+    off.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b');
+    off.ircv3.webpushUnregister('https://push/x');
+    expect(off.sent).toHaveLength(0);
+    const on = make({ VAPID: 'BKey' });
+    on.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b');
+    expect(on.sent).toEqual(['WEBPUSH REGISTER https://push/x p256dh=a;auth=b']);
+  });
+
   it('routes chathistory prefetch through the low-priority queue', () => {
     const { ircv3, sent, low } = make();
     ircv3.chathistoryLatest('#x', 50);

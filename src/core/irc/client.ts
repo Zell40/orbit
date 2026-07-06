@@ -190,7 +190,9 @@ export class IrcClient {
   // `context` = a channel name → attaches the +draft/channel-context client tag,
   // marking this DM as relating to that channel (IRCv3 client-tags/channel-context).
   privmsg(target: string, text: string, context?: string): void {
-    const ctx = context ? `+draft/channel-context=${context}` : '';
+    // The channel-context client tag only propagates with message-tags; without the
+    // cap a tagged PRIVMSG can 421 on a lean ircd (and the tag is dropped anyway).
+    const ctx = context && this.ircv3.hasCap('message-tags') ? `+draft/channel-context=${context}` : '';
     if (this.useMultiline && /\r?\n/.test(text) && this.ircv3.hasCap('draft/multiline') && this.ircv3.hasCap('batch')) {
       const lines = text.split(/\r?\n/);
       if (lines.length <= this.ircv3.multilineMaxLines) { this.multilineMsg(target, lines, ctx); return; }
@@ -215,6 +217,9 @@ export class IrcClient {
   }
   // draft/reply — thread a message as a reply to another message's msgid.
   privmsgReply(target: string, text: string, replyTo: string, context?: string): void {
+    // The reply itself is a client-only tag — without message-tags it can't
+    // propagate (and may 421), so fall back to a plain message.
+    if (!this.ircv3.hasCap('message-tags')) { this.privmsg(target, text, context); return; }
     const ctx = context ? `;+draft/channel-context=${context}` : '';
     const parts = this.splitForLine('PRIVMSG', target, text);
     // only the first line carries the reply (+ context) tags; continuations are plain.
