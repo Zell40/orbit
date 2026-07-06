@@ -1,7 +1,7 @@
 // Tchatou IRC client — IRCv3-aware connection over WebSocket to server.
 import { parseLine } from './parser';
 import { casefold } from './casemap';
-import { WANTED_CAPS } from './caps';
+import { Ircv3 } from './ircv3';
 import { CTCP_REPLIES } from './ctcp';
 import type { ConnectOptions, IrcMessage } from './types';
 
@@ -23,8 +23,15 @@ export class IrcClient {
   private listeners: Record<string, Listener[]> = {};
   private opts!: ConnectOptions;
 
-  private availableCaps = new Set<string>();
-  private ackedCaps = new Set<string>();
+  // The IRCv3 capability layer: negotiation, the negotiated cap set, and every
+  // cap-gated extended-feature command. The rest of the app reaches these via
+  // `client.ircv3`. It calls back through this tiny transport so the send queues
+  // below stay private.
+  readonly ircv3 = new Ircv3({
+    send: (l) => this.send(l),
+    lowSend: (l) => this.lowSend(l),
+    isupport: () => this.isupport,
+  });
   private capEnded = false;
 
   nick = '';
@@ -34,7 +41,6 @@ export class IrcClient {
   prefixModeToChar: Record<string, string> = {}; // mode letter -> prefix symbol (o->@, v->+, …)
   chantypes = '#&';        // valid channel-name prefixes (ISUPPORT CHANTYPES)
   casemapping = 'rfc1459'; // ISUPPORT CASEMAPPING — how names are compared/folded
-  multilineMaxLines = 20;  // draft/multiline cap limit (max-lines)
   vapid = '';              // ISUPPORT VAPID — server's Web Push public key (base64url P-256)
   network = '';            // ISUPPORT NETWORK (network name, for the UI)
   nicklen = 30;            // ISUPPORT NICKLEN
@@ -183,7 +189,7 @@ export class IrcClient {
     this.ws = undefined;
     this.clearConnectTimer();
     // Reset per-connection state so a reconnect starts clean.
-    this.availableCaps.clear(); this.ackedCaps.clear(); this.capEnded = false;
+    this.ircv3.reset(); this.capEnded = false;
     this.registered = false; this.rxBuf = ''; this.sendQueue = []; this.tokens = this.burst;
     this.lowQueue = []; if (this.lowTimer) { clearTimeout(this.lowTimer); this.lowTimer = null; }
     this.emit('status', 'connecting');
@@ -432,60 +438,18 @@ export class IrcClient {
   }
 
   private handleCap(msg: IrcMessage): void {
-    // The subcommand is case-insensitive and server echoes back the exact case
-    // the client sent (`cap ls` → `ls`), so normalise before matching.
-    const sub = (msg.params[1] || '').toUpperCase();
-    // A CAP LS / CAP LIST arriving AFTER registration is a manual query (the user
-    // typed `cap ls` in the status window), not negotiation — forward it so the
-    // handler can print it, and DON'T re-run REQ/END, which would needlessly churn
-    // the negotiated cap set. cap-notify NEW/DEL and ACK/NAK still flow below.
-    if (this.registered && (sub === 'LS' || sub === 'LIST')) {
-      this.emit('message', msg);
-      return;
-    }
-    if (sub === 'LS' || sub === 'NEW') {
-      // CAP * LS * :cap1 cap2   (the '*' before ':' means more lines follow)
-      const more = msg.params[2] === '*';
-      const capStr = msg.params[more ? 3 : 2] ?? '';
-      for (const tok of capStr.split(' ').filter(Boolean)) {
-        const name = tok.split('=')[0];
-        this.availableCaps.add(name);
-        if (name === 'draft/multiline') {
-          const m = tok.match(/max-lines=(\d+)/);
-          if (m) this.multilineMaxLines = parseInt(m[1], 10) || this.multilineMaxLines;
-        }
-      }
-      if (!more) {
-        const req = WANTED_CAPS.filter((c) => this.availableCaps.has(c));
-        // Work around servers that drop a capability from CAP LS at a line-split
-        // boundary (server m_cap loses the overflowing cap). message-tags is the
-        // usual victim, yet it's mandatory for msgid/labels/reactions and is implied
-        // by server-time/echo-message/batch/etc. — so request it explicitly when any
-        // tag-dependent cap IS advertised. The server still ACKs it.
-        if (!req.includes('message-tags') &&
-          ['server-time', 'echo-message', 'batch', 'account-tag', 'labeled-response', 'message-redaction'].some((c) => this.availableCaps.has(c))) {
-          req.push('message-tags');
-        }
-        if (req.length) this.send(`CAP REQ :${req.join(' ')}`);
-        else this.endCap();
-      }
-    } else if (sub === 'ACK') {
-      for (const c of (msg.params[2] ?? '').split(' ').filter(Boolean)) {
-        this.ackedCaps.add(c);
-      }
-      if (this.ackedCaps.has('sasl') && this.opts.password) {
-        this.send('AUTHENTICATE PLAIN');
-      } else {
-        this.endCap();
-      }
-    } else if (sub === 'DEL') {
-      // cap-notify: server withdrew capabilities — forget them.
-      for (const c of (msg.params[2] ?? '').split(' ').filter(Boolean)) {
-        this.availableCaps.delete(c);
-        this.ackedCaps.delete(c);
-      }
-    } else if (sub === 'NAK') {
-      this.endCap();
+    // Negotiation logic + the cap set live in the IRCv3 layer; it returns the
+    // action to take so the registration/SASL ordering stays here.
+    const action = this.ircv3.handleCap(msg, {
+      registered: this.registered,
+      hasPassword: !!this.opts.password,
+    });
+    switch (action.do) {
+      case 'req': this.send(`CAP REQ :${action.caps.join(' ')}`); break;
+      case 'sasl': this.send('AUTHENTICATE PLAIN'); break;
+      case 'end': this.endCap(); break;
+      case 'forward': this.emit('message', msg); break; // post-registration manual `cap ls`
+      // 'none': nothing to do
     }
   }
 
@@ -522,7 +486,7 @@ export class IrcClient {
     this.capEnded = true;
     // draft/pre-away: if we're (re)connecting while marked away, set it DURING
     // registration so we're away from the instant we're connected — before CAP END.
-    if (this.awayMessage && this.ackedCaps.has('draft/pre-away'))
+    if (this.awayMessage && this.ircv3.hasCap('draft/pre-away'))
       this.send(`AWAY :${this.awayMessage}`);
     this.send('CAP END');
   }
@@ -549,19 +513,6 @@ export class IrcClient {
       this.prefixModeToChar = {};
       for (let i = 0; i < modes.length && i < chars.length; i++) this.prefixModeToChar[modes[i]] = chars[i];
     }
-  }
-
-  hasCap(name: string): boolean { return this.ackedCaps.has(name); }
-
-  // Snapshot of every capability Orbit wants, with its negotiated state — for the
-  // Settings "IRCv3 capabilities" panel. `enabled` = the server ACK'd it and we're
-  // using it; `available` = the server advertised it in CAP LS.
-  listCaps(): { name: string; available: boolean; enabled: boolean }[] {
-    return WANTED_CAPS.map((name) => ({
-      name,
-      available: this.availableCaps.has(name),
-      enabled: this.ackedCaps.has(name),
-    }));
   }
 
   // ---- line-length handling (the 512-byte IRC line limit) -----------------
@@ -606,9 +557,9 @@ export class IrcClient {
   // marking this DM as relating to that channel (IRCv3 client-tags/channel-context).
   privmsg(target: string, text: string, context?: string): void {
     const ctx = context ? `+draft/channel-context=${context}` : '';
-    if (this.useMultiline && /\r?\n/.test(text) && this.hasCap('draft/multiline') && this.hasCap('batch')) {
+    if (this.useMultiline && /\r?\n/.test(text) && this.ircv3.hasCap('draft/multiline') && this.ircv3.hasCap('batch')) {
       const lines = text.split(/\r?\n/);
-      if (lines.length <= this.multilineMaxLines) { this.multilineMsg(target, lines, ctx); return; }
+      if (lines.length <= this.ircv3.multilineMaxLines) { this.multilineMsg(target, lines, ctx); return; }
     }
     const pre = ctx ? `@${ctx} ` : '';
     for (const part of this.splitForLine('PRIVMSG', target, text)) this.send(`${pre}PRIVMSG ${target} :${part}`);
@@ -656,61 +607,18 @@ export class IrcClient {
   setChannelMode(channel: string, mode: string, add: boolean): void {
     this.send(`MODE ${channel} ${add ? '+' : '-'}${mode}`);
   }
-  // draft/account-registration: create + confirm a Swaygo/Tchatou account.
-  register(account: string, email: string, password: string): void {
-    this.send(`REGISTER ${account} ${email} :${password}`);
-  }
-  verify(account: string, code: string): void { this.send(`VERIFY ${account} ${code}`); }
-  // draft/webpush: register/remove a Web Push subscription. <keys> is the
-  // message-tag-format "p256dh=<b64url>;auth=<b64url>".
-  webpushRegister(endpoint: string, keys: string): void { this.send(`WEBPUSH REGISTER ${endpoint} ${keys}`); }
-  webpushUnregister(endpoint: string): void { this.send(`WEBPUSH UNREGISTER ${endpoint}`); }
-  resend(account: string): void { this.send(`RESEND ${account}`); }
   list(): void { this.send('LIST'); }
   whois(nick: string): void { this.send(`WHOIS ${nick} ${nick}`); }
   whowas(nick: string): void { this.send(`WHOWAS ${nick}`); }
   invite(nick: string, channel: string): void { this.send(`INVITE ${nick} ${channel}`); }
   names(channel: string): void { this.send(`NAMES ${channel}`); }
-  // draft/chathistory — load up to `limit` messages older than the given ISO time.
-  chathistoryBefore(target: string, beforeIso: string, limit: number): void {
-    this.send(`CHATHISTORY BEFORE ${target} timestamp=${beforeIso} ${limit}`);
-  }
-  // draft/chathistory — most recent `limit` items (messages + events w/ event-playback).
-  // Low priority: prefetched on join for every channel, must not block typing.
-  chathistoryLatest(target: string, limit: number): void {
-    this.lowSend(`CHATHISTORY LATEST ${target} * ${limit}`);
-  }
   // Remember the away message so draft/pre-away can re-apply it during the next
   // (re)connect's registration. '' = back (clears it).
   awayMessage = '';
   setAway(reason: string): void { this.awayMessage = reason; this.send(reason ? `AWAY :${reason}` : 'AWAY'); }
-  // MONITOR (online-notify): + add, - remove, L list, C clear.
-  monitor(op: '+' | '-' | 'L' | 'C', targets = ''): void {
-    if (this.isupport['MONITOR'] === undefined) return; // server doesn't advertise MONITOR → don't send it
-    this.send(`MONITOR ${op}${targets ? ` ${targets}` : ''}`);
-  }
   // Query a channel's ban/except/invex list (replies via 367/348/346).
   modeList(channel: string, mode: 'b' | 'e' | 'I'): void { this.send(`MODE ${channel} ${mode}`); }
   // WHOX: request token(t)/channel(c)/nick(n)/flags(f)/account(a) so we can map
   // members → their services account (for real avatars). Token 152 echoes back.
   who(target: string): void { this.send(`WHO ${target} %tcnfa,152`); }
-  react(target: string, msgid: string, emoji: string): void {
-    // Reaction rides on TAGMSG (message-tags). Without the cap the server rejects
-    // TAGMSG as an unknown command, so don't send it.
-    if (!this.hasCap('message-tags')) return;
-    this.send(`@+draft/reply=${msgid};+draft/react=${emoji} TAGMSG ${target}`);
-  }
-  redact(target: string, msgid: string, reason = ''): void {
-    if (!this.hasCap('draft/message-redaction')) return;
-    this.send(`REDACT ${target} ${msgid}${reason ? ` :${reason}` : ''}`);
-  }
-  markRead(target: string, ts: string): void {
-    if (!this.hasCap('draft/read-marker')) return; // MARKREAD is unknown without the cap
-    this.send(`MARKREAD ${target} timestamp=${ts}`);
-  }
-  sendTyping(target: string, state: 'active' | 'done'): void {
-    // +typing rides on TAGMSG (message-tags); skip entirely if the server lacks it.
-    if (!this.hasCap('message-tags')) return;
-    this.send(`@+typing=${state} TAGMSG ${target}`);
-  }
 }

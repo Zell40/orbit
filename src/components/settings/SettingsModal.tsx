@@ -511,7 +511,7 @@ function CapabilitiesSection() {
   const client = useActiveChat((s) => s.client);
   const status = useActiveChat((s) => s.status);
   const connected = status === 'registered' && !!client;
-  const caps = client ? client.listCaps() : CAP_KEYS.map((name) => ({ name, available: false, enabled: false }));
+  const caps = client ? client.ircv3.listCaps() : CAP_KEYS.map((name) => ({ name, available: false, enabled: false }));
   const active = caps.filter((c) => c.enabled).length;
 
   return (
@@ -614,7 +614,7 @@ function LoginTab() {
   // to enable it AND the server to advertise draft/account-registration; otherwise
   // REGISTER would just come back as an unknown command (e.g. a leaner ircd).
   const canRegister = getConfig().features.register
-    && status === 'registered' && !!client?.hasCap('draft/account-registration');
+    && status === 'registered' && !!client?.ircv3.hasCap('draft/account-registration');
   return (
     <>
       {canRegister && (

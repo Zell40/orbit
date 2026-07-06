@@ -565,7 +565,7 @@ export function makeHandler(ctx: HandlerCtx) {
           // Pull full history (messages + JOIN/PART/KICK/MODE/TOPIC events via event-playback)
           // from m_ircv3_chathistory — the +H auto-replay only carries messages. Deduped by id.
           const cl = get().client;
-          if (cl?.hasCap('draft/chathistory')) cl.chathistoryLatest(ch, 50);
+          if (cl?.ircv3.hasCap('draft/chathistory')) cl.ircv3.chathistoryLatest(ch, 50);
         }
         // extended-join: ":nick JOIN #chan <account> :<realname>" — '*'/'0' = none.
         // Gives us account + realname up front, so no WHO needed for joiners.

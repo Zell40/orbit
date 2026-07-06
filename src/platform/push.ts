@@ -60,7 +60,7 @@ function registerWithServer(client: IrcClient, sub: PushSubscription): void {
   const p256dh = bytesToUrlB64(sub.getKey('p256dh'));
   const auth = bytesToUrlB64(sub.getKey('auth'));
   if (!p256dh || !auth) return;
-  client.webpushRegister(sub.endpoint, `p256dh=${p256dh};auth=${auth}`);
+  client.ircv3.webpushRegister(sub.endpoint, `p256dh=${p256dh};auth=${auth}`);
 }
 
 // Turn push on: ask permission, subscribe, hand the endpoint to the ircd.
@@ -87,7 +87,7 @@ export async function disablePush(client: IrcClient): Promise<void> {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub) {
-      client.webpushUnregister(sub.endpoint);
+      client.ircv3.webpushUnregister(sub.endpoint);
       await sub.unsubscribe();
     }
   } catch { /* ignore */ }

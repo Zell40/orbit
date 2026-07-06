@@ -209,7 +209,7 @@ export function createChatStore(ns = '') {
           client.queryUserModes();
           // Watch our friends via MONITOR (server pushes 730/731 on presence change).
           const fr = get().friends;
-          if (fr.length) client.monitor('+', fr.join(','));
+          if (fr.length) client.ircv3.monitor('+', fr.join(','));
           // On a RECONNECT, rejoin every channel we still have open (the client
           // only auto-joins the initial set; this restores ones joined later).
           if (wasReconnect) {
@@ -294,7 +294,7 @@ export function createChatStore(ns = '') {
       if (s.historyLoading[key] || s.historyDone[key]) return;
       const client = s.client;
       const buf = s.buffers[key];
-      if (!client || !buf || !client.hasCap('draft/chathistory')) return;
+      if (!client || !buf || !client.ircv3.hasCap('draft/chathistory')) return;
       // A channel we've parted is no longer a valid CHATHISTORY target — the server
       // would answer FAIL INVALID_TARGET, so don't ask.
       if (isChannelName(buf.name) && !buf.joined) return;
@@ -302,7 +302,7 @@ export function createChatStore(ns = '') {
       const oldest = buf.messages.find((m) => m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice');
       if (!oldest) return;
       set({ historyLoading: { ...s.historyLoading, [key]: true } });
-      client.chathistoryBefore(buf.name, new Date(oldest.ts).toISOString(), 50);
+      client.ircv3.chathistoryBefore(buf.name, new Date(oldest.ts).toISOString(), 50);
       // safety: clear the spinner if the server never answers.
       setTimeout(() => set({ historyLoading: { ...get().historyLoading, [key]: false } }), 8000);
     },
@@ -320,7 +320,7 @@ export function createChatStore(ns = '') {
       const next = [...cur, n];
       saveFriends(next); syncGlobal();
       set({ friends: next });
-      get().client?.monitor('+', n); // start watching
+      get().client?.ircv3.monitor('+', n); // start watching
     },
 
     removeFriend(nick) {
@@ -328,7 +328,7 @@ export function createChatStore(ns = '') {
       saveFriends(next); syncGlobal();
       const online = { ...get().friendsOnline }; delete online[nick.toLowerCase()];
       set({ friends: next, friendsOnline: online });
-      get().client?.monitor('-', nick);
+      get().client?.ircv3.monitor('-', nick);
     },
 
     loadBanList(channel) {
@@ -397,7 +397,7 @@ export function createChatStore(ns = '') {
         if (pb && pb.messages.length) {
           const latest = pb.messages[pb.messages.length - 1].ts;
           if (latest > pb.readTs) {
-            get().client?.markRead(pb.name, new Date(latest).toISOString());
+            get().client?.ircv3.markRead(pb.name, new Date(latest).toISOString());
             patchBuffer(prev, (b) => ({ ...b, readTs: latest }));
           }
         }
@@ -412,7 +412,7 @@ export function createChatStore(ns = '') {
         const b = s.buffers[name];
         if (b?.messages.length) {
           const latest = b.messages[b.messages.length - 1].ts;
-          if (latest > b.readTs) s.client?.markRead(b.name, new Date(latest).toISOString());
+          if (latest > b.readTs) s.client?.ircv3.markRead(b.name, new Date(latest).toISOString());
         }
       }
       // …then clear unread/highlight everywhere in one update.
@@ -430,7 +430,7 @@ export function createChatStore(ns = '') {
       const { client, active } = get();
       if (!client || !active || !isChannelName(active)) return;
       const now = Date.now();
-      if (now - lastTypingSent > 3000) { lastTypingSent = now; client.sendTyping(active, 'active'); }
+      if (now - lastTypingSent > 3000) { lastTypingSent = now; client.ircv3.sendTyping(active, 'active'); }
     },
 
     sendInput(text) {
@@ -485,7 +485,7 @@ export function createChatStore(ns = '') {
             if (!t || !body) break;
             client.privmsg(t, body);
             // Optimistic echo (masked for services) so the user sees feedback.
-            if (!client.hasCap('echo-message')) {
+            if (!client.ircv3.hasCap('echo-message')) {
               const dest = isChannelName(t) ? t : t;
               addMessage(dest, {
                 id: newId(), bufferName: dest, from: get().nick,
@@ -501,7 +501,7 @@ export function createChatStore(ns = '') {
             if (!t || !body) break;
             client.send(`NOTICE ${t} :${body}`);
             // No optimistic echo if the server will echo it back to us.
-            if (!client.hasCap('echo-message')) {
+            if (!client.ircv3.hasCap('echo-message')) {
               const dest = isChannelName(t) ? t : (active || SERVER);
               addMessage(dest, {
                 id: newId(), bufferName: dest, from: get().nick,
@@ -539,7 +539,7 @@ export function createChatStore(ns = '') {
           i18n.t('security.leakGuard', { channel: active, service: leak.service }),
           'warning');
         ensureBuffer(leak.service);
-        if (!client.hasCap('echo-message')) {
+        if (!client.ircv3.hasCap('echo-message')) {
           addMessage(leak.service, {
             id: newId(), bufferName: leak.service, from: get().nick,
             text: maskSecret(leak.command), ts: Date.now(), kind: 'privmsg', self: true,
@@ -557,9 +557,9 @@ export function createChatStore(ns = '') {
       const ctx = !isChannelName(active) ? get().pmContext[canon(active)] : undefined;
       if (reply) { client.privmsgReply(active, body, reply.id, ctx); set({ replyTarget: null }); }
       else client.privmsg(active, body, ctx);
-      if (isChannelName(active)) { client.sendTyping(active, 'done'); lastTypingSent = 0; }
+      if (isChannelName(active)) { client.ircv3.sendTyping(active, 'done'); lastTypingSent = 0; }
       // Optimistic echo only if the server won't echo it back to us.
-      if (!client.hasCap('echo-message')) {
+      if (!client.ircv3.hasCap('echo-message')) {
         addMessage(active, {
           id: newId(), bufferName: active, from: get().nick,
           text: isService(active) ? maskSecret(text) : body,
@@ -624,12 +624,12 @@ export function createChatStore(ns = '') {
 
     toggleReaction(msgid, emoji) {
       const { client, active } = get();
-      client?.react(active, msgid, emoji);
+      client?.ircv3.react(active, msgid, emoji);
     },
 
     redact(msgid) {
       const { client, active } = get();
-      client?.redact(active, msgid);
+      client?.ircv3.redact(active, msgid);
     },
 
     async uploadImage(file) {
@@ -660,7 +660,7 @@ export function createChatStore(ns = '') {
         //    "* Mik 📷 partage une image : <url>" (mIRC/irssi etc.); web renders the card.
         const caption = `📷 ${i18n.t('system.shareImage', { url: data.url })}`;
         client.action(active, caption);
-        if (!client.hasCap('echo-message')) {
+        if (!client.ircv3.hasCap('echo-message')) {
           addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
         }
       } catch (e) {
@@ -711,7 +711,7 @@ export function createChatStore(ns = '') {
         const data = await res.json() as { url: string };
         const caption = `🎤 ${i18n.t('system.shareVoice', { url: data.url })}`;
         client.action(active, caption);
-        if (!client.hasCap('echo-message')) {
+        if (!client.ircv3.hasCap('echo-message')) {
           addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
         }
       } catch (e) {
@@ -739,19 +739,19 @@ export function createChatStore(ns = '') {
       const { client } = get();
       if (!client) return;
       set({ reg: { step: 'idle', account, busy: true, error: '', info: '', challengeUrl: '' } });
-      client.register(account, email, password);
+      client.ircv3.register(account, email, password);
     },
     accountVerify(code) {
       const { client, reg } = get();
       if (!client || !reg.account) return;
       set({ reg: { ...reg, busy: true, error: '' } });
-      client.verify(reg.account, code);
+      client.ircv3.verify(reg.account, code);
     },
     accountResend() {
       const { client, reg } = get();
       if (!client || !reg.account) return;
       set({ reg: { ...reg, error: '', info: i18n.t('reg.codeResent') } });
-      client.resend(reg.account);
+      client.ircv3.resend(reg.account);
     },
     // Change the account password via Django (same-origin proxy → swaygo). The
     // server updates BOTH Anope (IRC login) AND Django (website) so they never
