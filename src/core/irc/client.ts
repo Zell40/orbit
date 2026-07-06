@@ -4,19 +4,13 @@ import { parseLine } from './parser';
 import { casefold } from './casemap';
 import { Transport } from './transport';
 import { Ircv3 } from './ircv3';
+import { Registration } from './registration';
 import { CTCP_REPLIES } from './ctcp';
 import type { ConnectOptions, IrcMessage } from './types';
 
 
 type Listener = (...args: unknown[]) => void;
 
-
-function b64utf8(input: string): string {
-  const bytes = new TextEncoder().encode(input);
-  let bin = '';
-  for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin);
-}
 
 export class IrcClient {
   private listeners: Record<string, Listener[]> = {};
@@ -41,7 +35,22 @@ export class IrcClient {
     lowSend: (l) => this.lowSend(l),
     isupport: () => this.isupport,
   });
-  private capEnded = false;
+
+  // The registration handshake: CAP/SASL negotiation, NICK/USER, nick-in-use
+  // retry, RPL_WELCOME. Drives the transport + IRCv3 layer and writes nick /
+  // registered back here. Reached as `client.registration`.
+  readonly registration = new Registration({
+    send: (l) => this.send(l),
+    emit: (e, ...a) => this.emit(e, ...a),
+    ircv3: this.ircv3,
+    opts: () => this.opts,
+    getNick: () => this.nick,
+    setNick: (n) => { this.nick = n; },
+    isRegistered: () => this.registered,
+    setRegistered: (v) => { this.registered = v; },
+    resetBackoff: () => this.transport.resetBackoff(),
+    awayMessage: () => this.awayMessage,
+  });
 
   nick = '';
   private registered = false;
@@ -90,19 +99,9 @@ export class IrcClient {
   private sendRaw(line: string): void { this.transport.sendRaw(line); }
   private lowSend(line: string): void { this.transport.lowSend(line); }
 
-  // ---- registration handshake --------------------------------------------
-  // Socket reached OPEN → (re)start registration. Clear the negotiated caps and
-  // registration flags for a clean (re)connect, then send the handshake burst in
-  // spec order (CAP LS, [PASS], NICK, USER, …, CAP END once negotiated).
+  // Socket reached OPEN → run the registration handshake.
   private onOpen(): void {
-    this.ircv3.reset();
-    this.capEnded = false;
-    this.registered = false;
-    this.nick = this.opts.nick;
-    this.send(`CAP LS 302`);
-    if (this.opts.serverPassword) this.send(`PASS :${this.opts.serverPassword}`);
-    this.send(`NICK ${this.opts.nick}`);
-    this.send(`USER ${this.opts.username || 'guest'} 0 * :${this.opts.realname || this.opts.nick}`);
+    this.registration.start();
   }
 
   private onLine(line: string): void {
@@ -119,26 +118,11 @@ export class IrcClient {
       case 'PRIVMSG':
         this.maybeAnswerCtcp(msg); // auto-reply to CTCP VERSION/PING/TIME/… then fall through
         break;
-      case 'CAP':
-        this.handleCap(msg);
-        return;
-      case 'AUTHENTICATE':
-        this.handleAuthenticate(msg);
-        return;
-      case '903': // SASL success
-      case '904': // SASL failed
-      case '905':
-      case '906':
-      case '907':
-        if (msg.command !== '903') this.emit('status', 'sasl-failed');
-        this.endCap();
-        return;
-      case '433': // ERR_NICKNAMEINUSE — auto-suffix while still registering
-      case '432': // ERR_ERRONEUSNICKNAME
-        if (!this.registered) {
-          this.nick = `${this.opts.nick}${Math.floor(Math.random() * 900 + 100)}`;
-          this.send(`NICK ${this.nick}`);
-        }
+      case 'CAP':          // CAP negotiation
+      case 'AUTHENTICATE': // SASL
+      case '903': case '904': case '905': case '906': case '907': // SASL result
+      case '433': case '432': // nick in use / erroneous
+        this.registration.handle(msg); // consumed by the handshake, not forwarded
         return;
       case '005':
         this.handleISupport(msg);
@@ -164,31 +148,11 @@ export class IrcClient {
         if (Number.isFinite(cur)) this.users = cur;
         break;
       }
-      case '001':
-        this.registered = true;
-        this.transport.resetBackoff(); // healthy connection — clear the backoff
-        this.nick = msg.params[0] ?? this.nick;
-        this.emit('status', 'registered');
-        for (const ch of this.opts.channels ?? []) this.join(ch);
+      case '001': // RPL_WELCOME — registration handles it, then it's forwarded on
+        this.registration.handle(msg);
         break;
     }
     this.emit('message', msg);
-  }
-
-  private handleCap(msg: IrcMessage): void {
-    // Negotiation logic + the cap set live in the IRCv3 layer; it returns the
-    // action to take so the registration/SASL ordering stays here.
-    const action = this.ircv3.handleCap(msg, {
-      registered: this.registered,
-      hasPassword: !!this.opts.password,
-    });
-    switch (action.do) {
-      case 'req': this.send(`CAP REQ :${action.caps.join(' ')}`); break;
-      case 'sasl': this.send('AUTHENTICATE PLAIN'); break;
-      case 'end': this.endCap(); break;
-      case 'forward': this.emit('message', msg); break; // post-registration manual `cap ls`
-      // 'none': nothing to do
-    }
   }
 
   // Answer a CTCP query (VERSION/PING/TIME/SOURCE/CLIENTINFO) with a NOTICE, per
@@ -203,30 +167,6 @@ export class IrcClient {
     if (cmd === 'ACTION') return;
     const reply = CTCP_REPLIES[cmd];
     if (reply && msg.nick) this.send(`NOTICE ${msg.nick} :\x01${cmd} ${reply(arg)}\x01`);
-  }
-
-  private handleAuthenticate(msg: IrcMessage): void {
-    if (msg.params[0] !== '+') return;
-    const payload = b64utf8(`\0${this.opts.nick}\0${this.opts.password ?? ''}`);
-    // chunk into 400-char pieces per the SASL spec
-    let rest = payload;
-    if (rest.length === 0) this.send('AUTHENTICATE +');
-    while (rest.length > 0) {
-      const chunk = rest.slice(0, 400);
-      this.send(`AUTHENTICATE ${chunk}`);
-      rest = rest.slice(400);
-      if (rest.length === 0 && chunk.length === 400) this.send('AUTHENTICATE +');
-    }
-  }
-
-  private endCap(): void {
-    if (this.capEnded) return;
-    this.capEnded = true;
-    // draft/pre-away: if we're (re)connecting while marked away, set it DURING
-    // registration so we're away from the instant we're connected — before CAP END.
-    if (this.awayMessage && this.ircv3.hasCap('draft/pre-away'))
-      this.send(`AWAY :${this.awayMessage}`);
-    this.send('CAP END');
   }
 
   private handleISupport(msg: IrcMessage): void {
