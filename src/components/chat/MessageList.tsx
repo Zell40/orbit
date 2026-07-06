@@ -1,195 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
-import type { ChatMessage } from '../../core/irc/types';
-import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, firstPreviewableUrl, LinkPreview } from '../../lib/format';
-import { stripFormatting } from '../../core/store/text';
-import { getConfig } from '../../core/config';
-import { useTheme } from '../../themes';
-import { Avatar } from '../Avatar';
-import { usePluginRegistry, type MessageInfo } from '../../modules/registry';
-import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '../../core/networks';
+import { MsgRow } from './MsgRow';
+import { SystemLine } from './SystemLine';
+import { SearchResults } from './SearchResults';
 
-const QUICK = ['👍', '😂', '❤️', '🔥'];
-
-const msgInfo = (m: ChatMessage): MessageInfo =>
-  ({ id: m.id, nick: m.from, text: stripFormatting(m.text), raw: m.text, kind: m.kind, ts: m.ts, mine: !!m.self });
-
-// Plugin-contributed inline decorators (badges/chips after the message text).
-// Each runs inside its own error boundary so a crashing plugin can't take down the list.
-function MsgDecorations({ m }: { m: ChatMessage }) {
-  const decs = usePluginRegistry((s) => s.decorators);
-  if (!decs.length) return null;
-  const info = msgInfo(m);
-  return (
-    <span className="msg-deco">
-      {decs.map((d) => <PluginBoundary key={d.id} render={() => d.render(info)} label="message_decorator" />)}
-    </span>
-  );
-}
-
-// Plugin-contributed buttons for the hover action toolbar (next to reply/react).
-function MsgActions({ m }: { m: ChatMessage }) {
-  const acts = usePluginRegistry((s) => s.actions);
-  if (!acts.length) return null;
-  const info = msgInfo(m);
-  return <>{acts.map((a) => <PluginBoundary key={a.id} render={() => a.render(info)} label="message_action" />)}</>;
-}
-function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
-  const { t } = useTranslation();
-  const react = useActiveChat((s) => s.toggleReaction);
-  const redact = useActiveChat((s) => s.redact);
-  const openUser = useActiveChat((s) => s.openUser);
-  const setActive = useActiveChat((s) => s.setActive);
-  const setReply = useActiveChat((s) => s.setReplyTarget);
-  const togglePin = useActiveChat((s) => s.togglePin);
-  const pinned = useActiveChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
-  const isOper = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
-  const isBot = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.bot);
-  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
-  // Avatars resolve by ACCOUNT. Live messages carry the account tag, but
-  // chathistory-replayed ones (e.g. on a fresh mobile join) often don't — so
-  // fall back to the author's account from the channel member list.
-  const memberAccount = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.account);
-  const avatarAccount = m.account || memberAccount;
-  const mirc = useTheme().startsWith('yomirc');
-  const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
-  const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
-  // +draft/channel-context: badge it only when the context first appears or CHANGES.
-  // Compare against the last message that ACTUALLY carried a context (skip untagged
-  // ones) — otherwise the other person's untagged replies re-trigger the chip on our
-  // next message.
-  let showCtx = false;
-  if (m.channelContext && msgs) {
-    const idx = msgs.indexOf(m);
-    let prevCtx: string | undefined;
-    for (let i = idx - 1; i >= 0; i--) {
-      if (msgs[i].channelContext) { prevCtx = msgs[i].channelContext; break; }
-    }
-    showCtx = prevCtx !== m.channelContext;
-  }
-
-  // yomIRC: classic single log line — [HH:MM] <nick> text (nick on every line, no grouping/avatars).
-  if (mirc) {
-    const nickStyle = { color: isOper ? IRCOP_COLOR : nickColor(m.from) };
-    return (
-      <div data-mid={m.id} className={`mircline ${m.kind === 'action' ? 'mircline--action' : ''} ${m.redacted ? 'is-redacted' : ''}`}>
-        <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
-        <button className="mircline__nick" style={nickStyle} onClick={() => openUser(m.from)}>
-          {m.kind === 'action' ? '* ' : '<'}{m.from}
-          {isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
-          {m.kind !== 'action' && '>'}
-        </button>{' '}
-        <span className="mircline__txt">
-          {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
-          {!m.redacted && <MsgDecorations m={m} />}
-        </span>
-        {m.reactions && m.reactions.length > 0 && (
-          <span className="reactions reactions--inline">
-            {m.reactions.map((r) => (
-              <button key={r.emoji} className={`reaction ${r.mine ? 'mine' : ''}`} onClick={() => react(m.id, r.emoji)}>
-                {r.emoji} <b>{r.count}</b>
-              </button>
-            ))}
-          </span>
-        )}
-        {!m.redacted && (
-          <span className="msg-actions">
-            {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
-            <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
-            <button className={pinned ? 'is-pinned' : ''} title={t(pinned ? 'pins.unpin' : 'pins.pin')} onClick={() => togglePin(m.id)}>📌</button>
-            {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''}`}>
-      {cont
-        ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
-        : <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} /></button>}
-      <div className="group__body">
-        {!cont && (
-          <div className="group__head">
-            <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>{m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}</button>
-            <span className="group__time">{fmtTime(m.ts)}</span>
-          </div>
-        )}
-        {quoted && (
-          <div className="reply-quote" title={t('messages.reply')}>
-            <span className="reply-quote__arrow">↪</span>
-            <span className="reply-quote__from" style={{ color: nickColor(quoted.from) }}>{quoted.from}</span>
-            <span className="reply-quote__txt">{quoted.redacted ? t('messages.deleted') : quoted.text.slice(0, 90)}</span>
-          </div>
-        )}
-        <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
-          {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
-          {!m.redacted && <MsgDecorations m={m} />}
-        </div>
-        {!m.redacted && linkPreviews && getConfig().features.linkPreviews && (() => {
-          const pu = firstPreviewableUrl(stripFormatting(m.text));
-          return pu ? <LinkPreview url={pu} /> : null;
-        })()}
-        {showCtx && (
-          <button
-            className="ctx-chip"
-            title={t('messages.dmStarted', { chan: m.channelContext })}
-            onClick={() => setActive(m.channelContext!)}
-          >
-            <span className="ctx-chip__ic">↪</span>{t('messages.fromChannel')}&nbsp;<b>{m.channelContext}</b>
-          </button>
-        )}
-        {m.reactions && m.reactions.length > 0 && (
-          <div className="reactions">
-            {m.reactions.map((r) => (
-              <button key={r.emoji} className={`reaction ${r.mine ? 'mine' : ''}`} onClick={() => react(m.id, r.emoji)}>
-                {r.emoji} <b>{r.count}</b>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {!m.redacted && (
-        <div className="msg-actions">
-          {QUICK.map((e) => <button key={e} title={t('messages.react')} aria-label={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
-          <button title={t('messages.respond')} aria-label={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
-          <button className={pinned ? 'is-pinned' : ''} title={t(pinned ? 'pins.unpin' : 'pins.pin')} aria-label={t(pinned ? 'pins.unpin' : 'pins.pin')} onClick={() => togglePin(m.id)}>📌</button>
-          <MsgActions m={m} />
-          {m.self && <button title={t('messages.delete')} aria-label={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-function SearchResults({ messages, query }: { messages: ChatMessage[]; query: string }) {
-  const { t } = useTranslation();
-  const openUser = useActiveChat((s) => s.openUser);
-  const q = query.trim().toLowerCase();
-  const hits = messages.filter((m) => (m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice')
-    && !m.redacted && m.text.toLowerCase().includes(q));
-  return (
-    <div className="messages messages--search">
-      <div className="search-count">{t('messages.searchResults', { count: hits.length, q: query })}</div>
-      {hits.slice().reverse().map((m) => {
-        const i = m.text.toLowerCase().indexOf(q);
-        return (
-          <div key={m.id} className="search-hit">
-            <button className="search-hit__from" style={{ color: nickColor(m.from) }} onClick={() => openUser(m.from)}>{m.from}</button>
-            <span className="search-hit__time">{fmtTime(m.ts)}</span>
-            <div className="search-hit__txt">
-              {m.text.slice(Math.max(0, i - 30), i)}<mark>{m.text.slice(i, i + query.length)}</mark>{m.text.slice(i + query.length, i + query.length + 60)}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+// Message kinds rendered as a status line (SystemLine); everything else
+// (privmsg/action, plus any unknown kind) is a grouped message row (MsgRow).
+const SYSTEM_KINDS = new Set(['notice', 'info', 'warning', 'mode', 'ban', 'topic', 'join', 'part', 'quit', 'nick', 'system']);
 
 export function MessageList() {
   const { t, i18n } = useTranslation();
@@ -197,8 +16,6 @@ export function MessageList() {
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const search = useActiveChat((s) => s.search);
   const hideJoinQuit = useActiveChat((s) => s.prefs.hideJoinQuit);
-  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
-  const mirc = useTheme().startsWith('yomirc');
   const loadMore = useActiveChat((s) => s.loadMoreHistory);
   const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
   const histDone = useActiveChat((s) => !!s.historyDone[s.active]);
@@ -292,110 +109,8 @@ export function MessageList() {
       dividerShown = true; lastFrom = '';
     }
     if (m.ts <= buffer.readTs) hadRead = true;
-    // yomIRC: render every server event as a classic mIRC status line — [HH:MM] * …
-    if (mirc && m.kind !== 'privmsg' && m.kind !== 'action' && m.kind !== 'notice') {
-      let body: ReactNode;
-      if (m.kind === 'mode') {
-        const [modes, ...margs] = m.text.split(' ');
-        body = <>{m.from} applique {modes}{margs.length ? ' ' + margs.join(' ') : ''}</>;
-      } else if (m.kind === 'topic') {
-        body = m.text ? <>{m.from} change le sujet : {formatIrc(m.text, false, linkPreviews)}</> : <>{m.from} retire le sujet</>;
-      } else if (m.kind === 'info' || m.kind === 'ban') {
-        body = m.text.replace(/^[*•»]+\s*/, '');
-      } else { // join / part / quit / nick / kick / system
-        const rest = m.text.replace(m.from, '').trim();
-        body = m.from
-          ? <>{m.from}{m.mask ? <span className="mircline__host"> ({m.mask})</span> : null} {rest}</>
-          : m.text.replace(/^[*•»]+\s*/, '');
-      }
-      rows.push(
-        <div key={m.id} className={`mircline mircline--sys mircline--sys-${m.kind}`}>
-          <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
-          <span className="mircline__star">*</span>{' '}
-          <span className="mircline__sys">{body}</span>
-        </div>,
-      );
-      lastFrom = ''; continue;
-    }
-    if (m.kind === 'info') {
-      rows.push(
-        <div key={m.id} className="infoline">
-          <span className="infoline__tag">Info</span>
-          <span className="infoline__txt">{m.text.replace(/^[*•]+\s*/, '')}</span>
-        </div>,
-      );
-      lastFrom = ''; continue;
-    }
-    if (m.kind === 'warning') {
-      rows.push(
-        <div key={m.id} className="warnline">
-          <span className="warnline__ic" aria-hidden>🛡️</span>
-          <div className="warnline__body">
-            <span className="warnline__tag">{t('security.tag')}</span>
-            <span className="warnline__txt">{m.text}</span>
-          </div>
-        </div>,
-      );
-      lastFrom = ''; continue;
-    }
-    if (m.kind === 'mode') {
-      const [modes, ...margs] = m.text.split(' ');
-      const segs = modes.split(/(?=[+-])/).filter(Boolean);
-      rows.push(
-        <div key={m.id} className="sysline sysline--mode">
-          <span className="modeline__tag">{t('modeline.modeTag')}</span>
-          <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
-          <span className="modeline__verb">{t('modeline.modeVerb')}</span>
-          <span className="modeline__chg">[{segs.map((p, i) => (
-            <span key={i} className={p[0] === '+' ? 'mode-add' : 'mode-rm'}>{p}</span>
-          ))}{margs.length ? ' ' + margs.join(' ') : ''}]</span>
-        </div>,
-      );
-      lastFrom = ''; continue;
-    }
-    if (m.kind === 'ban') {
-      rows.push(<div key={m.id} className="banline">{m.text}</div>);
-      lastFrom = ''; continue;
-    }
-    if (m.kind === 'topic') {
-      rows.push(
-        <div key={m.id} className="sysline sysline--mode">
-          <span className="modeline__tag modeline__tag--topic">{t('modeline.topicTag')}</span>
-          <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
-          <span className="modeline__verb">{m.text ? t('modeline.topicChanged') : t('modeline.topicRemoved')}</span>
-          {m.text && <span className="topicline__txt">{formatIrc(m.text, false, linkPreviews)}</span>}
-        </div>,
-      );
-      lastFrom = ''; continue;
-    }
-    if (['join', 'part', 'quit', 'nick', 'system'].includes(m.kind)) {
-      const isCmd = m.text.startsWith('»');
-      const isAlert = m.text.startsWith('\x01ALERT\x01');
-      if (isAlert) {
-        const body = m.text.slice(8);
-        rows.push(
-          <div key={m.id} className="sysline sysline--alert" role="alert">
-            <svg className="sysline--alert__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            <span className="sysline--alert__body">{body}</span>
-          </div>
-        );
-      } else {
-        rows.push(<div key={m.id} className={`sysline ${isCmd ? 'sysline--cmd' : ''}`}><span className="who">{m.from}</span> {m.text.replace(m.from, '').trim()}</div>);
-      }
-      lastFrom = ''; continue;
-    }
-    if (m.kind === 'notice') {
-      rows.push(
-        <div key={m.id} className="sysline sysline--mode noticeline">
-          <span className="modeline__tag noticeline__tag">NOTICE</span>
-          {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
-          <span className="noticeline__txt">{formatIrc(m.text, m.self, linkPreviews)}</span>
-        </div>,
-      );
+    if (SYSTEM_KINDS.has(m.kind)) {
+      rows.push(<SystemLine key={m.id} m={m} />);
       lastFrom = ''; continue;
     }
     const cont = m.from === lastFrom && m.ts - lastTs < 5 * 60000 && !!lastKind;
@@ -411,4 +126,3 @@ export function MessageList() {
     </div>
   );
 }
-
