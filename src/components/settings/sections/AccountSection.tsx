@@ -27,7 +27,7 @@ function ChangeNickField({ hint }: { hint: string }) {
         <div className="sfield">
           <label className="sfield__label">{t('settings.account.changeNick')}</label>
           <div className="sfield__row">
-            <input className="modal__input" value={newNick} maxLength={30}
+            <input className="modal__input" value={newNick} maxLength={client?.server.nicklen ?? 30}
               onChange={(e) => setNewNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyNick()} />
             <button className="upbtn" onClick={applyNick} disabled={!newNick.trim() || newNick.trim() === nick}>{t('settings.account.changeBtn')}</button>
           </div>
