@@ -52,7 +52,7 @@ here since the sandbox gets no `raw` events), `orbit.storage.get/set`, and
 host sizes the frame to the content.
 
 The app's theme CSS vars (`--bg`, `--ink`, `--accent`, `--muted`, `--border`,
-`--panel`, `--green-soft`) are mirrored into the sandbox and kept in sync on theme
+`--accent-soft`) are mirrored into the sandbox and kept in sync on theme
 change, so plugin UI can use `var(--accent)` and look native in light + dark.
 
 Examples: `src/modules/sandbox/features/dice.js` (a built-in, bundled + mounted by core) and
