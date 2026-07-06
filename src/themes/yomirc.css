@@ -184,8 +184,12 @@
 [data-theme^="yomirc"] .mircline {
   position: relative; font-family: var(--mono); font-size: .9rem; line-height: 1.55;
   padding: .05rem .6rem; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere;
+  transition: background .16s ease;
 }
 [data-theme^="yomirc"] .mircline:hover { background: var(--mirc-hover); }
+/* the quoted line, softly lit while its reply preview is hovered (fades via the transition above) */
+[data-theme^="yomirc"] .mircline--replytarget,
+[data-theme^="yomirc"] .mircline--replytarget:hover { background: rgba(53, 196, 106, .17); box-shadow: inset 2px 0 0 var(--accent); }
 [data-theme^="yomirc"] .mircline__time { color: var(--muted); }
 [data-theme^="yomirc"] .mircline__nick { font-family: var(--mono); font-weight: 700; border: 0; background: none; padding: 0; cursor: pointer; vertical-align: baseline; }
 [data-theme^="yomirc"] .mircline__nick:hover { text-decoration: underline; }
@@ -212,13 +216,19 @@
   font-family: var(--mono); font-size: .9rem; line-height: 1.25;
   padding: .12rem .6rem 0; margin: 0; color: var(--muted); cursor: pointer;
   white-space: pre; overflow: hidden; text-overflow: ellipsis;
+  transition: color .15s ease, background .15s ease;
 }
-[data-theme^="yomirc"] .mircline-reply__txt { font-size: .86em; opacity: .82; }
+[data-theme^="yomirc"] .mircline-reply__txt { font-size: .86em; opacity: .82; transition: opacity .15s ease; }
 [data-theme^="yomirc"] .mircline-reply:hover { color: var(--ink); background: var(--mirc-hover); }
 [data-theme^="yomirc"] .mircline-reply:hover .mircline-reply__txt { opacity: 1; }
 [data-theme="yomirc-dark"] .mircline-reply b { filter: brightness(1.55) saturate(1.15); }
-[data-theme^="yomirc"] .mircline--flash { animation: mircFlash 1.1s ease-out; }
-@keyframes mircFlash { from { background: rgba(53, 196, 106, .28); } to { background: transparent; } }
+/* click-to-jump lands with a gentle green pulse that eases in AND out — no hard snap */
+[data-theme^="yomirc"] .mircline--flash { animation: mircFlash 1.4s cubic-bezier(.4, 0, .2, 1); }
+@keyframes mircFlash {
+  0% { background: transparent; }
+  16% { background: rgba(53, 196, 106, .30); }
+  100% { background: transparent; }
+}
 /* dimmer host, same hue */
 [data-theme^="yomirc"] .mircline--sys-join { color: var(--mirc-join); }
 [data-theme^="yomirc"] .mircline--sys-part,

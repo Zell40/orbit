@@ -19,7 +19,14 @@ function jumpToMessage(id: string): void {
   if (!el) return;
   el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   el.classList.add('mircline--flash');
-  window.setTimeout(() => el.classList.remove('mircline--flash'), 1100);
+  window.setTimeout(() => el.classList.remove('mircline--flash'), 1400);
+}
+
+// Softly tint the quoted message while its reply line is hovered — the live preview
+// cue from Halloy's highlight_hovered_message. The background transition on
+// .mircline (yomirc.css) makes it fade in/out instead of snapping.
+function highlightMessage(id: string, on: boolean): void {
+  document.querySelector(`[data-mid="${CSS.escape(id)}"]`)?.classList.toggle('mircline--replytarget', on);
 }
 
 const msgInfo = (m: ChatMessage): MessageInfo =>
@@ -93,6 +100,8 @@ export function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
       <>
         {quoted && !m.redacted && (
           <button className="mircline-reply" title={quoted.redacted ? t('messages.deleted') : quotedText}
+            onMouseEnter={() => highlightMessage(quoted.id, true)}
+            onMouseLeave={() => highlightMessage(quoted.id, false)}
             onClick={() => jumpToMessage(quoted.id)}>
             {'   ┌── ↩ '}
             <b style={{ color: nickColor(quoted.from) }}>{quoted.from}</b>{': '}
