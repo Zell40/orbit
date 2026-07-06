@@ -17,7 +17,7 @@ const KEY = 'tchatou-prefs';
 // Defaults come from config.json (so a deployment can preset compact/sound/etc.).
 function defaults(): Prefs {
   const d = getConfig().defaults;
-  return { sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24, textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: true };
+  return { sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24, textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false };
 }
 
 export function getPrefs(): Prefs {

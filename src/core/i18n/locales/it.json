@@ -284,7 +284,7 @@
       "highlightPlaceholder": "es.: tchatou, incontro, urgente",
       "highlightHint": "Oltre al tuo soprannome, queste parole attivano un avviso (separate da virgole).",
       "confirmClose": "Conferma prima di chiudere",
-      "confirmCloseHint": "Chiedi conferma prima di chiudere o ricaricare la scheda mentre sei connesso."
+      "confirmCloseHint": "Mostra la conferma del tuo browser prima di chiudere o ricaricare mentre sei connesso."
     },
     "misc": {
       "back": "Indietro",

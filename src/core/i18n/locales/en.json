@@ -284,7 +284,7 @@
       "highlightPlaceholder": "e.g. tchatou, meet, urgent",
       "highlightHint": "Besides your nickname, these words trigger an alert (comma-separated).",
       "confirmClose": "Confirm before closing",
-      "confirmCloseHint": "Ask before closing or reloading the tab while you’re connected."
+      "confirmCloseHint": "Show your browser’s own confirmation before closing or reloading while you’re connected."
     },
     "misc": {
       "back": "Back",

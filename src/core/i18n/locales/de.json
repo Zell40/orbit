@@ -284,7 +284,7 @@
       "highlightPlaceholder": "z. B. tchatou, treffen, dringend",
       "highlightHint": "Neben deinem Spitznamen lösen diese Wörter einen Hinweis aus (kommagetrennt).",
       "confirmClose": "Vor dem Schließen bestätigen",
-      "confirmCloseHint": "Vor dem Schließen oder Neuladen des Tabs nachfragen, solange du verbunden bist."
+      "confirmCloseHint": "Die eigene Bestätigung deines Browsers vor dem Schließen oder Neuladen anzeigen, solange du verbunden bist."
     },
     "misc": {
       "back": "Zurück",

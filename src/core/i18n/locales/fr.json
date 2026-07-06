@@ -284,7 +284,7 @@
       "highlightPlaceholder": "ex : tchatou, rdv, urgent",
       "highlightHint": "En plus de ton pseudo, ces mots déclenchent une alerte (séparés par des virgules).",
       "confirmClose": "Confirmer avant de fermer",
-      "confirmCloseHint": "Demander confirmation avant de fermer ou recharger l’onglet quand vous êtes connecté."
+      "confirmCloseHint": "Afficher la confirmation propre à votre navigateur avant de fermer ou recharger quand vous êtes connecté."
     },
     "misc": {
       "back": "Retour",

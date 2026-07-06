@@ -284,7 +284,7 @@
       "highlightPlaceholder": "örn.: tchatou, buluşma, acil",
       "highlightHint": "Takma adının yanı sıra bu kelimeler uyarı tetikler (virgülle ayrılmış).",
       "confirmClose": "Kapatmadan önce onayla",
-      "confirmCloseHint": "Bağlıyken sekmeyi kapatmadan veya yeniden yüklemeden önce sor."
+      "confirmCloseHint": "Bağlıyken kapatmadan veya yeniden yüklemeden önce tarayıcının kendi onayını göster."
     },
     "misc": {
       "back": "Geri",

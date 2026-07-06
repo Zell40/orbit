@@ -284,7 +284,7 @@
       "highlightPlaceholder": "ex.: tchatou, encontro, urgente",
       "highlightHint": "Além da tua alcunha, estas palavras ativam um alerta (separadas por vírgulas).",
       "confirmClose": "Confirmar antes de fechar",
-      "confirmCloseHint": "Perguntar antes de fechar ou recarregar o separador enquanto está ligado."
+      "confirmCloseHint": "Mostrar a confirmação do próprio navegador antes de fechar ou recarregar enquanto está ligado."
     },
     "misc": {
       "back": "Voltar",

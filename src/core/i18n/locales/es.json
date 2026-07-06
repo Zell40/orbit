@@ -284,7 +284,7 @@
       "highlightPlaceholder": "ej.: tchatou, quedada, urgente",
       "highlightHint": "Además de tu apodo, estas palabras activan una alerta (separadas por comas).",
       "confirmClose": "Confirmar antes de cerrar",
-      "confirmCloseHint": "Preguntar antes de cerrar o recargar la pestaña mientras estás conectado."
+      "confirmCloseHint": "Mostrar la confirmación propia de tu navegador antes de cerrar o recargar mientras estás conectado."
     },
     "misc": {
       "back": "Atrás",
