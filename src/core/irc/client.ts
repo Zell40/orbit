@@ -686,6 +686,7 @@ export class IrcClient {
   setAway(reason: string): void { this.awayMessage = reason; this.send(reason ? `AWAY :${reason}` : 'AWAY'); }
   // MONITOR (online-notify): + add, - remove, L list, C clear.
   monitor(op: '+' | '-' | 'L' | 'C', targets = ''): void {
+    if (this.isupport['MONITOR'] === undefined) return; // server doesn't advertise MONITOR → don't send it
     this.send(`MONITOR ${op}${targets ? ` ${targets}` : ''}`);
   }
   // Query a channel's ban/except/invex list (replies via 367/348/346).
@@ -694,17 +695,22 @@ export class IrcClient {
   // members → their services account (for real avatars). Token 152 echoes back.
   who(target: string): void { this.send(`WHO ${target} %tcnfa,152`); }
   react(target: string, msgid: string, emoji: string): void {
-    // draft/message-tags reaction via TAGMSG + draft/reply + react
+    // Reaction rides on TAGMSG (message-tags). Without the cap the server rejects
+    // TAGMSG as an unknown command, so don't send it.
+    if (!this.hasCap('message-tags')) return;
     this.send(`@+draft/reply=${msgid};+draft/react=${emoji} TAGMSG ${target}`);
   }
   redact(target: string, msgid: string, reason = ''): void {
+    if (!this.hasCap('draft/message-redaction')) return;
     this.send(`REDACT ${target} ${msgid}${reason ? ` :${reason}` : ''}`);
   }
   markRead(target: string, ts: string): void {
+    if (!this.hasCap('draft/read-marker')) return; // MARKREAD is unknown without the cap
     this.send(`MARKREAD ${target} timestamp=${ts}`);
   }
   sendTyping(target: string, state: 'active' | 'done'): void {
-    // +typing client-only tag, relayed to channel members via message-tags.
+    // +typing rides on TAGMSG (message-tags); skip entirely if the server lacks it.
+    if (!this.hasCap('message-tags')) return;
     this.send(`@+typing=${state} TAGMSG ${target}`);
   }
 }
