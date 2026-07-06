@@ -25,7 +25,7 @@ if (typeof g.navigator === 'undefined') g.navigator = { language: 'en', language
 if (typeof g.document === 'undefined') {
   const noop = () => {};
   const el = {
-    lang: '',
+    lang: '', dataset: {} as Record<string, string>,
     style: { setProperty: noop, removeProperty: noop, getPropertyValue: () => '' },
     classList: { add: noop, remove: noop, toggle: noop, contains: () => false },
     setAttribute: noop, appendChild: noop, removeChild: noop,
