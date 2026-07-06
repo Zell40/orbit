@@ -162,7 +162,7 @@ function PushRow() {
   const [on, setOn] = useState(pushEnabledPref());
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const hasVapid = !!client?.vapid;
+  const hasVapid = !!client?.server.vapid;
 
   async function toggle() {
     if (!client || busy) return;
@@ -409,30 +409,30 @@ function ServerSection() {
   const dash = '—';
   let host = '', secure = false;
   try { const u = new URL(getConfig().server.url); host = u.host; secure = u.protocol === 'wss:'; } catch { /* bad url */ }
-  const software = client && (client.serverName || client.serverVersion)
-    ? [client.serverName, client.serverVersion].filter(Boolean).join(' · ') : dash;
-  const roles = client ? client.prefixModes.split('').join(' ') : dash;
+  const software = client && (client.server.serverName || client.server.serverVersion)
+    ? [client.server.serverName, client.server.serverVersion].filter(Boolean).join(' · ') : dash;
+  const roles = client ? client.server.prefixModes.split('').join(' ') : dash;
   // CHANLIMIT is "#:100" / "#&:50" — surface the join cap as a plain number.
   const maxChans = (() => {
-    const m = (client?.isupport?.['CHANLIMIT'] || '').match(/(\d+)/);
+    const m = (client?.server.isupport?.['CHANLIMIT'] || '').match(/(\d+)/);
     return m ? m[1] : dash;
   })();
   const srv: { label: string; value: string }[] = [
-    { label: t('caps.server.network'), value: (connected && client?.network) || dash },
+    { label: t('caps.server.network'), value: (connected && client?.server.network) || dash },
     { label: t('caps.server.software'), value: connected ? software : dash },
     { label: t('caps.server.connection'), value: host ? (secure ? `🔒 ${t('caps.server.secure')} · ${host}` : host) : dash },
-    { label: t('caps.server.users'), value: connected && client && client.users > 0 ? client.users.toLocaleString() : dash },
-    { label: t('caps.server.casemapping'), value: (connected && client?.casemapping) || dash },
-    { label: t('caps.server.channelTypes'), value: (connected && client?.chantypes) || dash },
+    { label: t('caps.server.users'), value: connected && client && client.server.users > 0 ? client.server.users.toLocaleString() : dash },
+    { label: t('caps.server.casemapping'), value: (connected && client?.server.casemapping) || dash },
+    { label: t('caps.server.channelTypes'), value: (connected && client?.server.chantypes) || dash },
     { label: t('caps.server.roles'), value: connected ? roles : dash },
     { label: t('caps.server.maxChannels'), value: connected ? maxChans : dash },
     { label: t('caps.server.limits'), value: connected && client
-      ? t('caps.server.limitsValue', { nick: client.nicklen, chan: client.channellen, topic: client.topiclen }) : dash },
+      ? t('caps.server.limitsValue', { nick: client.server.nicklen, chan: client.server.channellen, topic: client.server.topiclen }) : dash },
   ];
 
   // Everything the server advertised in ISUPPORT (005), for the curious.
   const raw = connected && client
-    ? Object.entries(client.isupport).sort((a, b) => a[0].localeCompare(b[0])) : [];
+    ? Object.entries(client.server.isupport).sort((a, b) => a[0].localeCompare(b[0])) : [];
 
   return (
     <div className="scard">

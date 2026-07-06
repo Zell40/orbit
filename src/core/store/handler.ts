@@ -71,7 +71,7 @@ export function makeHandler(ctx: HandlerCtx) {
     const me = get().nick;
     // Keep CHANTYPES/CASEMAPPING/STATUSMSG current from the negotiated ISUPPORT.
     const cl = get().client;
-    if (cl) { isupport.chanTypes = cl.chantypes; isupport.casemapping = cl.casemapping; isupport.statusPrefixes = cl.isupport['STATUSMSG'] || ''; }
+    if (cl) { isupport.chanTypes = cl.server.chantypes; isupport.casemapping = cl.server.casemapping; isupport.statusPrefixes = cl.server.isupport['STATUSMSG'] || ''; }
 
     // draft/event-playback: a JOIN/PART/QUIT/KICK/NICK/TOPIC inside a chathistory
     // batch is HISTORICAL — collect it as a system line (prepended with the rest of
@@ -218,7 +218,7 @@ export function makeHandler(ctx: HandlerCtx) {
         ensureBuffer(chan);
         // Parse the modes + their params (key/limit) the same way as a live MODE.
         const client = get().client;
-        const ctx = buildModeContext(client?.isupport ?? {}, client?.prefixModeToChar ?? {});
+        const ctx = buildModeContext(client?.server.isupport ?? {}, client?.server.prefixModeToChar ?? {});
         const changes = parseModeChanges(msg.params[2] ?? '', msg.params.slice(3), ctx);
         let modes = '', modeParams: Record<string, string> = {};
         for (const c of changes) {
@@ -824,8 +824,8 @@ export function makeHandler(ctx: HandlerCtx) {
           break;
         }
         const client = get().client;
-        const order = client?.prefixModes ?? '~&@%+';
-        const ctx = buildModeContext(client?.isupport ?? {}, client?.prefixModeToChar ?? {});
+        const order = client?.server.prefixModes ?? '~&@%+';
+        const ctx = buildModeContext(client?.server.isupport ?? {}, client?.server.prefixModeToChar ?? {});
         const changes = parseModeChanges(msg.params[1] ?? '', msg.params.slice(2), ctx);
 
         const banLines: string[] = []; // +b/-b shown as their own clear lines (like mIRC)
@@ -880,7 +880,7 @@ export function makeHandler(ctx: HandlerCtx) {
       case '353': { // RPL_NAMREPLY
         const ch = msg.params[2];
         ensureBuffer(ch);
-        const prefixChars = get().client?.prefixModes ?? '@+';
+        const prefixChars = get().client?.server.prefixModes ?? '@+';
         const adds: Record<string, Member> = {};
         for (const raw of (msg.params[3] ?? '').split(' ').filter(Boolean)) {
           let i = 0;

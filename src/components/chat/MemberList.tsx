@@ -22,7 +22,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const membersMap = useActiveChat((s) => s.buffers[s.active]?.members);
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
   const openUser = useActiveChat((s) => s.openUser);
-  const prefixOrder = useActiveChat((s) => s.client?.prefixModes ?? '~&@%+');
+  const prefixOrder = useActiveChat((s) => s.client?.server.prefixModes ?? '~&@%+');
   const [q, setQ] = useState('');
   const needle = q.trim().toLowerCase();
 

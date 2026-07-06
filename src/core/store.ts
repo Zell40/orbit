@@ -220,7 +220,7 @@ export function createChatStore(ns = '') {
             }
           }
           // network icon from the server's draft/ICON ISUPPORT token (else Tchatou favicon)
-          const icon = client.isupport['draft/ICON'] || client.isupport['ICON'];
+          const icon = client.server.isupport['draft/ICON'] || client.server.isupport['ICON'];
           if (icon) set({ networkIcon: icon });
         }
       });

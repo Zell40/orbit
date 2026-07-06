@@ -5,6 +5,7 @@ import { casefold } from './casemap';
 import { Transport } from './transport';
 import { Ircv3 } from './ircv3';
 import { Registration } from './registration';
+import { ServerInfo } from './server-info';
 import { CTCP_REPLIES } from './ctcp';
 import type { ConnectOptions, IrcMessage, IrcClientEvents } from './types';
 
@@ -17,6 +18,9 @@ export class IrcClient {
   // the on()/emit() signatures below, keyed by the IrcClientEvents map.
   private listeners: Record<string, AnyListener[]> = {};
   private opts!: ConnectOptions;
+
+  // Server descriptor (parsed ISUPPORT/MYINFO/LUSERS). Reached as `client.server`.
+  readonly server = new ServerInfo();
 
   // WebSocket transport: the socket lifecycle (connect, reconnect, keepalive,
   // mobile resume), inbound line framing, and the outbound flood-control queues.
@@ -35,7 +39,7 @@ export class IrcClient {
   readonly ircv3 = new Ircv3({
     send: (l) => this.send(l),
     lowSend: (l) => this.lowSend(l),
-    isupport: () => this.isupport,
+    isupport: () => this.server.isupport,
   });
 
   // The registration handshake: CAP/SASL negotiation, NICK/USER, nick-in-use
@@ -57,22 +61,9 @@ export class IrcClient {
 
   nick = '';
   private registered = false;
-  isupport: Record<string, string> = {};
-  prefixModes = '@+'; // prefix symbols, strongest first (from ISUPPORT PREFIX)
-  prefixModeToChar: Record<string, string> = {}; // mode letter -> prefix symbol (o->@, v->+, …)
-  chantypes = '#&';        // valid channel-name prefixes (ISUPPORT CHANTYPES)
-  casemapping = 'rfc1459'; // ISUPPORT CASEMAPPING — how names are compared/folded
-  vapid = '';              // ISUPPORT VAPID — server's Web Push public key (base64url P-256)
-  network = '';            // ISUPPORT NETWORK (network name, for the UI)
-  nicklen = 30;            // ISUPPORT NICKLEN
-  channellen = 50;         // ISUPPORT CHANNELLEN
-  topiclen = 390;          // ISUPPORT TOPICLEN
-  serverName = '';         // RPL_MYINFO (004) — the ircd's own hostname
-  serverVersion = '';      // RPL_MYINFO (004) — the ircd software/version string
-  users = 0;               // RPL_GLOBALUSERS (266) / RPL_LUSERCLIENT (251) — users online
 
   // Fold a nick/channel to its canonical form per the server's CASEMAPPING.
-  casefold(name: string): string { return casefold(name, this.casemapping); }
+  casefold(name: string): string { return casefold(name, this.server.casemapping); }
 
   on<K extends keyof IrcClientEvents>(event: K, fn: IrcClientEvents[K]): void {
     (this.listeners[event] ??= []).push(fn as AnyListener);
@@ -127,30 +118,11 @@ export class IrcClient {
       case '433': case '432': // nick in use / erroneous
         this.registration.handle(msg); // consumed by the handshake, not forwarded
         return;
-      case '005':
-        this.handleISupport(msg);
-        break;
-      case '004': // RPL_MYINFO: <me> <servername> <version> <usermodes> <chanmodes> …
-        this.serverName = msg.params[1] || this.serverName;
-        this.serverVersion = msg.params[2] || this.serverVersion;
-        break;
-      case '002': { // RPL_YOURHOST fallback: "Your host is X, running version Y"
-        if (!this.serverVersion) {
-          const m = (msg.params[msg.params.length - 1] || '').match(/running version (\S+)/i);
-          if (m) this.serverVersion = m[1];
-        }
-        break;
-      }
-      case '251': { // RPL_LUSERCLIENT: "There are N users and M invisible on K servers"
-        const m = (msg.params[msg.params.length - 1] || '').match(/(\d+)\D+(\d+)\s+invisible/i);
-        if (m && !this.users) this.users = parseInt(m[1], 10) + parseInt(m[2], 10);
-        break;
-      }
-      case '266': { // RPL_GLOBALUSERS: explicit current global user count (more precise)
-        const cur = parseInt(msg.params[1], 10);
-        if (Number.isFinite(cur)) this.users = cur;
-        break;
-      }
+      case '005': this.server.applyISupport(msg); break; // RPL_ISUPPORT
+      case '004': this.server.applyMyInfo(msg); break;   // RPL_MYINFO
+      case '002': this.server.applyYourHost(msg); break; // RPL_YOURHOST (version fallback)
+      case '251': this.server.applyLuserClient(msg); break; // RPL_LUSERCLIENT
+      case '266': this.server.applyGlobalUsers(msg); break; // RPL_GLOBALUSERS
       case '001': // RPL_WELCOME — registration handles it, then it's forwarded on
         this.registration.handle(msg);
         break;
@@ -172,30 +144,6 @@ export class IrcClient {
     if (reply && msg.nick) this.send(`NOTICE ${msg.nick} :\x01${cmd} ${reply(arg)}\x01`);
   }
 
-  private handleISupport(msg: IrcMessage): void {
-    for (const tok of msg.params.slice(1, -1)) {
-      const eq = tok.indexOf('=');
-      if (eq === -1) this.isupport[tok] = '';
-      else this.isupport[tok.slice(0, eq)] = tok.slice(eq + 1);
-    }
-    if (this.isupport['CHANTYPES']) this.chantypes = this.isupport['CHANTYPES'];
-    if (this.isupport['CASEMAPPING']) this.casemapping = this.isupport['CASEMAPPING'];
-    if (this.isupport['NETWORK']) this.network = this.isupport['NETWORK'];
-    if (this.isupport['VAPID']) this.vapid = this.isupport['VAPID'];
-    if (this.isupport['NICKLEN']) this.nicklen = parseInt(this.isupport['NICKLEN'], 10) || this.nicklen;
-    if (this.isupport['CHANNELLEN']) this.channellen = parseInt(this.isupport['CHANNELLEN'], 10) || this.channellen;
-    if (this.isupport['TOPICLEN']) this.topiclen = parseInt(this.isupport['TOPICLEN'], 10) || this.topiclen;
-    const prefix = this.isupport['PREFIX']; // e.g. (qaohv)~&@%+
-    if (prefix) {
-      const close = prefix.indexOf(')');
-      const modes = prefix.slice(1, close);     // mode letters, e.g. qaohv
-      const chars = prefix.slice(close + 1);    // symbols,      e.g. ~&@%+
-      this.prefixModes = chars;
-      this.prefixModeToChar = {};
-      for (let i = 0; i < modes.length && i < chars.length; i++) this.prefixModeToChar[modes[i]] = chars[i];
-    }
-  }
-
   // ---- line-length handling (the 512-byte IRC line limit) -----------------
   private enc = new TextEncoder();
   private byteLen(s: string): number { return this.enc.encode(s).length; }
@@ -204,8 +152,8 @@ export class IrcClient {
   // once the server prepends our ":nick!user@host " source. UTF-8-aware (never
   // splits a codepoint), breaks on \n and prefers word boundaries.
   private splitForLine(verb: string, target: string, text: string, extra = 0): string[] {
-    const userlen = parseInt(this.isupport['USERLEN'] || '10', 10) || 10;
-    const hostlen = parseInt(this.isupport['HOSTLEN'] || '64', 10) || 64;
+    const userlen = parseInt(this.server.isupport['USERLEN'] || '10', 10) || 10;
+    const hostlen = parseInt(this.server.isupport['HOSTLEN'] || '64', 10) || 64;
     const source = this.nick.length + 1 + userlen + 1 + hostlen; // nick!user@host
     const overhead = 1 + source + 1 + verb.length + 1 + this.byteLen(target) + 2 + 2 + extra; // : src ' ' verb ' ' target ' :' crlf
     const max = Math.max(50, 512 - overhead);

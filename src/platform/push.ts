@@ -66,11 +66,11 @@ function registerWithServer(client: IrcClient, sub: PushSubscription): void {
 // Turn push on: ask permission, subscribe, hand the endpoint to the ircd.
 export async function enablePush(client: IrcClient): Promise<{ ok: boolean; reason?: string }> {
   if (!isPushSupported()) return { ok: false, reason: 'unsupported' };
-  if (!client.vapid) return { ok: false, reason: 'no-vapid' };
+  if (!client.server.vapid) return { ok: false, reason: 'no-vapid' };
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') return { ok: false, reason: 'denied' };
   try {
-    const sub = await getOrCreateSubscription(client.vapid);
+    const sub = await getOrCreateSubscription(client.server.vapid);
     if (!sub) return { ok: false, reason: 'no-subscription' };
     registerWithServer(client, sub);
     setPref(true);
@@ -96,10 +96,10 @@ export async function disablePush(client: IrcClient): Promise<void> {
 // Re-assert the subscription after (re)connect so it survives server expiry and
 // reconnects. Cheap no-op if push was never enabled or isn't permitted.
 export async function refreshPush(client: IrcClient): Promise<void> {
-  if (!isPushSupported() || !pushEnabledPref() || !client.vapid) return;
+  if (!isPushSupported() || !pushEnabledPref() || !client.server.vapid) return;
   if (Notification.permission !== 'granted') return;
   try {
-    const sub = await getOrCreateSubscription(client.vapid);
+    const sub = await getOrCreateSubscription(client.server.vapid);
     if (sub) registerWithServer(client, sub);
   } catch { /* ignore */ }
 }
