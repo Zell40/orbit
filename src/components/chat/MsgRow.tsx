@@ -84,6 +84,11 @@ export function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
           {m.kind !== 'action' && '>'}
         </button>{' '}
         <span className="mircline__txt">
+          {quoted && !m.redacted && (
+            <span className="mircline__reply" title={quoted.redacted ? t('messages.deleted') : quoted.text.slice(0, 140)}>
+              ↪<b style={{ color: nickColor(quoted.from) }}>{quoted.from}</b>{' '}
+            </span>
+          )}
           {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
           {!m.redacted && <MsgDecorations m={m} />}
         </span>

@@ -201,6 +201,9 @@
 [data-theme^="yomirc"] .mircline__star { font-weight: 700; }
 /* inherits the line colour */
 [data-theme^="yomirc"] .mircline__host { opacity: .72; }
+/* Compact reply indicator: "↪nick" before the text, quoted line in the tooltip. */
+[data-theme^="yomirc"] .mircline__reply { opacity: .85; font-weight: 700; cursor: help; }
+[data-theme="yomirc-dark"] .mircline__reply b { filter: brightness(1.55) saturate(1.15); }
 /* dimmer host, same hue */
 [data-theme^="yomirc"] .mircline--sys-join { color: var(--mirc-join); }
 [data-theme^="yomirc"] .mircline--sys-part,
