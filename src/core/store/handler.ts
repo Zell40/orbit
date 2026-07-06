@@ -1,7 +1,7 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '../../platform/notify';
-import { fmtDuration, formatUserModes } from '../../lib/format';
-import type { ChatMessage, IrcMessage, Member, MessageKind, WhoisInfo } from '../irc/types';
+import { makeWhois } from './whois';
+import type { ChatMessage, IrcMessage, Member, MessageKind } from '../irc/types';
 import { NUMERICS, ERROR_NUMERICS } from '../irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { usePluginRegistry } from '../../modules/registry';
@@ -36,35 +36,8 @@ export function makeHandler(ctx: HandlerCtx) {
   const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost } = ctx;
   const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sysLine, serverLine, patchWhois } = helpers;
 
-  // yomirc /whois: print the collected WHOIS to its origin window as classic mIRC
-  // text lines (WhoisInfo.printTo) instead of opening the profile panel.
-  function clearWhois(nick: string): void {
-    const rest = { ...get().whois }; delete rest[nick]; set({ whois: rest });
-  }
-  function printWhois(w: WhoisInfo): void {
-    const to = w.printTo!;
-    const n = w.nick;
-    const p = (text: string) => sysLine(to, text, 'info');
-    if (w.user || w.host) p(`${n} is ${w.user ?? '?'}@${w.host ?? '?'}${w.realname ? ` * ${w.realname}` : ''}`);
-    if (w.account) p(`${n} is logged in as ${w.account}`);
-    if (w.channels) p(`${n} is on ${w.channels}`);
-    if (w.server) p(`${n} is using ${w.server}${w.serverInfo ? ` (${w.serverInfo})` : ''}`);
-    if (w.oper) p(`${n} is an IRC operator`);
-    if (w.bot) p(`${n} is a bot`);
-    if (w.modes) p(`${n} is using modes ${formatUserModes(w.modes)}`);
-    if (w.secure) p(`${n} is using a secure connection (TLS)`);
-    if (w.certfp) p(`${n} has client certificate ${w.certfp}`);
-    if (w.actualHost) p(`${n} is actually using ${w.actualHost}`);
-    for (const sp of w.special ?? []) p(`${n} ${sp}`);
-    if (w.away) p(`${n} is away: ${w.away}`);
-    if (w.idle != null || w.signon) {
-      const idle = w.idle != null ? `has been idle ${fmtDuration(w.idle)}` : '';
-      const signon = w.signon ? `signed on ${new Date(w.signon * 1000).toLocaleString()}` : '';
-      p(`${n} ${[idle, signon].filter(Boolean).join(', ')}`);
-    }
-    p(`${n} End of /WHOIS list.`);
-    clearWhois(n);
-  }
+  // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
+  const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -103,32 +76,11 @@ export function makeHandler(ctx: HandlerCtx) {
       return;
     }
 
-    // WHOIS replies → user-info panel (and suppress them from the console).
+    // WHOIS/WHOWAS numerics build the profile panel (see ./whois). RPL_AWAY (301)
+    // stays below because it also drives the "user is away" query notice.
+    if (handleWhois(msg)) return;
+
     switch (msg.command) {
-      case '311': // RPL_WHOISUSER: <me> <nick> <user> <host> * :<realname>
-        patchWhois(msg.params[1], (w) => ({ ...w, user: msg.params[2], host: msg.params[3], realname: msg.params[5] }));
-        return;
-      case '312': // RPL_WHOISSERVER: <me> <nick> <server> :<info>
-        patchWhois(msg.params[1], (w) => ({ ...w, server: msg.params[2], serverInfo: msg.params[3] }));
-        return;
-      case '313': // RPL_WHOISOPERATOR
-        patchWhois(msg.params[1], (w) => ({ ...w, oper: true }));
-        return;
-      case '317': // RPL_WHOISIDLE: <me> <nick> <idle> <signon> :seconds idle, signon time
-        patchWhois(msg.params[1], (w) => ({ ...w, idle: Number(msg.params[2]) || 0, signon: Number(msg.params[3]) || 0 }));
-        return;
-      case '319': { // RPL_WHOISCHANNELS (can arrive across multiple lines)
-        const add = (msg.params[2] ?? '').split(' ').filter(Boolean);
-        patchWhois(msg.params[1], (w) => {
-          const seen = new Set((w.channels ? w.channels.split(' ') : []).filter(Boolean));
-          for (const c of add) { if (seen.size >= 300) break; seen.add(c); } // bound server-streamed 319s
-          return { ...w, channels: [...seen].join(' ') };
-        });
-        return;
-      }
-      case '330': // RPL_WHOISACCOUNT: <me> <nick> <account> :is logged in as
-        patchWhois(msg.params[1], (w) => ({ ...w, account: msg.params[2] }));
-        return;
       case '301': { // RPL_AWAY: <me> <nick> :<away message>
         const who = msg.params[1];
         const reason = msg.params[2] || '';
@@ -140,41 +92,6 @@ export function makeHandler(ctx: HandlerCtx) {
           lastAwayNotice[key] = Date.now();
           sysLine(who, i18n.t('system.userAway', { who, reason: reason ? `: ${reason}` : '' }), 'info');
         }
-        return;
-      }
-      case '335': // RPL_WHOISBOT (server)
-        patchWhois(msg.params[1], (w) => ({ ...w, bot: true }));
-        return;
-      case '338': // RPL_WHOISACTUALLY
-      case '378': // RPL_WHOISHOST
-        patchWhois(msg.params[1], (w) => ({ ...w, actualHost: msg.params[2] }));
-        return;
-      case '671': // RPL_WHOISSECURE
-        patchWhois(msg.params[1], (w) => ({ ...w, secure: true }));
-        return;
-      case '276': // RPL_WHOISCERTFP: <me> <nick> :has client cert fingerprint <fp>
-        patchWhois(msg.params[1], (w) => ({ ...w, certfp: (msg.params[2] || '').replace(/^.*fingerprint\s*/i, '') }));
-        return;
-      case '307': // RPL_WHOISREGNICK: nick is a registered/identified account
-        patchWhois(msg.params[1], (w) => ({ ...w, regnick: true }));
-        return;
-      case '320': // RPL_WHOISSPECIAL: free-form extra whois line
-        patchWhois(msg.params[1], (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), msg.params[2]] }));
-        return;
-      case '379': // RPL_WHOISMODES: <me> <nick> :is using modes <modes>
-        patchWhois(msg.params[1], (w) => ({ ...w, modes: (msg.params[2] || '').replace(/^.*modes\s*/i, '') }));
-        return;
-      case '314': // RPL_WHOWASUSER: <me> <nick> <user> <host> * :<realname>
-        patchWhois(msg.params[1], (w) => ({ ...w, user: msg.params[2], host: msg.params[3], realname: msg.params[5], offline: true }));
-        return;
-      case '369': // RPL_ENDOFWHOWAS
-        patchWhois(msg.params[1], (w) => ({ ...w, loading: false }));
-        return;
-      case '318': { // RPL_ENDOFWHOIS
-        const nk = msg.params[1];
-        patchWhois(nk, (w) => ({ ...w, loading: false }));
-        const w = get().whois[nk];
-        if (w?.printTo) printWhois(w); // yomirc: dump it to the active window as text
         return;
       }
       case '352': { // RPL_WHOREPLY: <me> <chan> <user> <host> <server> <nick> <flags> :<hop> <real>
