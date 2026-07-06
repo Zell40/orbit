@@ -3,6 +3,7 @@ import { desktopNotify, blip } from '../../platform/notify';
 import { makeWhois } from './whois';
 import { makeMembership } from './membership';
 import { makeBatch } from './batch';
+import { makeTagmsg } from './tagmsg';
 import type { ChatMessage, IrcMessage, Member, MessageKind } from '../irc/types';
 import { NUMERICS, ERROR_NUMERICS } from '../irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
@@ -44,6 +45,8 @@ export function makeHandler(ctx: HandlerCtx) {
   const { handleMembership } = makeMembership({ get, set, closedChannels, helpers });
   // IRCv3 BATCH open/close (chathistory + multiline merge). See ./batch.
   const { handleBatch } = makeBatch({ get, set, helpers });
+  // TAGMSG: typing indicators + reactions. See ./tagmsg.
+  const { handleTagmsg } = makeTagmsg({ ensureBuffer, patchBuffer });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -310,9 +313,10 @@ export function makeHandler(ctx: HandlerCtx) {
       return;
     }
 
-    // Channel-membership events + BATCH are handled first (see ./membership, ./batch).
+    // Channel-membership events, BATCH and TAGMSG are handled first.
     if (handleMembership(msg, me)) return;
     if (handleBatch(msg)) return;
+    if (handleTagmsg(msg, me)) return;
 
     switch (msg.command) {
       case 'CAP': {
@@ -650,58 +654,6 @@ export function makeHandler(ctx: HandlerCtx) {
         }
         break;
       }
-      case 'TAGMSG': {
-        const target = msg.params[0];
-        const fromMe = msg.nick === me;
-
-        // typing indicator (+typing client tag)
-        const typing = msg.tags['+typing'] || msg.tags['+draft/typing'];
-        if (typing && isChannelName(target) && !fromMe) {
-          ensureBuffer(target);
-          if (typing === 'done' || typing === 'paused') {
-            patchBuffer(target, (b) => {
-              const t = { ...b.typing }; delete t[msg.nick]; return { ...b, typing: t };
-            });
-          } else {
-            const exp = Date.now() + 6000;
-            patchBuffer(target, (b) => ({ ...b, typing: { ...b.typing, [msg.nick]: exp } }));
-            setTimeout(() => patchBuffer(target, (b) => {
-              if ((b.typing[msg.nick] ?? 0) <= Date.now()) {
-                const t = { ...b.typing }; delete t[msg.nick]; return { ...b, typing: t };
-              }
-              return b;
-            }), 6200);
-          }
-        }
-
-        // reactions (draft/react on a draft/reply target)
-        const reply = msg.tags['+draft/reply'];
-        const react = msg.tags['+draft/react'];
-        // A react tag is a short emoji; drop absurdly long values a server might send.
-        if (reply && react && react.length <= 32) {
-          patchBuffer(target, (b) => ({
-            ...b,
-            messages: b.messages.map((m) => {
-              if (m.id !== reply) return m;
-              const reactions = [...(m.reactions ?? [])];
-              const i = reactions.findIndex((r) => r.emoji === react);
-              if (i === -1) {
-                if (reactions.length >= 50) return m; // cap distinct reactions per message
-                reactions.push({ emoji: react, count: 1, mine: fromMe });
-              } else if (fromMe && reactions[i].mine) {
-                // my second identical react = toggle off
-                reactions[i] = { ...reactions[i], count: reactions[i].count - 1, mine: false };
-                if (reactions[i].count <= 0) reactions.splice(i, 1);
-              } else {
-                reactions[i] = { ...reactions[i], count: reactions[i].count + 1, mine: reactions[i].mine || fromMe };
-              }
-              return { ...m, reactions };
-            }),
-          }));
-        }
-        break;
-      }
-
       // ---- draft/account-registration structured replies ----
       case 'REGISTER': { // :server REGISTER <sub> <account> :<message>
         const sub = msg.params[0];
