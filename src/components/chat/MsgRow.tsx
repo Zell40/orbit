@@ -101,6 +101,7 @@ export function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
             {QUICK.map((e) => <button key={e} title={t('messages.react')} onClick={() => react(m.id, e)}>{e}</button>)}
             <button title={t('messages.respond')} onClick={() => setReply(m.id)}>↩</button>
             <button className={pinned ? 'is-pinned' : ''} title={t(pinned ? 'pins.unpin' : 'pins.pin')} onClick={() => togglePin(m.id)}>📌</button>
+            <MsgActions m={m} />
             {m.self && <button title={t('messages.delete')} onClick={() => redact(m.id)}>🗑</button>}
           </span>
         )}
