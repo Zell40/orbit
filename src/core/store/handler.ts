@@ -4,6 +4,7 @@ import { makeWhois } from './whois';
 import { makeMembership } from './membership';
 import { makeBatch } from './batch';
 import { makeTagmsg } from './tagmsg';
+import { makeMsgState } from './msgstate';
 import type { ChatMessage, IrcMessage, Member, MessageKind } from '../irc/types';
 import { NUMERICS, ERROR_NUMERICS } from '../irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
@@ -47,6 +48,8 @@ export function makeHandler(ctx: HandlerCtx) {
   const { handleBatch } = makeBatch({ get, set, helpers });
   // TAGMSG: typing indicators + reactions. See ./tagmsg.
   const { handleTagmsg } = makeTagmsg({ ensureBuffer, patchBuffer });
+  // REDACT + MARKREAD: message redaction + read markers. See ./msgstate.
+  const { handleMsgState } = makeMsgState({ ensureBuffer, patchBuffer });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -313,10 +316,11 @@ export function makeHandler(ctx: HandlerCtx) {
       return;
     }
 
-    // Channel-membership events, BATCH and TAGMSG are handled first.
+    // Channel-membership events, BATCH, TAGMSG and REDACT/MARKREAD are handled first.
     if (handleMembership(msg, me)) return;
     if (handleBatch(msg)) return;
     if (handleTagmsg(msg, me)) return;
+    if (handleMsgState(msg)) return;
 
     switch (msg.command) {
       case 'CAP': {
@@ -633,25 +637,6 @@ export function makeHandler(ctx: HandlerCtx) {
           adds[nick] = { nick, user, host, prefixes, prefix: prefixes[0] ?? '' };
         }
         patchBuffer(ch, (b) => ({ ...b, members: { ...b.members, ...adds } }));
-        break;
-      }
-      case 'REDACT': {
-        const ch = msg.params[0];
-        const id = msg.params[1];
-        patchBuffer(ch, (b) => ({
-          ...b,
-          messages: b.messages.map((m) => (m.id === id ? { ...m, redacted: true } : m)),
-        }));
-        break;
-      }
-      case 'MARKREAD': {
-        const ch = msg.params[0];
-        const arg = msg.params[1] ?? '';
-        ensureBuffer(ch);
-        if (arg.startsWith('timestamp=')) {
-          const t = Date.parse(arg.slice('timestamp='.length));
-          if (!Number.isNaN(t)) patchBuffer(ch, (b) => ({ ...b, readTs: t }));
-        }
         break;
       }
       // ---- draft/account-registration structured replies ----
