@@ -1,7 +1,7 @@
 // Complete IRC numeric-reply table (per https://modern.ircdocs.horse/).
 // Used so every numeric is recognised and presented sensibly — never dumped raw.
 
-export const NUMERICS: Record<string, string> = {
+const NUMERIC_NAMES: Record<string, string> = {
   '001': 'RPL_WELCOME', '002': 'RPL_YOURHOST', '003': 'RPL_CREATED', '004': 'RPL_MYINFO',
   '005': 'RPL_ISUPPORT', '010': 'RPL_BOUNCE',
   '200': 'RPL_TRACELINK', '201': 'RPL_TRACECONNECTING', '202': 'RPL_TRACEHANDSHAKE',
@@ -55,13 +55,23 @@ export const NUMERICS: Record<string, string> = {
 };
 
 // Numerics that report an error to the user — shown as a prominent error line.
-export const ERROR_NUMERICS = new Set([
+const ERROR_CODES = new Set([
   '400', '401', '402', '403', '404', '405', '406', '409', '411', '412', '417', '421',
   '422', '431', '432', '433', '436', '441', '442', '443', '451', '461', '462', '464',
   '465', '471', '472', '473', '474', '475', '476', '481', '482', '483', '491', '501',
   '502', '524', '525', '691', '696', '723', '734', '902', '904', '905', '906', '907',
 ]);
 
-// Friendly text for the errors a normal user can hit is resolved at runtime via
-// i18n (the `numerics.<code>` keys), falling back to the server's own trailing
-// message when the code isn't translated. See store.ts.
+// Numeric-reply knowledge as a small collaborator, reached as `client.numerics`.
+// Pure protocol data (no connection state, no i18n): it answers "what is code N?"
+// and "is it an error?". Friendly per-error text stays a presentation concern —
+// resolved in the store handler via the i18n `numerics.<code>` keys, falling back
+// to the server's own trailing message when a code isn't translated.
+export class Numerics {
+  /** The RPL/ERR reply name for a numeric code, or undefined if unknown. */
+  name(code: string): string | undefined { return NUMERIC_NAMES[code]; }
+  /** True when the code is a user-facing error reply (shown as a ⚠ line). */
+  isError(code: string): boolean { return ERROR_CODES.has(code); }
+  /** True when the numeric is in the known table. */
+  isKnown(code: string): boolean { return code in NUMERIC_NAMES; }
+}

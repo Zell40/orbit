@@ -6,6 +6,7 @@ import { Transport } from './transport';
 import { Ircv3 } from './ircv3';
 import { Registration } from './registration';
 import { ServerInfo } from './server-info';
+import { Numerics } from './numerics';
 import { CTCP_REPLIES } from './ctcp';
 import type { ConnectOptions, IrcMessage, IrcClientEvents } from './types';
 
@@ -21,6 +22,10 @@ export class IrcClient {
 
   // Server descriptor (parsed ISUPPORT/MYINFO/LUSERS). Reached as `client.server`.
   readonly server = new ServerInfo();
+
+  // Numeric-reply knowledge (RPL_*/ERR_* names + error classification) — a pure
+  // protocol table with no connection state. Reached as `client.numerics`.
+  readonly numerics = new Numerics();
 
   // WebSocket transport: the socket lifecycle (connect, reconnect, keepalive,
   // mobile resume), inbound line framing, and the outbound flood-control queues.
