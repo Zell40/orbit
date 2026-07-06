@@ -6,12 +6,13 @@ import { getPrefs, savePrefs, applyPrefs, type Prefs } from '../ui/prefs';
 import type { Buffer, ConnectOptions, WhoisInfo } from './irc/types';
 import { getConfig } from './config';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
-import { SERVER, newId, canon, isChannelName, resetBatches } from './store/context';
+import { SERVER, canon, isChannelName, resetBatches } from './store/context';
 import { fetchTimeout } from '../lib/net';
 export { SERVER } from './store/context';
 import { makeHelpers } from './store/helpers';
 import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';
+import { makeUpload } from './store/upload';
 
 
 
@@ -128,11 +129,12 @@ export function createChatStore(ns = '') {
   const store = create<ChatState>((set, get) => {
   // Buffer/message helpers live in store/helpers.ts.
   const helpers = makeHelpers(set, get, closedChannels);
-  const { ensureBuffer, patchBuffer, dropBuffer, addMessage, sysLine } = helpers;
+  const { ensureBuffer, patchBuffer, dropBuffer, sysLine } = helpers;
 
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
+  const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers });
 
   return {
     status: 'idle',
@@ -498,107 +500,11 @@ export function createChatStore(ns = '') {
       client?.ircv3.redact(active, msgid);
     },
 
-    async uploadImage(file) {
-      const { client, active } = get();
-      if (!client || !active || active === SERVER) return;
-      if (!file.type.startsWith('image/')) { sysLine(active, `⚠️ ${i18n.t('system.onlyImages')}`, 'system'); return; }
-      if (file.size > 16 * 1024 * 1024) { sysLine(active, `⚠️ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
-
-      sysLine(active, `📤 ${i18n.t('system.sendingImage', { name: file.name })}`, 'system');
-      try {
-        // 1) Ask the server for a one-time upload token via /FILEHOST.
-        const token = await new Promise<string>((resolve, reject) => {
-          filehost.resolve = resolve; filehost.reject = reject;
-          filehost.timer = setTimeout(() => { filehost.resolve = null; filehost.reject = null; reject(new Error('timeout')); }, 10000);
-          client.send('FILEHOST');
-        });
-        // 2) Upload the file to the Tchatou filehost (same origin as the app).
-        const fd = new FormData();
-        fd.append('file', file);
-        const res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
-        if (!res.ok) {
-          let detail = `http_${res.status}`;
-          try { const j = await res.json(); if (j?.detail) detail = `${res.status}:${j.detail}`; } catch { /* ignore */ }
-          throw new Error(detail);
-        }
-        const data = await res.json() as { url: string };
-        // 3) Share it as a CTCP ACTION so it reads as an action everywhere —
-        //    "* Mik 📷 partage une image : <url>" (mIRC/irssi etc.); web renders the card.
-        const caption = `📷 ${i18n.t('system.shareImage', { url: data.url })}`;
-        client.action(active, caption);
-        if (!client.ircv3.hasCap('echo-message')) {
-          addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
-        }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        const isPolicyHit = msg.includes('nsfw_image') || msg.includes('violent_image')
-          || msg.includes('infected') || msg.includes('scanner_unavailable');
-        const human = msg === 'not_identified'
-          ? i18n.t('system.uploadNeedAccount')
-          : msg === 'timeout' ? i18n.t('system.uploadTimeout')
-          : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
-          : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
-          : msg.includes('violent_image') ? i18n.t('system.uploadViolent')
-          : msg.includes('infected') ? i18n.t('system.uploadInfected')
-          : i18n.t('system.uploadFailed', { msg });
-        if (isPolicyHit) {
-          sysLine(active, `\x01ALERT\x01${human}`, 'system');
-        } else {
-          sysLine(active, `⚠️ ${human}`, 'system');
-        }
-      }
-    },
+    uploadImage,
+    uploadAudio,
 
     // Surface a one-off system line in a buffer (used by UI for local hints).
     pushSystem(buffer, text) { sysLine(buffer || get().active, text, 'system'); },
-
-    // Voice message: a recorded audio blob, uploaded via the same /FILEHOST flow
-    // as images and shared as an action; other clients render an inline player.
-    async uploadAudio(blob, ext) {
-      const { client, active } = get();
-      if (!client || !active || active === SERVER) return;
-      if (blob.size > 16 * 1024 * 1024) { sysLine(active, `⚠️ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
-
-      sysLine(active, `📤 ${i18n.t('system.sendingVoice')}`, 'system');
-      try {
-        const token = await new Promise<string>((resolve, reject) => {
-          filehost.resolve = resolve; filehost.reject = reject;
-          filehost.timer = setTimeout(() => { filehost.resolve = null; filehost.reject = null; reject(new Error('timeout')); }, 10000);
-          client.send('FILEHOST');
-        });
-        const fd = new FormData();
-        fd.append('file', new File([blob], `voice.${ext}`, { type: blob.type || 'audio/webm' }));
-        const res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
-        if (!res.ok) {
-          let detail = `http_${res.status}`;
-          try { const j = await res.json(); if (j?.detail) detail = `${res.status}:${j.detail}`; } catch { /* ignore */ }
-          throw new Error(detail);
-        }
-        const data = await res.json() as { url: string };
-        const caption = `🎤 ${i18n.t('system.shareVoice', { url: data.url })}`;
-        client.action(active, caption);
-        if (!client.ircv3.hasCap('echo-message')) {
-          addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
-        }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        const isPolicyHit = msg.includes('nsfw_image') || msg.includes('violent_image')
-          || msg.includes('infected') || msg.includes('scanner_unavailable');
-        const human = msg === 'not_identified'
-          ? i18n.t('system.uploadNeedAccount')
-          : msg === 'timeout' ? i18n.t('system.uploadTimeout')
-          : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
-          : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
-          : msg.includes('violent_image') ? i18n.t('system.uploadViolent')
-          : msg.includes('infected') ? i18n.t('system.uploadInfected')
-          : i18n.t('system.uploadFailed', { msg });
-        if (isPolicyHit) {
-          sysLine(active, `\x01ALERT\x01${human}`, 'system');
-        } else {
-          sysLine(active, `⚠️ ${human}`, 'system');
-        }
-      }
-    },
 
     // ---- account management (draft/account-registration) ----
     accountRegister(account, email, password) {
