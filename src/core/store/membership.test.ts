@@ -8,8 +8,8 @@ import type { StoreHelpers } from './helpers';
 // membership handler mutates through the helper stubs.
 function setup() {
   const state = {
-    nick: 'me', active: '', order: [] as string[],
-    buffers: {} as Record<string, { name: string; isChannel: boolean; members: Record<string, { nick: string; user?: string; host?: string; realname?: string; account?: string; prefix?: string }>; joined: boolean }>,
+    nick: 'me', account: '', active: '', order: [] as string[],
+    buffers: {} as Record<string, { name: string; isChannel: boolean; members: Record<string, { nick: string; user?: string; host?: string; realname?: string; account?: string; prefix?: string; away?: boolean }>; joined: boolean }>,
     whois: {} as Record<string, { nick: string; loading: boolean; user?: string; host?: string; realname?: string }>,
     prefs: { sound: false }, client: null as unknown,
     kicked: null as unknown, profileUser: 'x',
@@ -28,6 +28,12 @@ function setup() {
       if (state.buffers[k(name)]) state.buffers[k(name)] = fn(state.buffers[k(name)]);
     },
     dropBuffer: (name: string) => { delete state.buffers[k(name)]; state.order = state.order.filter((x) => x !== k(name)); },
+    patchMemberEverywhere: (nick: string, patch: Record<string, unknown>) => {
+      for (const key of Object.keys(state.buffers)) {
+        const b = state.buffers[key];
+        if (b.members[nick]) b.members = { ...b.members, [nick]: { ...b.members[nick], ...patch } };
+      }
+    },
     patchWhois: (nick: string, fn: (w: typeof state.whois[string]) => typeof state.whois[string]) => {
       state.whois = { ...state.whois, [nick]: fn(state.whois[nick] ?? { nick, loading: true }) };
     },
@@ -87,6 +93,27 @@ describe('membership handler', () => {
     expect(state.buffers['#x']).toBeUndefined();        // buffer dropped
     expect(closedChannels.has(k('#x'))).toBe(true);
     expect(state.kicked).toMatchObject({ channel: '#x', by: 'op', kind: 'kick' });
+  });
+
+  it('AWAY marks/clears a member as away across shared channels', () => {
+    const { on, state, seed } = setup();
+    seed('#a', ['bob']); seed('#b', ['bob']);
+    on(':bob!u@h AWAY :lunch');
+    expect(state.buffers['#a'].members['bob']).toMatchObject({ away: true });
+    expect(state.buffers['#b'].members['bob']).toMatchObject({ away: true });
+    on(':bob!u@h AWAY');
+    expect(state.buffers['#a'].members['bob']).toMatchObject({ away: false });
+  });
+
+  it('ACCOUNT updates a member account; our own login updates state.account', () => {
+    const { on, state, seed } = setup();
+    seed('#a', ['bob']);
+    on(':bob!u@h ACCOUNT bobacct');
+    expect(state.buffers['#a'].members['bob']).toMatchObject({ account: 'bobacct' });
+    on(':me!u@h ACCOUNT myacct');
+    expect(state.account).toBe('myacct');
+    on(':me!u@h ACCOUNT *'); // logged out
+    expect(state.account).toBe('');
   });
 
   it('returns false for a non-membership command', () => {

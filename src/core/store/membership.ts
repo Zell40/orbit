@@ -21,10 +21,11 @@ interface MembershipDeps {
 }
 
 export function makeMembership({ get, set, closedChannels, helpers }: MembershipDeps) {
-  const { ensureBuffer, patchBuffer, dropBuffer, patchWhois, sysLine } = helpers;
+  const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, patchWhois, sysLine } = helpers;
 
-  // Handle a membership event (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME). Returns
-  // true when handled; `me` is the client's current nick.
+  // Handle a membership event (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME) or a live
+  // member-state notify (AWAY/ACCOUNT). Returns true when handled; `me` is the
+  // client's current nick.
   function handleMembership(msg: IrcMessage, me: string): boolean {
     switch (msg.command) {
       case 'JOIN': {
@@ -152,6 +153,21 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
           }
         }
         if (get().whois[msg.nick]) patchWhois(msg.nick, (w) => ({ ...w, realname: newReal }));
+        return true;
+      }
+      case 'AWAY': {
+        // away-notify: ":nick AWAY :<reason>" = away, ":nick AWAY" = back. Keeps
+        // away state live in every common channel — no WHO poll needed.
+        patchMemberEverywhere(msg.nick, { away: msg.params.length > 0 });
+        return true;
+      }
+      case 'ACCOUNT': {
+        // account-notify: ":nick ACCOUNT <account>" ('*' = logged out). Live account
+        // = live avatar; no WHOX re-poll.
+        const acct = msg.params[0];
+        const account = acct && acct !== '*' ? acct : undefined;
+        patchMemberEverywhere(msg.nick, { account });
+        if (msg.nick === me) set({ account: account ?? '' });
         return true;
       }
       default:

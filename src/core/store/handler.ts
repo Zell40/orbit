@@ -6,10 +6,11 @@ import { makeBatch } from './batch';
 import { makeTagmsg } from './tagmsg';
 import { makeMsgState } from './msgstate';
 import { makeMessaging } from './messaging';
+import { makeMode } from './mode';
 import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { NUMERICS, ERROR_NUMERICS } from '../irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
-import { hostmask, maskMatches } from './text';
+import { hostmask } from './text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -32,7 +33,7 @@ const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '366
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
   const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost } = ctx;
-  const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, tsOf, sysLine, serverLine, patchWhois } = helpers;
+  const { ensureBuffer, patchBuffer, dropBuffer, tsOf, sysLine, serverLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
   const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine });
@@ -46,6 +47,8 @@ export function makeHandler(ctx: HandlerCtx) {
   const { handleMsgState } = makeMsgState({ ensureBuffer, patchBuffer });
   // PRIVMSG/NOTICE hot path (routing, services, notify, batch collection). See ./messaging.
   const { handleMessaging } = makeMessaging({ get, set, knownServices, filehost, helpers });
+  // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
+  const { handleMode } = makeMode({ get, set, helpers });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -318,6 +321,7 @@ export function makeHandler(ctx: HandlerCtx) {
     if (handleTagmsg(msg, me)) return;
     if (handleMsgState(msg)) return;
     if (handleMessaging(msg, me)) return;
+    if (handleMode(msg, me)) return;
 
     switch (msg.command) {
       case 'CAP': {
@@ -362,21 +366,6 @@ export function makeHandler(ctx: HandlerCtx) {
         }
         break;
       }
-      case 'AWAY': {
-        // away-notify: ":nick AWAY :<reason>" = away, ":nick AWAY" = back. Keeps
-        // away state live in every common channel — no WHO poll needed.
-        patchMemberEverywhere(msg.nick, { away: msg.params.length > 0 });
-        break;
-      }
-      case 'ACCOUNT': {
-        // account-notify: ":nick ACCOUNT <account>" ('*' = logged out). Live account
-        // = live avatar; no WHOX re-poll.
-        const acct = msg.params[0];
-        const account = acct && acct !== '*' ? acct : undefined;
-        patchMemberEverywhere(msg.nick, { account });
-        if (msg.nick === me) set({ account: account ?? '' });
-        break;
-      }
       case 'TOPIC': { // :<nick> TOPIC <channel> :<new topic>
         const ch = msg.params[0];
         const topic = msg.params[1] ?? '';
@@ -384,72 +373,6 @@ export function makeHandler(ctx: HandlerCtx) {
         // text = the new topic ('' = removed); from = who changed it. Rendered as
         // a tagged "sujet" line (like the MODE line) by MsgList.
         sysLine(ch, topic, 'topic', msg.nick);
-        break;
-      }
-      case 'MODE': {
-        const chan = msg.params[0];
-        if (!isChannelName(chan)) {
-          // User mode change. User modes are global per-user and take no params;
-          // we only track our own (target === our nick).
-          if (chan === me) {
-            const change = msg.params[1] ?? '';
-            const next = applyUserModes(get().umodes, change);
-            set({ umodes: next });
-            const named = change.replace(/[+-]/g, '').split('').map((c) => i18n.t(`umodes.${c}`, '')).filter(Boolean);
-            serverLine(named.length
-              ? i18n.t('system.yourModesNamed', { modes: next, change, names: named.join(', ') })
-              : i18n.t('system.yourModes', { modes: next, change }));
-          }
-          break;
-        }
-        const client = get().client;
-        const order = client?.server.prefixModes ?? '~&@%+';
-        const ctx = buildModeContext(client?.server.isupport ?? {}, client?.server.prefixModeToChar ?? {});
-        const changes = parseModeChanges(msg.params[1] ?? '', msg.params.slice(2), ctx);
-
-        const banLines: string[] = []; // +b/-b shown as their own clear lines (like mIRC)
-        let showCombined = false;      // any prefix/flag/param change → show the mode line
-
-        for (const c of changes) {
-          if (c.kind === 'prefix' && c.param && c.prefix) {
-            // membership grant (+o/+v/…) → update that member's held prefixes
-            showCombined = true;
-            const sym = c.prefix;
-            patchBuffer(chan, (b) => {
-              const m = b.members[c.param!];
-              if (!m) return b;
-              const held = (m.prefixes ?? m.prefix ?? '').split('').filter((x) => x !== sym);
-              if (c.add) held.push(sym);
-              held.sort((a, z) => order.indexOf(a) - order.indexOf(z));
-              const prefixes = held.join('');
-              return { ...b, members: { ...b.members, [c.param!]: { ...m, prefixes, prefix: prefixes[0] ?? '' } } };
-            });
-          } else if (c.kind === 'list') {
-            // type A list mode. A ban (+b/-b) gets its own clear lines + who it hits;
-            // other list modes (+e/+I) ride along in the combined line.
-            if (c.mode === 'b' && c.param) {
-              const mask = c.param;
-              banLines.push(c.add ? `🔨 ${i18n.t('system.banned', { nick: msg.nick, mask })}` : `♻️ ${i18n.t('system.unbanned', { nick: msg.nick, mask })}`);
-              const members = get().buffers[canon(chan)]?.members ?? {};
-              const hit = Object.values(members)
-                .filter((m) => maskMatches(mask, `${m.nick}!${m.user || '*'}@${m.host || '*'}`))
-                .map((m) => m.nick);
-              if (hit.length) banLines.push(i18n.t(c.add ? 'system.bansAdded' : 'system.bansRemoved', { list: hit.join(', ') }));
-            } else showCombined = true;
-          } else {
-            // type B/C param mode or type D flag → maintain the channel mode string
-            showCombined = true;
-            patchBuffer(chan, (b) => ({ ...b, ...applyChannelFlag(b.modes || '', b.modeParams || {}, c) }));
-          }
-        }
-
-        for (const line of banLines) sysLine(chan, line, 'ban');
-        // The combined mode line is shown for everything except a pure ban change
-        // (those are already covered by the dedicated ban lines above).
-        if (showCombined) {
-          const argStr = msg.params.length > 2 ? ' ' + msg.params.slice(2).join(' ') : '';
-          sysLine(chan, `${msg.params[1] ?? ''}${argStr}`, 'mode', msg.nick);
-        }
         break;
       }
       case '332': // RPL_TOPIC
