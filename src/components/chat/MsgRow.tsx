@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '../../core/irc/types';
-import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, firstPreviewableUrl, LinkPreview } from '../../lib/format';
+import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
+import { firstPreviewableUrl, LinkPreview } from '../../lib/link-preview';
 import { stripFormatting } from '../../core/store/text';
 import { getConfig } from '../../core/config';
 import { useTheme } from '../../themes';
