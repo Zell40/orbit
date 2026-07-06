@@ -281,7 +281,9 @@
       "linkPreviewsHint": "Zeigt Vorschauen für Links, Bilder, Audio und Videos.",
       "highlightLabel": "Hervorhebungs-Schlüsselwörter",
       "highlightPlaceholder": "z. B. tchatou, treffen, dringend",
-      "highlightHint": "Neben deinem Spitznamen lösen diese Wörter einen Hinweis aus (kommagetrennt)."
+      "highlightHint": "Neben deinem Spitznamen lösen diese Wörter einen Hinweis aus (kommagetrennt).",
+      "confirmClose": "Vor dem Schließen bestätigen",
+      "confirmCloseHint": "Vor dem Schließen oder Neuladen des Tabs nachfragen, solange du verbunden bist."
     },
     "misc": {
       "back": "Zurück",

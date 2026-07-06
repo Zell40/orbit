@@ -281,7 +281,9 @@
       "linkPreviewsHint": "Muestra vistas previas de enlaces, imágenes, audio y vídeo.",
       "highlightLabel": "Palabras clave de resaltado",
       "highlightPlaceholder": "ej.: tchatou, quedada, urgente",
-      "highlightHint": "Además de tu apodo, estas palabras activan una alerta (separadas por comas)."
+      "highlightHint": "Además de tu apodo, estas palabras activan una alerta (separadas por comas).",
+      "confirmClose": "Confirmar antes de cerrar",
+      "confirmCloseHint": "Preguntar antes de cerrar o recargar la pestaña mientras estás conectado."
     },
     "misc": {
       "back": "Atrás",

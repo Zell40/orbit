@@ -9,6 +9,7 @@ export interface Prefs {
   textScale: number;     // UI text size multiplier (1 = default; 0.9 / 1.1 / 1.25)
   linkPreviews: boolean; // show OpenGraph link-preview cards (off = never fetch)
   hoverActions: boolean; // quick react/reply/pin toolbar on message hover (off = classic)
+  confirmClose: boolean; // warn (beforeunload) before closing/reloading the tab while connected
 }
 
 const KEY = 'tchatou-prefs';
@@ -16,7 +17,7 @@ const KEY = 'tchatou-prefs';
 // Defaults come from config.json (so a deployment can preset compact/sound/etc.).
 function defaults(): Prefs {
   const d = getConfig().defaults;
-  return { sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24, textScale: 1, linkPreviews: true, hoverActions: true };
+  return { sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24, textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: true };
 }
 
 export function getPrefs(): Prefs {

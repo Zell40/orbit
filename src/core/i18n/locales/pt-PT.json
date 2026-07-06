@@ -281,7 +281,9 @@
       "linkPreviewsHint": "Mostra pré-visualizações de ligações, imagens, áudio e vídeo.",
       "highlightLabel": "Palavras-chave de destaque",
       "highlightPlaceholder": "ex.: tchatou, encontro, urgente",
-      "highlightHint": "Além da tua alcunha, estas palavras ativam um alerta (separadas por vírgulas)."
+      "highlightHint": "Além da tua alcunha, estas palavras ativam um alerta (separadas por vírgulas).",
+      "confirmClose": "Confirmar antes de fechar",
+      "confirmCloseHint": "Perguntar antes de fechar ou recarregar o separador enquanto está ligado."
     },
     "misc": {
       "back": "Voltar",

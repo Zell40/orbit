@@ -281,7 +281,9 @@
       "linkPreviewsHint": "Mostra anteprime per link, immagini, audio e video.",
       "highlightLabel": "Parole chiave di evidenziazione",
       "highlightPlaceholder": "es.: tchatou, incontro, urgente",
-      "highlightHint": "Oltre al tuo soprannome, queste parole attivano un avviso (separate da virgole)."
+      "highlightHint": "Oltre al tuo soprannome, queste parole attivano un avviso (separate da virgole).",
+      "confirmClose": "Conferma prima di chiudere",
+      "confirmCloseHint": "Chiedi conferma prima di chiudere o ricaricare la scheda mentre sei connesso."
     },
     "misc": {
       "back": "Indietro",

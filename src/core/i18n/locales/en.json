@@ -281,7 +281,9 @@
       "linkPreviewsHint": "Show inline previews for links, images, audio and video.",
       "highlightLabel": "Highlight keywords",
       "highlightPlaceholder": "e.g. tchatou, meet, urgent",
-      "highlightHint": "Besides your nickname, these words trigger an alert (comma-separated)."
+      "highlightHint": "Besides your nickname, these words trigger an alert (comma-separated).",
+      "confirmClose": "Confirm before closing",
+      "confirmCloseHint": "Ask before closing or reloading the tab while you’re connected."
     },
     "misc": {
       "back": "Back",

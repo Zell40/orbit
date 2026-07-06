@@ -7,8 +7,9 @@ import { refreshPush } from './platform/push';
 import { dismissUpdateCurtain } from './ui/appUpdate';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
-import { activeStore, useAllNetworksUnread } from './core/networks';
+import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks';
 import { useChat } from './core/store';
+import { getPrefs } from './ui/prefs';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.
@@ -42,6 +43,25 @@ export default function App() {
   // App is mounted and painting — fade out any update curtain held over from a
   // seamless-refresh reload, revealing the fresh build.
   useEffect(() => { dismissUpdateCurtain(); }, []);
+
+  // Guard against an accidental tab close/reload while a session is (or has been)
+  // live — the browser shows its native "Leave site?" prompt so you don't lose the
+  // connection by mistake. The listener stays mounted and decides at fire-time, so
+  // it never nags on the connect screen; opt out via the "confirmClose" preference.
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!getPrefs().confirmClose) return;
+      const live = useNetworks.getState().networks.some((n) => {
+        const s = n.store.getState();
+        return s.status === 'registered' || s.everRegistered;
+      });
+      if (!live) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives
   // server-side expiry and reconnects (cheap no-op if push isn't enabled).
