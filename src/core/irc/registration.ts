@@ -5,7 +5,7 @@
 // all the handshake ordering lives in one place. It drives the transport + IRCv3
 // layer and writes its results (nick, registered) back to the client through a
 // small host interface, so it can be unit-tested against a fake.
-import type { ConnectOptions, IrcMessage } from './types';
+import type { ConnectOptions, ConnectionStatus, IrcMessage } from './types';
 import type { Ircv3 } from './ircv3';
 
 // SASL PLAIN payload is base64 of "\0<authzid>\0<passwd>", UTF-8.
@@ -20,7 +20,8 @@ function b64utf8(input: string): string {
 // client reference) so the client's internals stay private and this is testable.
 export interface RegistrationHost {
   send(line: string): void;
-  emit(event: string, ...args: unknown[]): void;
+  setStatus(status: ConnectionStatus): void; // emit the 'status' event
+  forward(msg: IrcMessage): void;            // re-emit a message (post-registration manual `cap ls`)
   readonly ircv3: Ircv3;
   opts(): ConnectOptions;
   getNick(): string;
@@ -66,7 +67,7 @@ export class Registration {
       case '905':
       case '906':
       case '907':
-        if (msg.command !== '903') this.host.emit('status', 'sasl-failed');
+        if (msg.command !== '903') this.host.setStatus('sasl-failed');
         this.endCap();
         return;
       case '433': // ERR_NICKNAMEINUSE — auto-suffix while still registering
@@ -81,7 +82,7 @@ export class Registration {
         this.host.setRegistered(true);
         this.host.resetBackoff(); // healthy connection — clear the backoff
         this.host.setNick(msg.params[0] ?? this.host.getNick());
-        this.host.emit('status', 'registered');
+        this.host.setStatus('registered');
         for (const ch of this.host.opts().channels ?? []) this.host.send(`JOIN ${ch}`);
         return;
     }
@@ -98,7 +99,7 @@ export class Registration {
       case 'req': this.host.send(`CAP REQ :${action.caps.join(' ')}`); break;
       case 'sasl': this.host.send('AUTHENTICATE PLAIN'); break;
       case 'end': this.endCap(); break;
-      case 'forward': this.host.emit('message', msg); break; // post-registration manual `cap ls`
+      case 'forward': this.host.forward(msg); break; // post-registration manual `cap ls`
       // 'none': nothing to do
     }
   }

@@ -6,14 +6,16 @@ import { Transport } from './transport';
 import { Ircv3 } from './ircv3';
 import { Registration } from './registration';
 import { CTCP_REPLIES } from './ctcp';
-import type { ConnectOptions, IrcMessage } from './types';
+import type { ConnectOptions, IrcMessage, IrcClientEvents } from './types';
 
 
-type Listener = (...args: unknown[]) => void;
+type AnyListener = (...args: unknown[]) => void;
 
 
 export class IrcClient {
-  private listeners: Record<string, Listener[]> = {};
+  // Storage is loose (all handlers are the same shape); the type safety lives on
+  // the on()/emit() signatures below, keyed by the IrcClientEvents map.
+  private listeners: Record<string, AnyListener[]> = {};
   private opts!: ConnectOptions;
 
   // WebSocket transport: the socket lifecycle (connect, reconnect, keepalive,
@@ -41,7 +43,8 @@ export class IrcClient {
   // registered back here. Reached as `client.registration`.
   readonly registration = new Registration({
     send: (l) => this.send(l),
-    emit: (e, ...a) => this.emit(e, ...a),
+    setStatus: (s) => this.emit('status', s),
+    forward: (m) => this.emit('message', m),
     ircv3: this.ircv3,
     opts: () => this.opts,
     getNick: () => this.nick,
@@ -71,11 +74,11 @@ export class IrcClient {
   // Fold a nick/channel to its canonical form per the server's CASEMAPPING.
   casefold(name: string): string { return casefold(name, this.casemapping); }
 
-  on(event: string, fn: Listener): void {
-    (this.listeners[event] ??= []).push(fn);
+  on<K extends keyof IrcClientEvents>(event: K, fn: IrcClientEvents[K]): void {
+    (this.listeners[event] ??= []).push(fn as AnyListener);
   }
 
-  private emit(event: string, ...args: unknown[]): void {
+  private emit<K extends keyof IrcClientEvents>(event: K, ...args: Parameters<IrcClientEvents[K]>): void {
     // A throwing listener (e.g. the message handler hitting an unexpected server
     // line, or a buggy plugin) must not escape into the WebSocket callback and
     // kill the receive loop. Isolate each listener; log and carry on.

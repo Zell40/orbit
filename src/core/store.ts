@@ -3,7 +3,7 @@ import i18n from './i18n';
 import { IrcClient } from './irc/client';
 import { initNotify } from '../platform/notify';
 import { getPrefs, savePrefs, applyPrefs, type Prefs } from '../ui/prefs';
-import type { Buffer, ConnectOptions, IrcMessage, WhoisInfo } from './irc/types';
+import type { Buffer, ConnectOptions, WhoisInfo } from './irc/types';
 import { usePluginRegistry } from '../modules/registry';
 import { getConfig } from './config';
 import { stripFormatting, tidyOutgoing } from './store/text';
@@ -195,7 +195,7 @@ export function createChatStore(ns = '') {
       initNotify();
       set({ client, nick: opts.nick, status: 'connecting' });
       client.on('status', (st) => {
-        set({ status: st as ChatState['status'], nick: client.nick });
+        set({ status: st, nick: client.nick });
         // Once we leave 'connecting' (registered, or an auth/connection failure),
         // a handoff is no longer in flight: drop the splash so failures fall back
         // to the join form (with the nick/channel still prefilled from the URL).
@@ -230,7 +230,7 @@ export function createChatStore(ns = '') {
         set({ reconnectIn: secs as number });
         sysLine(SERVER, i18n.t('system.reconnecting', { secs }), 'system');
       });
-      client.on('message', (m) => handle(m as IrcMessage));
+      client.on('message', (m) => handle(m));
       client.connect(opts);
     },
 

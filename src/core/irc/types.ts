@@ -112,3 +112,17 @@ export interface ConnectOptions {
   serverPassword?: string; // server connection password — sent via PASS (optional)
   channels?: string[];
 }
+
+// Connection lifecycle states the client reports via the 'status' event. ('idle'
+// is the store's initial state and is never emitted by the client.)
+export type ConnectionStatus = 'connecting' | 'registered' | 'closed' | 'error' | 'sasl-failed';
+
+// Events the IrcClient emits, mapped to their payloads — so client.on()/emit() are
+// typed (event names + argument types checked at every call site).
+export interface IrcClientEvents {
+  message: (msg: IrcMessage) => void;
+  status: (status: ConnectionStatus) => void;
+  reconnecting: (seconds: number) => void;
+  'raw-in': (line: string) => void;
+  'raw-out': (line: string) => void;
+}

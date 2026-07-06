@@ -7,6 +7,7 @@
 // active network is always the primary, so the gate is always true).
 import { useNetworks, activeStore } from '../core/networks';
 import type { IrcClient } from '../core/irc/client';
+import type { IrcMessage } from '../core/irc/types';
 import { bus } from './bus';
 
 const wired = new WeakSet<IrcClient>();
@@ -14,9 +15,8 @@ const wired = new WeakSet<IrcClient>();
 function attachClient(client: IrcClient): void {
   if (wired.has(client)) return;
   wired.add(client);
-  client.on('message', (...a: unknown[]) => {
+  client.on('message', (msg: IrcMessage) => {
     if (activeStore().getState().client !== client) return; // not the active network — ignore
-    const msg = a[0] as { command: string; nick: string; params: string[] };
     bus.emit('raw', msg);
     if (msg.command === 'PRIVMSG') {
       bus.emit('message', {

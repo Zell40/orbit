@@ -7,13 +7,14 @@ import type { ConnectOptions } from './types';
 // A fake host that records what registration sends + the state it writes back.
 function make(opts: Partial<ConnectOptions> = {}) {
   const sent: string[] = [];
-  const events: [string, unknown[]][] = [];
+  const statuses: string[] = [];
   const state = { nick: '', registered: false, backoffResets: 0, away: '' };
   const ircv3 = new Ircv3({ send: () => {}, lowSend: () => {}, isupport: () => ({}) });
   const full: ConnectOptions = { url: 'ws://x', nick: 'bob', channels: [], ...opts };
   const reg = new Registration({
     send: (l) => sent.push(l),
-    emit: (e, ...a) => events.push([e, a]),
+    setStatus: (s) => statuses.push(s),
+    forward: () => {},
     ircv3,
     opts: () => full,
     getNick: () => state.nick,
@@ -23,7 +24,7 @@ function make(opts: Partial<ConnectOptions> = {}) {
     resetBackoff: () => { state.backoffResets++; },
     awayMessage: () => state.away,
   });
-  return { reg, ircv3, sent, events, state };
+  return { reg, ircv3, sent, statuses, state };
 }
 
 describe('Registration handshake', () => {
@@ -72,12 +73,12 @@ describe('Registration handshake', () => {
   });
 
   it('on 001 sets registered, clears backoff, adopts the nick, emits status, joins channels', () => {
-    const { reg, sent, events, state } = make({ nick: 'bob', channels: ['#a', '#b'] });
+    const { reg, sent, statuses, state } = make({ nick: 'bob', channels: ['#a', '#b'] });
     reg.handle(parseLine(':srv 001 bobby :Welcome'));
     expect(state.registered).toBe(true);
     expect(state.backoffResets).toBe(1);
     expect(state.nick).toBe('bobby');
-    expect(events).toContainEqual(['status', ['registered']]);
+    expect(statuses).toContain('registered');
     expect(sent).toEqual(['JOIN #a', 'JOIN #b']);
   });
 
