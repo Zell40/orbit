@@ -245,7 +245,8 @@
       "nickPlaceholder": "Spitzname",
       "emailLabel": "E-Mail",
       "loginTitle": "Anmelden",
-      "challengeOpen": "Verifizierungsseite öffnen →"
+      "challengeOpen": "Verifizierungsseite öffnen →",
+      "leaveConfirm": "Du wirst vom Chat getrennt. Jetzt verlassen?"
     },
     "appearance": {
       "theme": "Design",

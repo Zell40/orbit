@@ -245,7 +245,8 @@
       "nickPlaceholder": "Apodo",
       "emailLabel": "Correo",
       "loginTitle": "Iniciar sesión",
-      "challengeOpen": "Abrir la página de verificación →"
+      "challengeOpen": "Abrir la página de verificación →",
+      "leaveConfirm": "Se te desconectará del chat. ¿Salir ahora?"
     },
     "appearance": {
       "theme": "Tema",

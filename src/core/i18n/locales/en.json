@@ -245,7 +245,8 @@
       "nickLabel": "Nickname",
       "nickPlaceholder": "Nickname",
       "emailLabel": "Email",
-      "loginTitle": "Log in"
+      "loginTitle": "Log in",
+      "leaveConfirm": "You’ll be disconnected from the chat. Leave now?"
     },
     "appearance": {
       "theme": "Theme",

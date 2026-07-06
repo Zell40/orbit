@@ -245,7 +245,8 @@
       "nickPlaceholder": "Soprannome",
       "emailLabel": "Email",
       "loginTitle": "Accedi",
-      "challengeOpen": "Apri la pagina di verifica →"
+      "challengeOpen": "Apri la pagina di verifica →",
+      "leaveConfirm": "Verrai disconnesso dalla chat. Uscire ora?"
     },
     "appearance": {
       "theme": "Tema",

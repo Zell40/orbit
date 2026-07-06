@@ -245,7 +245,8 @@
       "nickPlaceholder": "Takma ad",
       "emailLabel": "E-posta",
       "loginTitle": "Giriş yap",
-      "challengeOpen": "Doğrulama sayfasını aç →"
+      "challengeOpen": "Doğrulama sayfasını aç →",
+      "leaveConfirm": "Sohbet bağlantınız kesilecek. Şimdi çıkılsın mı?"
     },
     "appearance": {
       "theme": "Tema",

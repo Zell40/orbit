@@ -245,7 +245,8 @@
       "nickPlaceholder": "Alcunha",
       "emailLabel": "Email",
       "loginTitle": "Iniciar sessão",
-      "challengeOpen": "Abrir a página de verificação →"
+      "challengeOpen": "Abrir a página de verificação →",
+      "leaveConfirm": "Vai ser desligado do chat. Sair agora?"
     },
     "appearance": {
       "theme": "Tema",

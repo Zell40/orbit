@@ -245,7 +245,8 @@
       "nickPlaceholder": "Ник",
       "emailLabel": "E-mail",
       "loginTitle": "Войти",
-      "challengeOpen": "Открыть страницу проверки →"
+      "challengeOpen": "Открыть страницу проверки →",
+      "leaveConfirm": "Вы будете отключены от чата. Выйти сейчас?"
     },
     "appearance": {
       "theme": "Тема",

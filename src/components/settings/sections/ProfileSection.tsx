@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '../../../core/networks';
 import { Avatar } from '../../Avatar';
+import { Modal } from '../../modals/Modal';
 
 export function ProfileSection() {
   const { t } = useTranslation();
   const client = useActiveChat((s) => s.client);
   const nick = useActiveChat((s) => s.nick);
   const account = useActiveChat((s) => s.account);
+  const [leaving, setLeaving] = useState(false);
 
   return (
     <>
@@ -22,7 +25,17 @@ export function ProfileSection() {
         </div>
       </div>
 
-      <button className="set-leave" onClick={() => { client?.disconnect(); location.reload(); }}>{t('settings.account.leaveChat')}</button>
+      <button className="set-leave" onClick={() => setLeaving(true)}>{t('settings.account.leaveChat')}</button>
+
+      {leaving && (
+        <Modal title={t('settings.account.leaveChat')} onClose={() => setLeaving(false)}>
+          <p className="modal__sub">{t('settings.account.leaveConfirm')}</p>
+          <div className="modal__actions">
+            <button className="upbtn" onClick={() => setLeaving(false)}>{t('profile.cancel')}</button>
+            <button className="upbtn upbtn--danger" onClick={() => { client?.disconnect(); location.reload(); }}>{t('settings.account.leaveChat')}</button>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

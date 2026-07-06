@@ -245,7 +245,8 @@
       "nickPlaceholder": "उपनाम",
       "emailLabel": "इमेल",
       "loginTitle": "लग इन",
-      "challengeOpen": "प्रमाणीकरण पृष्ठ खोल्नुहोस् →"
+      "challengeOpen": "प्रमाणीकरण पृष्ठ खोल्नुहोस् →",
+      "leaveConfirm": "तपाईं च्याटबाट विच्छेदन हुनुहुनेछ। अहिले बाहिर निस्कने?"
     },
     "appearance": {
       "theme": "थिम",

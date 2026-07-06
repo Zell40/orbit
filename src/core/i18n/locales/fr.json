@@ -245,7 +245,8 @@
       "nickLabel": "Pseudo",
       "nickPlaceholder": "Pseudo",
       "emailLabel": "E-mail",
-      "loginTitle": "Se connecter"
+      "loginTitle": "Se connecter",
+      "leaveConfirm": "Vous serez déconnecté du tchat. Quitter maintenant ?"
     },
     "appearance": {
       "theme": "Thème",
