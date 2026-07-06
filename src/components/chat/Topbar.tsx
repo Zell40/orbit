@@ -20,6 +20,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const search = useActiveChat((s) => s.search);
   const setSearch = useActiveChat((s) => s.setSearch);
   const setModal = useActiveChat((s) => s.setModal);
+  const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const myPrefix = useActiveChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
   // mIRC-style status line: "Status: <nick> [+<umodes>] on <servername>"
@@ -70,6 +71,11 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {isChannel && <NotifyMenu />}
       {isChannel && amOp && <button className="topbar__search" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}>🛠️</button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
+      {!isServer && (
+        <button className="topbar__leave" onClick={() => closeBuffer(bname)}
+          title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
+          aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}>✕</button>
+      )}
     </div>
   );
 }

@@ -83,7 +83,6 @@
 [data-theme^="yomirc"] .side-search,
 [data-theme^="yomirc"] .pills,
 [data-theme^="yomirc"] .rooms-h,
-[data-theme^="yomirc"] .room__close,
 [data-theme^="yomirc"] .room-discover { display: none; }
 [data-theme^="yomirc"] .side-top { flex: none; padding: 0; gap: 3px; }
 [data-theme^="yomirc"] .side-compose { border-radius: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
@@ -96,6 +95,10 @@
 [data-theme^="yomirc"] .room:hover { background: var(--mirc-silver); }
 [data-theme^="yomirc"] .room.is-active { background: var(--mirc-silver); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
 [data-theme^="yomirc"] .room.is-active .room__name { color: var(--accent-d); }
+/* Leave/close (✕) on each switchbar window button — reserves its slot and fades in
+   on hover or when the window is active, so any channel can be parted in one click. */
+[data-theme^="yomirc"] .room__close { width: 16px; height: 16px; border-radius: 0; font-size: .72rem; color: var(--ink); }
+[data-theme^="yomirc"] .room__close:hover { background: var(--mirc-shadow); color: #d6465f; }
 } /* end @media min-width:881px — mIRC top navbar */
 [data-theme^="yomirc"] .member { content-visibility: visible; }
 [data-theme^="yomirc"] .member__name { min-width: 0; max-width: 240px; } /* cap the name's intrinsic width so one long nick can't force the whole column wide; it ellipsis-truncates instead */

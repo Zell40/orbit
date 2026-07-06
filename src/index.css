@@ -543,6 +543,9 @@ html[data-actions="off"] .msg-actions { display: none; }
 .topbar--search { gap: .5rem; }
 .topbar__search { flex: none; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 1rem; cursor: pointer; transition: background .13s; }
 .topbar__search:hover { background: var(--bg-soft-2); color: var(--ink); }
+/* Leave/close the current window (parts a channel, closes a DM) — far-right of the header. */
+.topbar__leave { flex: none; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 1rem; cursor: pointer; transition: background .13s, color .13s; }
+.topbar__leave:hover { background: var(--danger-soft, rgba(224,49,80,.14)); color: var(--danger); }
 .topbar__searchicon { font-size: 1rem; opacity: .7; }
 .topbar__searchinput { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: .95rem; color: var(--ink); outline: none; }
 .topbar__searchclose { flex: none; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: .95rem; padding: .3rem .5rem; border-radius: 8px; }
