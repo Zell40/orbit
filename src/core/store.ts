@@ -7,12 +7,12 @@ import type { Buffer, ConnectOptions, WhoisInfo } from './irc/types';
 import { getConfig } from './config';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, canon, isChannelName, resetBatches } from './store/context';
-import { fetchTimeout } from '../lib/net';
 export { SERVER } from './store/context';
 import { makeHelpers } from './store/helpers';
 import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
+import { makeAccount } from './store/account';
 
 
 
@@ -135,6 +135,7 @@ export function createChatStore(ns = '') {
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
   const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers });
+  const { accountRegister, accountVerify, accountResend, accountChangePassword, accountChallengeComplete, resetReg } = makeAccount({ get, set });
 
   return {
     status: 'idle',
@@ -506,77 +507,13 @@ export function createChatStore(ns = '') {
     // Surface a one-off system line in a buffer (used by UI for local hints).
     pushSystem(buffer, text) { sysLine(buffer || get().active, text, 'system'); },
 
-    // ---- account management (draft/account-registration) ----
-    accountRegister(account, email, password) {
-      const { client } = get();
-      if (!client) return;
-      set({ reg: { step: 'idle', account, busy: true, error: '', info: '', challengeUrl: '' } });
-      client.ircv3.register(account, email, password);
-    },
-    accountVerify(code) {
-      const { client, reg } = get();
-      if (!client || !reg.account) return;
-      set({ reg: { ...reg, busy: true, error: '' } });
-      client.ircv3.verify(reg.account, code);
-    },
-    accountResend() {
-      const { client, reg } = get();
-      if (!client || !reg.account) return;
-      set({ reg: { ...reg, error: '', info: i18n.t('reg.codeResent') } });
-      client.ircv3.resend(reg.account);
-    },
-    // Change the account password via Django (same-origin proxy → swaygo). The
-    // server updates BOTH Anope (IRC login) AND Django (website) so they never
-    // drift — NOT a raw NickServ SET PASSWORD, which would only touch Anope.
-    async accountChangePassword(currentPassword, newPassword) {
-      const account = get().account;
-      if (!account) return { ok: false, message: i18n.t('reg.needAccount') };
-      try {
-        const res = await fetchTimeout('/accounts/api/change_password/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ account, current_password: currentPassword, new_password: newPassword }),
-        });
-        const data = await res.json().catch(() => ({} as Record<string, unknown>));
-        if (data.status === 'success') {
-          return { ok: true, message: (data.message as string) || i18n.t('reg.passwordUpdated') };
-        }
-        return { ok: false, message: (data.message as string) || i18n.t('reg.passwordChangeFailed') };
-      } catch {
-        return { ok: false, message: i18n.t('reg.serviceUnavailable') };
-      }
-    },
-    // Native Turnstile solved in-app → tell Django (same-origin via the
-    // /cloudflare/ nginx proxy). On success Django auto-finishes the pending
-    // REGISTER and e-mails the verification code.
-    async accountChallengeComplete(turnstileToken) {
-      const reg = get().reg;
-      let jwt = '';
-      try { jwt = new URL(reg.challengeUrl).searchParams.get('token') || ''; } catch { /* bad url */ }
-      set({ reg: { ...reg, busy: true, error: '' } });
-      try {
-        const res = await fetchTimeout('/cloudflare/verify_complete/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: jwt, verification_method: 'turnstile', turnstile_token: turnstileToken }),
-        });
-        const data = await res.json().catch(() => ({} as Record<string, unknown>));
-        if (res.ok && data.success) {
-          set({ reg: { ...get().reg, busy: false, challengeUrl: '', error: '',
-            info: data.registration === 'sent'
-              ? `✅ ${i18n.t('reg.challengeOkSent')}`
-              : `✅ ${i18n.t('reg.challengeOkCheck')}` } });
-        } else {
-          set({ reg: { ...get().reg, busy: false,
-            error: (data.message as string) || i18n.t('reg.challengeFail') } });
-        }
-      } catch {
-        set({ reg: { ...get().reg, busy: false, error: i18n.t('reg.challengeUnreachable') } });
-      }
-    },
-    resetReg() {
-      set({ reg: { step: 'idle', account: '', busy: false, error: '', info: '', challengeUrl: '' } });
-    },
+    // ---- account management (draft/account-registration) — see store/account.ts ----
+    accountRegister,
+    accountVerify,
+    accountResend,
+    accountChangePassword,
+    accountChallengeComplete,
+    resetReg,
     setPref(key, value) {
       const prefs = { ...get().prefs, [key]: value };
       savePrefs(prefs);
