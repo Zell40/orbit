@@ -27,8 +27,6 @@ export interface MessageInfo {
   ts: number;
   mine: boolean;
 }
-/** @deprecated use MessageInfo */
-export type DecoratorInfo = MessageInfo;
 
 // Per-message contributions. A decorator renders inline after the text (badges,
 // chips); an action renders in the hover action toolbar (next to reply/react).
