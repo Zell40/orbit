@@ -1,46 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
-import { nickColor, MIRC_PALETTE } from '../../lib/format';
+import { MIRC_PALETTE } from '../../lib/format';
 import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '../../lib/editor';
 import { getConfig } from '../../core/config';
 import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat, activeStore } from '../../core/networks';
-function TypingIndicator() {
-  const { t } = useTranslation();
-  const buffer = useActiveChat((s) => s.buffers[s.active]);
-  if (!buffer) return null;
-  const now = Date.now();
-  const who = Object.entries(buffer.typing).filter(([, exp]) => exp > now).map(([n]) => n);
-  if (!who.length) return <div className="typing" />;
-  const label = who.length === 1
-    ? t('composer.typingOne', { nick: who[0] })
-    : who.length === 2
-      ? t('composer.typingTwo', { a: who[0], b: who[1] })
-      : t('composer.typingMany', { n: who.length });
-  return (
-    <div className="typing">
-      <span className="typing__dots"><i /><i /><i /></span>{label}…
-    </div>
-  );
-}
-
-const EMOJIS = ['😀','😂','🤣','😊','😍','😘','😎','🤩','🥳','😏','😢','😭','😡','🤔','😴','🙄','👍','👎','👏','🙌','🙏','💪','👋','✌️','🤝','❤️','🔥','✨','🎉','🌹','☕','🍺','🍷','🎶','💯','😅','😜','🤗','😇','👀'];
-
-// :name: → emoji, for tab-completion in the composer.
-const EMOJI_NAMES: Record<string, string> = {
-  sourire: '😀', rire: '😂', mdr: '🤣', joie: '😊', amour: '😍', bisou: '😘',
-  cool: '😎', etoiles: '🤩', fete: '🥳', malin: '😏', triste: '😢', pleure: '😭',
-  colere: '😡', reflechir: '🤔', dodo: '😴', clindoeil: '😜', calin: '🤗', ange: '😇',
-  yeux: '👀', pouce: '👍', nul: '👎', bravo: '👏', mains: '🙌', merci: '🙏',
-  muscle: '💪', salut: '👋', victoire: '✌️', accord: '🤝', coeur: '❤️', feu: '🔥',
-  brille: '✨', tada: '🎉', rose: '🌹', cafe: '☕', biere: '🍺', vin: '🍷',
-  musique: '🎶', cent: '💯', heart: '❤️', fire: '🔥', smile: '😀', laugh: '😂',
-  ok: '👌', wave: '👋', party: '🥳', think: '🤔', wink: '😉', sun: '☀️', star: '⭐',
-};
-// Slash commands offered by tab-completion (with a leading '/').
-const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', 'kick', 'ban', 'op', 'deop', 'voice', 'ignore', 'unignore', 'list', 'clear', 'help'];
+import { EMOJIS, EMOJI_NAMES, SLASH_COMMANDS } from './composer/constants';
+import { TypingIndicator } from './composer/TypingIndicator';
+import { ReplyBar } from './composer/ReplyBar';
+import { useVoiceRecorder } from './composer/useVoiceRecorder';
+import { completeToken } from './composer/complete';
+import { createSentHistory } from './composer/history';
 
 // ── Rich composer plumbing ───────────────────────────────────────────────────
 // The composer is a contentEditable so the user sees real bold/italic/colour as
@@ -69,22 +41,17 @@ export function Composer() {
   const fgRef = useRef('');                 // active text colour, kept sticky across sends
   const ed = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  // Voice recording
-  const [recording, setRecording] = useState(false);
-  const [recSecs, setRecSecs] = useState(0);
-  const recRef = useRef<MediaRecorder | null>(null);
-  const recChunks = useRef<Blob[]>([]);
-  const recStream = useRef<MediaStream | null>(null);
-  const recTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const recCancel = useRef(false);
-  const recExt = useRef('webm');
   const cyc = useRef<{ start: number; len: number; cands: string[]; idx: number } | null>(null);
   const prevActive = useRef(active);
-  // mIRC-style sent-message history (global to the session). idx -1 = live draft.
-  const history = useRef<string[]>([]);
-  const histIdx = useRef(-1);
-  const histStash = useRef('');
+  // mIRC-style sent-message recall (global to the session). Lives in a ref so it
+  // survives re-renders; idx bookkeeping is unit-tested in composer/history.ts.
+  const history = useRef(createSentHistory()).current;
   const isConsole = active === SERVER;
+
+  const canUpload = getConfig().features.imageUpload;
+  const { recording, recSecs, canRecord, startRec, stopRec, cancelRec } = useVoiceRecorder({
+    enabled: canUpload && !isConsole, active, onRecorded: uploadAudio,
+  });
 
   // Light up the toolbar to match the formatting at the caret (like Slack/iMessage).
   function syncFmt() {
@@ -111,7 +78,7 @@ export function Composer() {
     const root = ed.current; if (!root) return;
     reflect();
     if ((root.textContent || '').trim() && !isConsole) notifyTyping();
-    histIdx.current = -1; // typing exits history-recall mode
+    history.reset(); // typing exits history-recall mode
     syncFmt();
   }
 
@@ -157,11 +124,7 @@ export function Composer() {
     const out = serialize(root);
     if (!out.trim()) return;
     send(out);
-    // Record in the recall history (skip consecutive duplicates), cap at 100.
-    if (history.current[history.current.length - 1] !== out) history.current.push(out);
-    if (history.current.length > 100) history.current.shift();
-    histIdx.current = -1;
-    histStash.current = '';
+    history.record(out);
     root.innerHTML = '';
     setEmpty(true); setBlank(true);
     setDraft(active, '');
@@ -179,15 +142,14 @@ export function Composer() {
 
   // ↑ recall older sent messages; ↓ walk back toward the live draft.
   function historyPrev() {
-    const root = ed.current; if (!root || !history.current.length) return;
-    if (histIdx.current === -1) histStash.current = serialize(root); // stash the in-progress draft
-    if (histIdx.current < history.current.length - 1) histIdx.current++;
-    setEditorText(history.current[history.current.length - 1 - histIdx.current]);
+    const root = ed.current; if (!root) return;
+    const tx = history.recallPrev(serialize(root));
+    if (tx !== null) setEditorText(tx);
   }
   function historyNext() {
-    const root = ed.current; if (!root || histIdx.current === -1) return;
-    histIdx.current--;
-    setEditorText(histIdx.current === -1 ? histStash.current : history.current[history.current.length - 1 - histIdx.current]);
+    const root = ed.current; if (!root) return;
+    const tx = history.recallNext();
+    if (tx !== null) setEditorText(tx);
   }
 
   function insert(emoji: string) {
@@ -221,7 +183,9 @@ export function Composer() {
     changed();
   }
 
-  // Tab-completion over the editor's plain text: nicks, /commands, :emoji:.
+  // Tab-completion over the editor's plain text: nicks, /commands, :emoji:. The
+  // candidate logic is pure (composer/complete.ts, unit-tested); here we own the
+  // cycle-through-matches state and the DOM insertion.
   function tabComplete() {
     const root = ed.current; if (!root) return;
     const text = root.textContent || '';
@@ -237,33 +201,15 @@ export function Composer() {
       return;
     }
 
-    const before = text.slice(0, pos);
-    const token = (before.match(/(\S*)$/)?.[1]) ?? '';
-    if (!token) return;
-    const start = pos - token.length;
-    let cands: string[];
-
-    if (token.startsWith(':') && token.length > 1) {
-      const q = token.slice(1).toLowerCase();
-      cands = Object.keys(EMOJI_NAMES).filter((n) => n.startsWith(q)).map((n) => EMOJI_NAMES[n]);
-    } else if (token.startsWith('/') && start === 0) {
-      const q = token.slice(1).toLowerCase();
-      const pluginCmds = usePluginRegistry.getState().commands.map((c) => c.name);
-      cands = [...SLASH_COMMANDS, ...pluginCmds].filter((c2) => c2.startsWith(q)).map((c2) => '/' + c2 + ' ');
-    } else {
-      const members = Object.keys(activeStore().getState().buffers[active]?.members ?? {});
-      const q = token.toLowerCase();
-      const tail = start === 0 ? ': ' : ' ';
-      cands = members.filter((n) => n.toLowerCase().startsWith(q)).sort((a, b) => a.localeCompare(b))
-        .map((n) => n + tail);
-    }
-    if (!cands.length) return;
-    selectRange(root, start, pos);
-    document.execCommand('insertText', false, cands[0]);
-    cyc.current = { start, len: cands[0].length, cands, idx: 0 };
+    const members = Object.keys(activeStore().getState().buffers[active]?.members ?? {});
+    const pluginCmds = usePluginRegistry.getState().commands.map((cmd) => cmd.name);
+    const res = completeToken(text, pos, { members, pluginCmds, slashCommands: SLASH_COMMANDS, emojiNames: EMOJI_NAMES });
+    if (!res) return;
+    selectRange(root, res.start, pos);
+    document.execCommand('insertText', false, res.candidates[0]);
+    cyc.current = { start: res.start, len: res.candidates[0].length, cands: res.candidates, idx: 0 };
   }
 
-  const canUpload = getConfig().features.imageUpload;
   function uploadFrom(dt: DataTransfer | null | undefined): boolean {
     if (!dt || isConsole || !canUpload) return false;
     // A pasted/copied image (screenshot, "copy image") usually arrives in items
@@ -275,49 +221,6 @@ export function Composer() {
     if (img) { uploadImage(img); return true; }
     return false;
   }
-
-  // ── voice recording (MediaRecorder → opus/webm → uploadAudio) ───────────────
-  const canRecord = canUpload && !isConsole && typeof navigator !== 'undefined'
-    && !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== 'undefined';
-
-  function bestAudioMime(): string {
-    const cands = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg', 'audio/mp4'];
-    for (const m of cands) if (MediaRecorder.isTypeSupported?.(m)) return m;
-    return '';
-  }
-  function teardownRec() {
-    recStream.current?.getTracks().forEach((tr) => tr.stop());
-    recStream.current = null;
-    if (recTimer.current) { clearInterval(recTimer.current); recTimer.current = null; }
-  }
-  async function startRec() {
-    if (recording || !canRecord) return;
-    let stream: MediaStream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch { activeStore().getState().pushSystem?.(active, `⚠️ ${t('composer.micDenied')}`); return; }
-    const mime = bestAudioMime();
-    recExt.current = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') ? 'm4a' : 'webm';
-    const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-    recRef.current = mr; recStream.current = stream; recChunks.current = []; recCancel.current = false;
-    mr.ondataavailable = (e) => { if (e.data && e.data.size) recChunks.current.push(e.data); };
-    mr.onstop = () => {
-      const cancelled = recCancel.current;
-      teardownRec(); setRecording(false); setRecSecs(0);
-      const blob = new Blob(recChunks.current, { type: mime || 'audio/webm' });
-      recChunks.current = [];
-      if (!cancelled && blob.size > 0) uploadAudio(blob, recExt.current);
-    };
-    mr.start();
-    setRecording(true); setRecSecs(0);
-    recTimer.current = setInterval(() => setRecSecs((s) => {
-      if (s + 1 >= 300) { stopRec(); return 300; } // 5-minute hard cap
-      return s + 1;
-    }), 1000);
-  }
-  function stopRec() { if (recRef.current && recRef.current.state !== 'inactive') recRef.current.stop(); }
-  function cancelRec() { recCancel.current = true; stopRec(); }
-  // Make sure the mic is released if the composer unmounts mid-recording.
-  useEffect(() => () => { recCancel.current = true; try { recRef.current?.stop(); } catch { /* ignore */ } teardownRec(); }, []);
 
   const placeholder = isConsole
     ? t('composer.consolePlaceholder')
@@ -433,20 +336,3 @@ export function Composer() {
     </div>
   );
 }
-
-function ReplyBar() {
-  const { t } = useTranslation();
-  const reply = useActiveChat((s) => s.replyTarget);
-  const clear = useActiveChat((s) => s.clearReply);
-  if (!reply) return null;
-  return (
-    <div className="replybar">
-      <span className="replybar__icon">↩</span>
-      <span className="replybar__txt">
-        {t('composer.replyTo')} <b style={{ color: nickColor(reply.from) }}>{reply.from}</b> — {reply.text}
-      </span>
-      <button className="replybar__x" onClick={clear} aria-label={t('composer.cancelReply')}>✕</button>
-    </div>
-  );
-}
-
