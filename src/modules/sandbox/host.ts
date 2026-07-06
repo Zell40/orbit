@@ -26,7 +26,13 @@ const STORE_PREFIX = 'orbit-sbx:';
 
 function snapshot(): StateSnapshot {
   const s = activeStore().getState();
-  return { active: s.active, nick: s.nick, account: s.account, buffers: Object.keys(s.buffers) };
+  const cl = s.client;
+  return {
+    active: s.active, nick: s.nick, account: s.account, buffers: Object.keys(s.buffers),
+    network: cl?.server.network ?? '',
+    isupport: { ...(cl?.server.isupport ?? {}) },
+    caps: cl?.ircv3.listCaps() ?? [],
+  };
 }
 
 // Current values of the app's themeable CSS vars, mirrored into the sandbox.

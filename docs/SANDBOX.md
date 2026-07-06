@@ -45,8 +45,11 @@ The sandboxed API (`src/modules/sandbox/host.ts` + `public/plugin-sandbox.html`)
 `orbit.log`, `orbit.on(event, fn)` (forwarded `connected` / `message` /
 `buffer.active` / `status`), `orbit.irc.*`, `orbit.notify`,
 `orbit.state.active/nick/account/buffers` (from a pushed snapshot, synchronous),
-`orbit.storage.get/set`, and `orbit.ui(slot, build)` where `build(el)` populates the
-plugin's own iframe and the host sizes the frame to the content.
+`orbit.server.network/isupport/hasCap/caps` (also from the snapshot, synchronous —
+gate cap-dependent behaviour so a plugin never 421s a lean server; no `numeric()`
+here since the sandbox gets no `raw` events), `orbit.storage.get/set`, and
+`orbit.ui(slot, build)` where `build(el)` populates the plugin's own iframe and the
+host sizes the frame to the content.
 
 The app's theme CSS vars (`--bg`, `--ink`, `--accent`, `--muted`, `--border`,
 `--panel`, `--green-soft`) are mirrored into the sandbox and kept in sync on theme

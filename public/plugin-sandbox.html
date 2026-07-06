@@ -22,7 +22,7 @@
  * served with its own strict CSP.
  */
 (function () {
-  var port, snap = { active: '', nick: '', account: '', buffers: [] }, store = {};
+  var port, snap = { active: '', nick: '', account: '', buffers: [], network: '', isupport: {}, caps: [] }, store = {};
   var listeners = {};                 // event name -> [fn]
   var pending = new Map(), rpcId = 0;  // in-flight RPCs
 
@@ -86,6 +86,13 @@
         nick: function () { return snap.nick; },
         account: function () { return snap.account; },
         buffers: function () { return snap.buffers.slice(); },
+      },
+      // Read-only server / capability info, from the snapshot (no RPC, no grant).
+      server: {
+        network: function () { return snap.network || ''; },
+        isupport: function () { var o = {}, m = snap.isupport || {}, k; for (k in m) o[k] = m[k]; return o; },
+        hasCap: function (cap) { return (snap.caps || []).some(function (c) { return c.name === cap && c.enabled; }); },
+        caps: function () { return (snap.caps || []).map(function (c) { return { name: c.name, available: c.available, enabled: c.enabled }; }); },
       },
       storage: {
         get: function (k, fallback) { return k in store ? store[k] : fallback; },

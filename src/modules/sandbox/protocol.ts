@@ -70,7 +70,16 @@ export const THEME_VARS = ['--bg', '--ink', '--accent', '--muted', '--border', '
 // guest -> host
 export interface RpcMsg { type: 'rpc'; id: number; method: string; args: unknown[]; }
 
-export interface StateSnapshot { active: string; nick: string; account: string; buffers: string[]; }
+export interface StateSnapshot {
+  active: string; nick: string; account: string; buffers: string[];
+  // Read-only server / capability info (client.server + client.ircv3), pushed in the
+  // snapshot so a sandboxed plugin can gate cap-dependent behaviour synchronously —
+  // never a raw command that 421s a lean server. (No numeric map: the sandbox gets
+  // no 'raw' events, so there are no numeric replies to name.)
+  network: string;
+  isupport: Record<string, string>;
+  caps: { name: string; available: boolean; enabled: boolean }[];
+}
 
 export type HostToGuest = InitMsg | EventMsg | SnapshotMsg | ThemeMsg | RpcReplyMsg;
 export type GuestToHost = RpcMsg;
