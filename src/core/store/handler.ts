@@ -2,6 +2,7 @@ import i18n from '../i18n';
 import { desktopNotify, blip } from '../../platform/notify';
 import { makeWhois } from './whois';
 import { makeMembership } from './membership';
+import { makeBatch } from './batch';
 import type { ChatMessage, IrcMessage, Member, MessageKind } from '../irc/types';
 import { NUMERICS, ERROR_NUMERICS } from '../irc/numerics';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
@@ -35,12 +36,14 @@ const KNOWN_SERVICES_CAP = 256;
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
   const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost } = ctx;
-  const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sysLine, serverLine, patchWhois } = helpers;
+  const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, sysLine, serverLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
   const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine });
   // Channel-membership events (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME). See ./membership.
   const { handleMembership } = makeMembership({ get, set, closedChannels, helpers });
+  // IRCv3 BATCH open/close (chathistory + multiline merge). See ./batch.
+  const { handleBatch } = makeBatch({ get, set, helpers });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -307,8 +310,9 @@ export function makeHandler(ctx: HandlerCtx) {
       return;
     }
 
-    // Channel-membership events are handled first (see ./membership).
+    // Channel-membership events + BATCH are handled first (see ./membership, ./batch).
     if (handleMembership(msg, me)) return;
+    if (handleBatch(msg)) return;
 
     switch (msg.command) {
       case 'CAP': {
@@ -475,73 +479,6 @@ export function makeHandler(ctx: HandlerCtx) {
             desktopNotify(isPM ? i18n.t('system.pmNotif', { nick: msg.nick }) : `${msg.nick} · ${bufferName}`, text.slice(0, 120));
             if (get().prefs.sound) blip();
           }
-        }
-        break;
-      }
-      case 'BATCH': {
-        // :src BATCH +<ref> <type> [params…]  /  :src BATCH -<ref>
-        const ref = msg.params[0] || '';
-        const id = ref.slice(1);
-        if (ref[0] === '+') {
-          if (Object.keys(openBatches).length >= 64) break; // bound server-opened batches
-          const type = msg.params[1] || '';
-          // chathistory replays old messages → collect+prepend, don't append live.
-          const quiet = type === 'netsplit' || type === 'netjoin';
-          openBatches[id] = { type, quiet, target: msg.params[2] };
-          if (type === 'chathistory') historyCollect[id] = [];
-          else if (type === 'netsplit') serverLine(`📡 ${i18n.t('system.netsplit')}`, 'info');
-          else if (type === 'netjoin') serverLine(`📡 ${i18n.t('system.netjoin')}`, 'info');
-        } else if (ref[0] === '-') {
-          const b = openBatches[id];
-          if (b?.type === 'chathistory' && b.target) {
-            const items = historyCollect[id] || [];
-            const key = canon(b.target);
-            // Prepend older messages, keep buffer ordered oldest→newest.
-            // Dedup by id AND by a content signature: the legacy +H auto-replay and
-            // our CHATHISTORY response deliver the SAME message with different ids
-            // (+H carries no msgid → random id; CHATHISTORY carries the real msgid),
-            // so id-only dedup would double every recent message. The signature
-            // (kind+sender+second+text) matches them since both preserve the original
-            // server-time and text.
-            patchBuffer(b.target, (buf) => {
-              const base = [...buf.messages];
-              const sigIdx = new Map<string, number>();
-              base.forEach((m, i) => sigIdx.set(msgSig(m), i));
-              const haveId = new Set(base.map((m) => m.id));
-              const seen = new Set<string>();
-              const fresh: ChatMessage[] = [];
-              for (const m of items) {
-                const sig = msgSig(m);
-                const at = sigIdx.get(sig);
-                if (at !== undefined) {
-                  // Same message already present (other replay source). Upgrade it to
-                  // the copy that carries the real msgid so REDACT/react target it.
-                  if (m.msgid && !base[at].msgid) base[at] = { ...base[at], id: m.id, msgid: m.msgid };
-                  continue;
-                }
-                if (haveId.has(m.id) || seen.has(sig)) continue;
-                seen.add(sig);
-                fresh.push(m);
-              }
-              const merged = [...fresh, ...base].sort((a, z) => a.ts - z.ts);
-              return { ...buf, messages: merged.slice(-1000) };
-            });
-            set({
-              historyLoading: { ...get().historyLoading, [key]: false },
-              historyDone: { ...get().historyDone, [key]: items.length === 0 },
-            });
-            delete historyCollect[id];
-          } else if (b?.type === 'draft/multiline' && multilineCollect[id]) {
-            // Merge the batch's lines into ONE message (concat = no newline).
-            const { base, lines } = multilineCollect[id];
-            if (lines.length) {
-              let merged = lines[0].text;
-              for (let i = 1; i < lines.length; i++) merged += (lines[i].concat ? '' : '\n') + lines[i].text;
-              addMessage(base.bufferName, { ...base, text: merged });
-            }
-            delete multilineCollect[id];
-          }
-          delete openBatches[id];
         }
         break;
       }
