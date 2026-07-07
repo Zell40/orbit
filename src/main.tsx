@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { getTheme, hydrateTheme, useThemeStore } from './themes'
-import i18n, { applyConfigDefaultLang } from './core/i18n'
+import { applyConfigDefaultLang } from './core/i18n'
 import './index.css'
 // Alternate themes, loaded after the base so their [data-theme] rules win.
 import './themes/dark.css'
@@ -19,25 +19,11 @@ markUpdateCurtain()
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()
 
-// PWA install prompt: the static manifest.webmanifest is one language; re-serve
-// it (as a blob) with the brand name + a description in the visitor's language.
-// Icons/colors are kept from the file; root-relative icon paths still resolve.
-async function localizeManifest() {
-  try {
-    const res = await fetch(`${import.meta.env.BASE_URL}manifest.webmanifest`, { cache: 'force-cache' })
-    if (!res.ok) return
-    const m = await res.json()
-    const brand = getConfig().branding?.name || m.short_name || 'Orbit'
-    m.name = brand
-    m.short_name = brand
-    m.description = i18n.t('pwa.description', { defaultValue: m.description }) as string
-    m.lang = i18n.language
-    const url = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/manifest+json' }))
-    let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null
-    if (!link) { link = document.createElement('link'); link.rel = 'manifest'; document.head.appendChild(link) }
-    link.setAttribute('href', url)
-  } catch { /* keep the static manifest */ }
-}
+// The PWA manifest is the STATIC /app/manifest.webmanifest linked in index.html.
+// (We used to re-serve a localized copy as a blob: URL, but a manifest's scope /
+// start_url must sit within the manifest URL's own directory — a blob: URL has no
+// /app/ directory, so the browser rejected scope/start_url and the manifest broke.
+// A deployer localizes/re-brands by editing the static file.)
 
 // A retro Win98-style tab icon for the yomirc skins: a beveled silver tile with
 // a navy #, so the classic theme gets a matching classic favicon.
@@ -78,7 +64,6 @@ useThemeStore.subscribe((s, prev) => { if (s.theme !== prev.theme) applyBrandIco
 loadConfig().then(async () => {
   hydrateTheme() // first-time visitors adopt the config default now config is loaded
   applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
-  void localizeManifest() // re-serve the PWA manifest with a localized name/description
   applyBrandIcon()        // browser tab favicon follows config.branding.icon
   const { default: App } = await import('./App.tsx') // also creates the store
   // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
