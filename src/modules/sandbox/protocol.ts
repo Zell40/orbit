@@ -18,6 +18,12 @@
 export const PERMISSIONS = ['irc', 'irc-raw', 'notify', 'storage'] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
+// An explicit, self-documenting way to declare that a plugin wants ZERO
+// permissions: `"permissions": ["none"]`. Clearer than an empty `[]` (which reads
+// like an oversight), and it is fail-closed — `'none'` wins over anything else in
+// the list, so a stray grant next to it is dropped rather than silently honoured.
+export const NO_PERMISSIONS = 'none';
+
 /** RPC methods the guest may call, mapped to the permission each one needs.
  *  `null` = always allowed (contained to the plugin's own iframe / read-only). */
 export const RPC_CAPABILITY: Record<string, Permission | null> = {
@@ -42,9 +48,12 @@ export function isGranted(permissions: readonly string[], method: string): boole
   return need === null || permissions.includes(need);
 }
 
-/** Keep only the recognised permission strings from operator config. */
+/** Keep only the recognised permission strings from operator config. The explicit
+ *  `'none'` token declares zero permissions and wins over anything else in the list
+ *  (fail-closed), so `["none"]` can never accidentally hide a real grant. */
 export function sanitizePermissions(input: unknown): Permission[] {
   if (!Array.isArray(input)) return [];
+  if (input.includes(NO_PERMISSIONS)) return [];
   return PERMISSIONS.filter((p) => input.includes(p));
 }
 

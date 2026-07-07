@@ -50,7 +50,7 @@
     "saslScram": true
   },
   "plugins": [
-    { "url": "/app/plugins/third/orbit-clock.js", "sandbox": true, "permissions": [] },
+    { "url": "/app/plugins/third/orbit-clock.js", "sandbox": true, "permissions": ["none"] },
     "/app/plugins/third/orbit-copy.js",
     "/app/plugins/third/orbit-games.js",
     "/app/plugins/third/orbit-invite.js"

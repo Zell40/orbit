@@ -7,7 +7,7 @@
  * are mirrored into the sandbox — so it still matches light + dark. Needs zero
  * permissions.
  *
- *   { "url": "/app/plugins/third/orbit-clock.js", "sandbox": true, "permissions": [] }
+ *   { "url": "/app/plugins/third/orbit-clock.js", "sandbox": true, "permissions": ["none"] }
  */
 Orbit.plugin('orbit-clock', function (orbit, log) {
   orbit.ui('topbar_item', function (root) {

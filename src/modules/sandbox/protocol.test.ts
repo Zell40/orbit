@@ -33,4 +33,11 @@ describe('sandbox capability gate', () => {
     expect(sanitizePermissions('irc')).toEqual([]);
     expect(sanitizePermissions(undefined)).toEqual([]);
   });
+
+  it('treats "none" as an explicit zero-permissions declaration that wins', () => {
+    expect(sanitizePermissions(['none'])).toEqual([]);
+    expect(sanitizePermissions(['none', 'irc', 'storage'])).toEqual([]); // fail-closed: none wins
+    expect(isGranted(sanitizePermissions(['none']), 'irc.say')).toBe(false);
+    expect(isGranted(sanitizePermissions(['none']), 'ui.claim')).toBe(true); // contained, still fine
+  });
 });

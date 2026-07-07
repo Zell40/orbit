@@ -84,9 +84,10 @@ export interface AppConfig {
 
 /** A plugin to load: a bare URL, or a URL with options.
  *  `sandbox: true` runs it in an opaque-origin iframe reachable only through a
- *  capability-gated bridge; `permissions` lists what it may do (irc/notify/storage).
- *  Untrusted or community plugins should be sandboxed. Trusted first-party plugins
- *  may run in-page (the default) for the full React API. */
+ *  capability-gated bridge; `permissions` lists what it may do (irc/irc-raw/notify/
+ *  storage), or `["none"]` to declare zero permissions explicitly. Untrusted or
+ *  community plugins should be sandboxed. Trusted first-party plugins may run in-page
+ *  (the default) for the full React API. */
 export type PluginEntry =
   | string
   | { url: string; integrity?: string; crossorigin?: string; sandbox?: boolean; permissions?: string[] };

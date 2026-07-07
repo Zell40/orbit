@@ -37,7 +37,9 @@ UI inside its own iframe) needs no grant because it is already contained.
 
 | permission | unlocks |
 |---|---|
-| `irc`     | `orbit.irc.say/msg/send/join/part/list` — acts as the user |
+| `none`    | nothing — an explicit "zero permissions" declaration; use `["none"]` instead of `[]`. It is fail-closed: `"none"` wins over any other entry in the list |
+| `irc`     | `orbit.irc.say/msg/join/part/list` — acts as the user |
+| `irc-raw` | `orbit.irc.send(line)` — raw wire access (MODE/KICK/QUIT/…); grant deliberately |
 | `notify`  | `orbit.notify(title, body)` |
 | `storage` | `orbit.storage.set(k, v)` (namespaced, persisted host-side) |
 
