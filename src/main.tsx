@@ -117,7 +117,7 @@ loadConfig().then(async () => {
     cleanUrl()
   } else if (!nick && cfg.features.sessionResume) {
     // No fresh site entry — resume the last session (opt-in). A still-signed-in
-    // member gets a fresh single-use ticket from their website session; a guest
+    // member gets a fresh single-use keycard from their website session; a guest
     // just reconnects under the same nick. No password is ever read from storage.
     const { loadResume } = await import('./core/resume')
     const resume = loadResume()
@@ -131,7 +131,7 @@ loadConfig().then(async () => {
           const to = setTimeout(() => ctrl.abort(), 4000) // never let a hung endpoint stall boot
           const r = await fetch('/accounts/api/chat_resume/', { credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal }).finally(() => clearTimeout(to))
           const j = r.ok ? await r.json() : null
-          if (j?.ok && j.ticket && j.nick) { password = j.ticket as string; resumeNick = j.nick as string; go = true }
+          if (j?.ok && j.keycard && j.nick) { password = j.keycard as string; resumeNick = j.nick as string; go = true }
         } catch { /* offline / timeout / no endpoint → fall through to the connect screen */ }
       }
       if (go) {

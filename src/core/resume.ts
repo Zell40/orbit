@@ -4,7 +4,7 @@
 // name (a public label, '' for a guest) and the channels you had open — so
 // reopening the tab drops you straight back in, the way Discord/Slack do. A
 // password is NEVER stored: a logged-in member is re-authenticated on reopen by
-// minting a fresh single-use ticket against the still-live website session cookie
+// minting a fresh single-use keycard against the still-live website session cookie
 // (the /accounts/api/chat_resume/ endpoint); a guest just reconnects under the
 // same nick. So an attacker reading localStorage finds nothing reusable.
 

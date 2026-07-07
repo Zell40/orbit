@@ -66,7 +66,7 @@ export interface AppConfig {
     register: boolean;      // account creation (the "Créer un compte" tab)
     linkPreviews: boolean;  // rich link-preview cards (via the server unfurl endpoint)
     multiNetwork: boolean;  // connect to several IRC networks at once (network switcher UI)
-    sessionResume: boolean; // reopen the tab straight back into the last session (needs a same-origin ticket endpoint for logged-in members; guests just reconnect)
+    sessionResume: boolean; // reopen the tab straight back into the last session (needs a same-origin keycard endpoint for logged-in members; guests just reconnect)
   };
   /**
    * Operator-listed plugin scripts loaded at startup. Each entry is a URL, or an
