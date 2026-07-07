@@ -38,6 +38,12 @@ export const RPC_CAPABILITY: Record<string, Permission | null> = {
   // UI stays inside the plugin's own sandboxed iframe, so it needs no grant.
   'ui.claim': null,
   'ui.resize': null,
+  // Registering a /command or a shortcut is benign — it only wires a user-driven
+  // trigger; whatever the plugin then DOES still goes through the gated verbs above.
+  'command.register': null,
+  'command.dispose': null,
+  'shortcut.register': null,
+  'shortcut.dispose': null,
   'log': null,
 };
 

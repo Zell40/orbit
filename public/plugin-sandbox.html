@@ -28,6 +28,7 @@
 (function () {
   var port, snap = { active: '', nick: '', account: '', buffers: [], network: '', isupport: {}, caps: [] }, store = {};
   var listeners = {};                 // event name -> [fn]
+  var hookN = 0;                       // unique id source for command/shortcut hooks
   var pending = new Map(), rpcId = 0;  // in-flight RPCs
 
   // Is this background colour a dark one? Rough luminance on a #rgb/#rrggbb or
@@ -210,6 +211,22 @@
         list: function () { return rpc('irc.list'); },
       },
       notify: function (title, body) { return rpc('notify', title, body); },
+      // Register a slash command: typing "/name a b" calls run(["a","b"], "a b").
+      // Returns an unregister fn. Built-in commands win over a plugin's.
+      command: function (nameStr, run, help) {
+        var id = 'cmd:' + (++hookN);
+        (listeners[id] = listeners[id] || []).push(run);
+        rpc('command.register', String(nameStr), id, help != null ? String(help) : undefined);
+        return function () { delete listeners[id]; rpc('command.dispose', id); };
+      },
+      // Register a keyboard shortcut, e.g. "mod+j" or "alt+shift+r" — a modifier is
+      // REQUIRED (bare keys are refused). run() fires when it's pressed in the chat view.
+      shortcut: function (combo, run) {
+        var id = 'key:' + (++hookN);
+        (listeners[id] = listeners[id] || []).push(run);
+        rpc('shortcut.register', String(combo), id);
+        return function () { delete listeners[id]; rpc('shortcut.dispose', id); };
+      },
       state: {
         active: function () { return snap.active; },
         nick: function () { return snap.nick; },

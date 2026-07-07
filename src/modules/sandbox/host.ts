@@ -88,6 +88,10 @@ export function mountSandboxed(spec: SandboxSpec): void {
   let claimed = false;
   let lastNotify = 0;
   let removeUi: () => void = () => {};
+  let currentPort: MessagePort | null = null;   // the live guest port (rebuilt each handshake)
+  const hooks: Record<string, () => void> = {};  // command/shortcut disposers, keyed by guest hook id
+  const KNOWN_SLOTS = ['composer_button', 'settings_section', 'topbar_item', 'sidebar_item', 'footer_item', 'nav_item'];
+  const hasModifier = (combo: string) => /\b(mod|ctrl|control|meta|cmd|super|alt|option)\b/i.test(combo);
   const impl: Record<string, (args: unknown[]) => unknown> = {
     log: (a) => log(...a),
     'irc.say': (a) => activeStore().getState().sendInput(String(a[0] ?? '')),
@@ -105,7 +109,8 @@ export function mountSandboxed(spec: SandboxSpec): void {
     'storage.set': (a) => persistStorage(name, String(a[0]), a[1]),
     'ui.claim': (a) => {
       if (claimed) return; claimed = true;
-      const slot = String(a[0] ?? 'footer_item') as UiSlot;
+      const raw = String(a[0] ?? 'footer_item');
+      const slot = (KNOWN_SLOTS.includes(raw) ? raw : 'footer_item') as UiSlot;
       removeUi = usePluginRegistry.getState().addUi(slot, name, () => createElement(SandboxFrame, { iframe }));
     },
     'ui.resize': (a) => {
@@ -115,6 +120,30 @@ export function mountSandboxed(spec: SandboxSpec): void {
       iframe.style.height = `${h}px`;
       if (h > 0) iframe.style.visibility = 'visible';
     },
+    // A plugin /command: the registry runs this handler on the app thread; we relay it
+    // (args + rest string) to the guest, which invokes the plugin's callback. Whatever
+    // the plugin does next still goes through the gated verbs. Re-register is idempotent
+    // (teardown disposes hooks each handshake, so ids stay in sync with the guest).
+    'command.register': (a) => {
+      const cmd = String(a[0] ?? ''); const id = String(a[1] ?? '');
+      if (!cmd || !id) return;
+      hooks[id]?.();
+      hooks[id] = usePluginRegistry.getState().addCommand(name, cmd,
+        (args, rest) => currentPort?.postMessage({ type: 'event', name: id, args: [args, rest] }),
+        a[2] != null ? String(a[2]) : undefined);
+    },
+    'command.dispose': (a) => { const id = String(a[0] ?? ''); hooks[id]?.(); delete hooks[id]; },
+    // A plugin shortcut. Bare-key combos are refused: the shortcut loop fires even while
+    // typing, so a modifier-less combo would keylog and swallow keystrokes in the composer.
+    'shortcut.register': (a) => {
+      const combo = String(a[0] ?? ''); const id = String(a[1] ?? '');
+      if (!combo || !id) return;
+      if (!hasModifier(combo)) { log('DENIED shortcut without a modifier', combo); return; }
+      hooks[id]?.();
+      hooks[id] = usePluginRegistry.getState().addShortcut(name, combo,
+        (e) => { e.preventDefault(); currentPort?.postMessage({ type: 'event', name: id, args: [] }); });
+    },
+    'shortcut.dispose': (a) => { const id = String(a[0] ?? ''); hooks[id]?.(); delete hooks[id]; },
   };
 
   // (Re)establish the bridge on EVERY iframe load. Adopting the iframe into a UI
@@ -127,6 +156,7 @@ export function mountSandboxed(spec: SandboxSpec): void {
     iframe.style.visibility = 'hidden'; // re-hide across the adoption reload until resized
     const chan = new MessageChannel();
     const port = chan.port1;
+    currentPort = port;
     port.onmessage = (e: MessageEvent) => {
       const m = e.data as GuestToHost;
       if (!m || m.type !== 'rpc' || typeof m.method !== 'string') return;
@@ -148,7 +178,7 @@ export function mountSandboxed(spec: SandboxSpec): void {
     const offTheme = useThemeStore.subscribe((s, prev) => {
       if (s.theme !== prev.theme) port.postMessage({ type: 'theme', theme: themeVars() });
     });
-    teardown = () => { offs.forEach((o) => o()); offTheme(); port.close(); };
+    teardown = () => { offs.forEach((o) => o()); offTheme(); for (const k in hooks) { hooks[k](); delete hooks[k]; } port.close(); };
     iframe.contentWindow?.postMessage(
       { type: 'init', name, permissions, source, snapshot: snapshot(), storage: loadStorage(name), theme: themeVars() },
       '*', [chan.port2],

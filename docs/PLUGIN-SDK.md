@@ -78,7 +78,14 @@ Slots: `nav_item`, `topbar_item`, `footer_item`, `sidebar_item`, `composer_butto
 - `orbit.storage.get(key, fallback)` / `.set(key, value)` — needs `storage`; per-plugin, persisted.
 - `orbit.irc.say(text)` / `.msg(to, text)` / `.send(line)` / `.join(chan)` / `.part(chan)` — needs `irc`.
 - `orbit.notify(title, body)` — needs `notify`; rate-limited.
-- `orbit.on(event, fn)` — subscribe to `message`, `connected`, `buffer.active`, … Returns an unsubscribe fn.
+- `orbit.on(event, fn)` — subscribe to app events; returns an unsubscribe fn. Events:
+  - `message` → `{ from, target, text, self }` on each incoming PRIVMSG (no permission).
+  - `connected` → `{ nick }`, `buffer.active` → the active buffer name, `status` → connection status.
+- `orbit.command(name, run, help?)` — register a slash command. Typing `/name a b`
+  calls `run(["a","b"], "a b")`. Returns an unregister fn. Built-in commands win.
+- `orbit.shortcut(combo, run)` — register a keyboard shortcut, e.g. `"mod+j"` or
+  `"alt+shift+r"` (`mod` = ⌘/Ctrl). **A modifier is required** — bare keys are refused
+  so a plugin can't swallow your typing. Built-in shortcuts win.
 - `log(...)` — console log (shown when plugin debug is on).
 
 ## Permissions

@@ -1,9 +1,9 @@
 /*
- * Template plugin — copy this to start your own. A themed nav panel in ~15 lines,
- * built entirely with the SDK (orbit.panel + orbit.el). The SDK handles theming,
- * the frame sizing, upward growth and the open animation — you just declare content.
+ * Template plugin — copy this to start your own. Shows the SDK essentials: a themed
+ * nav panel, a slash command, and a keyboard shortcut, in a handful of lines. The
+ * SDK handles theming, frame sizing, upward growth and the open animation.
  *
- * To load it, add to config.json (drop "irc" from permissions if you don't call it):
+ * To load it, add to config.json (drop "irc" if you don't call it):
  *   { "url": "/app/plugins/third/orbit-hello.js", "sandbox": true, "permissions": ["irc"] }
  */
 Orbit.plugin('orbit-hello', function (orbit) {
@@ -21,5 +21,15 @@ Orbit.plugin('orbit-hello', function (orbit) {
       say.style.marginTop = '8px';
       body.appendChild(say);
     },
+  });
+
+  // A slash command: "/hello world" -> says "hi world".
+  orbit.command('hello', function (args, rest) {
+    orbit.irc.say('hi ' + (rest || 'there') + '!');
+  }, 'say hi in the channel');
+
+  // A keyboard shortcut (a modifier is required).
+  orbit.shortcut('mod+shift+h', function () {
+    orbit.notify('Hello', 'shortcut pressed');
   });
 });
