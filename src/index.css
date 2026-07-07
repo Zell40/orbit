@@ -271,11 +271,12 @@ input, textarea { font-family: inherit; }
 .appbar__act:hover { background: var(--bg); color: var(--ink); }
 /* host mount point for a sandboxed plugin's iframe (sized to content by the host) */
 .sbx-slot { display: inline-flex; align-items: center; }
-/* The radio is a nav_item (next to Home/Rooms/Friends). Bottom-anchor its iframe so
-   the floating player card grows UPWARD out of the bar instead of overflowing down.
-   Scoped via :has() to the radio; .appbar overflow is visible + z-index:25 so the
-   card floats over the chat, un-clipped. */
-.appbar__nav .sbx-slot:has(iframe[title*="radio"]) { align-self: flex-end; }
+/* A sandboxed nav_item (the radio) must bottom-anchor so its floating player card
+   grows UPWARD out of the bar instead of overflowing DOWN off-screen behind the
+   composer. Plain selector (no :has(), which older engines miss) — only the radio is
+   a nav sandbox slot. .appbar has visible overflow + z-index:25 so the card floats
+   over the chat, un-clipped and in front of the composer. */
+.appbar__nav .sbx-slot { align-self: flex-end; position: relative; z-index: 5; }
 /* away toggle: dim = present (click to step away), amber-lit = away */
 .appbar__act--away { filter: grayscale(1); opacity: .55; }
 .appbar__act--away:hover { filter: grayscale(.5); opacity: .85; }

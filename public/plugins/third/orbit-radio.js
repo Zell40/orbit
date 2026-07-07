@@ -40,8 +40,8 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       '@keyframes obr-in{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}' +
       '.obr-bar{width:3px;border-radius:2px;background:var(--accent,#3a7);transform-origin:bottom;animation:obr-eq .9s ease-in-out infinite}' +
       '.obr-st{display:flex;flex-direction:column;gap:1px;padding:.4rem .5rem;border:0;border-radius:10px;background:transparent;color:var(--ink,inherit);font:inherit;text-align:left;cursor:pointer;width:100%;transition:background .12s}' +
-      '.obr-st:hover{background:var(--accent-soft,rgba(127,127,127,.14))}' +
-      '.obr-st.on{background:var(--accent-soft,rgba(127,127,127,.16))}' +
+      '.obr-st:hover{background:rgba(128,128,128,.13)}' +
+      '.obr-st.on{background:transparent;box-shadow:inset 3px 0 0 var(--accent,#3a7)}' +
       '.obr-st.on .obr-nm{color:var(--accent,#3a7)}' +
       '.obr-nm{font-weight:700;font-size:12.5px}.obr-tg{font-size:10.5px;color:var(--muted,#888)}' +
       'input[type=range].obr-vol{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;flex:1;cursor:pointer;background:var(--border,#8886);accent-color:var(--accent,#3a7)}';
@@ -53,8 +53,8 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     // ── floating player card (above the trigger; hidden until opened) ──────────
     var card = document.createElement('div');
     card.style.cssText = 'display:none;width:264px;box-sizing:border-box;padding:12px;border-radius:16px;' +
-      'background:var(--bg-soft,var(--bg,#181818));border:1px solid var(--border,#8884);' +
-      'box-shadow:0 18px 44px -14px rgba(0,0,0,.55),0 2px 8px -3px rgba(0,0,0,.4);animation:obr-in .18s ease both';
+      'background:var(--bg,#0d0d0f);border:1px solid var(--border,#8884);' +
+      'box-shadow:0 20px 50px -12px rgba(0,0,0,.7),0 3px 10px -3px rgba(0,0,0,.5);animation:obr-in .18s ease both';
 
     var head = document.createElement('div');
     head.style.cssText = 'display:flex;align-items:center;gap:.4rem;margin-bottom:10px';
@@ -67,8 +67,8 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
 
     // now-playing hero
     var hero = document.createElement('div');
-    hero.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;border-radius:13px;' +
-      'background:var(--accent-soft,rgba(127,127,127,.12));margin-bottom:10px';
+    hero.style.cssText = 'display:flex;align-items:center;gap:11px;padding:4px 2px 12px;' +
+      'border-bottom:1px solid var(--border,#8884);margin-bottom:10px';
     var bigPlay = document.createElement('button');
     bigPlay.type = 'button';
     bigPlay.style.cssText = 'flex:none;width:42px;height:42px;border-radius:50%;border:0;cursor:pointer;' +
@@ -150,7 +150,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     function setOpen(v) {
       open = v;
       card.style.display = v ? 'block' : 'none';
-      trig.style.background = v ? 'var(--accent-soft,rgba(53,196,106,.14))' : 'transparent';
+      trig.style.background = 'transparent';
       render();
     }
     function eqRun(on) {
