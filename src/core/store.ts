@@ -195,6 +195,14 @@ export function createChatStore(ns = '') {
         // the ident; guests show the configured guest ident.
         opts.username = (opts.password || opts.passkey) ? ident(opts.nick, guest) : guest;
       }
+      // Prefer SASL SCRAM-SHA-256 (the password never goes on the wire) for a real
+      // account password — never for a one-time keycard (SCRAM can't verify a token)
+      // or a passkey — when the deployment enables it. Registration falls back to
+      // PLAIN if SCRAM isn't offered or fails.
+      if (opts.scram === undefined && opts.password && !opts.keycard && !opts.passkey
+          && getConfig().features.saslScram) {
+        opts.scram = true;
+      }
       const client = new IrcClient();
       initNotify();
       set({ client, nick: opts.nick, status: 'connecting' });

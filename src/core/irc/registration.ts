@@ -7,6 +7,7 @@
 // small host interface, so it can be unit-tested against a fake.
 import type { ConnectOptions, ConnectionStatus, IrcMessage } from './types';
 import type { Ircv3 } from './ircv3';
+import { ScramClient } from './scram';
 
 // SASL PLAIN payload is base64 of "\0<authzid>\0<passwd>", UTF-8. Also used to
 // base64 the (ASCII) WebAuthn assertion JSON for the WEBAUTHN mechanism.
@@ -47,6 +48,8 @@ export interface RegistrationHost {
 export class Registration {
   private capEnded = false;
   private mech = 'PLAIN'; // the SASL mechanism chosen at CAP ACK (routes AUTHENTICATE)
+  private scram: ScramClient | null = null; // live SCRAM exchange, when mech is SCRAM-SHA-256
+  private scramFellBack = false;            // SCRAM failed → already retried with PLAIN (don't loop)
   private readonly host: RegistrationHost;
   constructor(host: RegistrationHost) { this.host = host; }
 
@@ -56,6 +59,8 @@ export class Registration {
   start(): void {
     this.capEnded = false;
     this.mech = 'PLAIN';
+    this.scram = null;
+    this.scramFellBack = false;
     this.host.ircv3.reset();
     this.host.setRegistered(false);
     const o = this.host.opts();
@@ -77,11 +82,26 @@ export class Registration {
         this.handleAuthenticate(msg);
         return;
       case '903': // SASL success
+        this.endCap();
+        return;
       case '904': // SASL failed
-      case '905':
-      case '906':
-      case '907':
-        if (msg.command !== '903') this.host.setStatus('sasl-failed');
+      case '905': // SASL message too long
+      case '906': // SASL aborted
+        // If SCRAM was rejected/aborted, retry once with PLAIN on the same
+        // connection before giving up (the server may lack a verifier for this
+        // account, or SCRAM hit a snag) — this is the graceful fallback.
+        if (this.mech === 'SCRAM-SHA-256' && !this.scramFellBack && !!this.host.opts().password) {
+          this.scramFellBack = true;
+          this.mech = 'PLAIN';
+          this.scram = null;
+          this.host.send('AUTHENTICATE PLAIN');
+          return;
+        }
+        this.host.setStatus('sasl-failed');
+        this.endCap();
+        return;
+      case '907': // SASL already authenticated
+        this.host.setStatus('sasl-failed');
         this.endCap();
         return;
       case '433': // ERR_NICKNAMEINUSE — auto-suffix while still registering
@@ -109,10 +129,15 @@ export class Registration {
       registered: this.host.isRegistered(),
       hasPassword: !!this.host.opts().password,
       wantPasskey: this.host.opts().passkey === true,
+      wantScram: this.host.opts().scram === true,
     });
     switch (action.do) {
       case 'req': this.host.send(`CAP REQ :${action.caps.join(' ')}`); break;
-      case 'sasl': this.mech = action.mech; this.host.send(`AUTHENTICATE ${action.mech}`); break;
+      case 'sasl':
+        this.mech = action.mech;
+        this.scram = action.mech === 'SCRAM-SHA-256' ? new ScramClient() : null;
+        this.host.send(`AUTHENTICATE ${action.mech}`);
+        break;
       case 'end': this.endCap(); break;
       case 'forward': this.host.forward(msg); break; // post-registration manual `cap ls`
       // 'none': nothing to do
@@ -121,10 +146,37 @@ export class Registration {
 
   private handleAuthenticate(msg: IrcMessage): void {
     if (this.mech === 'WEBAUTHN') { this.handleWebauthn(msg); return; }
+    if (this.mech === 'SCRAM-SHA-256') { this.handleScram(msg); return; }
     // PLAIN: the server sends a bare '+' when it's ready for our client-first data.
     if (msg.params[0] !== '+') return;
     const o = this.host.opts();
     this.sendSaslData(b64utf8(`\0${o.nick}\0${o.password ?? ''}`));
+  }
+
+  // SCRAM-SHA-256 is a multi-step challenge-response (server '+' → client-first →
+  // server-first → client-final → server-final → empty ack → 903). The password is
+  // never sent; only a proof derived from it. Any snag (bad server message, wrong
+  // password, no verifier) aborts with AUTHENTICATE * → the 906/904 handler retries
+  // once with PLAIN. The crypto is async (Web Crypto), so client-final resolves later.
+  private handleScram(msg: IrcMessage): void {
+    const scram = this.scram;
+    if (!scram) { this.host.send('AUTHENTICATE *'); return; }
+    const payload = msg.params[0] ?? '';
+    if (!scram.started) {
+      // Server sent '+' (ready) → send client-first.
+      this.sendSaslData(scram.clientFirst(this.host.opts().nick));
+      return;
+    }
+    if (!scram.sentClientFinal) {
+      // Server-first → derive and send client-final.
+      scram.clientFinal(payload, this.host.opts().password ?? '')
+        .then((data) => this.sendSaslData(data))
+        .catch(() => this.host.send('AUTHENTICATE *')); // → 906 → PLAIN fallback
+      return;
+    }
+    // Server-final → authenticate the server, then an empty message completes it.
+    if (scram.verifyServerFinal(payload)) this.host.send('AUTHENTICATE +');
+    else this.host.send('AUTHENTICATE *'); // server signature bad → abort → fallback
   }
 
   // WEBAUTHN is server-first: the ircd sends the challenge as a base64 AUTHENTICATE

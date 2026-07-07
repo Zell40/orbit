@@ -108,8 +108,10 @@ export interface ConnectOptions {
   nick: string;
   username?: string;
   realname?: string;
-  password?: string;       // SASL PLAIN password (optional)
+  password?: string;       // SASL password (optional)
   passkey?: boolean;       // authenticate with a WebAuthn passkey via SASL WEBAUTHN instead of a password
+  scram?: boolean;         // prefer SASL SCRAM-SHA-256 for this password (falls back to PLAIN); set by the store
+  keycard?: boolean;       // the password is a single-use keycard, not an account password → PLAIN only (SCRAM can't verify a token)
   serverPassword?: string; // server connection password — sent via PASS (optional)
   channels?: string[];
 }

@@ -116,7 +116,8 @@ loadConfig().then(async () => {
     const channels = (params.get('channel') || cfg.startup.channels.join(','))
       .split(',').map((c) => c.trim()).filter(Boolean)
     useChat.setState({ autoConnecting: true })
-    useChat.getState().connect({ url: cfg.server.url, nick, password: handoff.password, channels })
+    // A handoff password is a single-use keycard, not an account password → PLAIN.
+    useChat.getState().connect({ url: cfg.server.url, nick, password: handoff.password, keycard: true, channels })
     cleanUrl()
   } else if (!nick && cfg.features.sessionResume) {
     // No fresh site entry — resume the last session (opt-in). A still-signed-in
@@ -139,7 +140,8 @@ loadConfig().then(async () => {
       }
       if (go) {
         useChat.setState({ autoConnecting: true })
-        useChat.getState().connect({ url: resume.url || cfg.server.url, nick: resumeNick, password, channels: resume.channels })
+        // The resume password (when present) is a single-use keycard → PLAIN.
+        useChat.getState().connect({ url: resume.url || cfg.server.url, nick: resumeNick, password, keycard: !!password, channels: resume.channels })
         cleanUrl()
       }
     }

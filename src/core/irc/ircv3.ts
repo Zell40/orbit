@@ -72,7 +72,7 @@ export class Ircv3 {
 
   // Capability negotiation. Mutates the cap sets and returns the action the client
   // should perform next.
-  handleCap(msg: IrcMessage, ctx: { registered: boolean; hasPassword: boolean; wantPasskey?: boolean }): CapAction {
+  handleCap(msg: IrcMessage, ctx: { registered: boolean; hasPassword: boolean; wantPasskey?: boolean; wantScram?: boolean }): CapAction {
     // The subcommand is case-insensitive and server echoes back the exact case
     // the client sent (`cap ls` → `ls`), so normalise before matching.
     const sub = (msg.params[1] || '').toUpperCase();
@@ -117,7 +117,12 @@ export class Ircv3 {
       // takes precedence, else a password → PLAIN, else nothing to authenticate with.
       if (this.acked.has('sasl')) {
         if (ctx.wantPasskey && this.saslMechs.has('WEBAUTHN')) return { do: 'sasl', mech: 'WEBAUTHN' };
-        if (ctx.hasPassword) return { do: 'sasl', mech: 'PLAIN' };
+        if (ctx.hasPassword) {
+          // Prefer SCRAM-SHA-256 when requested + offered (the password stays off the
+          // wire); the registration layer falls back to PLAIN if it fails.
+          if (ctx.wantScram && this.saslMechs.has('SCRAM-SHA-256')) return { do: 'sasl', mech: 'SCRAM-SHA-256' };
+          return { do: 'sasl', mech: 'PLAIN' };
+        }
       }
       return { do: 'end' };
     }

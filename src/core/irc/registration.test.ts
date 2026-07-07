@@ -104,6 +104,44 @@ describe('Registration handshake', () => {
     expect(sent).toContain('CAP END');
   });
 
+  it('uses SCRAM-SHA-256 when scram is requested and offered, sending client-first', () => {
+    const { reg, sent } = make({ nick: 'bob', password: 'pw', scram: true });
+    reg.handle(parseLine('CAP * LS :sasl=PLAIN,SCRAM-SHA-256 message-tags'));
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    expect(sent).toContain('AUTHENTICATE SCRAM-SHA-256'); // not PLAIN
+    sent.length = 0;
+    reg.handle(parseLine('AUTHENTICATE +')); // server ready → client-first
+    const cf = sent.find((l) => l.startsWith('AUTHENTICATE ') && l !== 'AUTHENTICATE +');
+    expect(cf).toBeTruthy();
+    const decoded = new TextDecoder().decode(
+      Uint8Array.from(atob(cf!.slice('AUTHENTICATE '.length)), (c) => c.charCodeAt(0)));
+    expect(decoded).toMatch(/^n,,n=bob,r=/);
+  });
+
+  it('falls back to PLAIN when SCRAM is rejected, and only gives up if PLAIN fails too', () => {
+    const { reg, sent, statuses } = make({ nick: 'bob', password: 'pw', scram: true });
+    reg.handle(parseLine('CAP * LS :sasl=SCRAM-SHA-256'));
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    expect(sent).toContain('AUTHENTICATE SCRAM-SHA-256');
+    sent.length = 0;
+    reg.handle(parseLine('904 bob :SASL failed')); // SCRAM rejected → retry with PLAIN
+    expect(sent).toContain('AUTHENTICATE PLAIN');
+    expect(statuses).not.toContain('sasl-failed');
+    reg.handle(parseLine('AUTHENTICATE +'));
+    expect(sent.some((l) => l.startsWith('AUTHENTICATE ') && l !== 'AUTHENTICATE +')).toBe(true); // PLAIN payload
+    reg.handle(parseLine('904 bob :SASL failed')); // PLAIN also fails → give up now
+    expect(statuses).toContain('sasl-failed');
+    expect(sent).toContain('CAP END');
+  });
+
+  it('does not use SCRAM when the server does not advertise it', () => {
+    const { reg, sent } = make({ nick: 'bob', password: 'pw', scram: true });
+    reg.handle(parseLine('CAP * LS :sasl=PLAIN'));
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    expect(sent).toContain('AUTHENTICATE PLAIN');
+    expect(sent).not.toContain('AUTHENTICATE SCRAM-SHA-256');
+  });
+
   it('retries with a suffixed nick on 433 while unregistered, ignores it once registered', () => {
     const { reg, sent, state } = make({ nick: 'bob' });
     reg.handle(parseLine('433 * bob :Nickname is already in use'));
