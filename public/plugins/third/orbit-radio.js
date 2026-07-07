@@ -128,7 +128,9 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
 
     // ── state ─────────────────────────────────────────────────────────────────
     var open = false;
+    var pendingGrow = null;
     function playing() { return !audio.paused && !audio.error; }
+    function clearGrow() { if (pendingGrow) { window.removeEventListener('resize', pendingGrow); pendingGrow = null; } }
 
     function pick(i, autoplay) {
       idx = i; orbit.storage.set('station', idx);
@@ -141,7 +143,25 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     }
     function setOpen(v) {
       open = v;
-      card.style.display = v ? 'block' : 'none';
+      clearGrow();
+      if (v) {
+        // The host grows our frame over an async round-trip; keep the card hidden until
+        // the frame is tall enough, then reveal — so no half-drawn card ever flashes down
+        // by the composer while the frame catches up.
+        card.style.visibility = 'hidden';
+        card.style.display = 'block';
+        pendingGrow = function () {
+          if (window.innerHeight < card.offsetHeight) return;
+          clearGrow();
+          card.style.visibility = 'visible';
+          card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'obr-in .18s ease both';
+        };
+        window.addEventListener('resize', pendingGrow);
+        requestAnimationFrame(pendingGrow);
+      } else {
+        card.style.display = 'none';
+        card.style.visibility = '';
+      }
       trig.style.background = 'transparent';
       render();
     }
