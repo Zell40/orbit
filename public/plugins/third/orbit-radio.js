@@ -166,7 +166,8 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       liveDot.style.display = live ? 'block' : 'none';
       teq.style.display = live ? 'inline-flex' : 'none';
       ic.style.display = live ? 'none' : 'inline-flex';
-      label.textContent = live ? STATIONS[idx].name : 'Radio';
+      // Keep the label fixed ("Radio") so the tab never changes width — the frame is
+      // centered on a fixed-width nav slot, so a variable label would shift the card.
       trig.style.color = (open || live) ? 'var(--accent,#3a7)' : 'var(--muted,#999)';
       rows.forEach(function (b, i) { b.classList.toggle('on', i === idx); });
       eqRun(live);

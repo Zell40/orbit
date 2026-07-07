@@ -271,12 +271,13 @@ input, textarea { font-family: inherit; }
 .appbar__act:hover { background: var(--bg); color: var(--ink); }
 /* host mount point for a sandboxed plugin's iframe (sized to content by the host) */
 .sbx-slot { display: inline-flex; align-items: center; }
-/* A sandboxed nav_item (the radio) must bottom-anchor so its floating player card
-   grows UPWARD out of the bar instead of overflowing DOWN off-screen behind the
-   composer. Plain selector (no :has(), which older engines miss) — only the radio is
-   a nav sandbox slot. .appbar has visible overflow + z-index:25 so the card floats
-   over the chat, un-clipped and in front of the composer. */
-.appbar__nav .sbx-slot { align-self: flex-end; position: relative; z-index: 5; }
+/* A sandboxed nav_item (the radio) keeps a fixed footprint in the nav; its iframe is
+   ABSOLUTELY positioned + bottom-anchored so growing its height (opening the player
+   card) can ONLY extend UPWARD — never down/off-screen. This is deterministic across
+   browsers (unlike flex align tricks). .appbar has visible overflow + z-index:25 so
+   the card floats over the chat, in front of the composer. */
+.appbar__nav .sbx-slot { position: relative; align-self: stretch; width: 58px; z-index: 30; }
+.appbar__nav .sbx-slot > iframe { position: absolute !important; bottom: 4px; left: 50%; transform: translateX(-50%); }
 /* away toggle: dim = present (click to step away), amber-lit = away */
 .appbar__act--away { filter: grayscale(1); opacity: .55; }
 .appbar__act--away:hover { filter: grayscale(.5); opacity: .85; }
