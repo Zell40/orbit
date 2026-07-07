@@ -18,10 +18,13 @@ Two things use it:
   fetched and mounted the same way. Use for community / third-party / less-trusted
   plugins. (Plain string entries still load in-page as a trusted `<script>`.)
 
+Plugin files live under `public/plugins/third/` (served at `/app/plugins/third/`):
+
 ```jsonc
 "plugins": [
-  "/app/plugins/orbit-clock.js",                                  // in-page (trusted)
-  { "url": "/app/plugins/community-thing.js",                     // sandboxed
+  { "url": "/app/plugins/third/orbit-clock.js",                   // sandboxed, no permissions
+    "sandbox": true, "permissions": [] },
+  { "url": "/app/plugins/third/community-thing.js",               // sandboxed, community
     "sandbox": true, "permissions": ["irc", "storage"] }
 ]
 ```
@@ -56,7 +59,7 @@ The app's theme CSS vars (`--bg`, `--ink`, `--accent`, `--muted`, `--border`,
 change, so plugin UI can use `var(--accent)` and look native in light + dark.
 
 Examples: `src/modules/sandbox/features/dice.js` (a built-in, bundled + mounted by core) and
-`public/plugins/orbit-sandbox-demo.js` (the minimal config-loaded form).
+`public/plugins/third/orbit-sandbox-demo.js` (the minimal config-loaded form).
 
 ## Required CSP (APPLIED 2026-07-04)
 

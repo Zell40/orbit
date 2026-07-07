@@ -9,12 +9,28 @@ add UI in predefined slots.
 > between releases. Plugins are deployment-controlled (same trust level as the
 > app itself) — there is no user-uploaded plugin marketplace, by design.
 
+## Where plugins live
+
+Plugin files live under **`public/plugins/third/`** (served at `/app/plugins/third/`).
+Third-party plugins **should be sandboxed** — run in an opaque-origin iframe reachable
+only through the capability bridge (see [SANDBOX.md](./SANDBOX.md)). In-page loading
+(full page access, no isolation) is reserved for trusted first-party code and is
+being phased out.
+
 ## Enabling plugins
 
-Add script URLs to `plugins` in [`config.json`](../CONFIG.md):
+Add script URLs to `plugins` in [`config.json`](../CONFIG.md). Prefer the sandboxed
+object form with an explicit permission list:
 
 ```json
-{ "plugins": ["/app/plugins/orbit-demo.js"] }
+{ "plugins": [{ "url": "/app/plugins/third/orbit-clock.js", "sandbox": true, "permissions": [] }] }
+```
+
+A bare URL (or an object without `"sandbox": true`) still loads **in-page** — trusted,
+full access — for first-party plugins that need the React API:
+
+```json
+{ "plugins": ["/app/plugins/third/orbit-demo.js"] }
 ```
 
 They load in order, after the app boots. Host them anywhere the page can reach
@@ -143,6 +159,6 @@ a hook that isn't here.
 
 | File | Shows |
 |---|---|
-| [`orbit-demo.js`](../public/plugins/orbit-demo.js) | events, a `composer_button`, an IRC action |
-| [`orbit-clock.js`](../public/plugins/orbit-clock.js) | a `topbar_item` with live React-hook state |
-| [`orbit-copy.js`](../public/plugins/orbit-copy.js) | a `message_action` (toolbar copy button with copied-confirmation) |
+| [`orbit-demo.js`](../public/plugins/third/orbit-demo.js) | events, a `composer_button`, an IRC action |
+| [`orbit-clock.js`](../public/plugins/third/orbit-clock.js) | a `topbar_item` with live React-hook state |
+| [`orbit-copy.js`](../public/plugins/third/orbit-copy.js) | a `message_action` (toolbar copy button with copied-confirmation) |
