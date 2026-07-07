@@ -114,12 +114,14 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     var trig = document.createElement('button');
     trig.type = 'button';
     trig.title = 'Radio';
-    trig.style.cssText = 'display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 12px;cursor:pointer;' +
-      'border-radius:12px;border:1px solid transparent;background:transparent;color:var(--muted,#999);' +
+    trig.style.cssText = 'display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 13px;cursor:pointer;' +
+      'border-radius:13px;border:1px solid transparent;background:transparent;color:var(--muted,#999);' +
       'transition:background .12s,color .12s,border-color .12s';
     var ic = radioSvg();
-    var teq = eqBars(3, 13); teq.style.display = 'none';
-    trig.appendChild(ic); trig.appendChild(teq);
+    var teq = eqBars(3, 14); teq.style.display = 'none';
+    var tname = document.createElement('span');
+    tname.style.cssText = 'display:none;font-weight:700;font-size:12.5px;max-width:8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    trig.appendChild(ic); trig.appendChild(teq); trig.appendChild(tname);
     trig.onmouseenter = function () { if (!open) trig.style.background = 'var(--bg,#0002)'; };
     trig.onmouseleave = function () { if (!open) trig.style.background = 'transparent'; };
     trig.onclick = function () { setOpen(!open); };
@@ -147,7 +149,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       trig.style.color = v ? 'var(--ink,inherit)' : (playing() ? 'var(--accent,#3a7)' : 'var(--muted,#999)');
     }
     function eqRun(on) {
-      [hwave, teq].concat([]).forEach(function (g) {
+      [hwave, teq].forEach(function (g) {
         Array.prototype.forEach.call(g.children, function (b) { b.style.animationPlayState = on ? 'running' : 'paused'; });
       });
     }
@@ -158,6 +160,8 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       liveTxt.textContent = live ? 'LIVE · ' + STATIONS[idx].tag : STATIONS[idx].tag;
       liveDot.style.display = live ? 'block' : 'none';
       teq.style.display = live ? 'inline-flex' : 'none';
+      tname.style.display = live ? 'inline' : 'none';
+      tname.textContent = STATIONS[idx].name;
       ic.style.display = live ? 'none' : 'inline-flex';
       if (!open) trig.style.color = live ? 'var(--accent,#3a7)' : 'var(--muted,#999)';
       rows.forEach(function (b, i) { b.classList.toggle('on', i === idx); });
@@ -188,7 +192,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
   }
   function radioSvg() {
     var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    s.setAttribute('width', '19'); s.setAttribute('height', '19'); s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('width', '21'); s.setAttribute('height', '21'); s.setAttribute('viewBox', '0 0 24 24');
     s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2');
     s.setAttribute('stroke-linecap', 'round'); s.style.cssText = 'display:inline-flex';
     s.innerHTML = '<circle cx="12" cy="12" r="2"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/>' +
