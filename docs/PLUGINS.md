@@ -9,13 +9,42 @@ add UI in predefined slots.
 > between releases. Plugins are deployment-controlled (same trust level as the
 > app itself) — there is no user-uploaded plugin marketplace, by design.
 
+## Which kind of plugin (the trust rule)
+
+Every plugin runs in **each visitor's browser**, so the security question isn't "do
+I trust this code" but "whose data pays if I'm wrong" — and the answer is your users,
+who never chose the plugin. A plugin with full page access can read a visitor's
+session and login credential, act as them, and read their DMs. That gives one hard
+rule, and three buckets:
+
+> **Untrusted code is always sandboxed. No exceptions.**
+
+1. **Core UI** — the chat, composer, sidebar, settings. This is the app, not a plugin.
+2. **Built-in extras** — first-party features you wrote and review (radio, clock,
+   dice, copy, games). Trusted, so isolation is a *choice*, made by fit:
+   - a self-contained widget (its own panel or button, reaching IRC through the API)
+     → **sandbox it**: it costs nothing and doubles as a reference plugin that can't
+     crash the app (radio, clock, dice — see [PLUGIN-SDK.md](./PLUGIN-SDK.md));
+   - something woven into the UI (a control on every message, a filter over the
+     message stream, or a feature that needs the app's own URL) → **run it in-page**,
+     with the full React API below; sandboxing it fights the model for no gain
+     (copy, games).
+3. **Third-party plugins** — anything you didn't write and audit yourself. **Always
+   sandboxed**, however trivial it looks. This is the bucket the rule is for.
+
+This is how server splits things too: essential and deeply-integrated features are
+compiled into the core, optional self-contained ones ship as modules. Orbit does the
+same, with one twist — a web client can be handed genuinely untrusted plugins, so its
+module tier (the sandbox) is a real security boundary, not just packaging.
+
 ## Where plugins live
 
 Plugin files live under **`public/plugins/third/`** (served at `/app/plugins/third/`).
-Third-party plugins **should be sandboxed** — run in an opaque-origin iframe reachable
-only through the capability bridge (see [SANDBOX.md](./SANDBOX.md)). In-page loading
-(full page access, no isolation) is reserved for trusted first-party code and is
-being phased out.
+Per the trust rule above, third-party plugins are **always sandboxed** — an
+opaque-origin iframe reachable only through the capability bridge (see
+[SANDBOX.md](./SANDBOX.md); author them with the [SDK](./PLUGIN-SDK.md)). In-page
+loading (full page access, no isolation) stays available, but only for trusted
+first-party code — never for anything you didn't write yourself.
 
 ## Enabling plugins
 
@@ -157,8 +186,17 @@ a hook that isn't here.
 
 ## Working examples
 
+In-page (trusted, full React API):
+
 | File | Shows |
 |---|---|
 | [`orbit-demo.js`](../public/plugins/third/orbit-demo.js) | events, a `composer_button`, an IRC action |
-| [`orbit-clock.js`](../public/plugins/third/orbit-clock.js) | a `topbar_item` with live React-hook state |
 | [`orbit-copy.js`](../public/plugins/third/orbit-copy.js) | a `message_action` (toolbar copy button with copied-confirmation) |
+
+Sandboxed (the [SDK](./PLUGIN-SDK.md), no page access):
+
+| File | Shows |
+|---|---|
+| [`orbit-hello.js`](../public/plugins/third/orbit-hello.js) | a starter: `panel`, a slash command, a shortcut |
+| [`orbit-radio.js`](../public/plugins/third/orbit-radio.js) | a full `panel` player (hero, volume, station list) |
+| [`orbit-clock.js`](../public/plugins/third/orbit-clock.js) | a minimal `topbar_item` clock |
