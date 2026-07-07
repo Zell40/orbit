@@ -271,6 +271,11 @@ input, textarea { font-family: inherit; }
 .appbar__act:hover { background: var(--bg); color: var(--ink); }
 /* host mount point for a sandboxed plugin's iframe (sized to content by the host) */
 .sbx-slot { display: inline-flex; align-items: center; }
+/* When the radio plugin is loaded, bottom-anchor the actions cluster so its footer
+   iframe can grow UPWARD (the floating player card) out of the bar instead of
+   re-centring and pushing the trigger off-screen. Scoped via :has() so deployments
+   without the radio are untouched; padding keeps the 40px buttons visually centred. */
+.appbar__actions:has(iframe[title*="radio"]) { align-self: flex-end; align-items: flex-end; padding-bottom: 10px; }
 /* away toggle: dim = present (click to step away), amber-lit = away */
 .appbar__act--away { filter: grayscale(1); opacity: .55; }
 .appbar__act--away:hover { filter: grayscale(.5); opacity: .85; }
