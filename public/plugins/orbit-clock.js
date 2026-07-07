@@ -21,7 +21,7 @@ Orbit.plugin('orbit-clock', (orbit, log) => {
     return orbit.html`
       <span
         title=${orbit.i18n.t('plugins.clock.title')}
-        style=${{ font: '600 .82rem/1 inherit', opacity: 0.7, padding: '0 .45rem', alignSelf: 'center' }}
+        style=${{ fontWeight: 600, fontSize: '.82rem', lineHeight: '1', opacity: 0.7, padding: '0 .45rem', alignSelf: 'center' }}
       >${hh}:${mm}</span>
     `;
   }

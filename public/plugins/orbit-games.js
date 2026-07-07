@@ -203,7 +203,7 @@ Orbit.plugin('games', (orbit, log) => {
 
     return html`<div style=${{ position: 'fixed', right: '14px', bottom: '74px', zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '14px', boxShadow: '0 24px 60px -20px rgba(0,0,0,.7)', padding: '.85rem' }}>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.6rem' }}>
-        <strong style=${{ font: '700 .95rem/1 inherit' }}>${T('plugins.games.title')}</strong>
+        <strong style=${{ fontWeight: 700, fontSize: '.95rem', lineHeight: '1' }}>${T('plugins.games.title')}</strong>
         <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, padding: '.15rem .45rem' }}>✕</button>
       </div>
 
