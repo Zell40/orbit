@@ -55,6 +55,7 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
           <span className="tab__lb">{t('nav.tabRooms')}</span>
         </button>
         <TabFriends onOpen={() => setModal('friends')} />
+        {footerVisible && footerItems.filter((u) => u.slot === 'nav_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="nav_item" />)}
       </nav>
       <div className="appbar__actions">
         {footerVisible && footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}

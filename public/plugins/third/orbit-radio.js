@@ -1,8 +1,9 @@
 /*
  * Orbit radio — a SANDBOXED web-radio player with a themed footer control.
  *
- * A prominent radio button lives in the footer; clicking it opens a floating player
- * card (now-playing station, animated equalizer, play/pause, volume, station list).
+ * A "Radio" tab sits in the bottom nav next to Home/Rooms/Friends; clicking it opens
+ * a floating player card (now-playing station, animated equalizer, play/pause, volume,
+ * station list). Uses the `nav_item` UI slot.
  * It runs in an opaque-origin iframe: it plays the stream with its OWN <audio> (so
  * the play click keeps its user gesture) and remembers your station + volume via the
  * granted `storage` capability. No page / store / IRC access.
@@ -31,7 +32,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
   var idx = orbit.storage.get('station', 0);
   if (typeof idx !== 'number' || idx < 0 || idx >= STATIONS.length) idx = 0;
 
-  orbit.ui('footer_item', function (root) {
+  orbit.ui('nav_item', function (root) {
     var css = document.createElement('style');
     css.textContent =
       '@keyframes obr-eq{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}' +
@@ -46,7 +47,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       'input[type=range].obr-vol{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;flex:1;cursor:pointer;background:var(--border,#8886);accent-color:var(--accent,#3a7)}';
     root.appendChild(css);
 
-    root.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:9px;padding-bottom:5px;' +
+    root.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px;' +
       'font:600 12px system-ui,-apple-system,sans-serif;color:var(--ink,inherit)';
 
     // ── floating player card (above the trigger; hidden until opened) ──────────
@@ -110,19 +111,23 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
 
     card.appendChild(head); card.appendChild(hero); card.appendChild(volRow); card.appendChild(list);
 
-    // ── footer trigger ────────────────────────────────────────────────────────
+    // ── nav trigger — styled like the Home/Rooms/Friends tabs (icon over label) ──
     var trig = document.createElement('button');
     trig.type = 'button';
     trig.title = 'Radio';
-    trig.style.cssText = 'display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 13px;cursor:pointer;' +
-      'border-radius:13px;border:1px solid transparent;background:transparent;color:var(--muted,#999);' +
-      'transition:background .12s,color .12s,border-color .12s';
+    trig.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;' +
+      'min-width:54px;height:52px;padding:6px 8px;cursor:pointer;border:0;border-radius:12px;' +
+      'background:transparent;color:var(--muted,#999);font:inherit;transition:color .12s,background .12s';
+    var icRow = document.createElement('span');
+    icRow.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;height:21px';
     var ic = radioSvg();
-    var teq = eqBars(3, 14); teq.style.display = 'none';
-    var tname = document.createElement('span');
-    tname.style.cssText = 'display:none;font-weight:700;font-size:12.5px;max-width:8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    trig.appendChild(ic); trig.appendChild(teq); trig.appendChild(tname);
-    trig.onmouseenter = function () { if (!open) trig.style.background = 'var(--bg,#0002)'; };
+    var teq = eqBars(3, 15); teq.style.display = 'none';
+    icRow.appendChild(ic); icRow.appendChild(teq);
+    var label = document.createElement('span');
+    label.style.cssText = 'font-size:.68rem;font-weight:600;letter-spacing:.01em;line-height:1;max-width:6rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    label.textContent = 'Radio';
+    trig.appendChild(icRow); trig.appendChild(label);
+    trig.onmouseenter = function () { if (!open) trig.style.background = 'var(--bg,rgba(127,127,127,.12))'; };
     trig.onmouseleave = function () { if (!open) trig.style.background = 'transparent'; };
     trig.onclick = function () { setOpen(!open); };
 
@@ -143,10 +148,10 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       audio.src = STATIONS[idx].url; audio.play().catch(function (e) { log('play blocked: ' + e); render(); });
     }
     function setOpen(v) {
-      open = v; card.style.display = v ? 'block' : 'none';
-      trig.style.borderColor = v ? 'var(--border,#8884)' : 'transparent';
-      trig.style.background = v ? 'var(--accent-soft,rgba(127,127,127,.14))' : 'transparent';
-      trig.style.color = v ? 'var(--ink,inherit)' : (playing() ? 'var(--accent,#3a7)' : 'var(--muted,#999)');
+      open = v;
+      card.style.display = v ? 'block' : 'none';
+      trig.style.background = v ? 'var(--accent-soft,rgba(53,196,106,.14))' : 'transparent';
+      render();
     }
     function eqRun(on) {
       [hwave, teq].forEach(function (g) {
@@ -160,10 +165,9 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       liveTxt.textContent = live ? 'LIVE · ' + STATIONS[idx].tag : STATIONS[idx].tag;
       liveDot.style.display = live ? 'block' : 'none';
       teq.style.display = live ? 'inline-flex' : 'none';
-      tname.style.display = live ? 'inline' : 'none';
-      tname.textContent = STATIONS[idx].name;
       ic.style.display = live ? 'none' : 'inline-flex';
-      if (!open) trig.style.color = live ? 'var(--accent,#3a7)' : 'var(--muted,#999)';
+      label.textContent = live ? STATIONS[idx].name : 'Radio';
+      trig.style.color = (open || live) ? 'var(--accent,#3a7)' : 'var(--muted,#999)';
       rows.forEach(function (b, i) { b.classList.toggle('on', i === idx); });
       eqRun(live);
     }
