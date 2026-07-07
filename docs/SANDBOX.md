@@ -82,9 +82,14 @@ touch the app.
 
    ```
    location = /app/plugin-sandbox.html {
-     add_header Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-ancestors 'self'" always;
+     add_header Content-Security-Policy "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data:; media-src https:; connect-src 'none'; frame-ancestors 'self'" always;
    }
    ```
+
+   `media-src https:` lets a sandboxed plugin play an audio/video stream in its own
+   iframe (e.g. the `orbit-radio` footer player). Playback stays contained — the
+   iframe still can't `fetch`, read the response, or reach the app. Drop it if no
+   deployment plugin needs media.
 
 Applied live in `csp-app.conf` / `chat-headers.conf` (added `'self'` to `frame-src`)
 and a `location = /app/plugin-sandbox.html` block in `tchatou-app-backend.conf`.
