@@ -1,7 +1,7 @@
 // Tchatou service worker — installable PWA + offline app shell.
 // Scope: /app/. Only handles same-origin /app/ GETs; the IRC websocket and all
 // API calls (cloudflare, change_password, upload) pass straight through.
-const CACHE = 'tchatou-v82';
+const CACHE = 'tchatou-v83';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/orbit-icon.svg', '/app/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
@@ -121,14 +121,31 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  // Hashed assets (immutable): cache-first, populate on first fetch.
+  // /app/assets/ is content-hashed → immutable, so cache-first (fast; a new build
+  // ships new filenames, so this never goes stale).
+  if (url.pathname.startsWith('/app/assets/')) {
+    e.respondWith(
+      caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+        if (res.ok && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      }))
+    );
+    return;
+  }
+  // Everything else under /app/ — plugins, icons, manifest — has a STABLE
+  // (unhashed) URL and is therefore mutable: network-first, or a cached copy would
+  // pin an old build forever (this is what stuck a fixed plugin stale). Falls back
+  // to cache when offline.
   e.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+    fetch(req).then((res) => {
       if (res.ok && res.type === 'basic') {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));
       }
       return res;
-    }))
+    }).catch(() => caches.match(req))
   );
 });
