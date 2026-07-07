@@ -79,7 +79,9 @@ export function mountSandboxed(spec: SandboxSpec): void {
   iframe.src = SANDBOX_DOC;
   iframe.setAttribute('sandbox', 'allow-scripts'); // opaque origin — the isolation boundary
   iframe.title = name;
-  iframe.style.cssText = 'border:0;width:0;height:0;display:block;background:transparent;color-scheme:normal';
+  // Hidden until the guest reports its size, so it never flashes at the wrong spot
+  // (an absolute frame anchors to the viewport before the slot's CSS applies).
+  iframe.style.cssText = 'border:0;width:0;height:0;display:block;background:transparent;color-scheme:normal;visibility:hidden';
 
   const log = (...a: unknown[]) => { if (pluginDebug()) console.log(`%c[${name}]`, 'color:#8957e5', ...a); };
 
@@ -111,6 +113,7 @@ export function mountSandboxed(spec: SandboxSpec): void {
       const h = Math.max(0, Math.min(2000, Number(a[1]) || 0));
       if (w) iframe.style.width = `${w}px`;
       iframe.style.height = `${h}px`;
+      if (h > 0) iframe.style.visibility = 'visible';
     },
   };
 
@@ -121,6 +124,7 @@ export function mountSandboxed(spec: SandboxSpec): void {
   let teardown = () => {};
   const handshake = () => {
     teardown();
+    iframe.style.visibility = 'hidden'; // re-hide across the adoption reload until resized
     const chan = new MessageChannel();
     const port = chan.port1;
     port.onmessage = (e: MessageEvent) => {

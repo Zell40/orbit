@@ -1,17 +1,8 @@
 /*
- * Orbit radio — a SANDBOXED web-radio player with a themed footer control.
- *
- * A "Radio" tab sits in the bottom nav next to Home/Rooms/Friends; clicking it opens
- * a floating player card (now-playing station, animated equalizer, play/pause, volume,
- * station list). Uses the `nav_item` UI slot.
- * It runs in an opaque-origin iframe: it plays the stream with its OWN <audio> (so
- * the play click keeps its user gesture) and remembers your station + volume via the
- * granted `storage` capability. No page / store / IRC access.
- *
- *   { "url": "/app/plugins/third/orbit-radio.js", "sandbox": true, "permissions": ["storage"] }
- *
- * Needs the sandbox CSP to allow `media-src https:` (see docs/SANDBOX.md). Stations
- * must be direct HTTPS streams (no .pls/.m3u playlists).
+ * Orbit radio — sandboxed web-radio player. A "Radio" tab in the bottom nav opens a
+ * floating player (now-playing, equalizer, volume, station list); its own <audio>
+ * plays the stream, `storage` persists station + volume. No page/store/IRC access.
+ * Needs `media-src https:` in the sandbox CSP; stations are direct HTTPS streams.
  */
 Orbit.plugin('orbit-radio', function (orbit, log) {
   var STATIONS = [
@@ -111,24 +102,25 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
 
     card.appendChild(head); card.appendChild(hero); card.appendChild(volRow); card.appendChild(list);
 
-    // ── nav trigger — styled like the Home/Rooms/Friends tabs (icon over label) ──
+    // nav trigger — mirrors the .tab buttons (Home/Rooms/Friends)
     var trig = document.createElement('button');
     trig.type = 'button';
     trig.title = 'Radio';
     trig.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;' +
-      'min-width:54px;height:52px;padding:6px 8px;cursor:pointer;border:0;border-radius:12px;' +
-      'background:transparent;color:var(--muted,#999);font:inherit;transition:color .12s,background .12s';
+      'min-width:52px;padding:6px 4px;cursor:pointer;border:0;border-radius:12px;background:transparent;' +
+      'color:var(--muted,#999);font:inherit;transition:color .12s,background .12s';
     var icRow = document.createElement('span');
-    icRow.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;height:21px';
+    icRow.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;line-height:1';
     var ic = radioSvg();
     var teq = eqBars(3, 15); teq.style.display = 'none';
     icRow.appendChild(ic); icRow.appendChild(teq);
     var label = document.createElement('span');
-    label.style.cssText = 'font-size:.68rem;font-weight:600;letter-spacing:.01em;line-height:1;max-width:6rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    label.style.cssText = 'font-size:.68rem;font-weight:600;letter-spacing:.01em;line-height:1;white-space:nowrap';
     label.textContent = 'Radio';
     trig.appendChild(icRow); trig.appendChild(label);
-    trig.onmouseenter = function () { if (!open) trig.style.background = 'var(--bg,rgba(127,127,127,.12))'; };
-    trig.onmouseleave = function () { if (!open) trig.style.background = 'transparent'; };
+    function idle() { return !open && !playing(); }
+    trig.onmouseenter = function () { if (idle()) { trig.style.color = 'var(--ink,inherit)'; trig.style.background = 'var(--bg,transparent)'; } };
+    trig.onmouseleave = function () { if (idle()) { trig.style.color = 'var(--muted,#999)'; trig.style.background = 'transparent'; } };
     trig.onclick = function () { setOpen(!open); };
 
     root.appendChild(card);
@@ -166,8 +158,6 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       liveDot.style.display = live ? 'block' : 'none';
       teq.style.display = live ? 'inline-flex' : 'none';
       ic.style.display = live ? 'none' : 'inline-flex';
-      // Keep the label fixed ("Radio") so the tab never changes width — the frame is
-      // centered on a fixed-width nav slot, so a variable label would shift the card.
       trig.style.color = (open || live) ? 'var(--accent,#3a7)' : 'var(--muted,#999)';
       rows.forEach(function (b, i) { b.classList.toggle('on', i === idx); });
       eqRun(live);

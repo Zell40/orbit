@@ -2,10 +2,8 @@
 <meta charset="utf-8">
 <title>Orbit sandboxed plugin</title>
 <style>
-  /* The iframe must be TRANSPARENT so a plugin sits directly on the app's theme
-     background. color-scheme on the ROOT paints an opaque UA canvas (grey in a dark
-     theme) behind the transparent content — so pin the root to `normal` and never set
-     a scheme on it; native-control theming is applied to <body> instead (below). */
+  /* Transparent iframe so a plugin sits on the app background; color-scheme goes on
+     <body>, not the root (root scheme paints an opaque UA canvas = grey box). */
   html { background: transparent; color-scheme: normal; }
   body { margin: 0; padding: 0; background: transparent; color: inherit; display: inline-block; font: 13px/1.3 system-ui, sans-serif; }
 </style>
@@ -43,11 +41,8 @@
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) < 128;
   }
 
-  // Mirror the app's theme CSS vars onto our root so plugin UI can use var(--accent) etc.
-  // Pin color-scheme to the APP theme (from its background), not the visitor's OS, so
-  // native controls (range, scrollbars) match — but set it on <body>, NOT the root:
-  // color-scheme on the root would paint an opaque UA canvas and break the iframe's
-  // transparency (the grey box behind plugins).
+  // Mirror the app theme vars onto our root; color-scheme on <body> (not root) so
+  // native controls match without the root painting an opaque canvas.
   function applyTheme(vars) {
     if (!vars) return;
     for (var k in vars) { try { document.documentElement.style.setProperty(k, vars[k]); } catch (e) {} }
