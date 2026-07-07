@@ -171,6 +171,9 @@
         active: function (on) { hot = !!on; paint(); }, body: function () { return body; },
       };
       ui(opts.slot || 'nav_item', function (root) {
+        // Centre the trigger over the slot: without this the fit-content trigger
+        // left-aligns under the wider card when open and slides onto the next tab.
+        root.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:8px';
         card = document.createElement('div'); card.className = 'obx-card';
         card.style.width = width + 'px'; card.style.display = 'none';
         if (opts.title != null) {
