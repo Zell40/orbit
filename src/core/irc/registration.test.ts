@@ -5,9 +5,10 @@ import { parseLine } from './parser';
 import type { ConnectOptions } from './types';
 
 // A fake host that records what registration sends + the state it writes back.
-function make(opts: Partial<ConnectOptions> = {}) {
+function make(opts: Partial<ConnectOptions> = {}, passkeyAssertion: (c: Uint8Array) => Promise<string> = () => Promise.resolve('{}')) {
   const sent: string[] = [];
   const statuses: string[] = [];
+  const challenges: Uint8Array[] = [];
   const state = { nick: '', registered: false, backoffResets: 0, away: '' };
   const ircv3 = new Ircv3({ send: () => {}, lowSend: () => {}, isupport: () => ({}) });
   const full: ConnectOptions = { url: 'ws://x', nick: 'bob', channels: [], ...opts };
@@ -23,9 +24,12 @@ function make(opts: Partial<ConnectOptions> = {}) {
     setRegistered: (v) => { state.registered = v; },
     resetBackoff: () => { state.backoffResets++; },
     awayMessage: () => state.away,
+    getPasskeyAssertion: (c) => { challenges.push(c); return passkeyAssertion(c); },
   });
-  return { reg, ircv3, sent, statuses, state };
+  return { reg, ircv3, sent, statuses, state, challenges };
 }
+
+const flush = () => new Promise((r) => setTimeout(r, 0));
 
 describe('Registration handshake', () => {
   it('sends the registration burst in spec order on start', () => {
@@ -57,6 +61,46 @@ describe('Registration handshake', () => {
     reg.handle(parseLine('AUTHENTICATE +'));
     expect(sent.some((l) => l.startsWith('AUTHENTICATE ') && l !== 'AUTHENTICATE +')).toBe(true); // base64 payload
     reg.handle(parseLine('903 bob :SASL authentication successful'));
+    expect(sent).toContain('CAP END');
+  });
+
+  it('runs SASL WEBAUTHN when passkey is requested and the server offers it', async () => {
+    const { reg, sent, challenges } = make(
+      { nick: 'bob', passkey: true },
+      () => Promise.resolve('{"id":"abc","type":"public-key"}'),
+    );
+    reg.handle(parseLine('CAP * LS :sasl=PLAIN,WEBAUTHN message-tags'));
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    expect(sent).toContain('AUTHENTICATE WEBAUTHN'); // not PLAIN
+    sent.length = 0;
+    reg.handle(parseLine(`AUTHENTICATE ${btoa('0123456789abcdef0123456789abcdef')}`)); // 32-byte challenge
+    await flush();
+    expect(challenges).toHaveLength(1);
+    expect(challenges[0]).toHaveLength(32);
+    expect(sent.some((l) => l.startsWith('AUTHENTICATE ') && l !== 'AUTHENTICATE +')).toBe(true); // assertion payload
+    reg.handle(parseLine('903 bob :ok'));
+    expect(sent).toContain('CAP END');
+  });
+
+  it('aborts the exchange when the passkey ceremony is cancelled', async () => {
+    const { reg, sent, statuses } = make(
+      { nick: 'bob', passkey: true },
+      () => Promise.reject(new Error('user cancelled')),
+    );
+    reg.handle(parseLine('CAP * LS :sasl=WEBAUTHN'));
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    sent.length = 0;
+    reg.handle(parseLine(`AUTHENTICATE ${btoa('0123456789abcdef0123456789abcdef')}`));
+    await flush();
+    expect(sent).toContain('AUTHENTICATE *'); // SASL abort
+    expect(statuses).toContain('sasl-failed');
+  });
+
+  it('falls back to no SASL when passkey is requested but WEBAUTHN is not offered', () => {
+    const { reg, sent } = make({ nick: 'bob', passkey: true });
+    reg.handle(parseLine('CAP * LS :sasl=PLAIN'));
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    expect(sent).not.toContain('AUTHENTICATE WEBAUTHN');
     expect(sent).toContain('CAP END');
   });
 

@@ -191,7 +191,9 @@ export function createChatStore(ns = '') {
           (v || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
             .replace(/[^A-Za-z0-9._-]/g, '').slice(0, 10) || fb;
         const guest = ident(getConfig().server.guestIdent || 'Invité', 'Invite');
-        opts.username = opts.password ? ident(opts.nick, guest) : guest;
+        // Authenticated members (SASL password or a passkey) show their own nick as
+        // the ident; guests show the configured guest ident.
+        opts.username = (opts.password || opts.passkey) ? ident(opts.nick, guest) : guest;
       }
       const client = new IrcClient();
       initNotify();

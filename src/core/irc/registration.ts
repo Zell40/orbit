@@ -8,12 +8,21 @@
 import type { ConnectOptions, ConnectionStatus, IrcMessage } from './types';
 import type { Ircv3 } from './ircv3';
 
-// SASL PLAIN payload is base64 of "\0<authzid>\0<passwd>", UTF-8.
+// SASL PLAIN payload is base64 of "\0<authzid>\0<passwd>", UTF-8. Also used to
+// base64 the (ASCII) WebAuthn assertion JSON for the WEBAUTHN mechanism.
 function b64utf8(input: string): string {
   const bytes = new TextEncoder().encode(input);
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin);
+}
+
+// Decode a base64 SASL payload (the server-first WEBAUTHN challenge) to raw bytes.
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
 }
 
 // What the registration layer needs from the client. Kept as an interface (not a
@@ -30,10 +39,14 @@ export interface RegistrationHost {
   setRegistered(registered: boolean): void;
   resetBackoff(): void;   // transport: a healthy registration clears the backoff
   awayMessage(): string;  // for draft/pre-away, applied before CAP END
+  // SASL WEBAUTHN: run a passkey ceremony over the server's challenge and resolve
+  // to the assertion JSON (as the Django verifier expects). Rejects on cancel/error.
+  getPasskeyAssertion(challenge: Uint8Array): Promise<string>;
 }
 
 export class Registration {
   private capEnded = false;
+  private mech = 'PLAIN'; // the SASL mechanism chosen at CAP ACK (routes AUTHENTICATE)
   private readonly host: RegistrationHost;
   constructor(host: RegistrationHost) { this.host = host; }
 
@@ -42,6 +55,7 @@ export class Registration {
   // caps + registration flags so a (re)connect starts clean.
   start(): void {
     this.capEnded = false;
+    this.mech = 'PLAIN';
     this.host.ircv3.reset();
     this.host.setRegistered(false);
     const o = this.host.opts();
@@ -94,10 +108,11 @@ export class Registration {
     const action = this.host.ircv3.handleCap(msg, {
       registered: this.host.isRegistered(),
       hasPassword: !!this.host.opts().password,
+      wantPasskey: this.host.opts().passkey === true,
     });
     switch (action.do) {
       case 'req': this.host.send(`CAP REQ :${action.caps.join(' ')}`); break;
-      case 'sasl': this.host.send('AUTHENTICATE PLAIN'); break;
+      case 'sasl': this.mech = action.mech; this.host.send(`AUTHENTICATE ${action.mech}`); break;
       case 'end': this.endCap(); break;
       case 'forward': this.host.forward(msg); break; // post-registration manual `cap ls`
       // 'none': nothing to do
@@ -105,10 +120,33 @@ export class Registration {
   }
 
   private handleAuthenticate(msg: IrcMessage): void {
+    if (this.mech === 'WEBAUTHN') { this.handleWebauthn(msg); return; }
+    // PLAIN: the server sends a bare '+' when it's ready for our client-first data.
     if (msg.params[0] !== '+') return;
     const o = this.host.opts();
-    const payload = b64utf8(`\0${o.nick}\0${o.password ?? ''}`);
-    // chunk into 400-char pieces per the SASL spec
+    this.sendSaslData(b64utf8(`\0${o.nick}\0${o.password ?? ''}`));
+  }
+
+  // WEBAUTHN is server-first: the ircd sends the challenge as a base64 AUTHENTICATE
+  // payload (never '+'). Decode it, run the passkey ceremony, and send the assertion
+  // JSON back (base64'd + chunked). On cancel/error, abort the exchange per the spec
+  // (AUTHENTICATE *) so the server fails cleanly and registration falls through as a
+  // guest — exactly like a wrong PLAIN password.
+  private handleWebauthn(msg: IrcMessage): void {
+    const payload = msg.params[0] ?? '';
+    if (!payload || payload === '+') return; // no usable challenge yet
+    let challenge: Uint8Array;
+    try { challenge = b64ToBytes(payload); }
+    catch { this.host.send('AUTHENTICATE *'); return; }
+    this.host.getPasskeyAssertion(challenge)
+      .then((json) => this.sendSaslData(b64utf8(json)))
+      .catch(() => { this.host.setStatus('sasl-failed'); this.host.send('AUTHENTICATE *'); });
+  }
+
+  // Send a base64 SASL payload, chunked into 400-char pieces per the SASL spec (a
+  // trailing empty '+' line marks the end when the last chunk is exactly full or the
+  // payload is empty).
+  private sendSaslData(payload: string): void {
     let rest = payload;
     if (rest.length === 0) this.host.send('AUTHENTICATE +');
     while (rest.length > 0) {

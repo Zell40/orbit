@@ -67,6 +67,7 @@ export interface AppConfig {
     linkPreviews: boolean;  // rich link-preview cards (via the server unfurl endpoint)
     multiNetwork: boolean;  // connect to several IRC networks at once (network switcher UI)
     sessionResume: boolean; // reopen the tab straight back into the last session (needs a same-origin keycard endpoint for logged-in members; guests just reconnect)
+    passkeySasl: boolean;   // offer passkey (WebAuthn) sign-in on the connect screen — needs the server's SASL WEBAUTHN mechanism enabled
   };
   /**
    * Operator-listed plugin scripts loaded at startup. Each entry is a URL, or an
@@ -104,7 +105,7 @@ const DEFAULT_CONFIG: AppConfig = {
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
   report: { service: 'ReportServ', target: '#staff' },
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
-  features: { push: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false },
+  features: { push: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false, passkeySasl: false },
   plugins: [],
   builtins: [],
 };

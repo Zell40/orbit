@@ -5,6 +5,7 @@ import { casefold } from './casemap';
 import { Transport } from './transport';
 import { Ircv3 } from './ircv3';
 import { Registration } from './registration';
+import { passkeyAssertion } from './webauthn';
 import { ServerInfo } from './server-info';
 import { Numerics } from './numerics';
 import { CTCP_REPLIES } from './ctcp';
@@ -62,6 +63,7 @@ export class IrcClient {
     setRegistered: (v) => { this.registered = v; },
     resetBackoff: () => this.transport.resetBackoff(),
     awayMessage: () => this.awayMessage,
+    getPasskeyAssertion: (challenge) => passkeyAssertion(challenge),
   });
 
   nick = '';

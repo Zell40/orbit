@@ -109,6 +109,7 @@ export interface ConnectOptions {
   username?: string;
   realname?: string;
   password?: string;       // SASL PLAIN password (optional)
+  passkey?: boolean;       // authenticate with a WebAuthn passkey via SASL WEBAUTHN instead of a password
   serverPassword?: string; // server connection password — sent via PASS (optional)
   channels?: string[];
 }

@@ -121,6 +121,12 @@ input, textarea { font-family: inherit; }
 .cjoin__pw-t:hover { color: var(--accent); }
 .cjoin__pw { width: 100%; margin-top: .8rem; padding: .8rem 1rem; border-radius: 12px; border: 1px solid var(--border-2); background: var(--bg-soft); color: var(--ink); font: inherit; outline: none; animation: cj-rise .3s ease both; }
 .cjoin__pw::placeholder { color: var(--faint); }
+.cjoin__passkey { width: 100%; margin-top: .9rem; display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .75rem 1rem; border-radius: 12px; border: 1px solid var(--border-2); background: none; color: var(--ink);
+  font: inherit; font-weight: 600; cursor: pointer; transition: border-color .15s, color .15s, background .15s; }
+.cjoin__passkey:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.cjoin__passkey:disabled { opacity: .5; cursor: default; }
+.cjoin__passkey svg { width: 16px; height: 16px; }
 .cjoin__pw:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .cjoin__err { margin-top: .9rem; color: var(--danger); font-size: .9rem; font-weight: 600; }
 .cjoin__trust { margin-top: 1.8rem; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; font-size: .78rem; color: var(--muted); }

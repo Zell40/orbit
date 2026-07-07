@@ -28,7 +28,7 @@ export interface Ircv3Transport {
 // registration/SASL ordering stays in one place.
 export type CapAction =
   | { do: 'req'; caps: string[] } // send CAP REQ for these caps
-  | { do: 'sasl' }                // begin SASL (AUTHENTICATE PLAIN)
+  | { do: 'sasl'; mech: string }  // begin SASL with this mechanism (AUTHENTICATE <mech>)
   | { do: 'end' }                 // finish negotiation (CAP END)
   | { do: 'forward' }             // a post-registration manual `cap ls` → let the UI print it
   | { do: 'none' };               // nothing to do
@@ -36,6 +36,8 @@ export type CapAction =
 export class Ircv3 {
   private available = new Set<string>();
   private acked = new Set<string>();
+  /** SASL mechanisms the server offers, learned from CAP LS (`sasl=PLAIN,SCRAM-SHA-256,…`). */
+  private saslMechs = new Set<string>();
   /** draft/multiline max-lines, learned from CAP LS (`draft/multiline=max-lines=N`). */
   multilineMaxLines = 20;
   private readonly tx: Ircv3Transport;
@@ -46,8 +48,12 @@ export class Ircv3 {
   reset(): void {
     this.available.clear();
     this.acked.clear();
+    this.saslMechs.clear();
     this.multilineMaxLines = 20;
   }
+
+  /** True if the server advertised SASL mechanism `name` (e.g. 'WEBAUTHN') in CAP LS. */
+  hasSaslMech(name: string): boolean { return this.saslMechs.has(name.toUpperCase()); }
 
   /** True once the server ACK'd `name` and we're using it. */
   hasCap(name: string): boolean { return this.acked.has(name); }
@@ -66,7 +72,7 @@ export class Ircv3 {
 
   // Capability negotiation. Mutates the cap sets and returns the action the client
   // should perform next.
-  handleCap(msg: IrcMessage, ctx: { registered: boolean; hasPassword: boolean }): CapAction {
+  handleCap(msg: IrcMessage, ctx: { registered: boolean; hasPassword: boolean; wantPasskey?: boolean }): CapAction {
     // The subcommand is case-insensitive and server echoes back the exact case
     // the client sent (`cap ls` → `ls`), so normalise before matching.
     const sub = (msg.params[1] || '').toUpperCase();
@@ -79,8 +85,13 @@ export class Ircv3 {
       const more = msg.params[2] === '*';
       const capStr = msg.params[more ? 3 : 2] ?? '';
       for (const tok of capStr.split(' ').filter(Boolean)) {
-        const name = tok.split('=')[0];
+        const eq = tok.indexOf('=');
+        const name = eq >= 0 ? tok.slice(0, eq) : tok;
         this.available.add(name);
+        if (name === 'sasl' && eq >= 0) {
+          // sasl=PLAIN,SCRAM-SHA-256,WEBAUTHN — remember which mechanisms are on offer.
+          for (const mech of tok.slice(eq + 1).split(',').filter(Boolean)) this.saslMechs.add(mech.toUpperCase());
+        }
         if (name === 'draft/multiline') {
           const m = tok.match(/max-lines=(\d+)/);
           if (m) this.multilineMaxLines = parseInt(m[1], 10) || this.multilineMaxLines;
@@ -102,8 +113,13 @@ export class Ircv3 {
 
     if (sub === 'ACK') {
       for (const c of (msg.params[2] ?? '').split(' ').filter(Boolean)) this.acked.add(c);
-      // SASL if the server ACK'd it and we have a password, else we're done.
-      return this.acked.has('sasl') && ctx.hasPassword ? { do: 'sasl' } : { do: 'end' };
+      // SASL if the server ACK'd it: a WebAuthn passkey (when requested and offered)
+      // takes precedence, else a password → PLAIN, else nothing to authenticate with.
+      if (this.acked.has('sasl')) {
+        if (ctx.wantPasskey && this.saslMechs.has('WEBAUTHN')) return { do: 'sasl', mech: 'WEBAUTHN' };
+        if (ctx.hasPassword) return { do: 'sasl', mech: 'PLAIN' };
+      }
+      return { do: 'end' };
     }
 
     if (sub === 'DEL') { // cap-notify: server withdrew capabilities — forget them.

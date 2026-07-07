@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getConfig } from '../core/config';
 import { useActiveChat } from '../core/networks';
+import { passkeySupported } from '../core/irc/webauthn';
 
 function param(name: string, fallback: string): string {
   return new URLSearchParams(window.location.search).get(name) ?? fallback;
@@ -154,11 +155,22 @@ export function ConnectScreen() {
     'sasl-failed': t('connect.error_sasl'),
   };
 
-  function go() {
+  // Passkey sign-in is offered only when the deployment enables it AND the browser
+  // supports WebAuthn; the server must also advertise SASL WEBAUTHN (checked live at
+  // CAP time — if it doesn't, the connection just proceeds unauthenticated).
+  const canPasskey = cfg.features.passkeySasl && passkeySupported();
+
+  function go(passkey = false) {
     if (!ready) return;
     const channels = parseChannels(chanField);
     if (!channels.length) channels.push(...cfg.startup.channels);
-    connect({ url: cfg.server.url, nick: nick.trim(), password: password || undefined, channels });
+    connect({
+      url: cfg.server.url,
+      nick: nick.trim(),
+      password: passkey ? undefined : (password || undefined),
+      passkey: passkey || undefined,
+      channels,
+    });
   }
 
   return (
@@ -220,6 +232,16 @@ export function ConnectScreen() {
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && go()}
             />
+          )}
+
+          {canPasskey && (
+            <button type="button" className="cjoin__passkey" disabled={connecting || !ready}
+              onClick={() => go(true)} title={t('connect.passkeyHint')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="8" cy="10" r="4" /><path d="M10.85 12.15 19 20.5" /><path d="m18 18-2-2" /><path d="m20 16-2-2" />
+              </svg>
+              {t('connect.passkeyButton')}
+            </button>
           )}
 
           {errors[status] && <div className="cjoin__err">⚠ {errors[status]}</div>}

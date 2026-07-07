@@ -58,6 +58,8 @@
     "hidePassword": "Hide password",
     "passwordPlaceholder": "Password (if your nick is registered)",
     "passwordLabel": "Password",
+    "passkeyButton": "Sign in with a passkey",
+    "passkeyHint": "Touch ID, Face ID, Windows Hello or a security key — no password.",
     "noData": "No sign-up required",
     "encrypted": "Encrypted (TLS)",
     "tagline": "The French chat,",

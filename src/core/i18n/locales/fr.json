@@ -58,6 +58,8 @@
     "hidePassword": "Masquer le mot de passe",
     "passwordPlaceholder": "Mot de passe (si ton pseudo est enregistré)",
     "passwordLabel": "Mot de passe",
+    "passkeyButton": "Se connecter avec une clé d'accès",
+    "passkeyHint": "Touch ID, Face ID, Windows Hello ou une clé de sécurité — sans mot de passe.",
     "noData": "Aucune inscription",
     "encrypted": "Chiffré (TLS)",
     "tagline": "Le tchat français,",
