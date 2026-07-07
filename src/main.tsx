@@ -19,6 +19,24 @@ markUpdateCurtain()
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()
 
+// Coordinated sign-out. Logging out on the tchatou.fr website (any same-origin
+// tab) writes a `tchatou-logout` beacon to localStorage; if this tab holds an
+// IDENTIFIED primary (tchatou) session, drop it too — so signing out means signed
+// out everywhere in this browser, not just on the site. A guest session and any
+// other IRC networks the user added are left untouched: clearing the resume state
+// and reloading returns the primary network to the join screen while extra
+// networks reconnect from their own saved config.
+window.addEventListener('storage', (e) => {
+  if (e.key !== 'tchatou-logout' || !e.newValue) return
+  void (async () => {
+    const { useChat } = await import('./core/store')
+    if (!useChat.getState().account) return // guest here — nothing to sign out
+    try { useChat.getState().client?.disconnect('Déconnexion depuis le site') } catch { /* ignore */ }
+    try { (await import('./core/resume')).clearResume() } catch { /* ignore */ }
+    location.reload()
+  })()
+})
+
 // The PWA manifest is the STATIC /app/manifest.webmanifest linked in index.html.
 // (We used to re-serve a localized copy as a blob: URL, but a manifest's scope /
 // start_url must sit within the manifest URL's own directory — a blob: URL has no
