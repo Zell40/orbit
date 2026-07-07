@@ -47,6 +47,10 @@ export const RPC_CAPABILITY: Record<string, Permission | null> = {
   'log': null,
 };
 
+/** Every RPC method name — the guest types its calls against this, so a method that
+ *  isn't wired on the host can't be called (no host/guest string drift). */
+export type RpcMethod = keyof typeof RPC_CAPABILITY;
+
 /** Is `method` a known RPC, and is it permitted for a plugin holding `permissions`? */
 export function isGranted(permissions: readonly string[], method: string): boolean {
   if (!(method in RPC_CAPABILITY)) return false; // unknown method: refuse by default

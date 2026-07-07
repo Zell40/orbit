@@ -46,7 +46,9 @@ UI inside its own iframe) needs no grant because it is already contained.
 Ungranted or unknown calls are refused host-side (fail-closed). The gate is unit
 tested in `src/modules/sandbox/protocol.test.ts`.
 
-The sandboxed API (`src/modules/sandbox/host.ts` + `public/plugin-sandbox.html`):
+The guest is typed core source in `src/modules/sandbox/guest/` (the SDK lives here
+too); a Vite plugin transpiles it into `plugin-sandbox.html` at build (served on the
+fly in dev). The sandboxed API (`src/modules/sandbox/host.ts` + the guest):
 `orbit.log`, `orbit.on(event, fn)` (forwarded `connected` / `message` /
 `buffer.active` / `status`), `orbit.irc.*`, `orbit.notify`,
 `orbit.state.active/nick/account/buffers` (from a pushed snapshot, synchronous),
