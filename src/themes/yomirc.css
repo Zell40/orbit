@@ -32,14 +32,16 @@
   --shadow-pop: 0 6px 20px -6px rgba(0,0,0,.25);
 }
 [data-theme="yomirc-dark"] {
-  --mirc-silver: #16161a; --mirc-face: #0c0c0f; --mirc-light: transparent;
-  --mirc-shadow: #23232a; --mirc-dark: transparent; --mirc-navy: #113a22; --mirc-navy-2: #113a22;
-  --mirc-paper: #000000; --mirc-hover: #121212; --mirc-bevel-hi: transparent; --mirc-sel-ink: #b9ffcf;
+  /* pure-black chrome everywhere: no grey "face" between the panels, no grey soft
+     backgrounds — only near-invisible edges/hover for structure. */
+  --mirc-silver: #101014; --mirc-face: #000000; --mirc-light: transparent;
+  --mirc-shadow: #141419; --mirc-dark: transparent; --mirc-navy: #113a22; --mirc-navy-2: #113a22;
+  --mirc-paper: #000000; --mirc-hover: #0e0e12; --mirc-bevel-hi: transparent; --mirc-sel-ink: #b9ffcf;
   --mirc-join: #35c46a; --mirc-quit: #ff5a5a;   /* bright on black, like real mIRC colours */
   --mono: "Lucida Console", "Fixedsys Excelsior", Consolas, "Courier New", monospace;
   --ink: #d2d2d2; --ink-2: #c4c4c4; --muted: #7d7d7d; --faint: #565656;
-  --bg: #000000; --bg-soft: #0c0c0f; --bg-soft-2: #16161a; --bg-active: #113a22; --rail-bg: #090909;
-  --border: #262630; --border-2: #33333c;
+  --bg: #000000; --bg-soft: #000000; --bg-soft-2: #000000; --bg-active: #113a22; --rail-bg: #000000;
+  --border: #17171d; --border-2: #23232b;
   --accent: #35c46a; --accent-d: #57d07a; --accent-soft: rgba(53,196,106,.14);
   --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
   --shadow-pop: 0 8px 26px -8px rgba(0,0,0,.85);
