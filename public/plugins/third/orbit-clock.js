@@ -11,7 +11,7 @@
  */
 Orbit.plugin('orbit-clock', function (orbit, log) {
   orbit.ui('topbar_item', function (root) {
-    root.style.cssText = 'font:600 13px/1 system-ui,sans-serif;color:var(--ink,inherit);opacity:.7;white-space:nowrap';
+    root.style.cssText = 'font:600 13px/1.5 system-ui,sans-serif;color:var(--ink,inherit);opacity:.7;white-space:nowrap';
     root.title = 'Local time';
     function tick() {
       var d = new Date();
