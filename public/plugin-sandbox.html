@@ -7,7 +7,8 @@
      Hide scrollbars (not overflow:hidden — that paints an opaque backdrop and kills
      the transparency) so a mid-resize frame never flashes a scrollbar. */
   html { background: transparent; color-scheme: normal; scrollbar-width: none; }
-  body { margin: 0; padding: 0; background: transparent; color: inherit; display: inline-block; font: 13px/1.3 system-ui, sans-serif; }
+  body { margin: 0; padding: 0; background: transparent; color: var(--ink, inherit); display: inline-block; font: 13px/1.4 system-ui, sans-serif; }
+  *, *::before, *::after { box-sizing: border-box; }
   ::-webkit-scrollbar { width: 0; height: 0; }
 </style>
 <body>
@@ -68,6 +69,129 @@
   // The constrained API a sandboxed plugin sees. Same shape spirit as the in-page
   // Orbit, but privileged bits go through the host and reads come from the snapshot.
   function makeApi(name) {
+    // Low-level: fill this iframe's DOM, claim a UI slot, and keep the host-owned
+    // frame sized to the content. Everything else (panel/el) is built on top.
+    function ui(slot, build) {
+      var outer = document.createElement('div');
+      outer.style.cssText = 'display:inline-block';
+      var inner = document.createElement('div');
+      outer.appendChild(inner);
+      document.body.appendChild(outer);
+      try { build(inner); } catch (e) { rpc('log', 'ui build threw: ' + e); }
+      rpc('ui.claim', slot);
+      var report = function () {
+        var r = outer.getBoundingClientRect();
+        rpc('ui.resize', Math.ceil(r.width), Math.ceil(r.height));
+      };
+      report();
+      if (window.ResizeObserver) new ResizeObserver(report).observe(outer);
+    }
+
+    // ---- SDK ---------------------------------------------------------------
+    // Themed atoms + a bar panel that hides every rough edge of the sandbox:
+    // theming, the async frame-resize lag, upward growth and no half-drawn flash.
+    var sdkStyled = false;
+    function sdkCss() {
+      if (sdkStyled) return; sdkStyled = true;
+      var s = document.createElement('style');
+      s.textContent =
+        '@keyframes obx-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}' +
+        '.obx-trig{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:52px;padding:6px 4px;cursor:pointer;border:0;border-radius:12px;background:transparent;color:var(--muted,#999);font:inherit;transition:color .12s,background .12s}' +
+        '.obx-trig:hover{color:var(--ink,inherit);background:var(--bg,transparent)}' +
+        '.obx-trig.on{color:var(--accent,#3a7)}' +
+        '.obx-trig i{display:inline-flex;align-items:center;justify-content:center;font-size:1.2rem;line-height:1;font-style:normal}' +
+        '.obx-trig b{font-size:.68rem;font-weight:600;letter-spacing:.01em;line-height:1;white-space:nowrap}' +
+        '.obx-card{box-sizing:border-box;padding:12px;border-radius:16px;background:var(--bg,#0d0d0f);border:1px solid var(--border,#8884);box-shadow:0 20px 50px -12px rgba(0,0,0,.6),0 3px 10px -3px rgba(0,0,0,.4);animation:obx-in .18s ease both}' +
+        '.obx-hd{display:flex;align-items:center;gap:.4rem;margin-bottom:10px;font-weight:800;font-size:13px}' +
+        '.obx-hd b{flex:1}' +
+        '.obx-x{border:0;background:transparent;color:var(--muted,#999);cursor:pointer;font-size:14px;line-height:1;border-radius:8px;width:24px;height:24px}' +
+        '.obx-x:hover{color:var(--ink,inherit)}' +
+        '.obx-btn{border:0;border-radius:10px;background:var(--accent,#3a7);color:var(--bg,#fff);font:inherit;font-weight:700;padding:8px 12px;cursor:pointer}' +
+        '.obx-row{display:flex;flex-direction:column;gap:1px;padding:.4rem .5rem;border:0;border-radius:10px;background:transparent;color:var(--ink,inherit);font:inherit;text-align:left;cursor:pointer;width:100%;transition:background .12s}' +
+        '.obx-row:hover{background:rgba(128,128,128,.13)}' +
+        '.obx-row.on{box-shadow:inset 3px 0 0 var(--accent,#3a7)}' +
+        '.obx-row span{font-weight:700;font-size:12.5px}.obx-row small{font-size:10.5px;color:var(--muted,#888)}' +
+        'input[type=range].obx-range{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;width:100%;cursor:pointer;background:var(--border,#8886);accent-color:var(--accent,#3a7)}';
+      document.head.appendChild(s);
+    }
+    function setIcon(elm, icon) {
+      if (icon == null) return;
+      if (icon.nodeType) elm.appendChild(icon);
+      else if (typeof icon === 'string' && icon.charAt(0) === '<') elm.innerHTML = icon;
+      else elm.textContent = String(icon);
+    }
+    var el = {
+      button: function (label, onClick) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'obx-btn'; b.textContent = label;
+        if (onClick) b.onclick = onClick; return b;
+      },
+      row: function (title, sub, onClick) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'obx-row';
+        var t = document.createElement('span'); t.textContent = title; b.appendChild(t);
+        if (sub) { var s = document.createElement('small'); s.textContent = sub; b.appendChild(s); }
+        if (onClick) b.onclick = onClick; return b;
+      },
+      slider: function (o) {
+        o = o || {}; var r = document.createElement('input'); r.type = 'range'; r.className = 'obx-range';
+        r.min = o.min != null ? o.min : 0; r.max = o.max != null ? o.max : 1; r.step = o.step != null ? o.step : 0.01;
+        r.value = o.value != null ? o.value : 0.5;
+        if (o.onInput) r.oninput = function () { o.onInput(Number(r.value), r); };
+        return r;
+      },
+    };
+
+    // A bar trigger that opens a floating themed panel above it. Owns the whole
+    // frame dance: on open the panel is measured but kept hidden until the frame has
+    // grown to fit it, then revealed — so it never flashes half-drawn by the composer,
+    // never grows the wrong way, and always matches the theme. Returns a controller.
+    function panel(opts) {
+      opts = opts || {}; sdkCss();
+      var width = opts.width || 280;
+      var open = false, hot = false, pending = null, card, body, trig, ctrl;
+      function clearPending() { if (pending) { window.removeEventListener('resize', pending); pending = null; } }
+      function paint() { if (trig) trig.className = 'obx-trig' + ((open || hot) ? ' on' : ''); }
+      function setOpen(v) {
+        open = v; clearPending(); paint();
+        if (v) {
+          card.style.visibility = 'hidden'; card.style.display = 'block';
+          pending = function () {
+            if (window.innerHeight < card.offsetHeight) return;
+            clearPending();
+            card.style.visibility = 'visible';
+            card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'obx-in .18s ease both';
+          };
+          window.addEventListener('resize', pending);
+          requestAnimationFrame(pending);
+        } else { card.style.display = 'none'; card.style.visibility = ''; }
+        if (opts.onToggle) try { opts.onToggle(v); } catch (e) {}
+      }
+      ctrl = {
+        open: function () { setOpen(true); }, close: function () { setOpen(false); },
+        toggle: function () { setOpen(!open); }, isOpen: function () { return open; },
+        active: function (on) { hot = !!on; paint(); }, body: function () { return body; },
+      };
+      ui(opts.slot || 'nav_item', function (root) {
+        card = document.createElement('div'); card.className = 'obx-card';
+        card.style.width = width + 'px'; card.style.display = 'none';
+        if (opts.title != null) {
+          var hd = document.createElement('div'); hd.className = 'obx-hd';
+          var tb = document.createElement('b'); tb.textContent = opts.title;
+          var x = document.createElement('button'); x.className = 'obx-x'; x.type = 'button'; x.textContent = '✕'; x.title = 'Close';
+          x.onclick = function () { setOpen(false); };
+          hd.appendChild(tb); hd.appendChild(x); card.appendChild(hd);
+        }
+        body = document.createElement('div'); card.appendChild(body);
+        trig = document.createElement('button'); trig.type = 'button'; trig.className = 'obx-trig'; trig.title = opts.label || '';
+        var i = document.createElement('i'); setIcon(i, opts.icon); trig.appendChild(i);
+        if (opts.label) { var lb = document.createElement('b'); lb.textContent = opts.label; trig.appendChild(lb); }
+        trig.onclick = function () { setOpen(!open); };
+        root.appendChild(card); root.appendChild(trig);
+        if (opts.render) try { opts.render(body, ctrl); } catch (e) { rpc('log', 'panel render threw: ' + e); }
+        paint();
+      });
+      return ctrl;
+    }
+
     return {
       name: name,
       sandboxed: true,
@@ -100,26 +224,9 @@
         get: function (k, fallback) { return k in store ? store[k] : fallback; },
         set: function (k, v) { store[k] = v; return rpc('storage.set', k, v); },
       },
-      // Populate this iframe's own DOM, then claim a UI slot in the app shell.
-      // Height is reported back so the host can size the frame to the content.
-      ui: function (slot, build) {
-        // Outer sizer stays inline-block so it shrink-wraps to content; the plugin
-        // only gets `inner` and may style it freely (even display:flex) without
-        // breaking measurement.
-        var outer = document.createElement('div');
-        outer.style.cssText = 'display:inline-block';
-        var inner = document.createElement('div');
-        outer.appendChild(inner);
-        document.body.appendChild(outer);
-        try { build(inner); } catch (e) { rpc('log', 'ui build threw: ' + e); }
-        rpc('ui.claim', slot);
-        var report = function () {
-          var r = outer.getBoundingClientRect();
-          rpc('ui.resize', Math.ceil(r.width), Math.ceil(r.height));
-        };
-        report();
-        if (window.ResizeObserver) new ResizeObserver(report).observe(outer);
-      },
+      ui: ui,        // low-level slot
+      panel: panel,  // high-level bar panel (handles theming + the resize dance)
+      el: el,        // themed atoms: button / row / slider
     };
   }
 
