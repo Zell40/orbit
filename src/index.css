@@ -621,8 +621,10 @@ html[data-actions="off"] .msg-actions { display: none; }
   padding: .5rem .2rem; outline: none; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* Placeholder is taken out of the text flow (absolute) so it never displaces the
    caret when the field empties out — otherwise the cursor jumps while erasing. */
+/* Start the placeholder a few px right of the content edge so the empty caret
+   (which sits at padding-left) isn't drawn on top of the first letter. */
 .composer__rich.is-empty::before { content: attr(data-ph); color: var(--faint); pointer-events: none;
-  position: absolute; left: .2rem; top: .5rem; }
+  position: absolute; left: calc(.2rem + 3px); top: .5rem; }
 .composer__rich--console { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92rem; }
 .composer__send {
   flex: none; width: 38px; height: 38px; border: 0; border-radius: 10px; color: #fff; font-size: 1rem; background: var(--accent);
