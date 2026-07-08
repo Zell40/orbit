@@ -80,6 +80,13 @@ export interface AppConfig {
   /** Built-in sandboxed features to enable, by name (opt-in). Currently: "dice".
    *  These ship with the app and run isolated; listing one here mounts it. */
   builtins?: string[];
+  /** Optional top navbar (rendered by the built-in orbit-navbar plugin): a brand and
+   *  a row of external portal links. Omit it and the bar simply doesn't appear. Brand
+   *  fields default to the `branding` name/icon/url. */
+  navbar?: {
+    brand?: { text?: string; logo?: string; href?: string };
+    links?: { label: string; icon?: string; href: string }[];
+  };
 }
 
 /** A plugin to load: a bare URL, or a URL with options.

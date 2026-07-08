@@ -54,7 +54,8 @@
     { "url": "/app/plugins/third/orbit-radio.js", "sandbox": true, "permissions": ["storage"] },
     "/app/plugins/third/orbit-copy.js",
     "/app/plugins/third/orbit-games.js",
-    "/app/plugins/third/orbit-invite.js"
+    "/app/plugins/third/orbit-invite.js",
+    "/app/plugins/third/orbit-navbar.js"
   ],
   "builtins": []
 }

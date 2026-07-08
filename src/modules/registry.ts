@@ -6,8 +6,9 @@ import type { ReactNode } from 'react';
 
 // The UI slots the core currently exposes. Add more as components grow homes.
 // 'nav_item' sits in the bottom nav next to Home/Rooms/Friends (for a prominent,
-// tab-like control such as the radio player).
-export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'sidebar_item' | 'footer_item' | 'nav_item';
+// tab-like control such as the radio player); 'navbar' is a full-width bar across
+// the very top of the app, for network branding + portal links (orbit-navbar).
+export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'sidebar_item' | 'footer_item' | 'nav_item' | 'navbar';
 
 export interface PluginUi {
   id: string;

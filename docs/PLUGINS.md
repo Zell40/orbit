@@ -143,6 +143,7 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `composer_button` | a button in the message composer toolbar |
 | `topbar_item` | an item in the channel topbar action row (next to search / notifications) |
 | `sidebar_item` | an item in the conversation sidebar header (next to the compose button) |
+| `navbar` | a full-width bar across the very top of the app (network branding + portal links) |
 | `settings_section` | a whole section in Settings (own nav entry + pane) — use `orbit.addSettingsSection()` |
 
 Two per-message hooks (added by callback, not slot name) run for every rendered
@@ -192,6 +193,7 @@ In-page (trusted, full React API):
 |---|---|
 | [`orbit-demo.js`](../public/plugins/third/orbit-demo.js) | events, a `composer_button`, an IRC action |
 | [`orbit-copy.js`](../public/plugins/third/orbit-copy.js) | a `message_action` (toolbar copy button with copied-confirmation) |
+| [`orbit-navbar.js`](../public/plugins/third/orbit-navbar.js) | a brandable top `navbar` (logo + portal links), configured under `"navbar"` in config.json |
 
 Sandboxed (the [SDK](./PLUGIN-SDK.md), no page access):
 

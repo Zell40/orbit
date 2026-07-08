@@ -8,12 +8,19 @@ import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { MemberList } from './chat/MemberList';
 import { ReconnectBanner, KickToast } from './chat/Banners';
+import { usePluginRegistry } from '../modules/registry';
+import { PluginBoundary } from './PluginBoundary';
 
 export function Chat() {
   const { t } = useTranslation();
   const [navOpen, setNavOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
+  // A plugin-filled bar across the very top (branding + portal links). Nothing
+  // renders it by default, so the shell collapses to just the app.
+  const navbar = usePluginRegistry((s) => s.ui).filter((u) => u.slot === 'navbar');
   return (
+    <div className="shell">
+      {navbar.map((u) => <PluginBoundary key={u.id} render={u.render} label="navbar" />)}
     <div className={`app ${navOpen ? 'nav-open' : ''} ${membersOpen ? 'members-open' : ''}`}>
       <a className="skip-link" href="#orbit-main">{t('a11y.skip')}</a>
       <Sidebar onNavigate={() => setNavOpen(false)} />
@@ -30,6 +37,7 @@ export function Chat() {
       <ProfileModal />
       <KickToast />
       <ReconnectBanner />
+    </div>
     </div>
   );
 }
