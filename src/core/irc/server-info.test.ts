@@ -38,9 +38,9 @@ describe('ServerInfo — ISUPPORT (005)', () => {
 describe('ServerInfo — server info + user counts', () => {
   it('takes name + version from RPL_MYINFO (004)', () => {
     const s = new ServerInfo();
-    s.applyMyInfo(parseLine(':srv 004 me irc.example.net server-4 iowx bklet'));
+    s.applyMyInfo(parseLine(':srv 004 me irc.example.net ExampleIRCd-4 iowx bklet'));
     expect(s.serverName).toBe('irc.example.net');
-    expect(s.serverVersion).toBe('server-4');
+    expect(s.serverVersion).toBe('ExampleIRCd-4');
   });
 
   it('falls back to RPL_YOURHOST (002) for the version only when unset', () => {

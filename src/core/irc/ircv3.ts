@@ -73,7 +73,7 @@ export class Ircv3 {
   // Capability negotiation. Mutates the cap sets and returns the action the client
   // should perform next.
   handleCap(msg: IrcMessage, ctx: { registered: boolean; hasPassword: boolean; wantPasskey?: boolean; wantScram?: boolean }): CapAction {
-    // The subcommand is case-insensitive and server echoes back the exact case
+    // The subcommand is case-insensitive and the server echoes back the exact case
     // the client sent (`cap ls` → `ls`), so normalise before matching.
     const sub = (msg.params[1] || '').toUpperCase();
     // A CAP LS / LIST arriving AFTER registration is a manual query the user typed
@@ -100,7 +100,7 @@ export class Ircv3 {
       if (more) return { do: 'none' };
       const req = WANTED_CAPS.filter((c) => this.available.has(c));
       // Work around servers that drop a capability from CAP LS at a line-split
-      // boundary (server m_cap loses the overflowing cap). message-tags is the
+      // boundary (some servers lose the overflowing cap). message-tags is the
       // usual victim, yet it's mandatory for msgid/labels/reactions and is implied
       // by server-time/echo-message/batch/etc. — so request it explicitly when any
       // tag-dependent cap IS advertised. The server still ACKs it.

@@ -80,7 +80,7 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
       case '330': // RPL_WHOISACCOUNT: <me> <nick> <account> :is logged in as
         patchWhois(msg.params[1], (w) => ({ ...w, account: msg.params[2] }));
         return true;
-      case '335': // RPL_WHOISBOT (server)
+      case '335': // RPL_WHOISBOT
         patchWhois(msg.params[1], (w) => ({ ...w, bot: true }));
         return true;
       case '338': // RPL_WHOISACTUALLY

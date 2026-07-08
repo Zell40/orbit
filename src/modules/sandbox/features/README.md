@@ -2,7 +2,7 @@
 
 A **feature module** is a small, self-contained first-party feature that ships
 with the app and runs **sandboxed** (isolated + capability-gated). Each is one
-file here with an identical shape — the web analog of an server `m_*.cpp`.
+file here with an identical shape.
 
 ## The skeleton
 

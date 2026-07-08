@@ -32,10 +32,10 @@ rule, and three buckets:
 3. **Third-party plugins** — anything you didn't write and audit yourself. **Always
    sandboxed**, however trivial it looks. This is the bucket the rule is for.
 
-This is how server splits things too: essential and deeply-integrated features are
-compiled into the core, optional self-contained ones ship as modules. Orbit does the
-same, with one twist — a web client can be handed genuinely untrusted plugins, so its
-module tier (the sandbox) is a real security boundary, not just packaging.
+Same split a lot of servers use: essential, deeply-integrated behaviour is built into
+the core, optional self-contained bits are separate modules. Orbit does the same, with
+one twist — a web client can be handed genuinely untrusted plugins, so its module tier
+(the sandbox) is a real security boundary, not just packaging.
 
 ## Where plugins live
 

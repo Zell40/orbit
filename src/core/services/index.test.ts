@@ -35,7 +35,7 @@ describe('maskSecret', () => {
 });
 
 describe('hasServiceTag', () => {
-  it('detects the server example.org/service tag', () => {
+  it('detects a vendor <host>/service tag', () => {
     expect(hasServiceTag({ 'example.org/service': '', msgid: 'x' })).toBe(true);
   });
   it('detects any vendor <host>/service tag (ircd-agnostic)', () => {

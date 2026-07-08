@@ -123,7 +123,7 @@ export interface ChatState {
 export function createChatStore(ns = '') {
   let lastTypingSent = 0;
   const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
-  const knownServices = new Set<string>(); // canon nicks the server tagged as services (example.org/service)
+  const knownServices = new Set<string>(); // canon nicks the server tagged as services
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
   const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
   const store = create<ChatState>((set, get) => {

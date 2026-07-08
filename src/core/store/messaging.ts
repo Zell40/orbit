@@ -122,7 +122,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     const otherParty = (self ? chanTarget : msg.nick) || '';
     const isChan = isChannelName(chanTarget);
     const toReportSvc = !!reportSvc && !isChan && otherParty.toLowerCase() === reportSvc;
-    // Some ircds (server) tag anything from a U-lined services pseudo-client,
+    // Some ircds tag anything from a U-lined services pseudo-client,
     // delivered on the message-tags cap — authoritative and name-agnostic. Remember
     // the nick so our own later messages to it (which carry no tag) route the same,
     // and fall back to the *Serv name convention when neither tag nor memory apply.

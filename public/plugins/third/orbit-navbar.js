@@ -2,7 +2,7 @@
  * Orbit navbar — a brandable bar across the very top of the app: the network's logo
  * (or name) plus a row of external portal links (rules, forum, webmail, donate, …).
  * First-party, in-page. It renders only when configured, so it stays invisible by
- * default. Inspired by the classic webchat network navbar, themed to Orbit.
+ * default.
  *
  * Configure in config.json (brand fields fall back to `branding`):
  *   "plugins": ["/app/plugins/third/orbit-navbar.js"],

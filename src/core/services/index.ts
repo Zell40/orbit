@@ -9,11 +9,10 @@ const SERVICE_RE = /^(nick|chan|host|oper|bot|memo|help|sasl|group|stat|game)ser
 export function isService(name: string): boolean { return SERVICE_RE.test(name); }
 
 // True when the server flagged this message as coming from a services pseudo-client.
-// server's m_services adds `example.org/service` (on any message from a U-lined
-// server, delivered on the message-tags cap). We accept any server-sent vendor
-// `<host>/service` tag, so another ircd adopting the same idea works with no code
-// change; ircds without such a tag (UnrealIRCd, Ergo, Solanum, …) simply fall back
-// to the *Serv name rule below. Client (`+`-prefixed) tags are never a service marker.
+// Some servers add a vendor `<host>/service` tag to any message from a U-lined server
+// (delivered on the message-tags cap). We accept any such tag, so servers without one
+// simply fall back to the *Serv name rule below. Client (`+`-prefixed) tags are never
+// a service marker.
 export function hasServiceTag(tags: Record<string, string>): boolean {
   return Object.keys(tags).some((k) => !k.startsWith('+') && k.endsWith('/service'));
 }
