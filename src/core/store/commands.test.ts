@@ -48,6 +48,13 @@ describe('sendInput — slash commands', () => {
     expect(state.active).toBe('#new');
   });
 
+  it('/join #a,#b,#c joins them all and focuses the first', () => {
+    const { sendInput, client, state } = setup();
+    sendInput('/join #a,#b,#c');
+    expect(calledWith(client, 'join')).toEqual([['#a,#b,#c']]);
+    expect(state.active).toBe('#a');
+  });
+
   it('/me sends a CTCP action to the active channel', () => {
     const { sendInput, client } = setup();
     sendInput('/me waves');

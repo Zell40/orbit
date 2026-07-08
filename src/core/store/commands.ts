@@ -61,7 +61,13 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
       };
       switch (cmd.toLowerCase()) {
         case 'me': if (active !== SERVER) client.action(active, arg); break;
-        case 'join': client.join(arg); get().setActive(arg.split(' ')[0]); break;
+        case 'join': {
+          // Multi-channel: /join #a,#b,#c (optionally "#a,#b key1,key2") — join them
+          // all in one JOIN, then focus the first real channel, not the comma-list.
+          const chans = arg.split(' ')[0].split(',').map((c) => c.trim()).filter(Boolean);
+          if (chans.length) { client.join(arg); get().setActive(chans[0]); }
+          break;
+        }
         case 'part': if (!rawFromConsole()) client.part(active); break;
         case 'nick': client.setNick(arg); break;
         case 'whois': {
