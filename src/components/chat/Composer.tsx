@@ -312,7 +312,7 @@ export function Composer() {
             if (t != null) { e.preventDefault(); document.execCommand('insertText', false, t); changed(); }
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Tab' && !isConsole) { e.preventDefault(); tabComplete(); return; }
+            if (e.key === 'Tab') { e.preventDefault(); tabComplete(); return; }
             if (e.key !== 'Tab') cyc.current = null;
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); return; }
             if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); document.execCommand('insertLineBreak'); changed(); return; }
