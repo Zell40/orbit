@@ -38,6 +38,15 @@ describe('completeToken', () => {
     expect(completeToken('#', 1, ctx())).toBeNull();
   });
 
+  it('completes the last channel in a comma-separated /join list', () => {
+    // only "#d" is completed (replaced from its own start), and no trailing
+    // space is added so the list can keep growing (/join #orbit,#dev,#…).
+    const text = '/join #orbit,#d';
+    expect(completeToken(text, text.length, ctx())).toEqual({ start: 13, candidates: ['#dev'] });
+    // a bare trailing comma has nothing to complete
+    expect(completeToken('/join #orbit,', 13, ctx())).toBeNull();
+  });
+
   it('completes a nick, sorted, with a ": " suffix at line start', () => {
     expect(completeToken('al', 2, ctx())).toEqual({ start: 0, candidates: ['Albert: ', 'alice: '] });
   });

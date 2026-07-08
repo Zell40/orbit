@@ -33,10 +33,18 @@ export function completeToken(text: string, pos: number, ctx: CompleteContext): 
   } else if (token.startsWith('/') && start === 0) {
     const q = token.slice(1).toLowerCase();
     candidates = [...ctx.slashCommands, ...ctx.pluginCmds].filter((c) => c.startsWith(q)).map((c) => '/' + c + ' ');
-  } else if (token.startsWith('#') && token.length > 1) {
-    const q = token.toLowerCase();
+  } else if (token.startsWith('#')) {
+    // Channel. Support comma-separated lists (/join #a,#b<Tab>) by completing
+    // only the segment under the caret, and drop the trailing space while a list
+    // is being built so it doesn't terminate the /join argument.
+    const seg = token.slice(token.lastIndexOf(',') + 1);
+    if (!seg.startsWith('#') || seg.length < 2) return null;
+    const q = seg.toLowerCase();
+    const suffix = token.includes(',') ? '' : ' ';
     candidates = ctx.channels.filter((c) => c.toLowerCase().startsWith(q))
-      .sort((a, b) => a.localeCompare(b)).map((c) => c + ' ');
+      .sort((a, b) => a.localeCompare(b)).map((c) => c + suffix);
+    if (!candidates.length) return null;
+    return { start: pos - seg.length, candidates };
   } else {
     const q = token.toLowerCase();
     const tail = start === 0 ? ': ' : ' ';
