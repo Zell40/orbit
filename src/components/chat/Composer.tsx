@@ -42,6 +42,7 @@ export function Composer() {
   const ed = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const cyc = useRef<{ start: number; len: number; cands: string[]; idx: number } | null>(null);
+  const listed = useRef(false);             // one-time LIST kicked off for channel completion
   const prevActive = useRef(active);
   // mIRC-style sent-message recall (global to the session). Lives in a ref so it
   // survives re-renders; idx bookkeeping is unit-tested in composer/history.ts.
@@ -201,10 +202,19 @@ export function Composer() {
       return;
     }
 
-    const members = Object.keys(activeStore().getState().buffers[active]?.members ?? {});
+    const st = activeStore().getState();
+    const members = Object.keys(st.buffers[active]?.members ?? {});
+    // Channels: ones I'm in + the network LIST + configured suggestions. The first
+    // channel Tab kicks off a one-time LIST so completion covers the whole network.
+    const channels = Array.from(new Set([
+      ...st.order.filter((n) => st.buffers[n]?.isChannel),
+      ...st.channels.map((c) => c.name),
+      ...(getConfig().startup.suggestions ?? []),
+    ]));
     const pluginCmds = usePluginRegistry.getState().commands.map((cmd) => cmd.name);
-    const res = completeToken(text, pos, { members, pluginCmds, slashCommands: SLASH_COMMANDS, emojiNames: EMOJI_NAMES });
+    const res = completeToken(text, pos, { members, channels, pluginCmds, slashCommands: SLASH_COMMANDS, emojiNames: EMOJI_NAMES });
     if (!res) return;
+    if (text[res.start] === '#' && !st.channels.length && !listed.current) { listed.current = true; st.refreshChannels(); }
     selectRange(root, res.start, pos);
     document.execCommand('insertText', false, res.candidates[0]);
     cyc.current = { start: res.start, len: res.candidates[0].length, cands: res.candidates, idx: 0 };

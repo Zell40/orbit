@@ -3,6 +3,7 @@ import { completeToken, type CompleteContext } from './complete';
 
 const ctx = (over: Partial<CompleteContext> = {}): CompleteContext => ({
   members: ['alice', 'Albert', 'bob'],
+  channels: ['#orbit', '#offtopic', '#dev'],
   pluginCmds: ['giphy'],
   slashCommands: ['me', 'msg', 'join'],
   emojiNames: { fire: '🔥', feu: '🔥', smile: '😀' },
@@ -27,6 +28,14 @@ describe('completeToken', () => {
 
   it('includes plugin commands in slash completion', () => {
     expect(completeToken('/g', 2, ctx())).toEqual({ start: 0, candidates: ['/giphy '] });
+  });
+
+  it('completes a #channel token from the known channel list', () => {
+    expect(completeToken('/join #o', 8, ctx())).toEqual({ start: 6, candidates: ['#offtopic ', '#orbit '] });
+    // matches anywhere a #token sits, not just after /join
+    expect(completeToken('see #d', 6, ctx())).toEqual({ start: 4, candidates: ['#dev '] });
+    // a lone '#' completes nothing (needs at least one char)
+    expect(completeToken('#', 1, ctx())).toBeNull();
   });
 
   it('completes a nick, sorted, with a ": " suffix at line start', () => {

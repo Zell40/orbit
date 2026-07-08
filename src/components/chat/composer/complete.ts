@@ -3,11 +3,13 @@
 // work out which token is under the caret and what it can complete to:
 //   :name  → emoji            (anywhere)
 //   /cmd   → slash command    (only at the very start of the line)
+//   #chan  → channel name     (from the network list — e.g. /join #part<Tab>)
 //   nick   → channel member   (': ' suffix at line start, ' ' otherwise)
 // The DOM insertion + cycle-through-matches state stays in the component.
 
 export interface CompleteContext {
   members: string[];
+  channels: string[];
   pluginCmds: string[];
   slashCommands: string[];
   emojiNames: Record<string, string>;
@@ -31,6 +33,10 @@ export function completeToken(text: string, pos: number, ctx: CompleteContext): 
   } else if (token.startsWith('/') && start === 0) {
     const q = token.slice(1).toLowerCase();
     candidates = [...ctx.slashCommands, ...ctx.pluginCmds].filter((c) => c.startsWith(q)).map((c) => '/' + c + ' ');
+  } else if (token.startsWith('#') && token.length > 1) {
+    const q = token.toLowerCase();
+    candidates = ctx.channels.filter((c) => c.toLowerCase().startsWith(q))
+      .sort((a, b) => a.localeCompare(b)).map((c) => c + ' ');
   } else {
     const q = token.toLowerCase();
     const tail = start === 0 ? ': ' : ' ';
