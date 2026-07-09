@@ -89,6 +89,7 @@
     "error_sasl": "Pseudo ou mot de passe incorrect.",
     "live": "en direct",
     "typing": "{{who}} écrit",
+    "joinLine": "{{who}} a rejoint {{chan}}",
     "nickAria": "Pseudo",
     "ambient": {
       "0": "coucou tout le monde 👋",

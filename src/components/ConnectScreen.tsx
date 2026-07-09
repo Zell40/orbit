@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type CSSProperties } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { escapeHtml } from '../lib/escape';
 import { useTranslation } from 'react-i18next';
 
@@ -10,11 +10,12 @@ function param(name: string, fallback: string): string {
   return new URLSearchParams(window.location.search).get(name) ?? fallback;
 }
 
-// Ambient chatter for the live-room preview (decorative — aria-hidden). Warm, French,
-// no impersonation of real users; it conveys "the room is alive" before you join.
-type Line = { who: string; hue: number; text: string; react?: string };
-// Names/colours/reactions stay in code; the message text is localised
-// (connect.ambient.N) so the preview speaks the visitor's language.
+// Ambient chatter for the live-room preview (decorative — aria-hidden, timestamps
+// included; no impersonation of real users). Warm, French, IRC-shaped: rendered as
+// a genuine transcript (mono nick/timestamp, occasional join line), not chat bubbles.
+type Line = { who: string; hue: number; text: string; react?: string; sys?: boolean };
+// Names/colours/reactions stay in code; message text is localised (connect.ambient.N)
+// so the preview speaks the visitor's language.
 const POOL_META: { who: string; hue: number; react?: string }[] = [
   { who: 'Marina', hue: 8 },
   { who: 'Lucas', hue: 205 },
@@ -32,37 +33,76 @@ const POOL_META: { who: string; hue: number; react?: string }[] = [
   { who: 'Eliott', hue: 120 },
 ];
 
-function avaStyle(hue: number): CSSProperties {
-  return { background: `linear-gradient(140deg, hsl(${hue},58%,55%), hsl(${(hue + 38) % 360},56%,45%))` };
+function fmtClock(d: Date): string {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// One "next line" generator shared by the initial batch and the live stream, so
+// both follow the exact same rules. `who` and `text` are independent counters:
+// coupling them to a single index (e.g. deriving both from one `i % N`) skews
+// which ambient line shows up whenever the two moduli's cycles interact, making
+// some lines repeat far more than others — keeping them apart guarantees every
+// ambient text is seen once per full pass through the pool.
+function makeLineGen(t: (key: string, opts?: Record<string, unknown>) => string) {
+  let step = 0;
+  let textIdx = 0;
+  return (): Line => {
+    const who = POOL_META[step % POOL_META.length];
+    const isJoin = step > 0 && step % 4 === 3;
+    step += 1;
+    if (isJoin) return { ...who, text: '', sys: true };
+    const text = t(`connect.ambient.${textIdx % 14}`);
+    textIdx += 1;
+    return { ...who, text };
+  };
 }
 
 // Isolated so the streaming interval never re-renders the join form.
 function LiveFeed({ chan }: { chan: string }) {
   const { t } = useTranslation();
-  const line = (i: number): Line => {
-    const n = i % POOL_META.length;
-    return { ...POOL_META[n], text: t(`connect.ambient.${n}`) };
-  };
-  const [msgs, setMsgs] = useState<(Line & { id: number })[]>(
-    () => [0, 1, 2, 3].map((i) => ({ ...line(i), id: i })),
-  );
+  // Build the initial batch with a local counter, never a ref (refs must not be
+  // read during render) — and hand the ref its starting value from that same
+  // state, so live ticking continues the clock forward instead of jumping back
+  // to "now" the moment the first streamed line lands.
+  const INITIAL = 8;
+  const [seed] = useState(() => {
+    const gen = makeLineGen(t);
+    let clock = new Date();
+    const items = Array.from({ length: INITIAL }, (_, i) => {
+      clock = new Date(clock.getTime() + (60_000 + Math.random() * 90_000));
+      return { ...gen(), id: i, at: fmtClock(clock) };
+    });
+    return { items, clock };
+  });
+  const [msgs, setMsgs] = useState(() => seed.items);
   const [typing, setTyping] = useState('');
-  const idx = useRef(4);
+  const nextId = useRef(INITIAL);
+  const clock = useRef(seed.clock);
 
   useEffect(() => {
     let alive = true;
     let toMsg = 0;
     let toNext = 0;
+    const gen = makeLineGen(t);
+    // Fast-forward the generator's internal counters past what the initial
+    // batch already consumed, so streaming continues the same sequence rather
+    // than restarting it (which would repeat the first few lines verbatim).
+    for (let i = 0; i < INITIAL; i++) gen();
+    const stamp = () => {
+      clock.current = new Date(clock.current.getTime() + (60_000 + Math.random() * 90_000));
+      return fmtClock(clock.current);
+    };
     const step = () => {
-      const next = line(idx.current);
-      setTyping(next.who);
+      const next = gen();
+      if (!next.sys) setTyping(next.who);
+      const id = nextId.current;
       toMsg = window.setTimeout(() => {
         if (!alive) return;
         setTyping('');
-        setMsgs((m) => [...m.slice(-6), { ...next, id: idx.current }]);
-        idx.current += 1;
+        setMsgs((m) => [...m.slice(-10), { ...next, id, at: stamp() }]);
+        nextId.current += 1;
         toNext = window.setTimeout(step, 1500 + Math.random() * 900);
-      }, 850);
+      }, next.sys ? 150 : 850);
     };
     const start = window.setTimeout(step, 1200);
     return () => { alive = false; clearTimeout(start); clearTimeout(toMsg); clearTimeout(toNext); };
@@ -75,20 +115,21 @@ function LiveFeed({ chan }: { chan: string }) {
         <span className="cfeed__count"><i />{t('connect.live')}</span>
       </div>
       <div className="cfeed__stream">
-        {msgs.map((m) => (
-          <div className="cmsg" key={m.id}>
-            <span className="cmsg__ava" style={avaStyle(m.hue)}>{m.who[0]}</span>
-            <div className="cmsg__body">
-              <div className="cmsg__who" style={{ color: `hsl(${m.hue},55%,70%)` }}>{m.who}</div>
-              <span className="cmsg__bubble">{m.text}</span>
-              {m.react && <span className="cmsg__react">{m.react}</span>}
-            </div>
+        {msgs.map((m) => m.sys ? (
+          <div className="ctx ctx--sys" key={m.id}>
+            <span className="ctx__t">{m.at}</span>
+            <span>{t('connect.joinLine', { who: m.who, chan })}</span>
+          </div>
+        ) : (
+          <div className="ctx" key={m.id}>
+            <span className="ctx__t">{m.at}</span>
+            <span className="ctx__nick" style={{ color: `hsl(${m.hue},60%,52%)` }}>{m.who}</span>
+            <span className="ctx__txt">{m.text}{m.react && <span className="ctx__react">{m.react}</span>}</span>
           </div>
         ))}
-        <div className="ctyping">
-          {typing
-            ? <><span>{t('connect.typing', { who: typing })}</span><span className="ctyping__dots"><i /><i /><i /></span></>
-            : <span className="ctyping__dots"><i /><i /><i /></span>}
+        <div className="ccursor">
+          {typing && <span>{t('connect.typing', { who: typing })}</span>}
+          <span className="ccursor__blink" />
         </div>
       </div>
     </aside>
@@ -203,7 +244,6 @@ export function ConnectScreen() {
         <div className="cjoin__brand">
           <span className="cjoin__mark"><img src={cfg.branding.icon} alt="" /></span>
           <span className="cjoin__name"><span className="at">@</span>{cfg.branding.name}</span>
-          <span className="cjoin__dot"><i />{t('connect.live')}</span>
         </div>
 
         <h1 className="cjoin__title">

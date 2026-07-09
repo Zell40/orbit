@@ -89,6 +89,7 @@
     "error_sasl": "Unknown nick or incorrect password.",
     "live": "live",
     "typing": "{{who}} is typing",
+    "joinLine": "{{who}} joined {{chan}}",
     "nickAria": "Nickname",
     "ambient": {
       "0": "hey everyone 👋",
