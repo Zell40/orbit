@@ -2,15 +2,18 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useActiveChat } from '../../core/networks';
+import { getTheme } from '../../themes';
 
 // mIRC-style right-click op menu for a nick in the member list. Whois for
-// everyone; kick / ban / ban+kick (with a reason dialog) + op/voice when the
-// current user is a channel operator. Left-click on the row still opens whois.
+// everyone (printed inline to the active window under yomirc, like classic mIRC;
+// panel otherwise); kick / ban / ban+kick (with a reason dialog) + op/voice when
+// the current user is a channel operator. Left-click on the row still opens whois.
 type Pending = 'kick' | 'bankick';
 
 export function MemberMenu({ nick, x, y, onClose }: { nick: string; x: number; y: number; onClose: () => void }) {
   const { t } = useTranslation();
   const openUser = useActiveChat((s) => s.openUser);
+  const whoisText = useActiveChat((s) => s.whoisText);
   const me = useActiveChat((s) => s.nick);
   const active = useActiveChat((s) => s.active);
   const myPrefix = useActiveChat((s) => s.buffers[s.active]?.members[s.nick]?.prefixes || s.buffers[s.active]?.members[s.nick]?.prefix || '');
@@ -79,7 +82,7 @@ export function MemberMenu({ nick, x, y, onClose }: { nick: string; x: number; y
   return (
     <div ref={menuRef} className="memberctx" role="menu" style={{ left: pos.x, top: pos.y }}>
       <div className="memberctx__nick">{targetMember?.prefix}{nick}</div>
-      <button className="memberctx__item" role="menuitem" onClick={() => { openUser(nick); onClose(); }}>{t('members.whoisAction')}</button>
+      <button className="memberctx__item" role="menuitem" onClick={() => { if (getTheme().startsWith('yomirc')) whoisText(nick); else openUser(nick); onClose(); }}>{t('members.whoisAction')}</button>
       {canModerate && (
         <>
           <div className="memberctx__sep" />
