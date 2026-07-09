@@ -158,7 +158,6 @@ export function ChanAdminModal() {
                   <b>{t(`chanFlags.${f.key}.label`)}</b>
                   <span className="ca-flag__desc">{t(`chanFlags.${f.key}.desc`)}</span>
                 </span>
-                <code className="ca-flag__m">+{f.m}</code>
               </label>
             );
           })}

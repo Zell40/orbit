@@ -1509,6 +1509,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-param:last-child { margin-bottom: 0; }
 .ca-param__l { flex: none; width: 6.5rem; font-size: .82rem; font-weight: 600; color: var(--ink); }
 .ca-param .modal__input { flex: 1; min-width: 0; }
+.ca-param .upbtn { flex: none; }
 /* Mode flags — card grid with on-state highlight + mode-letter chip */
 .ca-flags { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .4rem; }
 .ca-flag { display: flex; align-items: flex-start; gap: .55rem; padding: .55rem .6rem; border: 1px solid var(--border-2); border-radius: 11px; background: var(--bg-soft); cursor: pointer; transition: border-color .15s, background .15s; }
@@ -1517,8 +1518,6 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-flag input { margin-top: .15rem; width: 16px; height: 16px; accent-color: var(--up-accent, #2a6bff); }
 .ca-flag__txt { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .ca-flag__desc { font-size: .76rem; color: var(--muted); }
-.ca-flag__m { flex: none; align-self: center; font-family: ui-monospace, Menlo, monospace; font-size: .72rem; font-weight: 700; padding: .05rem .35rem; border-radius: 6px; background: var(--bg-2, rgba(127,127,127,.14)); color: var(--muted); }
-.ca-flag.is-on .ca-flag__m { background: var(--accent); color: #fff; }
 .ca-bans { list-style: none; margin: .5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .25rem; max-height: 30vh; overflow-y: auto; }
 .ca-ban { display: flex; align-items: center; gap: .6rem; padding: .35rem .5rem; border-radius: 9px; background: var(--bg-soft); }
 .ca-ban__mask { font-family: ui-monospace, Menlo, monospace; font-size: .82rem; color: var(--ink); overflow-wrap: anywhere; }
