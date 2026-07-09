@@ -184,12 +184,11 @@ export function ChanAdminModal() {
             {flags.map((f) => {
               const on = modes.includes(f.m);
               return (
-                <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}`} title={t(`chanFlags.${f.key}.desc`)}>
+                <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}`}
+                  title={`+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}`}>
                   <input type="checkbox" checked={on} onChange={() => setChannelMode(chan, f.m, !on)} />
-                  <span className="ca-flag__txt">
-                    <b>{t(`chanFlags.${f.key}.label`)}</b>
-                    <span className="ca-flag__desc">{t(`chanFlags.${f.key}.desc`)}</span>
-                  </span>
+                  <code className="ca-flag__m">+{f.m}</code>
+                  <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
                 </label>
               );
             })}
