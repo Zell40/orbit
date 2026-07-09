@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '../../core/networks';
+import { formatIrc } from '../../lib/format';
 import { Modal } from './Modal';
 
 // Stable keys → labels/descriptions are resolved via i18n (chanFlags.*).
@@ -25,6 +26,7 @@ export function ChanAdminModal() {
   const chan = buffer?.name || '';
   const [newban, setNewban] = useState('');
   const [topic, setTopicVal] = useState(buffer?.topic || '');
+  const [editingTopic, setEditingTopic] = useState(false);
   useEffect(() => { if (chan) loadBanList(chan); }, [chan, loadBanList]);
   if (!buffer || !buffer.isChannel) return null;
   const modes = buffer.modes || '';
@@ -37,10 +39,23 @@ export function ChanAdminModal() {
     <Modal title={t('modals.chanadmin.manage', { chan })} wide onClose={() => setModal('')}>
       <div className="ca-sec">
         <h4 className="ca-h">{t('modals.chanadmin.subject')}</h4>
-        <div className="modal__actions">
-          <input className="modal__input" value={topic} placeholder={t('modals.chanadmin.topic')} onChange={(e) => setTopicVal(e.target.value)} />
-          <button className="upbtn upbtn--primary" onClick={() => modTopic(topic)}>{t('modals.chanadmin.setTopic')}</button>
-        </div>
+        {editingTopic ? (
+          <div className="modal__actions">
+            {/* Editing works on the RAW topic (colour/format codes intact) so
+                setting it back never silently strips the colours. */}
+            <input className="modal__input" autoFocus value={topic} placeholder={t('modals.chanadmin.topic')}
+              onChange={(e) => setTopicVal(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { modTopic(topic); setEditingTopic(false); } }} />
+            <button className="upbtn upbtn--primary" onClick={() => { modTopic(topic); setEditingTopic(false); }}>{t('modals.chanadmin.setTopic')}</button>
+          </div>
+        ) : (
+          <button className="ca-topic" onClick={() => { setTopicVal(buffer?.topic || ''); setEditingTopic(true); }} title={t('modals.chanadmin.editTopic')}>
+            <span className="ca-topic__txt">
+              {buffer?.topic ? formatIrc(buffer.topic, false, false) : <span className="ca-topic__empty">{t('modals.chanadmin.noTopicYet')}</span>}
+            </span>
+            <span className="ca-topic__pen" aria-hidden="true">✎</span>
+          </button>
+        )}
       </div>
       <div className="ca-sec">
         <h4 className="ca-h">{t('modals.chanadmin.settings')}</h4>

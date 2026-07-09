@@ -208,6 +208,8 @@
       "maskPlaceholder": "*!*@masque ou pseudo…",
       "channelSearch": "#salon ou pseudo",
       "setTopic": "Définir",
+      "editTopic": "Cliquez pour modifier le sujet",
+      "noTopicYet": "Aucun sujet — cliquez pour en définir un",
       "info": "Informations",
       "modes": "Modes du salon",
       "subject": "Sujet",

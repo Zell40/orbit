@@ -1486,6 +1486,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-sec { margin-top: 1rem; }
 .ca-sec:first-child { margin-top: .3rem; }
 .ca-h { margin: 0 0 .45rem; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+/* Read-only topic shown WITH its IRC colours/formatting rendered (formatIrc);
+   click to reveal the raw edit input. */
+.ca-topic { display: flex; align-items: center; gap: .5rem; width: 100%; text-align: left; padding: .7rem .9rem; border: 1px solid var(--border-2); border-radius: 10px; background: var(--bg-soft); color: var(--ink); font: inherit; font-size: .95rem; line-height: 1.4; cursor: text; transition: border-color .15s; }
+.ca-topic:hover { border-color: var(--accent); }
+.ca-topic__txt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ca-topic__empty { color: var(--faint); }
+.ca-topic__pen { flex: none; color: var(--muted); font-size: .9rem; }
+.ca-topic:hover .ca-topic__pen { color: var(--accent); }
 .ca-flag { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem .2rem; cursor: pointer; }
 .ca-flag input { margin-top: .2rem; width: 16px; height: 16px; accent-color: var(--up-accent, #2a6bff); }
 .ca-flag__txt { display: flex; flex-direction: column; }

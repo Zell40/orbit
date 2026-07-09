@@ -208,6 +208,8 @@
       "maskPlaceholder": "*!*@mask or nickname…",
       "channelSearch": "#channel or nickname",
       "setTopic": "Set",
+      "editTopic": "Click to edit the topic",
+      "noTopicYet": "No topic — click to set one",
       "info": "Info",
       "modes": "Channel modes",
       "subject": "Topic",
