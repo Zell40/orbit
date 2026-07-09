@@ -35,6 +35,8 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const [searching, setSearching] = useState(false);
   if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button></div>;
   const n = members ? Object.keys(members).length : 0;
+  const setter = topicBy ? setterMask(topicBy, members || {}) : '';
+  const setterTitle = setter ? `${t('modals.chanadmin.topicBy')} ${setter}${topicAt ? ` · ${ago(topicAt, locale)}` : ''}` : '';
   const isServer = bname === SERVER;
   const label = isServer ? 'Status' : bname.replace(/^#/, '');
   const statusTitle = `Status: ${myNick || '…'}${myUmodes ? ` [+${myUmodes}]` : ''}${serverName ? ` on ${serverName}` : ''}`;
@@ -63,17 +65,21 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
             <span className="topbar__modes" title={t('topbar.modes')}>{modes}</span>
           )}
         </span>
-        {isServer
-          ? <span className="topbar__topic topbar__topic--muted">{t('topbar.serverTerminal')}</span>
-          : topic
-            ? <span className="topbar__topic" title={stripFormatting(topic)}>{formatIrc(topic, false)}</span>
-            : isChannel && <span className="topbar__topic topbar__topic--muted">{t('topbar.publicChannel', { n })}</span>}
-        {isChannel && topicBy && (
-          <span className="topbar__setby">
-            {t('modals.chanadmin.topicBy')}{' '}
-            <span className="topbar__setby-who">{setterMask(topicBy, members || {})}</span>
-            {topicAt ? <span className="topbar__setby-when"> · {ago(topicAt, locale)}</span> : null}
-          </span>
+        {(isServer || isChannel) && (
+          <div className="topbar__sub">
+            {isServer
+              ? <span className="topbar__topic topbar__topic--muted">{t('topbar.serverTerminal')}</span>
+              : topic
+                ? <span className="topbar__topic" title={stripFormatting(topic)}>{formatIrc(topic, false)}</span>
+                : <span className="topbar__topic topbar__topic--muted">{t('topbar.publicChannel', { n })}</span>}
+            {isChannel && setter && (
+              <span className="topbar__setby" title={setterTitle}>
+                {t('modals.chanadmin.topicBy')}{' '}
+                <span className="topbar__setby-who">{setter}</span>
+                {topicAt ? <span className="topbar__setby-when"> · {ago(topicAt, locale)}</span> : null}
+              </span>
+            )}
+          </div>
         )}
       </div>
       {topbarItems.filter((u) => u.slot === 'topbar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}
