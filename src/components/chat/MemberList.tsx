@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { Member } from '../../core/irc/types';
 import { Avatar } from '../Avatar';
+import { MemberMenu } from './MemberMenu';
 import { useActiveChat } from '../../core/networks';
 const ROLES: Record<string, { key: string; cls: string }> = {
   '~': { key: 'owner', cls: 'owner' },
@@ -25,6 +26,8 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const prefixOrder = useActiveChat((s) => s.client?.server.prefixModes ?? '~&@%+');
   const [q, setQ] = useState('');
   const needle = q.trim().toLowerCase();
+  // Right-click op menu (mIRC-style): opened at the cursor for the clicked nick.
+  const [menu, setMenu] = useState<{ nick: string; x: number; y: number } | null>(null);
 
   const all = useMemo(() => (membersMap ? Object.values(membersMap) : []), [membersMap]);
   // Group by role + sort names — recomputed only when membership, the filter, or
@@ -67,6 +70,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
                 key={m.nick}
                 title={m.away ? t('members.away', { nick: m.nick }) : m.oper ? t('members.operTitle', { nick: m.nick }) : t('members.viewProfile', { nick: m.nick })}
                 onClick={() => { openUser(m.nick); onNavigate?.(); }}
+                onContextMenu={(e) => { e.preventDefault(); setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
               >
                 <Avatar nick={m.nick} size={30} account={m.account} />
                 <span className="member__name">
@@ -80,6 +84,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
         ))}
         {groups.length === 0 && <div className="rooms-empty">{t('profile.noMembers')}</div>}
       </div>
+      {menu && <MemberMenu nick={menu.nick} x={menu.x} y={menu.y} onClose={() => setMenu(null)} />}
     </aside>
   );
 }

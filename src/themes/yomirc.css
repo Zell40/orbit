@@ -312,3 +312,15 @@
 [data-theme^="yomirc"] .composer--console .composer__rich.is-empty::before { color: var(--muted); }
 [data-theme^="yomirc"] .composer--console .composer__send { background: var(--mirc-face); color: var(--ink); box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 [data-theme^="yomirc"] .composer--console .composer__send:hover:not(:disabled) { background: var(--mirc-hover); }
+
+/* right-click member op menu + reason dialog — classic mIRC: mono, square, beveled */
+[data-theme^="yomirc"] .memberctx { border-radius: 0; padding: 2px; font-family: var(--mono); font-size: .78rem;
+  background: var(--mirc-face); border: 1px solid var(--mirc-shadow); box-shadow: 1px 1px 0 rgba(0,0,0,.35); }
+[data-theme^="yomirc"] .memberctx__item { border-radius: 0; padding: .2rem .9rem .2rem .5rem; }
+[data-theme^="yomirc"] .memberctx__nick { font-weight: 700; }
+[data-theme^="yomirc"] .memberctx__sep { margin: 2px 0; }
+[data-theme^="yomirc"] .memberrsn { border-radius: 0; font-family: var(--mono); background: var(--mirc-face);
+  border: 1px solid var(--mirc-shadow); box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
+[data-theme^="yomirc"] .memberrsn__in { border-radius: 0; font-family: var(--mono); box-shadow: inset 1px 1px 0 var(--mirc-shadow); }
+[data-theme^="yomirc"] .memberrsn__btn { border-radius: 0; font-family: var(--mono); background: var(--mirc-face);
+  box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }

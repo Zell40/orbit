@@ -95,8 +95,9 @@ export interface ChatState {
   clearReply: () => void;
   setSearch: (q: string) => void;
   toggleIgnore: (nick: string) => void;
-  modKick: (nick: string) => void;
+  modKick: (nick: string, reason?: string) => void;
   modBan: (nick: string) => void;
+  modBanOnly: (nick: string) => void;
   modSetMode: (nick: string, mode: string, add: boolean) => void;
   modTopic: (topic: string) => void;
   reportUser: (nick: string) => void; // opens the report window prefilled with this nick
@@ -464,15 +465,18 @@ export function createChatStore(ns = '') {
       saveIgnored(next); syncGlobal();
       set({ ignored: next });
     },
-    modKick(nick) { const { client, active } = get(); if (isChannelName(active)) client?.kick(active, nick); },
-    modBan(nick) {
+    modKick(nick, reason) { const { client, active } = get(); if (isChannelName(active)) client?.kick(active, nick, reason); },
+    // Ban by host if known (host bans survive nick changes), else by nick — no kick.
+    modBanOnly(nick) {
       const { client, active } = get();
       if (!isChannelName(active)) return;
-      const m = get().buffers[active]?.members[nick];
-      // Ban by host if known (host bans survive nick changes), else by nick.
-      const host = get().whois[nick]?.host;
+      const host = get().whois[nick]?.host || get().buffers[active]?.members[nick]?.host;
       client?.ban(active, host ? `*!*@${host}` : `${nick}!*@*`);
-      if (m) client?.kick(active, nick, 'banni');
+    },
+    modBan(nick) {
+      const { active } = get();
+      get().modBanOnly(nick);
+      if (isChannelName(active) && get().buffers[active]?.members[nick]) get().modKick(nick, 'banni');
     },
     modSetMode(nick, mode, add) { const { client, active } = get(); if (isChannelName(active)) client?.setUserMode(active, mode, add, nick); },
     modTopic(topic) { const { client, active } = get(); if (isChannelName(active)) client?.setTopic(active, topic); },

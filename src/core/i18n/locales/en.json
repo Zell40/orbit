@@ -601,7 +601,13 @@
     },
     "away": "{{nick}} — away",
     "operTitle": "{{nick}} — Network operator (IRCop)",
-    "viewProfile": "View {{nick}}’s profile"
+    "viewProfile": "View {{nick}}’s profile",
+    "whoisAction": "Whois",
+    "banKick": "Ban + kick",
+    "kickReasonTitle": "Kick {{nick}}",
+    "banKickReasonTitle": "Ban + kick {{nick}}",
+    "reasonPlaceholder": "Reason (optional)",
+    "cancel": "Cancel"
   },
   "composer": {
     "typingOne": "{{nick}} is typing",

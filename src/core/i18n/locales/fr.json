@@ -601,7 +601,13 @@
     },
     "away": "{{nick}} — absent",
     "operTitle": "{{nick}} — Opérateur réseau (IRCop)",
-    "viewProfile": "Voir le profil de {{nick}}"
+    "viewProfile": "Voir le profil de {{nick}}",
+    "whoisAction": "Whois",
+    "banKick": "Bannir + éjecter",
+    "kickReasonTitle": "Éjecter {{nick}}",
+    "banKickReasonTitle": "Bannir + éjecter {{nick}}",
+    "reasonPlaceholder": "Raison (facultatif)",
+    "cancel": "Annuler"
   },
   "composer": {
     "typingOne": "{{nick}} est en train d’écrire",
