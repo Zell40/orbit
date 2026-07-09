@@ -1519,8 +1519,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-stat--wide .ca-stat__n { font-size: .95rem; }
 .ca-stat__l { font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 /* Topic author line */
-.ca-topicby { margin-top: .4rem; font-size: .78rem; color: var(--muted); overflow-wrap: anywhere; }
-.ca-topicby__when { color: var(--faint); }
+.ca-topicby { display: flex; align-items: baseline; gap: .3rem; margin-top: .4rem; font-size: .78rem; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.ca-topicby__by { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ca-topicby__who { color: var(--online); font-weight: 600; }
+.ca-topicby__when { flex: none; color: var(--faint); }
 /* Key / limit parameter rows */
 .ca-param { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
 .ca-param:last-child { margin-bottom: 0; }

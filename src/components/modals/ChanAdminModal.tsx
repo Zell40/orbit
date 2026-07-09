@@ -148,7 +148,10 @@ export function ChanAdminModal() {
                 </button>
                 {buffer.topicBy ? (
                   <div className="ca-topicby">
-                    {t('modals.chanadmin.topicBy', { who: setterMask(buffer.topicBy, buffer.members || {}) })}
+                    <span className="ca-topicby__by">
+                      {t('modals.chanadmin.topicBy')}{' '}
+                      <span className="ca-topicby__who">{setterMask(buffer.topicBy, buffer.members || {})}</span>
+                    </span>
                     {buffer.topicAt ? <span className="ca-topicby__when"> · {ago(buffer.topicAt, locale)}</span> : null}
                   </div>
                 ) : null}

@@ -226,7 +226,7 @@
       "limitPlaceholder": "Max members…",
       "apply": "Apply",
       "clear": "Remove",
-      "topicBy": "Set by {{who}}",
+      "topicBy": "Set by",
       "tabOverview": "Overview",
       "tabModes": "Modes"
     }
