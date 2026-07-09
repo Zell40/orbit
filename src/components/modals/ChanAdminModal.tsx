@@ -111,6 +111,37 @@ export function ChanAdminModal() {
   return (
     <Modal title={t('modals.chanadmin.manage', { chan })} wide onClose={() => setModal('')}>
       <div className="ca-layout">
+        <div className="ca-sec ca-topicrow">
+          <h4 className="ca-h">{t('modals.chanadmin.subject')}</h4>
+          {editingTopic ? (
+            <div className="modal__actions">
+              {/* Editing works on the RAW topic (colour/format codes intact) so
+                  setting it back never silently strips the colours. */}
+              <input className="modal__input" autoFocus value={topic} placeholder={t('modals.chanadmin.topic')}
+                onChange={(e) => setTopicVal(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { modTopic(topic); setEditingTopic(false); } }} />
+              <button className="upbtn upbtn--primary" onClick={() => { modTopic(topic); setEditingTopic(false); }}>{t('modals.chanadmin.setTopic')}</button>
+            </div>
+          ) : (
+            <>
+              <button className="ca-topic" onClick={() => { setTopicVal(buffer?.topic || ''); setEditingTopic(true); }} title={t('modals.chanadmin.editTopic')}>
+                <span className="ca-topic__txt">
+                  {buffer?.topic ? formatIrc(buffer.topic, false, false) : <span className="ca-topic__empty">{t('modals.chanadmin.noTopicYet')}</span>}
+                </span>
+                <span className="ca-topic__pen" aria-hidden="true">✎</span>
+              </button>
+              {buffer.topicBy ? (
+                <div className="ca-topicby">
+                  <span className="ca-topicby__by">
+                    {t('modals.chanadmin.topicBy')}{' '}
+                    <span className="ca-topicby__who">{setterMask(buffer.topicBy, buffer.members || {})}</span>
+                  </span>
+                  {buffer.topicAt ? <span className="ca-topicby__when"> · {ago(buffer.topicAt, locale)}</span> : null}
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
         <div className="ca-main">
           <div className="ca-tabs" role="tablist">
             {tabBtn('overview', t('modals.chanadmin.tabOverview'))}
@@ -125,38 +156,6 @@ export function ChanAdminModal() {
             {buffer.createdAt ? (
               <div className="ca-stat ca-stat--wide"><b className="ca-stat__n">{fmtDate(buffer.createdAt, locale)}</b><span className="ca-stat__l">{t('modals.chanadmin.created')}</span></div>
             ) : null}
-          </div>
-
-          <div className="ca-sec">
-            <h4 className="ca-h">{t('modals.chanadmin.subject')}</h4>
-            {editingTopic ? (
-              <div className="modal__actions">
-                {/* Editing works on the RAW topic (colour/format codes intact) so
-                    setting it back never silently strips the colours. */}
-                <input className="modal__input" autoFocus value={topic} placeholder={t('modals.chanadmin.topic')}
-                  onChange={(e) => setTopicVal(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { modTopic(topic); setEditingTopic(false); } }} />
-                <button className="upbtn upbtn--primary" onClick={() => { modTopic(topic); setEditingTopic(false); }}>{t('modals.chanadmin.setTopic')}</button>
-              </div>
-            ) : (
-              <>
-                <button className="ca-topic" onClick={() => { setTopicVal(buffer?.topic || ''); setEditingTopic(true); }} title={t('modals.chanadmin.editTopic')}>
-                  <span className="ca-topic__txt">
-                    {buffer?.topic ? formatIrc(buffer.topic, false, false) : <span className="ca-topic__empty">{t('modals.chanadmin.noTopicYet')}</span>}
-                  </span>
-                  <span className="ca-topic__pen" aria-hidden="true">✎</span>
-                </button>
-                {buffer.topicBy ? (
-                  <div className="ca-topicby">
-                    <span className="ca-topicby__by">
-                      {t('modals.chanadmin.topicBy')}{' '}
-                      <span className="ca-topicby__who">{setterMask(buffer.topicBy, buffer.members || {})}</span>
-                    </span>
-                    {buffer.topicAt ? <span className="ca-topicby__when"> · {ago(buffer.topicAt, locale)}</span> : null}
-                  </div>
-                ) : null}
-              </>
-            )}
           </div>
 
           <div className="ca-sec">

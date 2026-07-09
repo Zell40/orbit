@@ -1488,6 +1488,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .modal:has(.ca-layout) { width: min(800px, 96vw); max-height: 92vh; overflow-y: auto; }
 .ca-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 1.4rem; }
 .ca-main { min-width: 0; }
+/* Topic spans the full modal width so a long nick!user@host mask (e.g. an IPv6
+   host) fits on one line without being truncated. */
+.ca-topicrow { grid-column: 1 / -1; margin-top: 0; min-width: 0; }
 .ca-banscol { min-width: 0; border-left: 1px solid var(--border-2); padding-left: 1.4rem; display: flex; flex-direction: column; }
 .ca-banscol .ca-h { margin-top: 0; }
 @media (max-width: 680px) {
