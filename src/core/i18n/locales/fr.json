@@ -215,7 +215,18 @@
       "subject": "Sujet",
       "manage": "Gérer {{chan}}",
       "settings": "Réglages",
-      "by": "par {{by}}"
+      "by": "par {{by}}",
+      "members": "Membres",
+      "ops": "Opérateurs",
+      "created": "Créé le",
+      "access": "Accès & mot de passe",
+      "key": "Mot de passe",
+      "keyPlaceholder": "Clé du salon…",
+      "limit": "Limite",
+      "limitPlaceholder": "Nombre max…",
+      "apply": "Appliquer",
+      "clear": "Retirer",
+      "topicBy": "Défini par {{who}}"
     }
   },
   "settings": {
@@ -507,6 +518,50 @@
     "secret": {
       "label": "Secret",
       "desc": "Caché des listes publiques (+s)"
+    },
+    "private": {
+      "label": "Privé",
+      "desc": "Absent des listes, /whois masqué (+p)"
+    },
+    "blockColor": {
+      "label": "Sans couleurs",
+      "desc": "Bloque les codes couleur/format (+c)"
+    },
+    "noCtcp": {
+      "label": "Sans CTCP",
+      "desc": "Bloque les requêtes CTCP (+C)"
+    },
+    "stripColor": {
+      "label": "Couleurs retirées",
+      "desc": "Retire les codes couleur des messages (+S)"
+    },
+    "regOnly": {
+      "label": "Comptes uniquement",
+      "desc": "Il faut être enregistré pour entrer (+R)"
+    },
+    "regModerated": {
+      "label": "Enregistrés pour parler",
+      "desc": "Seuls les comptes enregistrés parlent (+M)"
+    },
+    "operOnly": {
+      "label": "Opérateurs uniquement",
+      "desc": "Réservé aux opérateurs IRC (+O)"
+    },
+    "tlsOnly": {
+      "label": "TLS uniquement",
+      "desc": "Connexion sécurisée obligatoire (+z)"
+    },
+    "noNickChange": {
+      "label": "Pseudo verrouillé",
+      "desc": "Interdit de changer de pseudo (+N)"
+    },
+    "noKnock": {
+      "label": "Sans toc-toc",
+      "desc": "Désactive la commande KNOCK (+K)"
+    },
+    "permanent": {
+      "label": "Permanent",
+      "desc": "Le salon persiste sans membres (+P)"
     }
   },
   "reg": {

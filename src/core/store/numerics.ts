@@ -131,6 +131,16 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         if (isChannelName(ch)) { ensureBuffer(ch); patchBuffer(ch, (b) => ({ ...b, topic: '' })); }
         return true;
       }
+      case '333': { // RPL_TOPICWHOTIME: <me> <chan> <setter> <settime> — who set the topic + when
+        const ch = msg.params[1];
+        if (isChannelName(ch)) {
+          ensureBuffer(ch);
+          const by = (msg.params[2] || '').split('!')[0];
+          const at = Number(msg.params[3]) * 1000 || 0;
+          patchBuffer(ch, (b) => ({ ...b, topicBy: by, topicAt: at }));
+        }
+        return true;
+      }
       case '367': { // RPL_BANLIST: <me> <chan> <mask> [<who> <ts>] — collect into state
         const ch = msg.params[1];
         const mask = msg.params[2];

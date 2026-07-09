@@ -215,7 +215,18 @@
       "subject": "Topic",
       "manage": "Manage {{chan}}",
       "settings": "Settings",
-      "by": "by {{by}}"
+      "by": "by {{by}}",
+      "members": "Members",
+      "ops": "Operators",
+      "created": "Created",
+      "access": "Access & password",
+      "key": "Password",
+      "keyPlaceholder": "Channel key…",
+      "limit": "Limit",
+      "limitPlaceholder": "Max members…",
+      "apply": "Apply",
+      "clear": "Remove",
+      "topicBy": "Set by {{who}}"
     }
   },
   "settings": {
@@ -507,6 +518,50 @@
     "secret": {
       "label": "Secret",
       "desc": "Hidden from public lists (+s)"
+    },
+    "private": {
+      "label": "Private",
+      "desc": "Kept off listings, /whois hidden (+p)"
+    },
+    "blockColor": {
+      "label": "No colours",
+      "desc": "Blocks colour/format codes (+c)"
+    },
+    "noCtcp": {
+      "label": "No CTCP",
+      "desc": "Blocks CTCP requests (+C)"
+    },
+    "stripColor": {
+      "label": "Strip colours",
+      "desc": "Removes colour codes from messages (+S)"
+    },
+    "regOnly": {
+      "label": "Accounts only",
+      "desc": "Must be registered to enter (+R)"
+    },
+    "regModerated": {
+      "label": "Registered to talk",
+      "desc": "Only registered accounts can talk (+M)"
+    },
+    "operOnly": {
+      "label": "Operators only",
+      "desc": "IRC operators only (+O)"
+    },
+    "tlsOnly": {
+      "label": "TLS only",
+      "desc": "Secure connection required (+z)"
+    },
+    "noNickChange": {
+      "label": "Locked nick",
+      "desc": "No nick changes allowed (+N)"
+    },
+    "noKnock": {
+      "label": "No knock",
+      "desc": "Disables the KNOCK command (+K)"
+    },
+    "permanent": {
+      "label": "Permanent",
+      "desc": "Channel persists with no members (+P)"
     }
   },
   "reg": {

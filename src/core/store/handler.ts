@@ -147,7 +147,7 @@ export function makeHandler(ctx: HandlerCtx) {
       case 'TOPIC': { // :<nick> TOPIC <channel> :<new topic>
         const ch = msg.params[0];
         const topic = msg.params[1] ?? '';
-        patchBuffer(ch, (b) => ({ ...b, topic }));
+        patchBuffer(ch, (b) => ({ ...b, topic, topicBy: msg.nick, topicAt: Date.now() }));
         // text = the new topic ('' = removed); from = who changed it. Rendered as
         // a tagged "sujet" line (like the MODE line) by MsgList.
         sysLine(ch, topic, 'topic', msg.nick);

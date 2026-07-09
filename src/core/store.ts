@@ -54,6 +54,7 @@ export interface ChatState {
   banlists: Record<string, { mask: string; by: string; ts: number }[]>; // channel key → +b list
   loadBanList: (channel: string) => void;
   setChannelMode: (channel: string, mode: string, add: boolean) => void;
+  setChannelModeParam: (channel: string, mode: string, add: boolean, param?: string) => void;
   removeBan: (channel: string, mask: string) => void;
   notifyLevel: Record<string, NotifyLevel>; // canon key → 'all' | 'mentions' | 'mute' (absent = 'mentions')
   setNotifyLevel: (name: string, level: NotifyLevel) => void;
@@ -348,6 +349,9 @@ export function createChatStore(ns = '') {
       const key = canon(channel);
       set({ banlists: { ...get().banlists, [key]: [] } }); // reset; 367 fills it
       get().client?.modeList(channel, 'b');
+    },
+    setChannelModeParam(channel, mode, add, param) {
+      if (isChannelName(channel)) get().client?.setChannelModeParam(channel, mode, add, param);
     },
     setChannelMode(channel, mode, add) {
       get().client?.setChannelMode(channel, mode, add);
