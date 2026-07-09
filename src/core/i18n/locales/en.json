@@ -228,8 +228,7 @@
       "clear": "Remove",
       "topicBy": "Set by {{who}}",
       "tabOverview": "Overview",
-      "tabModes": "Modes",
-      "tabBans": "Bans"
+      "tabModes": "Modes"
     }
   },
   "settings": {

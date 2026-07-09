@@ -42,7 +42,7 @@ function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-type Tab = 'overview' | 'modes' | 'bans';
+type Tab = 'overview' | 'modes';
 
 export function ChanAdminModal() {
   const { t, i18n } = useTranslation();
@@ -92,23 +92,24 @@ export function ChanAdminModal() {
   const applyLimit = () => { const n = parseInt(limitVal, 10); if (n > 0) setChannelModeParam(chan, 'l', true, String(n)); };
   const clearLimit = () => { setChannelModeParam(chan, 'l', false); setLimitVal(''); };
 
-  const tabBtn = (id: Tab, label: string, count?: number) => (
+  const tabBtn = (id: Tab, label: string) => (
     <button type="button" role="tab" aria-selected={tab === id}
       className={`ca-tab${tab === id ? ' is-on' : ''}`} onClick={() => setTab(id)}>
-      {label}{count ? <span className="ca-tab__n">{count}</span> : null}
+      {label}
     </button>
   );
 
   return (
     <Modal title={t('modals.chanadmin.manage', { chan })} wide onClose={() => setModal('')}>
-      <div className="ca-tabs" role="tablist">
-        {tabBtn('overview', t('modals.chanadmin.tabOverview'))}
-        {tabBtn('modes', t('modals.chanadmin.tabModes'))}
-        {tabBtn('bans', t('modals.chanadmin.tabBans'), banlist.length)}
-      </div>
+      <div className="ca-layout">
+        <div className="ca-main">
+          <div className="ca-tabs" role="tablist">
+            {tabBtn('overview', t('modals.chanadmin.tabOverview'))}
+            {tabBtn('modes', t('modals.chanadmin.tabModes'))}
+          </div>
 
-      {tab === 'overview' && (
-        <div className="ca-pane">
+          {tab === 'overview' && (
+            <div className="ca-pane">
           <div className="ca-stats">
             <div className="ca-stat"><b className="ca-stat__n">{members.length}</b><span className="ca-stat__l">{t('modals.chanadmin.members')}</span></div>
             <div className="ca-stat"><b className="ca-stat__n">{opCount}</b><span className="ca-stat__l">{t('modals.chanadmin.ops')}</span></div>
@@ -185,8 +186,10 @@ export function ChanAdminModal() {
         </div>
       )}
 
-      {tab === 'bans' && (
-        <div className="ca-pane">
+        </div>
+
+        <aside className="ca-banscol">
+          <h4 className="ca-h">{t('modals.chanadmin.bans', { n: banlist.length })}</h4>
           <div className="modal__actions">
             <input className="modal__input" value={newban} placeholder={t('modals.chanadmin.maskPlaceholder')}
               onChange={(e) => setNewban(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addBan()} />
@@ -203,8 +206,8 @@ export function ChanAdminModal() {
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        </aside>
+      </div>
     </Modal>
   );
 }
