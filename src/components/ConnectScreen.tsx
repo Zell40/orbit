@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { escapeHtml } from '../lib/escape';
 import { useTranslation } from 'react-i18next';
 
@@ -169,10 +169,115 @@ function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) 
   );
 }
 
+// Password recovery — a self-contained 3-step overlay for logged-out users:
+// account+email → e-mailed code → new password ×2. Talks to the same-origin
+// Django endpoints (accounts/api/recover/*); on success it hands the account +
+// new password back so the connect screen can log the user straight in. The
+// password lives only in local state and is wiped the instant it's submitted.
+async function recoverApi(step: string, body: Record<string, string>): Promise<{ status?: string; token?: string; message?: string; code?: string }> {
+  const r = await fetch(`/accounts/api/recover/${step}/`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store', body: JSON.stringify(body),
+  });
+  return r.json();
+}
+
+function RecoverOverlay({ onClose, onRecovered }: { onClose: () => void; onRecovered: (account: string, password: string) => void }) {
+  const { t } = useTranslation();
+  const [step, setStep] = useState<'start' | 'code' | 'reset'>('start');
+  const [account, setAccount] = useState('');
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [token, setToken] = useState('');
+  const [pw1, setPw1] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  const run = (fn: () => Promise<void>) => { setErr(''); setBusy(true); fn().catch(() => setErr(t('recover.errNet'))).finally(() => setBusy(false)); };
+
+  const doStart = (e: FormEvent) => { e.preventDefault(); if (!account.trim() || !email.trim()) return; run(async () => {
+    await recoverApi('start', { account: account.trim(), email: email.trim() });
+    setStep('code');   // always advance — the reply is deliberately generic
+  }); };
+  const doCode = (e: FormEvent) => { e.preventDefault(); if (code.trim().length < 4) return; run(async () => {
+    const res = await recoverApi('verify', { account: account.trim(), code: code.trim() });
+    if (res.status === 'ok' && res.token) { setToken(res.token); setStep('reset'); }
+    else setErr(t('recover.errCode'));
+  }); };
+  const doReset = (e: FormEvent) => { e.preventDefault();
+    if (pw1.length < 8) { setErr(t('recover.errWeak')); return; }
+    if (pw1 !== pw2) { setErr(t('recover.errMatch')); return; }
+    run(async () => {
+      const res = await recoverApi('reset', { account: account.trim(), token, password: pw1 });
+      if (res.status === 'ok') { const acc = account.trim(), pw = pw1; setPw1(''); setPw2(''); onRecovered(acc, pw); }
+      else setErr(res.message || t('recover.errCode'));
+    });
+  };
+
+  return (
+    <div className="cfaq-scrim" onClick={onClose}>
+      <div className="crec" role="dialog" aria-label={t('recover.title')} onClick={(e) => e.stopPropagation()}>
+        <div className="crec__head">
+          <h2>{t('recover.title')}</h2>
+          <button className="cfaq__close" onClick={onClose} aria-label={t('faq.close')}>✕</button>
+        </div>
+        <ol className="crec__steps" aria-hidden="true">
+          {['start', 'code', 'reset'].map((s, i) => (
+            <li key={s} className={step === s ? 'is-on' : (['start', 'code', 'reset'].indexOf(step) > i ? 'is-done' : '')}>{i + 1}</li>
+          ))}
+        </ol>
+
+        {step === 'start' && (
+          <form className="crec__body" onSubmit={doStart}>
+            <p className="crec__lead">{t('recover.startLead')}</p>
+            <input className="crec__in" autoFocus autoComplete="username" value={account}
+              placeholder={t('recover.account')} aria-label={t('recover.account')} onChange={(e) => setAccount(e.target.value)} />
+            <input className="crec__in" type="email" autoComplete="email" value={email}
+              placeholder={t('recover.email')} aria-label={t('recover.email')} onChange={(e) => setEmail(e.target.value)} />
+            {err && <div className="crec__err">{err}</div>}
+            <button className="crec__go" type="submit" disabled={busy || !account.trim() || !email.trim()}>
+              {busy ? <span className="cjoin__sendspin" /> : t('recover.sendCode')}
+            </button>
+          </form>
+        )}
+
+        {step === 'code' && (
+          <form className="crec__body" onSubmit={doCode}>
+            <p className="crec__lead">{t('recover.codeLead')}</p>
+            <input className="crec__in crec__in--code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} autoFocus
+              value={code} placeholder="••••••" aria-label={t('recover.code')} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
+            {err && <div className="crec__err">{err}</div>}
+            <button className="crec__go" type="submit" disabled={busy || code.trim().length < 4}>
+              {busy ? <span className="cjoin__sendspin" /> : t('recover.verify')}
+            </button>
+            <button type="button" className="crec__link" onClick={() => { setErr(''); setStep('start'); }}>{t('recover.resend')}</button>
+          </form>
+        )}
+
+        {step === 'reset' && (
+          <form className="crec__body" onSubmit={doReset}>
+            <p className="crec__lead">{t('recover.resetLead')}</p>
+            <input className="crec__in" type="password" autoComplete="new-password" autoFocus value={pw1}
+              placeholder={t('recover.newPassword')} aria-label={t('recover.newPassword')} onChange={(e) => setPw1(e.target.value)} />
+            <input className="crec__in" type="password" autoComplete="new-password" value={pw2}
+              placeholder={t('recover.confirmPassword')} aria-label={t('recover.confirmPassword')} onChange={(e) => setPw2(e.target.value)} />
+            {err && <div className="crec__err">{err}</div>}
+            <button className="crec__go" type="submit" disabled={busy || !pw1 || !pw2}>
+              {busy ? <span className="cjoin__sendspin" /> : t('recover.finish')}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ConnectScreen() {
   const { t } = useTranslation();
   const cfg = getConfig();
   const [faq, setFaq] = useState<string | null>(null);
+  const [recover, setRecover] = useState(false);
   const connect = useActiveChat((s) => s.connect);
   const status = useActiveChat((s) => s.status);
   const [nick, setNick] = useState(param('nick', ''));
@@ -347,7 +452,7 @@ export function ConnectScreen() {
             <>
               <button type="button" className="primary" onClick={() => setFaq('register')}>{t('connect.createButton')}</button>
               <span className="d">·</span>
-              <button type="button" onClick={() => setFaq('forgot')}>{t('connect.forgotButton')}</button>
+              <button type="button" onClick={() => setRecover(true)}>{t('connect.forgotButton')}</button>
               <span className="d">·</span>
             </>
           )}
@@ -366,6 +471,19 @@ export function ConnectScreen() {
       <LiveFeed chan={chan} />
 
       {faq !== null && <FaqOverlay focus={faq} onClose={() => setFaq(null)} />}
+      {recover && (
+        <RecoverOverlay
+          onClose={() => setRecover(false)}
+          onRecovered={(account, pw) => {
+            // Reset succeeded → log straight in with the new password.
+            setRecover(false);
+            setNick(account);
+            const channels = parseChannels(chanField);
+            if (!channels.length) channels.push(...cfg.startup.channels);
+            connect({ url: cfg.server.url, nick: account, realname: realname(), password: pw, channels });
+          }}
+        />
+      )}
     </div>
   );
 }

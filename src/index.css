@@ -230,6 +230,31 @@ input, textarea { font-family: inherit; }
 .cfaq__a a { color: var(--accent); text-underline-offset: 2px; } .cfaq__a b { color: var(--ink); }
 .cfaq__steps { margin: .45rem 0 0; padding-left: 1.15rem; } .cfaq__steps li { margin: .25rem 0; }
 
+/* password-recovery overlay (reuses .cfaq-scrim + .cfaq__close) */
+.crec { width: min(400px, 100%); display: flex; flex-direction: column; border-radius: 20px; overflow: hidden;
+  background: var(--bg); border: 1px solid var(--border-2); box-shadow: 0 44px 100px -40px rgba(0,0,0,.4);
+  animation: cfaq-rise .3s cubic-bezier(.2,.8,.2,1) both; }
+.crec__head { display: flex; align-items: center; gap: .7rem; padding: 1.05rem 1.3rem; border-bottom: 1px solid var(--border); }
+.crec__head h2 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 1.2rem; color: var(--ink); }
+.crec__steps { list-style: none; display: flex; gap: .5rem; margin: 1rem 1.3rem 0; padding: 0; }
+.crec__steps li { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-size: .72rem; font-weight: 700;
+  color: var(--faint); background: var(--bg-soft-2); }
+.crec__steps li.is-on { background: var(--accent); color: #fff; }
+.crec__steps li.is-done { background: var(--accent-soft); color: var(--accent); }
+.crec__body { display: flex; flex-direction: column; gap: .7rem; padding: 1.1rem 1.3rem 1.4rem; }
+.crec__lead { margin: 0 0 .2rem; font-size: .88rem; line-height: 1.55; color: var(--muted); }
+.crec__in { width: 100%; padding: .7rem .9rem; border-radius: 12px; border: 1px solid var(--border-2); background: var(--bg-soft); color: var(--ink); font: inherit; outline: none; transition: border-color .15s, box-shadow .15s; }
+.crec__in::placeholder { color: var(--faint); }
+.crec__in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.crec__in--code { text-align: center; font-family: var(--mono); font-size: 1.5rem; font-weight: 700; letter-spacing: .5em; padding-left: 1.4rem; }
+.crec__err { color: var(--danger); font-size: .84rem; font-weight: 600; }
+.crec__go { margin-top: .2rem; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .7rem 1rem; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--accent); color: #fff; font: inherit; font-weight: 700; transition: filter .15s, transform .15s; }
+.crec__go:hover:not(:disabled) { transform: translateY(-1px); }
+.crec__go:disabled { opacity: .5; cursor: default; }
+.crec__link { align-self: center; border: 0; background: none; color: var(--muted); font: inherit; font-size: .82rem; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.crec__link:hover { color: var(--accent); }
+
 /* ============ APP LAYOUT ============ */
 /* Shell stacks an optional top navbar over the app grid; with no navbar it collapses
    to just the app (which then fills the height as before). */

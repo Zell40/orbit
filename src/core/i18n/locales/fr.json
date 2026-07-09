@@ -108,6 +108,25 @@
       "13": "bonsoir tout le monde ✨"
     }
   },
+  "recover": {
+    "title": "Mot de passe oublié",
+    "startLead": "Saisis ton pseudo et l'e-mail de ton compte. Si les deux correspondent, on t'envoie un code.",
+    "account": "Ton pseudo",
+    "email": "Ton e-mail",
+    "sendCode": "Envoyer le code",
+    "codeLead": "Entre le code à 6 chiffres reçu par e-mail.",
+    "code": "Code de vérification",
+    "verify": "Valider",
+    "resend": "Renvoyer un code",
+    "resetLead": "Choisis un nouveau mot de passe (8 caractères minimum).",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirme le mot de passe",
+    "finish": "Changer et se connecter",
+    "errNet": "Une erreur est survenue. Réessaie.",
+    "errCode": "Code invalide ou expiré.",
+    "errWeak": "Mot de passe trop court (8 caractères minimum).",
+    "errMatch": "Les deux mots de passe ne correspondent pas."
+  },
   "messages": {
     "reply": "En réponse à",
     "react": "Réagir",

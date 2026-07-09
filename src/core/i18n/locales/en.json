@@ -108,6 +108,25 @@
       "13": "evening everyone ✨"
     }
   },
+  "recover": {
+    "title": "Forgot password",
+    "startLead": "Enter your nickname and the e-mail on your account. If they match, we'll send a code.",
+    "account": "Your nickname",
+    "email": "Your e-mail",
+    "sendCode": "Send the code",
+    "codeLead": "Enter the 6-digit code we e-mailed you.",
+    "code": "Verification code",
+    "verify": "Verify",
+    "resend": "Send a new code",
+    "resetLead": "Choose a new password (8 characters minimum).",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "finish": "Change & sign in",
+    "errNet": "Something went wrong. Try again.",
+    "errCode": "Invalid or expired code.",
+    "errWeak": "Password too short (8 characters minimum).",
+    "errMatch": "The two passwords don't match."
+  },
   "messages": {
     "reply": "In reply to",
     "react": "React",
