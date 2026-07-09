@@ -100,6 +100,10 @@ input, textarea { font-family: inherit; }
 .cjoin__composer:focus-within .cjoin__ava { transform: scale(1.08); }
 .cjoin__input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--ink); font: inherit; font-size: 1.2rem; font-weight: 600; letter-spacing: -.01em; padding: .2rem 0; }
 .cjoin__input::placeholder { color: var(--faint); font-weight: 400; }
+/* These fields are borderless with an underline that turns accent on focus — that
+   IS the focus indicator. Suppress the global input:focus-visible ring so it
+   doesn't draw a stray box inside the field (0,2,1 beats input:focus-visible). */
+.cjoin input:focus-visible { outline: none; }
 .cjoin__send { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 50%; cursor: pointer; color: #fff; font-size: .95rem;
   background: var(--accent); transition: transform .15s cubic-bezier(.2,.8,.2,1), filter .2s; }
 .cjoin__send:hover:not(:disabled) { transform: scale(1.08); }
