@@ -117,6 +117,21 @@ input, textarea { font-family: inherit; }
 .cjoin__chan { display: inline-flex; align-items: center; gap: .45rem; font-size: .84rem; color: var(--muted); }
 .cjoin__chan-in { border: 1px solid var(--border-2); background: var(--bg); color: var(--ink); font: inherit; font-size: .84rem; font-weight: 700; border-radius: 8px; padding: .18rem .5rem; outline: none; width: 9rem; max-width: 42vw; transition: border-color .15s, box-shadow .15s; }
 .cjoin__chan-in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.cjoin__me { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-top: .85rem; }
+.cjoin__seg { display: inline-flex; border: 1px solid var(--border-2); border-radius: 9px; overflow: hidden; }
+.cjoin__seg button { border: 0; background: none; color: var(--muted); font: inherit; font-size: .84rem; font-weight: 700; padding: .34rem .8rem; cursor: pointer; transition: background .15s, color .15s; }
+.cjoin__seg button + button { border-left: 1px solid var(--border-2); }
+.cjoin__seg button.is-on { background: var(--accent); color: #fff; }
+.cjoin__mini { border: 1px solid var(--border-2); background: var(--bg); color: var(--ink); font: inherit; font-size: .84rem; font-weight: 700; border-radius: 8px; padding: .3rem .55rem; outline: none; width: 4.2rem; transition: border-color .15s, box-shadow .15s; }
+.cjoin__mini--city { width: 8rem; max-width: 34vw; }
+.cjoin__mini::placeholder { color: var(--faint); font-weight: 400; }
+.cjoin__mini:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.cjoin__envie { margin-top: .85rem; border: 0; padding: 0; min-inline-size: 0; }
+.cjoin__envie-lab { padding: 0; font-size: .84rem; color: var(--muted); margin-bottom: .5rem; }
+.cjoin__intents { display: flex; gap: .5rem; flex-wrap: wrap; }
+.cjoin__intents button { flex: 1 1 6.5rem; border: 1px solid var(--border-2); background: var(--bg); color: var(--ink); font: inherit; font-size: .92rem; font-weight: 700; border-radius: 11px; padding: .58rem .5rem; cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s; }
+.cjoin__intents button:hover { border-color: var(--accent); }
+.cjoin__intents button.is-on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px var(--accent-soft); }
 .cjoin__pw-t { margin-left: auto; border: 0; background: none; color: var(--muted); font: inherit; font-size: .84rem; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-2); transition: color .15s; }
 .cjoin__pw-t:hover { color: var(--accent); }
 .cjoin__pw { width: 100%; margin-top: .8rem; padding: .8rem 1rem; border-radius: 12px; border: 1px solid var(--border-2); background: var(--bg-soft); color: var(--ink); font: inherit; outline: none; animation: cj-rise .3s ease both; }

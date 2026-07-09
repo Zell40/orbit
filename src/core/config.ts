@@ -19,6 +19,10 @@ export interface AppConfig {
     channels: string[];
     /** Suggested channels offered in the connect-screen channel picker (datalist). */
     suggestions?: string[];
+    /** Channels each "j'ai envie de…" intent lands the visitor in on the connect
+     *  screen. Omitted intents fall back to `channels`; the whole block is
+     *  optional (no block → the intent picker isn't shown). */
+    intents?: { chat?: string[]; love?: string[]; play?: string[] };
   };
   branding: {
     name: string;       // app/network name shown in the UI

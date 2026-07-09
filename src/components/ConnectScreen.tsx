@@ -147,6 +147,29 @@ export function ConnectScreen() {
   const chan = parseChannels(chanField)[0] || cfg.startup.channels[0];
   const suggestions = cfg.startup.suggestions?.length ? cfg.startup.suggestions : cfg.startup.channels;
 
+  // Optional "meet-people" lobby: sex/age/city ride in the realname (shown in
+  // WHOIS and on join), and the intent picks which room you land in. The whole
+  // block only shows when the deployment configures startup.intents.
+  const intents = cfg.startup.intents;
+  const [sex, setSex] = useState(param('sex', ''));
+  const [age, setAge] = useState(param('age', ''));
+  const [city, setCity] = useState(param('city', ''));
+  const [intent, setIntent] = useState('');
+  const intentChans = (i: 'chat' | 'love' | 'play') =>
+    (intents?.[i]?.length ? intents[i]! : cfg.startup.channels);
+  function pickIntent(i: 'chat' | 'love' | 'play') {
+    setIntent(i);
+    setChanField(intentChans(i).join(','));
+  }
+  function realname(): string | undefined {
+    const parts: string[] = [];
+    if (sex === 'f') parts.push(t('connect.sexF'));
+    else if (sex === 'h') parts.push(t('connect.sexH'));
+    if (age.trim()) parts.push(t('connect.ageYears', { age: age.trim() }));
+    if (city.trim()) parts.push(city.trim());
+    return parts.join(' · ') || undefined;
+  }
+
   const connecting = status === 'connecting';
   const ready = nick.trim().length >= 2;
   const errors: Record<string, string> = {
@@ -167,6 +190,7 @@ export function ConnectScreen() {
     connect({
       url: cfg.server.url,
       nick: nick.trim(),
+      realname: realname(),
       password: passkey ? undefined : (password || undefined),
       passkey: passkey || undefined,
       channels,
@@ -207,6 +231,37 @@ export function ConnectScreen() {
             </button>
           </div>
           <p className="cjoin__hint">{t('connect.nickHint')}</p>
+
+          {intents && (
+            <>
+              <div className="cjoin__me">
+                <div className="cjoin__seg" role="group" aria-label={t('connect.sexAria')}>
+                  <button type="button" className={sex === 'f' ? 'is-on' : ''} aria-pressed={sex === 'f'}
+                    onClick={() => setSex(sex === 'f' ? '' : 'f')}>{t('connect.sexF')}</button>
+                  <button type="button" className={sex === 'h' ? 'is-on' : ''} aria-pressed={sex === 'h'}
+                    onClick={() => setSex(sex === 'h' ? '' : 'h')}>{t('connect.sexH')}</button>
+                </div>
+                <input className="cjoin__mini" type="number" min={13} max={99} inputMode="numeric" value={age}
+                  placeholder={t('connect.agePlaceholder')} aria-label={t('connect.ageAria')}
+                  onChange={(e) => setAge(e.target.value)} />
+                <input className="cjoin__mini cjoin__mini--city" value={city} autoComplete="off" maxLength={24}
+                  placeholder={t('connect.cityPlaceholder')} aria-label={t('connect.cityAria')}
+                  onChange={(e) => setCity(e.target.value)} />
+              </div>
+
+              <fieldset className="cjoin__envie">
+                <legend className="cjoin__envie-lab">{t('connect.wantLabel')}</legend>
+                <div className="cjoin__intents">
+                  <button type="button" className={intent === 'chat' ? 'is-on' : ''} aria-pressed={intent === 'chat'}
+                    onClick={() => pickIntent('chat')}>💬 {t('connect.wantChat')}</button>
+                  <button type="button" className={intent === 'love' ? 'is-on' : ''} aria-pressed={intent === 'love'}
+                    onClick={() => pickIntent('love')}>💞 {t('connect.wantLove')}</button>
+                  <button type="button" className={intent === 'play' ? 'is-on' : ''} aria-pressed={intent === 'play'}
+                    onClick={() => pickIntent('play')}>🎮 {t('connect.wantPlay')}</button>
+                </div>
+              </fieldset>
+            </>
+          )}
 
           <div className="cjoin__row">
             <label className="cjoin__chan">{t('connect.joinHint')}

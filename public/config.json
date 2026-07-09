@@ -13,7 +13,12 @@
       "#musique",
       "#devs",
       "#orbit"
-    ]
+    ],
+    "intents": {
+      "chat": ["#accueil"],
+      "love": ["#rencontre"],
+      "play": ["#gaming"]
+    }
   },
   "branding": {
     "name": "Tchatou",
