@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
 import { avatarBg, formatIrc } from '../../lib/format';
+import { setterMask, ago } from '../../lib/topic';
 import { stripFormatting } from '../../core/store/text';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
@@ -9,12 +10,15 @@ import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '../../core/networks';
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || 'fr';
   // Narrow per-field selects (stable on message updates) so the topbar doesn't
   // re-render — and recount members — on every incoming line in a busy channel.
   const bname = useActiveChat((s) => s.buffers[s.active]?.name);
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
   const topic = useActiveChat((s) => s.buffers[s.active]?.topic ?? '');
+  const topicBy = useActiveChat((s) => s.buffers[s.active]?.topicBy ?? '');
+  const topicAt = useActiveChat((s) => s.buffers[s.active]?.topicAt ?? 0);
   const modes = useActiveChat((s) => s.buffers[s.active]?.modes ?? '');
   const members = useActiveChat((s) => s.buffers[s.active]?.members);
   const search = useActiveChat((s) => s.search);
@@ -64,6 +68,13 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           : topic
             ? <span className="topbar__topic" title={stripFormatting(topic)}>{formatIrc(topic, false)}</span>
             : isChannel && <span className="topbar__topic topbar__topic--muted">{t('topbar.publicChannel', { n })}</span>}
+        {isChannel && topicBy && (
+          <span className="topbar__setby">
+            {t('modals.chanadmin.topicBy')}{' '}
+            <span className="topbar__setby-who">{setterMask(topicBy, members || {})}</span>
+            {topicAt ? <span className="topbar__setby-when"> · {ago(topicAt, locale)}</span> : null}
+          </span>
+        )}
       </div>
       {topbarItems.filter((u) => u.slot === 'topbar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}
       {!isServer && <button className="topbar__search" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}>🔍</button>}

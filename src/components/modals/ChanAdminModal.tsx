@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '../../core/networks';
 import { formatIrc } from '../../lib/format';
 import { buildModeContext } from '../../core/irc/modes';
-import type { Member } from '../../core/irc/types';
+import { setterMask, ago } from '../../lib/topic';
 import { Modal } from './Modal';
 
 // Curated channel flags (no-parameter, type-D). Only the ones the server advertises
@@ -29,26 +29,8 @@ const CHAN_FLAGS: { m: string; key: string }[] = [
 ];
 const BASE_FLAGS = 'imntsp'; // fallback when the server didn't advertise CHANMODES
 
-function ago(ms: number, locale: string): string {
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-  const diff = ms - Date.now(); // negative in the past
-  const abs = Math.abs(diff);
-  const units: [Intl.RelativeTimeFormatUnit, number][] = [
-    ['year', 31536e6], ['month', 2592e6], ['day', 864e5], ['hour', 36e5], ['minute', 6e4],
-  ];
-  for (const [u, d] of units) if (abs >= d) return rtf.format(Math.round(diff / d), u);
-  return rtf.format(Math.round(diff / 1000), 'second');
-}
 function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
-}
-// Show who set the topic as a full nick!user@host mask. Servers that record it
-// (InspIRCd) already send the mask in 333/TOPIC; otherwise expand a bare nick from
-// the userhost-in-names member data when the setter is still in the channel.
-function setterMask(who: string, members: Record<string, Member>): string {
-  if (who.includes('@')) return who;
-  const m = members[who];
-  return m?.user && m?.host ? `${who}!${m.user}@${m.host}` : who;
 }
 
 type Tab = 'overview' | 'modes';
