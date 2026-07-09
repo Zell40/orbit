@@ -91,7 +91,22 @@
       "11": "evet kesinlikle 😌",
       "12": "bu gece kalabalığız 😮",
       "13": "iyi akşamlar herkese ✨"
-    }
+    },
+    "passkeyButton": "Geçiş anahtarıyla giriş yap",
+    "passkeyHint": "Touch ID, Face ID, Windows Hello ya da bir güvenlik anahtarı — şifresiz.",
+    "sexF": "Kadın",
+    "sexH": "Erkek",
+    "sexAria": "Cinsiyet",
+    "agePlaceholder": "Yaş",
+    "ageAria": "Yaşın",
+    "ageYears": "{{age}} yaş",
+    "cityPlaceholder": "Şehir",
+    "cityAria": "Şehrin",
+    "wantLabel": "Canım…",
+    "wantChat": "Sohbet etmek",
+    "wantLove": "Tanışmak",
+    "wantPlay": "Oyun oynamak",
+    "joinLine": "{{who}} {{chan}} kanalına katıldı"
   },
   "messages": {
     "reply": "Yanıt:",
@@ -170,7 +185,22 @@
       "subject": "Konu",
       "manage": "{{chan}} yönet",
       "settings": "Ayarlar",
-      "by": "{{by}} tarafından"
+      "by": "{{by}} tarafından",
+      "editTopic": "Konuyu düzenlemek için tıkla",
+      "noTopicYet": "Konu yok — belirlemek için tıkla",
+      "members": "Üyeler",
+      "ops": "Operatörler",
+      "created": "Oluşturuldu",
+      "access": "Erişim ve şifre",
+      "key": "Şifre",
+      "keyPlaceholder": "Kanal anahtarı…",
+      "limit": "Sınır",
+      "limitPlaceholder": "En fazla üye…",
+      "apply": "Uygula",
+      "clear": "Kaldır",
+      "topicBy": "Belirleyen",
+      "tabOverview": "Genel bakış",
+      "tabModes": "Modlar"
     },
     "report": {
       "reasonLabel": "Neler oluyor?",
@@ -471,6 +501,50 @@
     "secret": {
       "label": "Gizli",
       "desc": "Herkese açık listelerden gizli (+s)"
+    },
+    "private": {
+      "label": "Özel",
+      "desc": "Listelerde yok, /whois gizli (+p)"
+    },
+    "blockColor": {
+      "label": "Renksiz",
+      "desc": "Renk/biçim kodlarını engeller (+c)"
+    },
+    "noCtcp": {
+      "label": "CTCP yok",
+      "desc": "CTCP isteklerini engeller (+C)"
+    },
+    "stripColor": {
+      "label": "Renkleri temizle",
+      "desc": "Mesajlardan renk kodlarını kaldırır (+S)"
+    },
+    "regOnly": {
+      "label": "Sadece hesaplar",
+      "desc": "Girmek için kayıtlı olmak gerekir (+R)"
+    },
+    "regModerated": {
+      "label": "Konuşmak için kayıt",
+      "desc": "Sadece kayıtlı hesaplar konuşabilir (+M)"
+    },
+    "operOnly": {
+      "label": "Sadece operatörler",
+      "desc": "Sadece IRC operatörleri (+O)"
+    },
+    "tlsOnly": {
+      "label": "Sadece TLS",
+      "desc": "Güvenli bağlantı zorunlu (+z)"
+    },
+    "noNickChange": {
+      "label": "Kilitli takma ad",
+      "desc": "Takma ad değiştirilemez (+N)"
+    },
+    "noKnock": {
+      "label": "Kapı çalma yok",
+      "desc": "KNOCK komutunu devre dışı bırakır (+K)"
+    },
+    "permanent": {
+      "label": "Kalıcı",
+      "desc": "Kanal üyesiz de kalır (+P)"
     }
   },
   "reg": {
@@ -567,7 +641,13 @@
     },
     "away": "{{nick}} — uzakta",
     "operTitle": "{{nick}} — Ağ operatörü (IRCop)",
-    "viewProfile": "{{nick}} profilini gör"
+    "viewProfile": "{{nick}} profilini gör",
+    "whoisAction": "Whois",
+    "banKick": "Yasakla + at",
+    "kickReasonTitle": "{{nick}} kullanıcısını at",
+    "banKickReasonTitle": "{{nick}} kullanıcısını yasakla + at",
+    "reasonPlaceholder": "Sebep (isteğe bağlı)",
+    "cancel": "İptal"
   },
   "composer": {
     "typingOne": "{{nick}} yazıyor",
@@ -813,5 +893,24 @@
     "name": "Ad (isteğe bağlı)",
     "password": "Parola (isteğe bağlı)",
     "connect": "Bağlan"
+  },
+  "recover": {
+    "title": "Şifremi unuttum",
+    "startLead": "Takma adını ve hesabındaki e-postayı gir. İkisi eşleşirse sana bir kod göndeririz.",
+    "account": "Takma adın",
+    "email": "E-postan",
+    "sendCode": "Kodu gönder",
+    "codeLead": "Sana e-postayla gönderdiğimiz 6 haneli kodu gir.",
+    "code": "Doğrulama kodu",
+    "verify": "Doğrula",
+    "resend": "Yeni bir kod gönder",
+    "resetLead": "Yeni bir şifre seç (en az 8 karakter).",
+    "newPassword": "Yeni şifre",
+    "confirmPassword": "Şifreyi onayla",
+    "finish": "Değiştir ve giriş yap",
+    "errNet": "Bir şeyler ters gitti. Tekrar dene.",
+    "errCode": "Kod geçersiz ya da süresi dolmuş.",
+    "errWeak": "Şifre çok kısa (en az 8 karakter).",
+    "errMatch": "İki şifre birbiriyle eşleşmiyor."
   }
 }

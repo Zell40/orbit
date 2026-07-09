@@ -19,9 +19,11 @@ export function SystemLine({ m }: { m: ChatMessage }) {
     let body: ReactNode;
     if (m.kind === 'mode') {
       const [modes, ...margs] = m.text.split(' ');
-      body = <>{m.from} applique {modes}{margs.length ? ' ' + margs.join(' ') : ''}</>;
+      body = <>{m.from} {t('modeline.modeVerb')} {modes}{margs.length ? ' ' + margs.join(' ') : ''}</>;
     } else if (m.kind === 'topic') {
-      body = m.text ? <>{m.from} change le sujet : {formatIrc(m.text, false, linkPreviews)}</> : <>{m.from} retire le sujet</>;
+      body = m.text
+        ? <>{m.from} {t('modeline.topicChanged')} {formatIrc(m.text, false, linkPreviews)}</>
+        : <>{m.from} {t('modeline.topicRemoved')}</>;
     } else if (m.kind === 'info' || m.kind === 'ban') {
       body = m.text.replace(/^[*•»]+\s*/, '');
     } else { // join / part / quit / nick / kick / system

@@ -91,7 +91,22 @@
       "11": "sim com certeza 😌",
       "12": "quanta gente hoje 😮",
       "13": "boa noite pessoal ✨"
-    }
+    },
+    "passkeyButton": "Entrar com uma chave de acesso",
+    "passkeyHint": "Touch ID, Face ID, Windows Hello ou uma chave de segurança — sem senha.",
+    "sexF": "Mulher",
+    "sexH": "Homem",
+    "sexAria": "Gênero",
+    "agePlaceholder": "Idade",
+    "ageAria": "Sua idade",
+    "ageYears": "{{age}} anos",
+    "cityPlaceholder": "Cidade",
+    "cityAria": "Sua cidade",
+    "wantLabel": "Estou a fim de…",
+    "wantChat": "Bater papo",
+    "wantLove": "Paquerar",
+    "wantPlay": "Jogar",
+    "joinLine": "{{who}} entrou em {{chan}}"
   },
   "messages": {
     "reply": "Em resposta a",
@@ -170,7 +185,22 @@
       "subject": "Tópico",
       "manage": "Gerenciar {{chan}}",
       "settings": "Configurações",
-      "by": "por {{by}}"
+      "by": "por {{by}}",
+      "editTopic": "Clique para editar o tópico",
+      "noTopicYet": "Sem tópico — clique para definir um",
+      "members": "Membros",
+      "ops": "Operadores",
+      "created": "Criado em",
+      "access": "Acesso e senha",
+      "key": "Senha",
+      "keyPlaceholder": "Chave do canal…",
+      "limit": "Limite",
+      "limitPlaceholder": "Máx. de membros…",
+      "apply": "Aplicar",
+      "clear": "Remover",
+      "topicBy": "Definido por",
+      "tabOverview": "Visão geral",
+      "tabModes": "Modos"
     },
     "report": {
       "reasonLabel": "O que está acontecendo?",
@@ -471,6 +501,50 @@
     "secret": {
       "label": "Secreto",
       "desc": "Oculto das listas públicas (+s)"
+    },
+    "private": {
+      "label": "Privado",
+      "desc": "Fora das listagens, /whois oculto (+p)"
+    },
+    "blockColor": {
+      "label": "Sem cores",
+      "desc": "Bloqueia códigos de cor/formatação (+c)"
+    },
+    "noCtcp": {
+      "label": "Sem CTCP",
+      "desc": "Bloqueia requisições CTCP (+C)"
+    },
+    "stripColor": {
+      "label": "Cores removidas",
+      "desc": "Remove os códigos de cor das mensagens (+S)"
+    },
+    "regOnly": {
+      "label": "Só contas",
+      "desc": "Precisa estar registrado para entrar (+R)"
+    },
+    "regModerated": {
+      "label": "Registrados para falar",
+      "desc": "Só contas registradas podem falar (+M)"
+    },
+    "operOnly": {
+      "label": "Só operadores",
+      "desc": "Só operadores de IRC (+O)"
+    },
+    "tlsOnly": {
+      "label": "Só TLS",
+      "desc": "Conexão segura obrigatória (+z)"
+    },
+    "noNickChange": {
+      "label": "Apelido travado",
+      "desc": "Não pode trocar de apelido (+N)"
+    },
+    "noKnock": {
+      "label": "Sem toc-toc",
+      "desc": "Desativa o comando KNOCK (+K)"
+    },
+    "permanent": {
+      "label": "Permanente",
+      "desc": "O canal persiste sem membros (+P)"
     }
   },
   "reg": {
@@ -567,7 +641,13 @@
     },
     "away": "{{nick}} — ausente",
     "operTitle": "{{nick}} — Operador de rede (IRCop)",
-    "viewProfile": "Ver o perfil de {{nick}}"
+    "viewProfile": "Ver o perfil de {{nick}}",
+    "whoisAction": "Whois",
+    "banKick": "Banir + expulsar",
+    "kickReasonTitle": "Expulsar {{nick}}",
+    "banKickReasonTitle": "Banir + expulsar {{nick}}",
+    "reasonPlaceholder": "Motivo (opcional)",
+    "cancel": "Cancelar"
   },
   "composer": {
     "typingOne": "{{nick}} está digitando",
@@ -813,5 +893,24 @@
     "name": "Nome (opcional)",
     "password": "Senha (opcional)",
     "connect": "Conectar"
+  },
+  "recover": {
+    "title": "Esqueci a senha",
+    "startLead": "Digite seu apelido e o e-mail da sua conta. Se combinarem, a gente envia um código.",
+    "account": "Seu apelido",
+    "email": "Seu e-mail",
+    "sendCode": "Enviar o código",
+    "codeLead": "Digite o código de 6 dígitos que enviamos por e-mail.",
+    "code": "Código de verificação",
+    "verify": "Validar",
+    "resend": "Enviar um novo código",
+    "resetLead": "Escolha uma nova senha (mínimo de 8 caracteres).",
+    "newPassword": "Nova senha",
+    "confirmPassword": "Confirme a senha",
+    "finish": "Alterar e entrar",
+    "errNet": "Algo deu errado. Tente de novo.",
+    "errCode": "Código inválido ou expirado.",
+    "errWeak": "Senha muito curta (mínimo de 8 caracteres).",
+    "errMatch": "As duas senhas não conferem."
   }
 }

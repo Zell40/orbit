@@ -91,7 +91,22 @@
       "11": "sì assolutamente 😌",
       "12": "quanta gente stasera 😮",
       "13": "buonasera a tutti ✨"
-    }
+    },
+    "passkeyButton": "Accedi con una passkey",
+    "passkeyHint": "Touch ID, Face ID, Windows Hello o una chiave di sicurezza — senza password.",
+    "sexF": "Donna",
+    "sexH": "Uomo",
+    "sexAria": "Genere",
+    "agePlaceholder": "Età",
+    "ageAria": "La tua età",
+    "ageYears": "{{age}} anni",
+    "cityPlaceholder": "Città",
+    "cityAria": "La tua città",
+    "wantLabel": "Ho voglia di…",
+    "wantChat": "Chiacchierare",
+    "wantLove": "Incontri",
+    "wantPlay": "Giocare",
+    "joinLine": "{{who}} è entrato in {{chan}}"
   },
   "messages": {
     "reply": "In risposta a",
@@ -170,7 +185,22 @@
       "subject": "Argomento",
       "manage": "Gestisci {{chan}}",
       "settings": "Impostazioni",
-      "by": "da {{by}}"
+      "by": "da {{by}}",
+      "editTopic": "Clicca per modificare l'argomento",
+      "noTopicYet": "Nessun argomento — clicca per impostarne uno",
+      "members": "Membri",
+      "ops": "Operatori",
+      "created": "Creato il",
+      "access": "Accesso e password",
+      "key": "Password",
+      "keyPlaceholder": "Chiave del canale…",
+      "limit": "Limite",
+      "limitPlaceholder": "Membri max…",
+      "apply": "Applica",
+      "clear": "Rimuovi",
+      "topicBy": "Impostato da",
+      "tabOverview": "Panoramica",
+      "tabModes": "Modalità"
     },
     "report": {
       "reasonLabel": "Cosa sta succedendo?",
@@ -471,6 +501,50 @@
     "secret": {
       "label": "Segreto",
       "desc": "Nascosto dalle liste pubbliche (+s)"
+    },
+    "private": {
+      "label": "Privato",
+      "desc": "Fuori dagli elenchi, /whois nascosto (+p)"
+    },
+    "blockColor": {
+      "label": "Senza colori",
+      "desc": "Blocca i codici colore/formato (+c)"
+    },
+    "noCtcp": {
+      "label": "Senza CTCP",
+      "desc": "Blocca le richieste CTCP (+C)"
+    },
+    "stripColor": {
+      "label": "Colori rimossi",
+      "desc": "Rimuove i codici colore dai messaggi (+S)"
+    },
+    "regOnly": {
+      "label": "Solo account",
+      "desc": "Devi essere registrato per entrare (+R)"
+    },
+    "regModerated": {
+      "label": "Registrati per parlare",
+      "desc": "Solo gli account registrati possono parlare (+M)"
+    },
+    "operOnly": {
+      "label": "Solo operatori",
+      "desc": "Riservato agli operatori IRC (+O)"
+    },
+    "tlsOnly": {
+      "label": "Solo TLS",
+      "desc": "Connessione sicura obbligatoria (+z)"
+    },
+    "noNickChange": {
+      "label": "Nick bloccato",
+      "desc": "Vietato cambiare nick (+N)"
+    },
+    "noKnock": {
+      "label": "Senza toc-toc",
+      "desc": "Disattiva il comando KNOCK (+K)"
+    },
+    "permanent": {
+      "label": "Permanente",
+      "desc": "Il canale resta anche senza membri (+P)"
     }
   },
   "reg": {
@@ -567,7 +641,13 @@
     },
     "away": "{{nick}} — assente",
     "operTitle": "{{nick}} — Operatore di rete (IRCop)",
-    "viewProfile": "Vedi il profilo di {{nick}}"
+    "viewProfile": "Vedi il profilo di {{nick}}",
+    "whoisAction": "Whois",
+    "banKick": "Banna + espelli",
+    "kickReasonTitle": "Espelli {{nick}}",
+    "banKickReasonTitle": "Banna + espelli {{nick}}",
+    "reasonPlaceholder": "Motivo (facoltativo)",
+    "cancel": "Annulla"
   },
   "composer": {
     "typingOne": "{{nick}} sta scrivendo",
@@ -813,5 +893,24 @@
     "name": "Nome (facoltativo)",
     "password": "Password (facoltativa)",
     "connect": "Connetti"
+  },
+  "recover": {
+    "title": "Password dimenticata",
+    "startLead": "Inserisci il tuo nickname e l'e-mail del tuo account. Se corrispondono, ti mandiamo un codice.",
+    "account": "Il tuo nickname",
+    "email": "La tua e-mail",
+    "sendCode": "Invia il codice",
+    "codeLead": "Inserisci il codice a 6 cifre che ti abbiamo mandato per e-mail.",
+    "code": "Codice di verifica",
+    "verify": "Conferma",
+    "resend": "Invia un nuovo codice",
+    "resetLead": "Scegli una nuova password (minimo 8 caratteri).",
+    "newPassword": "Nuova password",
+    "confirmPassword": "Conferma la password",
+    "finish": "Cambia e accedi",
+    "errNet": "Qualcosa è andato storto. Riprova.",
+    "errCode": "Codice non valido o scaduto.",
+    "errWeak": "Password troppo corta (minimo 8 caratteri).",
+    "errMatch": "Le due password non corrispondono."
   }
 }
