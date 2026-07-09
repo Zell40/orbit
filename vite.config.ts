@@ -1,7 +1,8 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { execSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import ts from 'typescript'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'))
@@ -64,11 +65,28 @@ const emitVersion: Plugin = {
   },
 }
 
+// Tie the service-worker cache name to the build commit. sw.js ships a
+// `__SW_BUILD__` placeholder; without this every deploy would keep the SAME
+// cache name, so a returning browser never reinstalls the SW and can serve a
+// stale app shell. Stamping the commit makes each deploy a new SW that drops the
+// old cache on activate. Runs in writeBundle so it patches the copied public file.
+const stampServiceWorker: Plugin = {
+  name: 'stamp-service-worker',
+  apply: 'build',
+  writeBundle(options) {
+    const out = join(options.dir || 'dist', 'sw.js')
+    try {
+      const src = readFileSync(out, 'utf8')
+      writeFileSync(out, src.replace('__SW_BUILD__', commit || String(Date.now())))
+    } catch { /* no sw.js in this build */ }
+  },
+}
+
 // Served from https://tchatou.fr/app/ (must be an allowed websocket origin).
 // https://vite.dev/config/
 export default defineConfig({
   base: '/app/',
-  plugins: [react(), emitVersion, sandboxGuest],
+  plugins: [react(), emitVersion, sandboxGuest, stampServiceWorker],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
