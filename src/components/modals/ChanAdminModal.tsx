@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '../../core/networks';
 import { formatIrc } from '../../lib/format';
 import { buildModeContext } from '../../core/irc/modes';
+import type { Member } from '../../core/irc/types';
 import { Modal } from './Modal';
 
 // Curated channel flags (no-parameter, type-D). Only the ones the server advertises
@@ -40,6 +41,14 @@ function ago(ms: number, locale: string): string {
 }
 function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+}
+// Show who set the topic as a full nick!user@host mask. Servers that record it
+// (InspIRCd) already send the mask in 333/TOPIC; otherwise expand a bare nick from
+// the userhost-in-names member data when the setter is still in the channel.
+function setterMask(who: string, members: Record<string, Member>): string {
+  if (who.includes('@')) return who;
+  const m = members[who];
+  return m?.user && m?.host ? `${who}!${m.user}@${m.host}` : who;
 }
 
 type Tab = 'overview' | 'modes';
@@ -139,7 +148,7 @@ export function ChanAdminModal() {
                 </button>
                 {buffer.topicBy ? (
                   <div className="ca-topicby">
-                    {t('modals.chanadmin.topicBy', { who: buffer.topicBy })}
+                    {t('modals.chanadmin.topicBy', { who: setterMask(buffer.topicBy, buffer.members || {}) })}
                     {buffer.topicAt ? <span className="ca-topicby__when"> · {ago(buffer.topicAt, locale)}</span> : null}
                   </div>
                 ) : null}

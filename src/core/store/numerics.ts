@@ -135,7 +135,7 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const ch = msg.params[1];
         if (isChannelName(ch)) {
           ensureBuffer(ch);
-          const by = (msg.params[2] || '').split('!')[0];
+          const by = msg.params[2] || ''; // nick!user@host on servers that record the full mask
           const at = Number(msg.params[3]) * 1000 || 0;
           patchBuffer(ch, (b) => ({ ...b, topicBy: by, topicAt: at }));
         }
