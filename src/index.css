@@ -1483,8 +1483,16 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .jump-unread:hover { opacity: .9; }
 
 /* channel admin panel */
+.ca-tabs { display: flex; gap: .1rem; margin: -.2rem 0 1rem; border-bottom: 1px solid var(--border-2); }
+.ca-tab { appearance: none; border: 0; background: none; padding: .5rem .85rem; font: inherit; font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: .4rem; transition: color .15s, border-color .15s; }
+.ca-tab:hover { color: var(--ink); }
+.ca-tab.is-on { color: var(--ink); border-bottom-color: var(--accent); }
+.ca-tab__n { font-size: .7rem; font-weight: 700; min-width: 1.15rem; text-align: center; padding: .05rem .35rem; border-radius: 999px; background: var(--bg-2, rgba(127,127,127,.16)); color: var(--muted); }
+.ca-tab.is-on .ca-tab__n { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+.ca-pane { min-height: 13rem; }
 .ca-sec { margin-top: 1rem; }
 .ca-sec:first-child { margin-top: .3rem; }
+.ca-pane > .ca-stats:first-child { margin-top: .1rem; }
 .ca-h { margin: 0 0 .45rem; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 /* Read-only topic shown WITH its IRC colours/formatting rendered (formatIrc);
    click to reveal the raw edit input. */
