@@ -195,6 +195,7 @@ export function ChanAdminModal() {
           <div className="ca-tabs" role="tablist">
             {tabBtn('overview', t('modals.chanadmin.tabOverview'))}
             {tabBtn('modes', t('modals.chanadmin.tabModes'))}
+            {tabBtn('bans', t('modals.chanadmin.bans', { n: plainBans.length }))}
             {exts.length > 0 && tabBtn('extbans', t('modals.chanadmin.extbans'))}
           </div>
 
@@ -273,11 +274,9 @@ export function ChanAdminModal() {
         </div>
       )}
 
-        </div>
-
-        <aside className="ca-banscol">
-          <h4 className="ca-h">{t('modals.chanadmin.bans', { n: plainBans.length })}</h4>
-          <div className="modal__actions">
+      {tab === 'bans' && (
+        <div className="ca-pane">
+          <div className="ca-param ca-extban-add">
             <input className="modal__input" value={newban} placeholder={t('modals.chanadmin.maskPlaceholder')}
               onChange={(e) => setNewban(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addBan()} />
             <button className="upbtn upbtn--primary" onClick={addBan}>{t('modals.chanadmin.ban')}</button>
@@ -293,7 +292,10 @@ export function ChanAdminModal() {
               </li>
             ))}
           </ul>
-        </aside>
+        </div>
+      )}
+
+        </div>
       </div>
     </Modal>
   );
