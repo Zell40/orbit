@@ -59,6 +59,7 @@ export interface ChatState {
   notifyLevel: Record<string, NotifyLevel>; // canon key → 'all' | 'mentions' | 'mute' (absent = 'mentions')
   setNotifyLevel: (name: string, level: NotifyLevel) => void;
   markAllRead: () => void;
+  markReadHere: () => void;
   highlightWords: string[];    // extra words (besides your nick) that trigger a highlight
   setHighlightWords: (words: string[]) => void;
   drafts: Record<string, string>; // buffer key → unsent composer text
@@ -132,6 +133,7 @@ export function createChatStore(ns = '') {
   // Buffer/message helpers live in store/helpers.ts.
   const helpers = makeHelpers(set, get, closedChannels);
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine } = helpers;
+  const readMarkSent: Record<string, number> = {}; // throttle server MARKREAD per buffer
 
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost });
   // Outgoing input/slash-command parser lives in store/commands.ts.
@@ -441,6 +443,24 @@ export function createChatStore(ns = '') {
         }
         return { buffers };
       });
+    },
+    // Advance the ACTIVE buffer's read marker to its newest line — called by the
+    // message list whenever it's scrolled to the bottom (you've read everything),
+    // so the "New messages" divider and jump button clear instead of freezing.
+    // Local readTs moves freely; the server MARKREAD is throttled to avoid spam.
+    markReadHere() {
+      const s = get();
+      const key = s.active;
+      const b = s.buffers[key];
+      if (!b || !b.messages.length) return;
+      const latest = b.messages[b.messages.length - 1].ts;
+      if (latest <= b.readTs) return;
+      patchBuffer(key, (bf) => ({ ...bf, readTs: latest, unread: 0, highlight: false }));
+      const now = Date.now();
+      if (now - (readMarkSent[key] || 0) > 2000) {
+        readMarkSent[key] = now;
+        s.client?.ircv3.markRead(b.name, new Date(latest).toISOString());
+      }
     },
 
     notifyTyping() {

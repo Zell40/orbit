@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
 import { useActiveChat } from '../../core/networks';
@@ -19,6 +19,7 @@ export function MessageList() {
   const loadMore = useActiveChat((s) => s.loadMoreHistory);
   const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
   const histDone = useActiveChat((s) => !!s.historyDone[s.active]);
+  const markReadHere = useActiveChat((s) => s.markReadHere);
   useActiveChat((s) => s.prefs.clock24); // re-render timestamps when the clock format changes
   const ref = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -30,13 +31,18 @@ export function MessageList() {
 
   // Keep the viewport anchored: stick to the bottom for live messages, but when
   // older history is PREPENDED (we're at the top) preserve the reading position.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el || search) return;
     const switched = prevActive.current !== active;
     prevActive.current = active;
     const grew = el.scrollHeight - prevHeight.current;
-    if (switched || atBottom.current) {
+    const d = dividerRef.current;
+    if (switched && d) {
+      // Entering a channel that has unread → land on the "New messages" divider so
+      // you read from where you left off, rather than jumping past it to the bottom.
+      el.scrollTop = Math.max(0, d.offsetTop - 48);
+    } else if (switched || atBottom.current) {
       // Buffer switch, or we were pinned to the bottom → follow the newest line.
       // atBottom is checked BEFORE the prepend heuristic on purpose: in a short
       // buffer the bottom itself sits at scrollTop < 80, so a burst of appended
@@ -46,8 +52,12 @@ export function MessageList() {
     } else if (el.scrollTop < 80 && grew > 0) {
       el.scrollTop = el.scrollHeight - prevHeight.current; // prepend while reading up → keep position
     }
+    // Ended at the bottom → everything is read: advance the marker here (pre-paint,
+    // so an incoming line never flashes a "New messages" divider before it clears).
+    atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+    if (atBottom.current) markReadHere();
     prevHeight.current = el.scrollHeight;
-  }, [count, active, search]);
+  }, [count, active, search, markReadHere]);
 
   // The on-screen keyboard opening/closing resizes the VISUAL viewport, which
   // shrinks the message list WITHOUT moving its scrollTop — so a freshly-sent
@@ -82,12 +92,16 @@ export function MessageList() {
   const onScroll = () => {
     const el = ref.current;
     if (!el) return;
-    atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+    const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+    atBottom.current = bottom;
+    // Reached the bottom → you've read everything: advance the marker so the
+    // "New messages" divider and the jump button clear instead of freezing.
+    if (bottom) markReadHere();
     // channels and private messages both have server-side history (not the console)
     if (el.scrollTop < 60 && buffer && buffer.name !== SERVER && !histLoading && !histDone) loadMore(active);
     // show the "jump to new" button while the unread divider is scrolled out of view above
     const d = dividerRef.current;
-    setShowJump(!!d && d.offsetTop < el.scrollTop - 20);
+    setShowJump(!bottom && !!d && d.offsetTop < el.scrollTop - 20);
   };
   const jumpToUnread = () => dividerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
