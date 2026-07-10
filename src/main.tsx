@@ -18,6 +18,10 @@ import { AppErrorBoundary } from './components/AppErrorBoundary'
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()
 
+// iOS only applies :active tap-feedback styles when a touch listener exists, so
+// register an empty one — enables the native press effect across all tappables.
+document.addEventListener('touchstart', () => {}, { passive: true })
+
 // Coordinated sign-out. Logging out on the tchatou.fr website (any same-origin
 // tab) writes a `tchatou-logout` beacon to localStorage; if this tab holds an
 // IDENTIFIED primary (tchatou) session, drop it too — so signing out means signed

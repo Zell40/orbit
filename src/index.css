@@ -58,6 +58,21 @@ input, textarea { font-family: inherit; }
 ::selection { background: rgba(42,107,255,.22); }
 .aurora { display: none; }   /* no decorative aurora in the Element look */
 
+/* Native tactile press — touch devices only. Controls dip + dim the instant you
+   touch them, like native buttons. The transition lives on :active so it never
+   overrides a control's own base transition; release snaps back. */
+@media (hover: none) {
+  button, a.btn, [role="button"] {
+    touch-action: manipulation;    /* no 300ms tap delay / double-tap zoom on controls */
+    -webkit-touch-callout: none;   /* no long-press "copy/look up" callout on chrome */
+  }
+  button:active:not(:disabled), a.btn:active, [role="button"]:active {
+    transform: scale(.96);
+    opacity: .82;
+    transition: transform .08s ease, opacity .08s ease;
+  }
+}
+
 /* ============ CONNECT SCREEN ============ */
 /* ============ "Already on air" — an open canvas + a real live transcript,
    not a boxed auth card next to a boxed chat-bubble mockup. The signature is
