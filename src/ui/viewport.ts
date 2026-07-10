@@ -1,41 +1,83 @@
 // Mobile virtual-keyboard handling.
 //
-// On phones the app is `position: fixed; top: var(--app-top); height: min(100dvh,
-// var(--app-h))` (see index.css). We mirror the VisualViewport — the slice of screen
-// NOT covered by the keyboard — into --app-h / --app-top so the app always sits
-// exactly above the keyboard on iOS (where the layout viewport doesn't shrink) and
-// stays in sync on Android (where interactive-widget=resizes-content shrinks it).
+// The app is `position: fixed; top: var(--app-top); height: min(100dvh, var(--app-h))`
+// on phones (see index.css). We mirror the VisualViewport — the slice of screen NOT
+// covered by the keyboard — into --app-h / --app-top.
 //
-// We track the VisualViewport DIRECTLY, with no pre-resize guessing. Guessing the
-// keyboard height and resizing on focus fought the browser's own resize and left a
-// broken first-open that needed a second tap; one authoritative source is smooth and
-// self-healing (an unmounted input just fires resize and the app grows back).
+// Android: `interactive-widget=resizes-content` (index.html) shrinks the layout in
+// step with the keyboard, so mirroring is smooth for free.
+//
+// iOS does NOT resize the layout and fires `visualViewport.resize` only once the
+// keyboard has FINISHED sliding up — so mirroring alone makes the app snap up late
+// ("the keyboard opens faster than the app"). Fix: on iOS, the instant a field is
+// focused we drop --app-h to the remembered keyboard height and a CSS transition
+// (`.ios .app` in index.css) glides the composer up in step with the keyboard; the
+// real resize event then corrects to the exact height. The transition also smooths
+// that correction, so an imperfect estimate never snaps.
 
 const root = document.documentElement;
+const KB_KEY = 'tchatou-kbh'; // remembered keyboard height, persisted across reloads
+const ua = navigator.userAgent;
+const isIOS = /iP(hone|od|ad)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+let kbInset = 0;
 let lastH = -1, lastTop = -1, raf = 0;
+try { kbInset = parseInt(localStorage.getItem(KB_KEY) || '0', 10) || 0; } catch { /* ignore */ }
+
+function setH(px: number): void {
+  const v = Math.round(px);
+  if (v === lastH) return;
+  root.style.setProperty('--app-h', `${v}px`);
+  lastH = v;
+  window.dispatchEvent(new Event('tchatou:vh')); // re-pin the message list to the bottom
+}
+function setTop(px: number): void {
+  const v = Math.round(px);
+  if (v === lastTop) return;
+  root.style.setProperty('--app-top', `${v}px`);
+  lastTop = v;
+}
+
+function isEditable(el: EventTarget | null): boolean {
+  if (!(el instanceof HTMLElement)) return false;
+  const t = el.tagName;
+  return t === 'INPUT' || t === 'TEXTAREA' || el.isContentEditable;
+}
 
 function apply(): void {
   raf = 0;
   const vv = window.visualViewport;
   if (!vv) return;
-  const h = Math.round(vv.height);
-  const top = Math.round(vv.offsetTop);
-  if (h !== lastH) {
-    root.style.setProperty('--app-h', `${h}px`);
-    lastH = h;
-    window.dispatchEvent(new Event('tchatou:vh')); // re-pin the message list to the bottom
+  // While the keyboard is up the layout height (innerHeight) stays full on iOS, so
+  // innerHeight - vv.height is the true keyboard inset — remember it for next time.
+  const inset = window.innerHeight - vv.height;
+  if (inset > 80) {
+    kbInset = Math.round(inset);
+    try { localStorage.setItem(KB_KEY, String(kbInset)); } catch { /* ignore */ }
   }
-  if (top !== lastTop) {
-    root.style.setProperty('--app-top', `${top}px`);
-    lastTop = top;
-  }
+  setH(vv.height);
+  setTop(vv.offsetTop);
 }
-
 function schedule(): void { if (!raf) raf = requestAnimationFrame(apply); }
 
 export function initViewport(): void {
   const vv = window.visualViewport;
   if (!vv) return; // older browsers fall back to CSS 100dvh
+
+  if (isIOS) {
+    root.classList.add('ios'); // enables the CSS height transition
+    document.addEventListener('focusin', (e) => {
+      if (!isEditable(e.target)) return;
+      const kb = kbInset || Math.round(window.innerHeight * 0.4); // estimate on the first-ever open
+      setH(window.innerHeight - kb); // start the composer rising now; the CSS transition glides it up
+    });
+    document.addEventListener('focusout', (e) => {
+      if (!isEditable(e.target)) return;
+      // Defer a tick — focus may just be moving to another field.
+      setTimeout(() => { if (!isEditable(document.activeElement)) setH(window.innerHeight); }, 0);
+    });
+  }
+
   vv.addEventListener('resize', schedule);
   vv.addEventListener('scroll', schedule);
   window.addEventListener('orientationchange', schedule);
