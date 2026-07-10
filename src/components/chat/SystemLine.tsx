@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '../../core/irc/types';
 import { fmtTime, nickColor, formatIrc } from '../../lib/format';
@@ -8,7 +8,7 @@ import { useActiveChat } from '../../core/networks';
 // Renders a non-message event (join/part/mode/topic/ban/notice/info/warning/…)
 // as its own status line. The container routes every kind that isn't a
 // privmsg/action here; MsgRow handles the message rows.
-export function SystemLine({ m }: { m: ChatMessage }) {
+export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   const { t } = useTranslation();
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const mirc = useTheme().startsWith('yomirc');
@@ -114,4 +114,4 @@ export function SystemLine({ m }: { m: ChatMessage }) {
     );
   }
   return null;
-}
+});

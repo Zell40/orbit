@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '../../core/irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
@@ -55,7 +56,9 @@ function MsgActions({ m }: { m: ChatMessage }) {
 
 // A single privmsg/action row, in either the modern grouped-bubble layout or the
 // classic yomIRC single-log-line layout, with reactions + the hover action bar.
-export function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
+// memo: props (m, cont) are stable, so a new message re-renders only the new row,
+// not the whole list; per-row store subscriptions still update their own row.
+export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
   const { t } = useTranslation();
   const react = useActiveChat((s) => s.toggleReaction);
   const redact = useActiveChat((s) => s.redact);
@@ -199,4 +202,4 @@ export function MsgRow({ m, cont }: { m: ChatMessage; cont: boolean }) {
       )}
     </div>
   );
-}
+});
