@@ -66,13 +66,19 @@ export function initViewport(): void {
 
   if (isIOS) {
     root.classList.add('ios'); // enables the CSS height transition
+    let kbTimer = 0;
     document.addEventListener('focusin', (e) => {
       if (!isEditable(e.target)) return;
       const kb = kbInset || Math.round(window.innerHeight * 0.4); // estimate on the first-ever open
       setH(window.innerHeight - kb); // start the composer rising now; the CSS transition glides it up
+      // Self-heal: if no keyboard actually came up (hardware keyboard / programmatic
+      // focus), the resize event never fires — undo the pre-resize after it should have.
+      clearTimeout(kbTimer);
+      kbTimer = window.setTimeout(() => { if (vv.height >= window.innerHeight - 40) setH(vv.height); }, 450);
     });
     document.addEventListener('focusout', (e) => {
       if (!isEditable(e.target)) return;
+      clearTimeout(kbTimer);
       // Defer a tick — focus may just be moving to another field.
       setTimeout(() => { if (!isEditable(document.activeElement)) setH(window.innerHeight); }, 0);
     });
