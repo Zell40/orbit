@@ -1610,15 +1610,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
    component rules (media queries add no specificity; later rule wins).
    ============================================================================ */
 @media (max-width: 880px) {
-  /* Pin the app to the VISUAL viewport (the area above the on-screen keyboard).
-     height: min(100dvh, --app-h) lets the browser's NATIVE resize win during
-     the keyboard animation: with interactive-widget=resizes-content (Chrome/
-     Android), 100dvh shrinks smoothly in step with the keyboard, so the smaller
-     value drives the transition with no lag — while the JS-tracked --app-h only
-     constrains things further on iOS, where dvh does NOT shrink for the
-     keyboard. top:--app-top follows iOS Safari's upward scroll. Falls back to
-     100dvh on browsers without the VisualViewport API. */
-  .app {
+  /* Pin the app to the visual viewport (above the keyboard); --app-h tracks iOS.
+     The .shell > .app selector must match to beat the desktop height:auto rule. */
+  .app, .shell > .app {
     position: fixed; left: 0; right: 0;
     top: var(--app-top, 0px);
     height: min(100dvh, var(--app-h, 100dvh));
