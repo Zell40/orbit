@@ -230,7 +230,8 @@
       "tabOverview": "Overview",
       "tabModes": "Modes",
       "extbans": "Extended bans",
-      "extbanType": "Extban type"
+      "extbanType": "Extban type",
+      "noExtbans": "No extended bans yet"
     }
   },
   "settings": {

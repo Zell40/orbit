@@ -34,7 +34,7 @@ function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-type Tab = 'overview' | 'modes';
+type Tab = 'overview' | 'modes' | 'extbans';
 
 export function ChanAdminModal() {
   const { t, i18n } = useTranslation();
@@ -85,6 +85,10 @@ export function ChanAdminModal() {
   const exts = availableExtbans(client?.server.isupport ?? {});
   const ebSel = ebType || exts[0]?.name || '';
   const curExt = exts.find((e) => e.name === ebSel);
+  // Keep the two lists apart: plain nick!user@host bans on the right, typed extbans
+  // in their own tab.
+  const plainBans = banlist.filter((b) => !matchExtban(b.mask));
+  const extbanList = banlist.filter((b) => matchExtban(b.mask));
   const addExtban = () => {
     const v = ebVal.trim(); if (!v || !curExt) return;
     client?.ban(chan, `${curExt.name}:${v}`);
@@ -140,6 +144,7 @@ export function ChanAdminModal() {
           <div className="ca-tabs" role="tablist">
             {tabBtn('overview', t('modals.chanadmin.tabOverview'))}
             {tabBtn('modes', t('modals.chanadmin.tabModes'))}
+            {exts.length > 0 && tabBtn('extbans', t('modals.chanadmin.extbans'))}
           </div>
 
           {tab === 'overview' && (
@@ -187,48 +192,61 @@ export function ChanAdminModal() {
               );
             })}
           </div>
-          {exts.length > 0 && (
-            <div className="ca-sec ca-extbans">
-              <h4 className="ca-h">{t('modals.chanadmin.extbans')}</h4>
-              <div className="ca-param">
-                <select className="modal__input ca-extban__type" value={ebSel}
-                  onChange={(e) => setEbType(e.target.value)} aria-label={t('modals.chanadmin.extbanType')}>
-                  {exts.map((e) => (
-                    <option key={e.letter} value={e.name}>{t(`extbans.${e.name}`, e.name)}</option>
-                  ))}
-                </select>
-                <input className="modal__input" value={ebVal} placeholder={curExt?.hint}
-                  onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
-                <button className="upbtn upbtn--primary" onClick={addExtban}>{t('modals.chanadmin.ban')}</button>
-              </div>
-            </div>
-          )}
+        </div>
+      )}
+
+      {tab === 'extbans' && (
+        <div className="ca-pane">
+          <div className="ca-extgrid">
+            {exts.map((e) => (
+              <button key={e.letter} type="button" title={e.name}
+                className={`ca-extchip${ebSel === e.name ? ' is-on' : ''}`}
+                onClick={() => setEbType(e.name)}>{t(`extbans.${e.name}`, e.name)}</button>
+            ))}
+          </div>
+          <div className="ca-param ca-extban-add">
+            <input className="modal__input" value={ebVal} placeholder={curExt?.hint}
+              aria-label={t('modals.chanadmin.extbanType')}
+              onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
+            <button className="upbtn upbtn--primary" onClick={addExtban}>{t('modals.chanadmin.ban')}</button>
+          </div>
+          <ul className="ca-bans">
+            {extbanList.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noExtbans')}</li>}
+            {extbanList.map((b) => {
+              const eb = matchExtban(b.mask)!;
+              return (
+                <li key={b.mask} className="ca-ban">
+                  <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>
+                  <span className="ca-ban__mask">{b.mask.slice(b.mask.indexOf(':') + 1)}</span>
+                  {b.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: b.by })}</span>}
+                  <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
+                    onClick={() => { removeBan(chan, b.mask); setTimeout(() => loadBanList(chan), 500); }}>✕</button>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
         </div>
 
         <aside className="ca-banscol">
-          <h4 className="ca-h">{t('modals.chanadmin.bans', { n: banlist.length })}</h4>
+          <h4 className="ca-h">{t('modals.chanadmin.bans', { n: plainBans.length })}</h4>
           <div className="modal__actions">
             <input className="modal__input" value={newban} placeholder={t('modals.chanadmin.maskPlaceholder')}
               onChange={(e) => setNewban(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addBan()} />
             <button className="upbtn upbtn--primary" onClick={addBan}>{t('modals.chanadmin.ban')}</button>
           </div>
           <ul className="ca-bans">
-            {banlist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noBans')}</li>}
-            {banlist.map((b) => {
-              const eb = matchExtban(b.mask);
-              return (
+            {plainBans.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noBans')}</li>}
+            {plainBans.map((b) => (
               <li key={b.mask} className="ca-ban">
-                {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
-                <span className="ca-ban__mask">{eb ? b.mask.slice(b.mask.indexOf(':') + 1) : b.mask}</span>
+                <span className="ca-ban__mask">{b.mask}</span>
                 {b.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: b.by })}</span>}
                 <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
                   onClick={() => { removeBan(chan, b.mask); setTimeout(() => loadBanList(chan), 500); }}>✕</button>
               </li>
-              );
-            })}
+            ))}
           </ul>
         </aside>
       </div>

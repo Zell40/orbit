@@ -202,7 +202,8 @@
       "tabOverview": "Обзор",
       "tabModes": "Режимы",
       "extbans": "Расширенные баны",
-      "extbanType": "Тип расширенного бана"
+      "extbanType": "Тип расширенного бана",
+      "noExtbans": "Пока нет расширенных банов"
     },
     "report": {
       "reasonLabel": "Что случилось?",

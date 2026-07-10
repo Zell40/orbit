@@ -1563,8 +1563,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-ban__by { font-size: .76rem; color: var(--muted); margin-left: auto; }
 .ca-ban__type { flex: none; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
   color: var(--accent-d, var(--accent)); background: var(--accent-soft); border-radius: 5px; padding: .1rem .32rem; }
-/* Extban composer: the type <select> shouldn't hog the row from the value input. */
-.ca-extban__type { flex: 0 1 12rem; min-width: 8rem; }
+/* Extbans tab: type chips laid out like the Modes grid, then the value composer. */
+.ca-extgrid { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .9rem; }
+.ca-extchip { border: 1px solid var(--border); background: var(--bg-soft); color: var(--ink);
+  border-radius: 8px; padding: .34rem .6rem; font: inherit; font-size: .82rem; cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s; }
+.ca-extchip:hover { border-color: var(--accent); }
+.ca-extchip.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ca-extban-add { margin-bottom: .9rem; }
 .ca-bans__empty { font-size: .82rem; color: var(--muted); padding: .3rem; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

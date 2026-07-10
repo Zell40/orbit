@@ -202,7 +202,8 @@
       "tabOverview": "Genel bakış",
       "tabModes": "Modlar",
       "extbans": "Genişletilmiş banlar",
-      "extbanType": "Extban türü"
+      "extbanType": "Extban türü",
+      "noExtbans": "Henüz genişletilmiş ban yok"
     },
     "report": {
       "reasonLabel": "Neler oluyor?",

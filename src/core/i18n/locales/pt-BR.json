@@ -202,7 +202,8 @@
       "tabOverview": "Visão geral",
       "tabModes": "Modos",
       "extbans": "Bans estendidos",
-      "extbanType": "Tipo de extban"
+      "extbanType": "Tipo de extban",
+      "noExtbans": "Nenhum ban estendido ainda"
     },
     "report": {
       "reasonLabel": "O que está acontecendo?",
