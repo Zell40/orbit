@@ -65,27 +65,25 @@ export function MessageList() {
   // message would otherwise land below the fold, hidden behind the keyboard.
   // If we were pinned to the bottom, re-pin once the new layout has settled.
   useEffect(() => {
-    const repin = () => {
-      if (!atBottom.current) return;
-      requestAnimationFrame(() => {
-        const el = ref.current;
-        if (el) el.scrollTop = el.scrollHeight;
-      });
-    };
+    const pin = () => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; };
     // The newest lines slide out of view two ways: the list box SHRINKS (composer
     // growing, mobile keyboard) or its CONTENT GROWS after paint (a link-preview
-    // card's image loads, an embed expands). Observe both — the box and the row
-    // flow — so an async height change re-pins to the bottom when we were there.
-    // The events cover the mobile keyboard, which resizes the viewport not the list.
-    const ro = new ResizeObserver(repin);
+    // card loads, an embed expands). Observe both — the box and the row flow.
+    // ResizeObserver fires before paint, so re-pinning synchronously there keeps
+    // the newest line in place with no visible jump (the shift never renders).
+    const onResize = () => { if (atBottom.current) pin(); };
+    // The mobile keyboard resizes the visual viewport, not the list, and its
+    // scrollTop doesn't move — wait a frame for the new layout, then re-pin.
+    const onViewport = () => { if (atBottom.current) requestAnimationFrame(pin); };
+    const ro = new ResizeObserver(onResize);
     if (ref.current) ro.observe(ref.current);
     if (flowRef.current) ro.observe(flowRef.current);
-    window.addEventListener('tchatou:vh', repin);
-    window.visualViewport?.addEventListener('resize', repin);
+    window.addEventListener('tchatou:vh', onViewport);
+    window.visualViewport?.addEventListener('resize', onViewport);
     return () => {
       ro.disconnect();
-      window.removeEventListener('tchatou:vh', repin);
-      window.visualViewport?.removeEventListener('resize', repin);
+      window.removeEventListener('tchatou:vh', onViewport);
+      window.visualViewport?.removeEventListener('resize', onViewport);
     };
   }, []);
 
