@@ -209,7 +209,8 @@
       "extMatch": "Şuna göre banla",
       "example": "Örnek:",
       "exempt": "Muaf tut",
-      "allow": "İzin ver"
+      "allow": "İzin ver",
+      "plainMask": "(maske)"
     },
     "report": {
       "reasonLabel": "Neler oluyor?",

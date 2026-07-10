@@ -237,7 +237,8 @@
       "extMatch": "Bannir par",
       "example": "Exemple :",
       "exempt": "Exempter",
-      "allow": "Autoriser"
+      "allow": "Autoriser",
+      "plainMask": "(masque)"
     }
   },
   "settings": {

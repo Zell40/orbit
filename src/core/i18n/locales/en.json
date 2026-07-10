@@ -237,7 +237,8 @@
       "extMatch": "Ban by",
       "example": "Example:",
       "exempt": "Exempt",
-      "allow": "Allow"
+      "allow": "Allow",
+      "plainMask": "(mask)"
     }
   },
   "settings": {

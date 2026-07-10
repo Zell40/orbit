@@ -209,7 +209,8 @@
       "extMatch": "Banna per",
       "example": "Esempio:",
       "exempt": "Esenta",
-      "allow": "Consenti"
+      "allow": "Consenti",
+      "plainMask": "(maschera)"
     },
     "report": {
       "reasonLabel": "Cosa sta succedendo?",

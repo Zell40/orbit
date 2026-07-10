@@ -209,7 +209,8 @@
       "extMatch": "Bannen nach",
       "example": "Beispiel:",
       "exempt": "Ausnehmen",
-      "allow": "Erlauben"
+      "allow": "Erlauben",
+      "plainMask": "(Maske)"
     },
     "report": {
       "reasonLabel": "Was ist los?",

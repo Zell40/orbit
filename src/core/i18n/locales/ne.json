@@ -209,7 +209,8 @@
       "extMatch": "यसद्वारा प्रतिबन्ध",
       "example": "उदाहरण:",
       "exempt": "छुट",
-      "allow": "अनुमति"
+      "allow": "अनुमति",
+      "plainMask": "(मास्क)"
     },
     "report": {
       "reasonLabel": "के भइरहेको छ?",

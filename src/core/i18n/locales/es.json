@@ -209,7 +209,8 @@
       "extMatch": "Banear por",
       "example": "Ejemplo:",
       "exempt": "Eximir",
-      "allow": "Permitir"
+      "allow": "Permitir",
+      "plainMask": "(máscara)"
     },
     "report": {
       "reasonLabel": "¿Qué está pasando?",
