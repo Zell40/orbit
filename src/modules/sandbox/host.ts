@@ -115,7 +115,10 @@ export function mountSandboxed(spec: SandboxSpec): void {
       const an = getConfig().analytics;
       if (!an?.endpoint) return; // disabled unless an endpoint is configured
       const now = Date.now();
-      if (now - lastBeacon < 800) return; // backstop (the plugin also debounces)
+      // Runaway-loop backstop only — kept well under the plugin's own debounce so a
+      // session event and a closely following pageview don't drop each other. Real
+      // abuse limiting is per-IP at the endpoint.
+      if (now - lastBeacon < 250) return;
       lastBeacon = now;
       const p = (a[0] && typeof a[0] === 'object' ? a[0] : {}) as Record<string, unknown>;
       const body = JSON.stringify({
