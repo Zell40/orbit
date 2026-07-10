@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProfileModal } from './profile/ProfileModal';
 import { Modals } from './modals/Modals';
@@ -18,12 +18,14 @@ export function Chat() {
   // A plugin-filled bar across the very top (branding + portal links). Nothing
   // renders it by default, so the shell collapses to just the app.
   const navbar = usePluginRegistry((s) => s.ui).filter((u) => u.slot === 'navbar');
+  // Stable so the memoized room rows aren't invalidated on every render.
+  const closeNav = useCallback(() => setNavOpen(false), []);
   return (
     <div className="shell">
       {navbar.map((u) => <PluginBoundary key={u.id} render={u.render} label="navbar" />)}
     <div className={`app ${navOpen ? 'nav-open' : ''} ${membersOpen ? 'members-open' : ''}`}>
       <a className="skip-link" href="#orbit-main">{t('a11y.skip')}</a>
-      <Sidebar onNavigate={() => setNavOpen(false)} />
+      <Sidebar onNavigate={closeNav} />
       <main className="main" id="orbit-main">
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
         <MessageList />

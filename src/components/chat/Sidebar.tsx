@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react';
+import { memo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
 import { avatarBg } from '../../lib/format';
@@ -70,17 +70,58 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
 
 type Filter = 'all' | 'rooms' | 'people';
 
+// One conversation row. Memoized + subscribed to its OWN buffer, so a message in
+// channel X re-renders only X's row, not the whole list on every incoming line.
+const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string; mirc: boolean; onNavigate: () => void }) {
+  const { t } = useTranslation();
+  const b = useActiveChat((s) => s.buffers[name]);
+  const isActive = useActiveChat((s) => s.active === name);
+  const setActive = useActiveChat((s) => s.setActive);
+  const closeBuffer = useActiveChat((s) => s.closeBuffer);
+  const serverName = useActiveChat((s) => s.serverName);
+  if (!b) return null;
+  const isServer = name === SERVER;
+  const label = isServer ? 'Status' : b.name.replace(/^#/, '');
+  const glyph = isServer ? (mirc ? '●' : '✦') : label[0]?.toUpperCase() ?? '?';
+  // A channel's topic is the row's subtitle; mark topic-less channels so the
+  // minimal (yomirc) skin can hide the repetitive "Public channel" fallback.
+  const channelTopic = b.isChannel ? stripFormatting(b.topic || '').trim() : '';
+  const genericSub = !isServer && !channelTopic; // no real subtitle (topicless channel or a DM)
+  return (
+    <button className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`} onClick={() => { setActive(name); onNavigate(); }}>
+      <span className="room__av" data-server={isServer || undefined}
+        style={isServer ? undefined : { background: avatarBg(name) }}>
+        {b.isChannel ? <span className="room__hash">#</span> : glyph}
+      </span>
+      <span className="room__body">
+        <span className="room__name">{label}</span>
+        <span className={`room__sub${genericSub ? ' room__sub--generic' : ''}`}>{
+          isServer ? (serverName || t('sidebar.system'))
+            : b.isChannel ? (channelTopic || t('sidebar.publicRoom'))
+              : t('sidebar.privateMessage')
+        }</span>
+      </span>
+      {b.unread > 0 && <span className="room__badge">{b.unread}</span>}
+      {!isServer && (
+        <span
+          className="room__close"
+          role="button"
+          tabIndex={-1}
+          title={b.isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
+          onClick={(e) => { e.stopPropagation(); closeBuffer(name); }}
+        >✕</span>
+      )}
+    </button>
+  );
+});
+
 export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useTranslation();
   const order = useActiveChat((s) => s.order);
-  const active = useActiveChat((s) => s.active);
   const buffers = useActiveChat((s) => s.buffers);
-  const setActive = useActiveChat((s) => s.setActive);
   const setModal = useActiveChat((s) => s.setModal);
   const refreshChannels = useActiveChat((s) => s.refreshChannels);
-  const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const sidebarItems = usePluginRegistry((s) => s.ui);
-  const serverName = useActiveChat((s) => s.serverName);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const mirc = useTheme().startsWith('yomirc');
@@ -93,42 +134,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const showChannels = filter !== 'people';
   const showQueries = filter !== 'rooms';
 
-  const item = (name: string) => {
-    const b = buffers[name];
-    const isServer = name === SERVER;
-    const label = isServer ? 'Status' : b.name.replace(/^#/, '');
-    const glyph = isServer ? (mirc ? '●' : '✦') : label[0]?.toUpperCase() ?? '?';
-    // A channel's topic is the row's subtitle; mark topic-less channels so the
-    // minimal (yomirc) skin can hide the repetitive "Public channel" fallback.
-    const channelTopic = b.isChannel ? stripFormatting(b.topic || '').trim() : '';
-    const genericSub = !isServer && !channelTopic; // no real subtitle (topicless channel or a DM)
-    return (
-      <button key={name} className={`room ${name === active ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`} onClick={() => { setActive(name); onNavigate(); }}>
-        <span className="room__av" data-server={isServer || undefined}
-          style={isServer ? undefined : { background: avatarBg(name) }}>
-          {b.isChannel ? <span className="room__hash">#</span> : glyph}
-        </span>
-        <span className="room__body">
-          <span className="room__name">{label}</span>
-          <span className={`room__sub${genericSub ? ' room__sub--generic' : ''}`}>{
-            isServer ? (serverName || t('sidebar.system'))
-              : b.isChannel ? (channelTopic || t('sidebar.publicRoom'))
-                : t('sidebar.privateMessage')
-          }</span>
-        </span>
-        {b.unread > 0 && <span className="room__badge">{b.unread}</span>}
-        {!isServer && (
-          <span
-            className="room__close"
-            role="button"
-            tabIndex={-1}
-            title={b.isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
-            onClick={(e) => { e.stopPropagation(); closeBuffer(name); }}
-          >✕</span>
-        )}
-      </button>
-    );
-  };
+  const item = (name: string) => <RoomRow key={name} name={name} mirc={mirc} onNavigate={onNavigate} />;
 
   const totalShown = (showChannels ? channels.length : 0) + (showQueries ? queries.length : 0) + (hasServer ? 1 : 0);
 
