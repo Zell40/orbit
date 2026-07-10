@@ -231,7 +231,10 @@
       "tabModes": "Modes",
       "extbans": "Bans étendus",
       "extbanType": "Type de ban étendu",
-      "noExtbans": "Aucun ban étendu"
+      "noExtbans": "Aucun ban étendu",
+      "filter": "Filtrer…",
+      "extRestrict": "Restrictions",
+      "extMatch": "Bannir par"
     }
   },
   "settings": {

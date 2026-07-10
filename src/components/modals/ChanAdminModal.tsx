@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '../../core/networks';
 import { formatIrc } from '../../lib/format';
 import { buildModeContext } from '../../core/irc/modes';
 import { setterMask, ago } from '../../lib/topic';
-import { availableExtbans, matchExtban } from '../../lib/extbans';
+import { availableExtbans, matchExtban, type ExtBan } from '../../lib/extbans';
 import { Modal } from './Modal';
 
 // Curated channel flags (no-parameter, type-D). Only the ones the server advertises
@@ -35,6 +35,57 @@ function fmtDate(sec: number, locale: string): string {
 }
 
 type Tab = 'overview' | 'modes' | 'extbans';
+
+// A compact combobox for the extban type: a button + an overlay menu (grouped into
+// restrictions / match-by, filterable). Opening it doesn't push the value input, so
+// picking a type and typing the mask stay on one row — no scrolling.
+function ExtbanSelect({ exts, value, onChange }: { exts: ExtBan[]; value: string; onChange: (name: string) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const cur = exts.find((e) => e.name === value);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+  const f = filter.trim().toLowerCase();
+  const label = (e: ExtBan) => t(`extbans.${e.name}`, e.name);
+  const hit = (e: ExtBan) => !f || label(e).toLowerCase().includes(f) || e.name.includes(f);
+  const pick = (name: string) => { onChange(name); setOpen(false); setFilter(''); };
+  const group = (acting: boolean, head: string) => {
+    const list = exts.filter((e) => e.acting === acting && hit(e));
+    if (!list.length) return null;
+    return (
+      <>
+        <div className="ca-extsel__grp">{head}</div>
+        {list.map((e) => (
+          <button key={e.letter} type="button" role="option" aria-selected={e.name === value}
+            className={`ca-extsel__opt${e.name === value ? ' is-on' : ''}`} onClick={() => pick(e.name)}>{label(e)}</button>
+        ))}
+      </>
+    );
+  };
+  return (
+    <div className="ca-extsel" ref={ref}>
+      <button type="button" className="ca-extsel__btn" aria-haspopup="listbox" aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}>
+        <span>{cur ? label(cur) : '—'}</span>
+        <span className="ca-extsel__chev" aria-hidden>▾</span>
+      </button>
+      {open && (
+        <div className="ca-extsel__menu" role="listbox">
+          <input className="ca-extsel__search modal__input" autoFocus value={filter} placeholder={t('modals.chanadmin.filter')}
+            onChange={(e) => setFilter(e.target.value)} />
+          {group(true, t('modals.chanadmin.extRestrict'))}
+          {group(false, t('modals.chanadmin.extMatch'))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function ChanAdminModal() {
   const { t, i18n } = useTranslation();
@@ -197,14 +248,8 @@ export function ChanAdminModal() {
 
       {tab === 'extbans' && (
         <div className="ca-pane">
-          <div className="ca-extgrid">
-            {exts.map((e) => (
-              <button key={e.letter} type="button" title={e.name}
-                className={`ca-extchip${ebSel === e.name ? ' is-on' : ''}`}
-                onClick={() => setEbType(e.name)}>{t(`extbans.${e.name}`, e.name)}</button>
-            ))}
-          </div>
           <div className="ca-param ca-extban-add">
+            <ExtbanSelect exts={exts} value={ebSel} onChange={setEbType} />
             <input className="modal__input" value={ebVal} placeholder={curExt?.hint}
               aria-label={t('modals.chanadmin.extbanType')}
               onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />

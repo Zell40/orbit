@@ -203,7 +203,10 @@
       "tabModes": "Modos",
       "extbans": "Bans estendidos",
       "extbanType": "Tipo de extban",
-      "noExtbans": "Nenhum ban estendido ainda"
+      "noExtbans": "Nenhum ban estendido ainda",
+      "filter": "Filtrar…",
+      "extRestrict": "Restrições",
+      "extMatch": "Banir por"
     },
     "report": {
       "reasonLabel": "O que está acontecendo?",

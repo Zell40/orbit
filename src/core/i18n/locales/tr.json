@@ -203,7 +203,10 @@
       "tabModes": "Modlar",
       "extbans": "Genişletilmiş banlar",
       "extbanType": "Extban türü",
-      "noExtbans": "Henüz genişletilmiş ban yok"
+      "noExtbans": "Henüz genişletilmiş ban yok",
+      "filter": "Filtrele…",
+      "extRestrict": "Kısıtlamalar",
+      "extMatch": "Şuna göre banla"
     },
     "report": {
       "reasonLabel": "Neler oluyor?",

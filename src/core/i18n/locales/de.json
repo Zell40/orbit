@@ -203,7 +203,10 @@
       "tabModes": "Modi",
       "extbans": "Erweiterte Bans",
       "extbanType": "Extban-Typ",
-      "noExtbans": "Noch keine erweiterten Bans"
+      "noExtbans": "Noch keine erweiterten Bans",
+      "filter": "Filtern…",
+      "extRestrict": "Einschränkungen",
+      "extMatch": "Bannen nach"
     },
     "report": {
       "reasonLabel": "Was ist los?",
