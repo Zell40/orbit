@@ -353,7 +353,3 @@
 [data-theme^="yomirc"] .ca-param__l { font-family: var(--mono); }
 [data-theme^="yomirc"] .ca-flag { border-radius: 0; border: 0; box-shadow: inset 1px 1px 0 var(--mirc-light), inset -1px -1px 0 var(--mirc-shadow); }
 [data-theme^="yomirc"] .ca-flag.is-on { background: var(--mirc-silver); box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }
-[data-theme^="yomirc"] .skel__av { display: none; }
-[data-theme^="yomirc"] .skel__row { gap: 0; }
-[data-theme^="yomirc"] .skel__body { padding-top: 0; gap: .35rem; }
-[data-theme^="yomirc"] .skel__bar { border-radius: 0; }
