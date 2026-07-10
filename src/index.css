@@ -508,7 +508,12 @@ input, textarea { font-family: inherit; }
 .daysep::before, .daysep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .daysep span { font-size: .74rem; font-weight: 700; color: var(--faint); padding: .2rem .8rem; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); text-transform: capitalize; }
 
-.group { display: flex; gap: .8rem; padding: .18rem 1.3rem; position: relative; }
+/* content-visibility: the browser skips layout/paint of off-screen message rows
+   (big win on channel switch with a long history). contain-intrinsic-size `auto`
+   remembers each row's real height once rendered, so the scrollbar stays honest;
+   off-screen height changes are re-pinned by the ResizeObserver before paint. */
+.group { display: flex; gap: .8rem; padding: .18rem 1.3rem; position: relative;
+  content-visibility: auto; contain-intrinsic-size: auto 44px; }
 .group:hover { background: var(--bg-soft); }
 .group__avatar { width: 40px; height: 40px; flex: none; }
 .group__time-rail { display: grid; place-items: center; font-size: .66rem; color: var(--faint); opacity: 0; }
