@@ -6,6 +6,7 @@
 // the opaque-origin guest, so a bundled feature still can't reach the page/session.
 import diceSource from './features/dice.js?raw';
 import pulseSource from './features/pulse.js?raw';
+import analyticsSource from './features/analytics.js?raw';
 import { mountSandboxed } from './host';
 import { getConfig } from '../../core/config';
 
@@ -19,4 +20,8 @@ const BUILTINS = [
 export function mountBuiltins(): void {
   const enabled = getConfig().builtins ?? [];
   for (const b of BUILTINS) if (enabled.includes(b.name)) mountSandboxed(b);
+  // Analytics is driven by its own config block — an endpoint is required anyway —
+  // so enabling it is a single knob: set analytics.endpoint.
+  if (getConfig().analytics?.endpoint)
+    mountSandboxed({ name: 'analytics', source: analyticsSource, permissions: ['analytics'] });
 }

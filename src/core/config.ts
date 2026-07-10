@@ -102,6 +102,15 @@ export interface AppConfig {
     canonical?: string;   // canonical URL (else branding.url + current path)
     twitterSite?: string; // @handle
   };
+  /** Cookieless, first-party analytics. Setting `endpoint` enables the sandboxed
+   *  analytics feature (no `builtins` entry needed): it beacons `session` +
+   *  `pageview` events to `endpoint` (POST, no cookies) via the gated
+   *  analytics.track verb. Public channel names are sent; DMs/console are redacted
+   *  to a category. A same-origin `endpoint` needs no CSP change. */
+  analytics?: {
+    endpoint: string; // POST target for pageview beacons
+    siteId?: string;  // tag each beacon to separate deployments
+  };
 }
 
 /** A plugin to load: a bare URL, or a URL with options.

@@ -15,7 +15,11 @@
 // join/part/list) are far less dangerous than raw wire access (irc.send can issue
 // ANY command as the user — MODE, KICK, QUIT, …), so an operator must grant it on
 // purpose rather than getting it bundled with 'irc'.
-export const PERMISSIONS = ['irc', 'irc-raw', 'notify', 'storage'] as const;
+// 'analytics' lets a plugin hand a small pageview payload to the host, which posts
+// it to the ONE endpoint in config.analytics.endpoint — the plugin never chooses
+// the destination and gets no other network reach. Only the first-party analytics
+// feature should hold it; granting it elsewhere just lets a plugin pad your counts.
+export const PERMISSIONS = ['irc', 'irc-raw', 'notify', 'storage', 'analytics'] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
 // An explicit, self-documenting way to declare that a plugin wants ZERO
@@ -35,6 +39,8 @@ export const RPC_CAPABILITY: Record<string, Permission | null> = {
   'irc.list': 'irc',
   'notify': 'notify',
   'storage.set': 'storage',
+  // Egress is host-mediated to the single configured endpoint (never a plugin URL).
+  'analytics.track': 'analytics',
   // UI stays inside the plugin's own sandboxed iframe, so it needs no grant.
   'ui.claim': null,
   'ui.resize': null,

@@ -9,7 +9,7 @@
 import { createElement } from 'react';
 import { activeStore } from '../../core/networks';
 import { useThemeStore } from '../../themes';
-import { pluginDebug, type PluginEntry } from '../../core/config';
+import { getConfig, pluginDebug, type PluginEntry } from '../../core/config';
 import { bus } from '../bus';
 import { usePluginRegistry, type UiSlot } from '../registry';
 import { pluginNotify } from '../../platform/notify';
@@ -87,6 +87,7 @@ export function mountSandboxed(spec: SandboxSpec): void {
 
   let claimed = false;
   let lastNotify = 0;
+  let lastBeacon = 0;
   let removeUi: () => void = () => {};
   let currentPort: MessagePort | null = null;   // the live guest port (rebuilt each handshake)
   const hooks: Record<string, () => void> = {};  // command/shortcut disposers, keyed by guest hook id
@@ -107,6 +108,27 @@ export function mountSandboxed(spec: SandboxSpec): void {
       pluginNotify(String(a[0] ?? ''), a[1] != null ? String(a[1]) : undefined);
     },
     'storage.set': (a) => persistStorage(name, String(a[0]), a[1]),
+    // Host-mediated egress: the guest supplies only { t, p }; WE choose the URL
+    // (config.analytics.endpoint), send no cookies, and cap rate + payload. So an
+    // isolated plugin can beacon a pageview but can't exfiltrate or pick a target.
+    'analytics.track': (a) => {
+      const an = getConfig().analytics;
+      if (!an?.endpoint) return; // disabled unless an endpoint is configured
+      const now = Date.now();
+      if (now - lastBeacon < 800) return; // backstop (the plugin also debounces)
+      lastBeacon = now;
+      const p = (a[0] && typeof a[0] === 'object' ? a[0] : {}) as Record<string, unknown>;
+      const body = JSON.stringify({
+        t: String(p.t ?? 'event').slice(0, 32),
+        p: p.p != null ? String(p.p).slice(0, 128) : undefined,
+        site: an.siteId || undefined,
+        path: location.pathname,
+        ref: document.referrer || undefined,
+        lang: navigator.language,
+      });
+      try { void fetch(an.endpoint, { method: 'POST', credentials: 'omit', keepalive: true, headers: { 'Content-Type': 'application/json' }, body }); }
+      catch { /* fire-and-forget */ }
+    },
     'ui.claim': (a) => {
       if (claimed) return; claimed = true;
       const raw = String(a[0] ?? 'footer_item');

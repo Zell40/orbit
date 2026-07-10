@@ -204,6 +204,9 @@ import type { RpcMethod, StateSnapshot, HostToGuest } from '../protocol';
         list: () => rpc('irc.list'),
       },
       notify: (title: string, body: string) => rpc('notify', title, body),
+      // Hand a small { t, p } pageview payload to the host, which posts it to the
+      // configured analytics endpoint (needs the 'analytics' grant). No return value.
+      track: (data: unknown) => rpc('analytics.track', data),
       // Register a slash command: typing "/name a b" calls run(["a","b"], "a b").
       // Returns an unregister fn. Built-in commands win over a plugin's.
       command(nameStr: string, run: (...a: unknown[]) => void, help?: string) {
