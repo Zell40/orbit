@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { getTheme, hydrateTheme, useThemeStore } from './themes'
 import { applyConfigDefaultLang } from './core/i18n'
 import { applySeo } from './core/seo.ts'
-import { initGa } from './core/ga.ts'
+import { initGa, disableGa } from './core/ga.ts'
 import { getConsent } from './core/consent.ts'
 import './index.css'
 // Alternate themes, loaded after the base so their [data-theme] rules win.
@@ -94,6 +94,7 @@ loadConfig().then(async () => {
   const { initPlugins } = await import('./modules')
   initPlugins()
   if (getConsent() === 'granted') initGa() // GA only after opt-in; the banner handles first visit
+  else disableGa()                         // no GA cookies linger without consent
 
   // Core sandboxed features the app ships itself (isolated + capability-gated),
   // mounted by core — no config.json entry needed.
