@@ -115,6 +115,9 @@ export interface AppConfig {
     siteId?: string;   // tag each first-party beacon to separate deployments
     gaId?: string;     // Google Analytics 4 measurement id (G-XXXXXXX)
   };
+  /** The network's securitygroup names, for the securitygroup extban quick-pick.
+   *  The ircd doesn't advertise them, so list them here to click instead of type. */
+  securityGroups?: string[];
 }
 
 /** A plugin to load: a bare URL, or a URL with options.

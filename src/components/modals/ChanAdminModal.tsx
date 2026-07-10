@@ -5,6 +5,7 @@ import { formatIrc } from '../../lib/format';
 import { buildModeContext } from '../../core/irc/modes';
 import { setterMask, ago } from '../../lib/topic';
 import { availableExtbans, matchExtban, type ExtBan } from '../../lib/extbans';
+import { getConfig } from '../../core/config';
 import { Modal } from './Modal';
 
 // Curated channel flags (no-parameter, type-D). Only the ones the server advertises
@@ -256,10 +257,18 @@ export function ChanAdminModal() {
               onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
             <button className="upbtn upbtn--primary" onClick={addExtban}>{t('modals.chanadmin.ban')}</button>
           </div>
+          {/* securitygroup takes a group name the ircd doesn't advertise — click to fill it. */}
+          {curExt?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
+            <div className="ca-extgroups">
+              {getConfig().securityGroups!.map((g) => (
+                <button key={g} type="button" className="ca-extgroup" onClick={() => setEbVal(g)}>{g}</button>
+              ))}
+            </div>
+          )}
           {/* Show the full command for the picked type. */}
           {curExt && (
             <div className="ca-extexample">
-              {t('modals.chanadmin.example')} <code>+b {curExt.name}:{curExt.hint}</code>
+              {t('modals.chanadmin.example')} <code>+b {curExt.name}:{ebVal.trim() || curExt.hint}</code>
             </div>
           )}
           <ul className="ca-bans">

@@ -67,5 +67,6 @@
     "endpoint": "/accounts/api/analytics/",
     "siteId": "tchatou",
     "gaId": "G-1PQFZWGNFX"
-  }
+  },
+  "securityGroups": ["kiwiirc", "oper", "ssl", "plain", "registered", "staff", "trusted", "bots", "EU"]
 }
