@@ -138,9 +138,15 @@ export function ChanAdminModal() {
   const exts = availableExtbans(client?.server.isupport ?? {});
   const ebSel = ebType || exts[0]?.name || '';
   const curExt = exts.find((e) => e.name === ebSel);
-  // +b ban, +e exempt (both kinds), +I invite exception (matching extbans only).
-  const ebModes = curExt && !curExt.acting ? (['b', 'e', 'I'] as const) : (['b', 'e'] as const);
-  const ebModeSel = ebModes.includes(ebMode as never) ? ebMode : 'b';
+  // +b ban, +e exempt, +I invite exception — but only offer the modes the server
+  // actually has as list modes (CHANMODES type A), and +I only for matching extbans.
+  const ebModes = (['b', 'e', 'I'] as const).filter((m) => {
+    if (m === 'b') return true;
+    if (!ctx.typeA.has(m)) return false;
+    if (m === 'I') return !!curExt && !curExt.acting;
+    return true;
+  });
+  const ebModeSel = ebModes.includes(ebMode) ? ebMode : 'b';
   const modeVerb: Record<string, string> = { b: 'modals.chanadmin.ban', e: 'modals.chanadmin.exempt', I: 'modals.chanadmin.allow' };
   // Keep the two lists apart: plain nick!user@host bans on the right, typed extbans
   // in their own tab.
