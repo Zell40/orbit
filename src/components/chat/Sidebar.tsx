@@ -9,6 +9,7 @@ import { usePluginRegistry } from '../../modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '../../core/networks';
 import { NetworkTabs } from './NetworkTabs';
+import { StatusMenu } from './StatusMenu';
 import { getConfig } from '../../core/config';
 // The footer bar (TabBar) is in the DOM twice for the responsive layout — a
 // window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on
@@ -31,20 +32,21 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
   const nick = useActiveChat((s) => s.nick);
   const myAccount = useActiveChat((s) => s.account);
   const away = useActiveChat((s) => s.away);
-  const setAway = useActiveChat((s) => s.setAway);
   const setModal = useActiveChat((s) => s.setModal);
-  const openUser = useActiveChat((s) => s.openUser);
   const footerItems = usePluginRegistry((s) => s.ui);
   const footerVisible = variant === (useMediaQuery('(max-width: 880px)') ? 'drawer' : 'desktop');
+  const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
   return (
     <footer className="appbar">
-      <button className={`appbar__me ${away ? 'is-away' : ''}`} onClick={() => openUser(nick)} title={t('sidebar.viewProfile')}>
+      <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
+        onClick={(e) => setStatusAnchor((a) => (a ? null : e.currentTarget.getBoundingClientRect()))}>
         <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
         <span className="appbar__meta">
           <span className="appbar__name">{nick}</span>
           <span className="appbar__status">{away ? t('sidebar.away') : t('sidebar.online')}</span>
         </span>
       </button>
+      {statusAnchor && <StatusMenu nick={nick} away={away} anchor={statusAnchor} onClose={() => setStatusAnchor(null)} />}
       <nav className="appbar__nav" aria-label={t('a11y.conversations')}>
         <button className="tab is-active" aria-label={t('nav.home')}>
           <span className="tab__ic" aria-hidden="true">🏠</span>
@@ -59,8 +61,6 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
       </nav>
       <div className="appbar__actions">
         {footerVisible && footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
-        <button className={`appbar__act appbar__act--away ${away ? 'is-on' : ''}`} onClick={() => setAway(away ? '' : t('sidebar.away'))}
-          title={away ? t('sidebar.markPresent') : t('sidebar.markAway')} aria-label={t('sidebar.presence')} aria-pressed={!!away}>💤</button>
         <button className="appbar__act" onClick={() => setModal('settings')}
           title={t('nav.settings')} aria-label={t('nav.settings')}>⚙️</button>
       </div>
