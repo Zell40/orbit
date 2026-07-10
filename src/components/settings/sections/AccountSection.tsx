@@ -14,7 +14,8 @@ function ChangeNickField({ hint }: { hint: string }) {
   const nick = useActiveChat((s) => s.nick);
   const [newNick, setNewNick] = useState(nick);
   // Keep the field in sync if the server confirms a nick change elsewhere.
-  useEffect(() => { setNewNick(nick); }, [nick]);
+  const [prevNick, setPrevNick] = useState(nick);
+  if (nick !== prevNick) { setPrevNick(nick); setNewNick(nick); }
 
   function applyNick() {
     const n = newNick.trim();

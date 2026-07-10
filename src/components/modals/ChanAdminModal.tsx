@@ -123,9 +123,12 @@ export function ChanAdminModal() {
   const [limitVal, setLimitVal] = useState(curLimit);
 
   useEffect(() => { if (chan) loadBanList(chan); }, [chan, loadBanList]);
-  // Re-sync the param inputs when the live modes change under us (someone else sets +k/+l).
-  useEffect(() => { setKeyVal(curKey); }, [curKey]);
-  useEffect(() => { setLimitVal(curLimit); }, [curLimit]);
+  // Re-sync the param inputs when the live modes change under us (someone else sets
+  // +k/+l) — derive during render, no effect setState.
+  const [prevKey, setPrevKey] = useState(curKey);
+  const [prevLimit, setPrevLimit] = useState(curLimit);
+  if (curKey !== prevKey) { setPrevKey(curKey); setKeyVal(curKey); }
+  if (curLimit !== prevLimit) { setPrevLimit(curLimit); setLimitVal(curLimit); }
 
   if (!buffer || !buffer.isChannel) return null;
   const modes = buffer.modes || '';

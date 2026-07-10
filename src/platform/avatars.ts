@@ -54,11 +54,14 @@ function fetchAvatar(account: string): Promise<string | null> {
 
 // React hook: returns the avatar URL for an account (or null while loading / none).
 export function useAvatarUrl(account?: string | null): string | null {
-  const [url, setUrl] = useState<string | null>(
-    account ? cache.get(account.toLowerCase()) ?? null : null,
-  );
+  const seed = () => (account ? cache.get(account.toLowerCase()) ?? null : null);
+  const [url, setUrl] = useState<string | null>(seed);
+  // Account switched: reset to its cached value (or null) during render — no
+  // effect setState, so no cascading re-render.
+  const [prev, setPrev] = useState(account);
+  if (account !== prev) { setPrev(account); setUrl(seed()); }
   useEffect(() => {
-    if (!account) { setUrl(null); return; }
+    if (!account) return;
     let dead = false;
     fetchAvatar(account).then((u) => { if (!dead) setUrl(u); });
     return () => { dead = true; };
