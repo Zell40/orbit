@@ -4,6 +4,7 @@
 import { activeStore } from './networks';
 import { getConfig } from './config';
 import { SERVER } from './store';
+import { stripFormatting } from './store/text';
 
 interface ModelContext {
   registerTool(tool: {
@@ -56,7 +57,8 @@ export function initWebMcp(): void {
         const n = Math.min(Number(a.limit) || 30, 100);
         const out = b.messages.slice(-n).map((m) => {
           const t = new Date(m.ts).toISOString().slice(11, 16);
-          return m.from ? `[${t}] <${m.from}> ${m.text}` : `[${t}] * ${m.text}`;
+          const text = stripFormatting(m.text);
+          return m.from ? `[${t}] <${m.from}> ${text}` : `[${t}] * ${text}`;
         });
         return out.join('\n') || '(no messages yet)';
       },
