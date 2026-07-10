@@ -250,7 +250,27 @@ export function createChatStore(ns = '') {
         set({ reconnectIn: secs as number });
         sysLine(SERVER, i18n.t('system.reconnecting', { secs }), 'system');
       });
-      client.on('message', (m) => handle(m));
+      // Coalesce inbound messages so a burst renders once, not once per line. The
+      // server frames each IRC line as its own WebSocket message (text.ircv3.net),
+      // so a join burst — NAMES plus a WHO reply per member, across every channel
+      // joined at once — would otherwise fire one React render PER LINE. Buffering
+      // to a timer lets React batch the burst into a single render; under load the
+      // timer macrotasks back up, so each drain naturally swallows more lines.
+      // A 0ms timer (not rAF) keeps processing unread counts + mention notifications
+      // in a backgrounded tab, where rAF is paused. Protocol-critical lines
+      // (PING/PONG, CAP, SASL) are answered in the client before it emits 'message',
+      // so this never delays the handshake or keepalive.
+      const inbox: Parameters<typeof handle>[0][] = [];
+      let pending = 0;
+      const drain = () => {
+        pending = 0;
+        // Splice so anything arriving mid-drain rides the next tick, in order.
+        for (const m of inbox.splice(0, inbox.length)) handle(m);
+      };
+      client.on('message', (m) => {
+        inbox.push(m);
+        if (!pending) pending = setTimeout(drain, 0) as unknown as number;
+      });
       client.connect(opts);
     },
 
