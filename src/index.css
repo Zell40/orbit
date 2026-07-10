@@ -1592,6 +1592,15 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-extmode button:last-child { border-right: 0; }
 .ca-extmode button:hover { color: var(--ink); }
 .ca-extmode button.is-on { background: var(--accent); color: #fff; }
+/* Phone: the extban composer wraps, and the value input takes its own row. */
+@media (max-width: 560px) {
+  .modal:has(.ca-layout) { width: 100vw; height: var(--app-h, 100dvh); max-height: none; border-radius: 0; }
+  .ca-extban-add { flex-wrap: wrap; }
+  .ca-extban-add .ca-extsel { flex: 1 1 auto; min-width: 0; }
+  .ca-extban-add .ca-extsel__btn { min-width: 0; width: 100%; }
+  .ca-extban-add > .modal__input { flex: 1 1 100%; }
+  .ca-extsel__menu { width: min(15rem, calc(100vw - 4rem)); }
+}
 .ca-bans__empty { font-size: .82rem; color: var(--muted); padding: .3rem; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
