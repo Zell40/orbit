@@ -912,5 +912,14 @@
     "errCode": "Codice non valido o scaduto.",
     "errWeak": "Password troppo corta (minimo 8 caratteri).",
     "errMatch": "Le due password non corrispondono."
+  },
+  "consent": {
+    "title": "Cookie e statistiche",
+    "body": "Usiamo Google Analytics per vedere come viene usata la chat — questo imposta dei cookie. Non viene caricato nulla finché non scegli.",
+    "accept": "Accetta",
+    "reject": "Rifiuta",
+    "manageLabel": "Cookie statistici",
+    "manageOn": "Attivo — Google Analytics è attivo",
+    "manageOff": "Disattivato — non viene inviato nulla a Google"
   }
 }

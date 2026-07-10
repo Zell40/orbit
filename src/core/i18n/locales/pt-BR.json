@@ -912,5 +912,14 @@
     "errCode": "Código inválido ou expirado.",
     "errWeak": "Senha muito curta (mínimo de 8 caracteres).",
     "errMatch": "As duas senhas não conferem."
+  },
+  "consent": {
+    "title": "Cookies e estatísticas",
+    "body": "Usamos o Google Analytics para ver como o chat é usado — isso instala cookies. Nada é carregado até você escolher.",
+    "accept": "Aceitar",
+    "reject": "Recusar",
+    "manageLabel": "Cookies de estatísticas",
+    "manageOn": "Ativado — o Google Analytics está ativo",
+    "manageOff": "Desativado — nada é enviado ao Google"
   }
 }

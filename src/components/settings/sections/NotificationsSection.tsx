@@ -3,7 +3,31 @@ import { useTranslation } from 'react-i18next';
 import { getConfig } from '../../../core/config';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../../platform/push';
 import { useActiveChat } from '../../../core/networks';
+import { getConsent, setConsent } from '../../../core/consent';
+import { initGa, disableGa } from '../../../core/ga';
 import { ToggleRow } from '../rows';
+
+// Withdraw / grant Google Analytics consent (only shown when GA is configured).
+function AnalyticsRow() {
+  const { t } = useTranslation();
+  const [on, setOn] = useState(getConsent() === 'granted');
+  if (!getConfig().analytics?.gaId) return null;
+  const toggle = () => {
+    if (on) { setConsent('denied'); disableGa(); setOn(false); }
+    else { setConsent('granted'); initGa(); setOn(true); }
+  };
+  return (
+    <div className="srow">
+      <span className="srow__ic" aria-hidden>📊</span>
+      <div className="srow__txt">
+        <div className="srow__label">{t('consent.manageLabel')}</div>
+        <div className="srow__hint">{on ? t('consent.manageOn') : t('consent.manageOff')}</div>
+      </div>
+      <button className={`switch ${on ? 'is-on' : ''}`} role="switch" aria-checked={on}
+        aria-label={t('consent.manageLabel')} onClick={toggle}><span className="switch__dot" /></button>
+    </div>
+  );
+}
 
 // Web Push toggle — needs both browser support and a VAPID key from the server.
 function PushRow() {
@@ -99,6 +123,7 @@ export function NotificationsSection() {
           <ToggleRow icon="🔗" label={t('settings.notifications.linkPreviews')} hint={t('settings.notifications.linkPreviewsHint')} prefKey="linkPreviews" />
         )}
         <HighlightWordsRow />
+        <AnalyticsRow />
       </div>
     </div>
   );

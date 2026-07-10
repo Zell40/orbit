@@ -912,5 +912,14 @@
     "name": "Name (optional)",
     "password": "Password (optional)",
     "connect": "Connect"
+  },
+  "consent": {
+    "title": "Cookies & analytics",
+    "body": "We use Google Analytics to see how the chat is used — it sets cookies. Nothing loads until you choose.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "manageLabel": "Analytics cookies",
+    "manageOn": "Enabled — Google Analytics is active",
+    "manageOff": "Disabled — nothing is sent to Google"
   }
 }
