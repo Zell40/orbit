@@ -1654,7 +1654,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   /* iOS only (JS adds .ios): the keyboard's own resize event lands late, so we
      drop --app-h on focus and glide the height up in step with the keyboard.
      Height only — never `top`, which must track scroll instantly. */
-  .ios .app, .ios .shell > .app { transition: height .24s cubic-bezier(.22, .61, .36, 1); }
+  .ios .app, .ios .shell > .app { transition: height .25s cubic-bezier(.32, .72, 0, 1); }
 
   /* Composer: the text field gets its own full-width row; the controls
      (image / format / emoji / send) wrap onto the row below. Fixes the
