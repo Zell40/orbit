@@ -1371,14 +1371,12 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 
 /* ============ CONSOLE = TERMINAL SKIN THAT FOLLOWS THE THEME ============ */
-/* --term-* inherit the active theme's surfaces/text so the status window matches
-   the theme (Light stays light); only the terminal accent is tuned per light/dark. */
+/* --term-* inherit the active theme's surfaces, text AND accent, so the status
+   window fully matches the theme — green on Night-green, orange on Night-orange,
+   blue on Light/Night, etc. No hardcoded terminal green. */
 :root {
   --term-bg: var(--rail-bg); --term-bg-2: var(--bg-soft); --term-fg: var(--ink); --term-dim: var(--muted);
-  --term-green: #1c9e57; --term-cyan: #0c8aa6; --term-border: var(--border);
-}
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"], [data-theme="yomirc-dark"] {
-  --term-green: #56e08a; --term-cyan: #5fd3e6;
+  --term-accent: var(--accent); --term-accent-2: var(--accent-d, var(--accent)); --term-border: var(--border);
 }
 /* terminal title bar */
 .topbar--console {
@@ -1397,7 +1395,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 /* terminal output pane */
 .messages--console {
   background:
-    radial-gradient(120% 60% at 50% 0%, rgba(86,224,138,.06), transparent 60%),
+    radial-gradient(120% 60% at 50% 0%, var(--accent-soft), transparent 60%),
     var(--term-bg);
   font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   padding: .7rem 0 .6rem;
@@ -1407,17 +1405,17 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   white-space: pre-wrap;
 }
 .messages--console .sysline::before { display: none; }      /* drop the bullet — pure terminal */
-.messages--console .sysline .who { color: var(--term-cyan); font-weight: 700; }
-.messages--console .sysline--cmd { color: var(--term-green); font-weight: 700; }   /* your echoed commands */
-.messages--console .sysline--cmd::first-letter { color: var(--term-green); }
-.messages--console .infoline { background: rgba(95,211,230,.08); border-color: rgba(95,211,230,.28); box-shadow: inset 3px 0 0 var(--term-cyan); }
-.messages--console .infoline__tag { background: #14808f; color: #d9f7fc; }
+.messages--console .sysline .who { color: var(--term-accent-2); font-weight: 700; }
+.messages--console .sysline--cmd { color: var(--term-accent); font-weight: 700; }   /* your echoed commands */
+.messages--console .sysline--cmd::first-letter { color: var(--term-accent); }
+.messages--console .infoline { background: var(--accent-soft); border-color: transparent; box-shadow: inset 3px 0 0 var(--term-accent-2); }
+.messages--console .infoline__tag { background: var(--accent-soft); color: var(--term-accent-2); }
 .messages--console .infoline__txt { color: var(--term-fg); }
 .messages--console .daysep span { background: var(--term-bg-2); color: var(--term-dim); border-color: var(--term-border); }
 .messages--console .daysep::before, .messages--console .daysep::after { background: var(--term-border); }
-.messages--console .unread-divider span { color: var(--term-green); }
-.messages--console .unread-divider::before { background: linear-gradient(90deg, transparent, var(--term-green)); }
-.messages--console .unread-divider::after { background: linear-gradient(90deg, var(--term-green), transparent); }
+.messages--console .unread-divider span { color: var(--term-accent); }
+.messages--console .unread-divider::before { background: linear-gradient(90deg, transparent, var(--term-accent)); }
+.messages--console .unread-divider::after { background: linear-gradient(90deg, var(--term-accent), transparent); }
 .messages--console::-webkit-scrollbar-thumb { background: var(--border-2, var(--border)); background-clip: padding-box; }
 .messages--console::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: padding-box; }
 
@@ -1427,15 +1425,15 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   background: var(--term-bg-2); border-color: var(--term-border);
   font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
-.composer--console .composer__box:focus-within { border-color: var(--term-green); box-shadow: 0 0 0 3px rgba(86,224,138,.16); }
+.composer--console .composer__box:focus-within { border-color: var(--term-accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .composer--console .composer__add { display: none; }                /* no attach button in the terminal */
 .composer--console .composer__box::before {
-  content: "❯"; align-self: center; color: var(--term-green); font-weight: 800; font-size: 1.05rem; padding: 0 .1rem 0 .55rem;
+  content: "❯"; align-self: center; color: var(--term-accent); font-weight: 800; font-size: 1.05rem; padding: 0 .1rem 0 .55rem;
 }
-.composer--console textarea { color: var(--term-fg); caret-color: var(--term-green); font-size: .92rem; }
+.composer--console textarea { color: var(--term-fg); caret-color: var(--term-accent); font-size: .92rem; }
 .composer--console textarea::placeholder { color: var(--term-dim); }
-.composer--console .composer__send { background: #1c7a44; box-shadow: none; }
-.composer--console .composer__send:hover:not(:disabled) { background: var(--term-green); color: #06210f; }
+.composer--console .composer__send { background: var(--accent); box-shadow: none; }
+.composer--console .composer__send:hover:not(:disabled) { background: var(--term-accent-2); }
 
 /* "You were kicked" box — centred on screen */
 .kicktoast {
