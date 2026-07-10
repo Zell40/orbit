@@ -228,7 +228,7 @@ export function Composer() {
     if (!img) for (const it of Array.from(dt.items || [])) {
       if (it.kind === 'file' && it.type.startsWith('image/')) { img = it.getAsFile(); if (img) break; }
     }
-    if (img) { uploadImage(img); return true; }
+    if (img) { void uploadImage(img); return true; }
     return false;
   }
 
@@ -262,7 +262,7 @@ export function Composer() {
         </>
       )}
       <input ref={fileRef} type="file" accept="image/*" hidden
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ''; }} />
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadImage(f); e.target.value = ''; }} />
       <div className={`composer__box ${isConsole ? 'composer__box--console' : ''} ${dragOver ? 'is-drop' : ''}`}
         onDragOver={(e) => { if (!isConsole) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
