@@ -924,10 +924,6 @@
     "errMatch": "Die beiden Passwörter stimmen nicht überein."
   },
   "consent": {
-    "title": "Cookies & Statistiken",
-    "body": "Wir nutzen Google Analytics, um zu sehen, wie der Chat genutzt wird — dabei werden Cookies gesetzt. Es wird nichts geladen, bis du dich entscheidest.",
-    "accept": "Akzeptieren",
-    "reject": "Ablehnen",
     "manageLabel": "Statistik-Cookies",
     "manageOn": "Aktiviert — Google Analytics ist aktiv",
     "manageOff": "Deaktiviert — es wird nichts an Google gesendet"

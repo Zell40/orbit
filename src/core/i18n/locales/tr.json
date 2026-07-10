@@ -924,10 +924,6 @@
     "errMatch": "İki şifre birbiriyle eşleşmiyor."
   },
   "consent": {
-    "title": "Çerezler ve istatistikler",
-    "body": "Sohbetin nasıl kullanıldığını görmek için Google Analytics kullanıyoruz — bu çerezler yerleştirir. Sen seçim yapana kadar hiçbir şey yüklenmez.",
-    "accept": "Kabul et",
-    "reject": "Reddet",
     "manageLabel": "İstatistik çerezleri",
     "manageOn": "Etkin — Google Analytics aktif",
     "manageOff": "Devre dışı — Google'a hiçbir şey gönderilmez"

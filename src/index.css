@@ -1865,20 +1865,3 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .nettab--add { border: 1px dashed var(--border); background: transparent; color: var(--muted);
   border-radius: 999px; width: 24px; height: 24px; font-size: 1rem; line-height: 1; cursor: pointer; flex: none; }
 .nettab--add:hover { color: var(--ink); border-color: var(--accent); }
-
-/* Analytics consent banner (shown once, when Google Analytics is configured). */
-.consent { position: fixed; left: 50%; transform: translateX(-50%); bottom: 1rem; z-index: 1200;
-  width: min(680px, calc(100vw - 2rem)); display: flex; gap: 1rem; align-items: center;
-  justify-content: space-between; flex-wrap: wrap; padding: .9rem 1.1rem; background: var(--bg-soft);
-  color: var(--ink); border: 1px solid var(--border); border-radius: 14px;
-  box-shadow: var(--shadow-pop, 0 12px 34px -10px rgba(0,0,0,.45)); }
-.consent__title { display: block; font-size: .95rem; }
-.consent__text { margin: .15rem 0 0; font-size: .82rem; color: var(--muted); line-height: 1.45; max-width: 44ch; }
-.consent__actions { display: flex; gap: .5rem; flex: none; }
-.consent__btn { border: 0; border-radius: 9px; padding: .5rem .95rem; font: inherit; font-weight: 600;
-  font-size: .85rem; cursor: pointer; }
-.consent__btn--ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-.consent__btn--ghost:hover { color: var(--ink); border-color: var(--accent); }
-.consent__btn--primary { background: var(--accent); color: #fff; }
-@media (max-width: 560px) { .consent { flex-direction: column; align-items: stretch; }
-  .consent__text { max-width: none; } .consent__actions { justify-content: flex-end; } }

@@ -924,10 +924,6 @@
     "errMatch": "As duas palavras-passe não coincidem."
   },
   "consent": {
-    "title": "Cookies e estatísticas",
-    "body": "Usamos o Google Analytics para ver como o chat é usado — isto instala cookies. Nada é carregado até escolheres.",
-    "accept": "Aceitar",
-    "reject": "Recusar",
     "manageLabel": "Cookies de estatísticas",
     "manageOn": "Ativado — o Google Analytics está ativo",
     "manageOff": "Desativado — nada é enviado ao Google"

@@ -924,10 +924,6 @@
     "connect": "Se connecter"
   },
   "consent": {
-    "title": "Cookies et statistiques",
-    "body": "Nous utilisons Google Analytics pour mesurer l'usage du tchat — cela dépose des cookies. Rien n'est chargé tant que vous n'avez pas choisi.",
-    "accept": "Accepter",
-    "reject": "Refuser",
     "manageLabel": "Cookies de statistiques",
     "manageOn": "Activé — Google Analytics est actif",
     "manageOff": "Désactivé — rien n'est envoyé à Google"

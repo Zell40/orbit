@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
-import { ConsentBanner } from './components/ConsentBanner';
 import { refreshPush } from './platform/push';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
@@ -140,7 +139,6 @@ export default function App() {
       {status === 'registered' || everRegistered
         ? <Chat />
         : autoConnecting ? <ConnectingSplash /> : <ConnectScreen />}
-      <ConsentBanner />
     </>
   );
 }
