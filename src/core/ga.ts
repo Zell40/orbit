@@ -34,6 +34,7 @@ export function initGa(): void {
   loaded = true;
   const w = window as unknown as { dataLayer: unknown[]; gtag: (...a: unknown[]) => void };
   w.dataLayer = w.dataLayer || [];
+  // eslint-disable-next-line prefer-rest-params -- the canonical gtag shim pushes the live `arguments` object; gtag.js relies on that exact shape
   w.gtag = function gtag() { w.dataLayer.push(arguments); };
   w.gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied', wait_for_update: 500 });
   if (getConsent() === 'granted') setGaConsent(true);

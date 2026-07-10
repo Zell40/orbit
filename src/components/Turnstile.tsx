@@ -38,7 +38,7 @@ export function Turnstile({ sitekey, onVerify, onError, theme = 'auto' }: {
   const id = useRef<string | null>(null);
   // keep latest callbacks without re-rendering the widget
   const cb = useRef({ onVerify, onError });
-  cb.current = { onVerify, onError };
+  useEffect(() => { cb.current = { onVerify, onError }; });
 
   useEffect(() => {
     let dead = false;
