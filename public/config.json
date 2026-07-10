@@ -62,5 +62,9 @@
     "/app/plugins/third/orbit-invite.js",
     "/app/plugins/third/orbit-navbar.js"
   ],
-  "builtins": []
+  "builtins": [],
+  "analytics": {
+    "endpoint": "/accounts/api/analytics/",
+    "siteId": "tchatou"
+  }
 }
