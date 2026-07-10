@@ -207,7 +207,9 @@
       "filter": "Filtrar…",
       "extRestrict": "Restrições",
       "extMatch": "Banir por",
-      "example": "Exemplo:"
+      "example": "Exemplo:",
+      "exempt": "Isentar",
+      "allow": "Permitir"
     },
     "report": {
       "reasonLabel": "O que se passa?",

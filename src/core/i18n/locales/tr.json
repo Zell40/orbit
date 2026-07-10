@@ -207,7 +207,9 @@
       "filter": "Filtrele…",
       "extRestrict": "Kısıtlamalar",
       "extMatch": "Şuna göre banla",
-      "example": "Örnek:"
+      "example": "Örnek:",
+      "exempt": "Muaf tut",
+      "allow": "İzin ver"
     },
     "report": {
       "reasonLabel": "Neler oluyor?",

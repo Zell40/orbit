@@ -207,7 +207,9 @@
       "filter": "Фильтр…",
       "extRestrict": "Ограничения",
       "extMatch": "Бан по",
-      "example": "Пример:"
+      "example": "Пример:",
+      "exempt": "Исключить",
+      "allow": "Разрешить"
     },
     "report": {
       "reasonLabel": "Что случилось?",

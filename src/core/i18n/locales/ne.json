@@ -207,7 +207,9 @@
       "filter": "फिल्टर…",
       "extRestrict": "प्रतिबन्धहरू",
       "extMatch": "यसद्वारा प्रतिबन्ध",
-      "example": "उदाहरण:"
+      "example": "उदाहरण:",
+      "exempt": "छुट",
+      "allow": "अनुमति"
     },
     "report": {
       "reasonLabel": "के भइरहेको छ?",

@@ -235,7 +235,9 @@
       "filter": "Filtrer…",
       "extRestrict": "Restrictions",
       "extMatch": "Bannir par",
-      "example": "Exemple :"
+      "example": "Exemple :",
+      "exempt": "Exempter",
+      "allow": "Autoriser"
     }
   },
   "settings": {
