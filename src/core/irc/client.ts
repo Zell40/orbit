@@ -230,7 +230,9 @@ export class IrcClient {
   }
   action(target: string, text: string): void {
     // Proper CTCP ACTION (\x01ACTION …\x01); reserve 9 bytes for the wrapper.
-    for (const part of this.splitForLine('PRIVMSG', target, text, 9)) this.send(`PRIVMSG ${target} :ACTION ${part}`);
+    // Without the \x01 delimiters other clients (mIRC, …) show a literal "ACTION"
+    // in a normal line instead of rendering "* nick …".
+    for (const part of this.splitForLine('PRIVMSG', target, text, 9)) this.send(`PRIVMSG ${target} :\x01ACTION ${part}\x01`);
   }
   setNick(nick: string): void { this.send(`NICK ${nick}`); }
   // User modes (global, per-user). Query with no modestring → RPL_UMODEIS (221).
