@@ -102,14 +102,18 @@ export interface AppConfig {
     canonical?: string;   // canonical URL (else branding.url + current path)
     twitterSite?: string; // @handle
   };
-  /** Cookieless, first-party analytics. Setting `endpoint` enables the sandboxed
-   *  analytics feature (no `builtins` entry needed): it beacons `session` +
-   *  `pageview` events to `endpoint` (POST, no cookies) via the gated
-   *  analytics.track verb. Public channel names are sent; DMs/console are redacted
-   *  to a category. A same-origin `endpoint` needs no CSP change. */
+  /** Analytics — two independent, opt-in backends (set either, both, or neither):
+   *  - `endpoint`: the cookieless first-party collector. Enables the sandboxed
+   *    analytics feature; beacons `session`+`pageview` (POST, no cookies) via the
+   *    gated analytics.track verb. Same-origin needs no CSP change.
+   *  - `gaId`: a Google Analytics 4 measurement id (G-XXXX). Loads gtag.js IN-PAGE
+   *    (see src/core/ga.ts) and sends a page_view per channel switch. Third-party +
+   *    cookies: needs googletagmanager.com/google-analytics.com in the app CSP and,
+   *    on an EU site, a cookie-consent banner. DMs/console are redacted either way. */
   analytics?: {
-    endpoint: string; // POST target for pageview beacons
-    siteId?: string;  // tag each beacon to separate deployments
+    endpoint?: string; // POST target for the cookieless first-party collector
+    siteId?: string;   // tag each first-party beacon to separate deployments
+    gaId?: string;     // Google Analytics 4 measurement id (G-XXXXXXX)
   };
 }
 

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { getTheme, hydrateTheme, useThemeStore } from './themes'
 import { applyConfigDefaultLang } from './core/i18n'
 import { applySeo } from './core/seo.ts'
+import { initGa } from './core/ga.ts'
 import './index.css'
 // Alternate themes, loaded after the base so their [data-theme] rules win.
 import './themes/dark.css'
@@ -91,6 +92,7 @@ loadConfig().then(async () => {
   // before render (plugin-contributed UI registers reactively).
   const { initPlugins } = await import('./modules')
   initPlugins()
+  initGa()                // Google Analytics (gtag) if config.analytics.gaId is set
 
   // Core sandboxed features the app ships itself (isolated + capability-gated),
   // mounted by core — no config.json entry needed.

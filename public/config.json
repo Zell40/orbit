@@ -65,6 +65,7 @@
   "builtins": [],
   "analytics": {
     "endpoint": "/accounts/api/analytics/",
-    "siteId": "tchatou"
+    "siteId": "tchatou",
+    "gaId": "G-1PQFZWGNFX"
   }
 }
