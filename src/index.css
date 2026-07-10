@@ -1561,6 +1561,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-ban { display: flex; align-items: center; gap: .6rem; padding: .35rem .5rem; border-radius: 9px; background: var(--bg-soft); }
 .ca-ban__mask { font-family: ui-monospace, Menlo, monospace; font-size: .82rem; color: var(--ink); overflow-wrap: anywhere; }
 .ca-ban__by { font-size: .76rem; color: var(--muted); margin-left: auto; }
+.ca-ban__type { flex: none; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--accent-d, var(--accent)); background: var(--accent-soft); border-radius: 5px; padding: .1rem .32rem; }
+/* Extban composer: the type <select> shouldn't hog the row from the value input. */
+.ca-extban__type { flex: 0 1 12rem; min-width: 8rem; }
 .ca-bans__empty { font-size: .82rem; color: var(--muted); padding: .3rem; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

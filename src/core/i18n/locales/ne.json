@@ -200,7 +200,9 @@
       "clear": "हटाउनुहोस्",
       "topicBy": "सेट गर्ने",
       "tabOverview": "सिंहावलोकन",
-      "tabModes": "मोडहरू"
+      "tabModes": "मोडहरू",
+      "extbans": "विस्तारित प्रतिबन्ध",
+      "extbanType": "एक्स्टब्यान प्रकार"
     },
     "report": {
       "reasonLabel": "के भइरहेको छ?",
@@ -921,5 +923,32 @@
     "manageLabel": "तथ्याङ्क कुकिज",
     "manageOn": "सक्रिय — Google Analytics चालु छ",
     "manageOff": "निष्क्रिय — Google लाई केही पनि पठाइँदैन"
+  },
+  "extbans": {
+    "mute": "म्युट",
+    "blockcolor": "रङहरू रोक्नुहोस्",
+    "noctcp": "CTCP रोक्नुहोस्",
+    "nonick": "निक परिवर्तन बन्द",
+    "nonotice": "नोटिस बन्द",
+    "stripcolor": "रङहरू हटाउनुहोस्",
+    "nokick": "किक बन्द",
+    "opmoderated": "अपद्वारा नियन्त्रित",
+    "blockinvite": "निमन्त्रणा रोक्नुहोस्",
+    "redirect": "पुनर्निर्देशन",
+    "account": "खाता",
+    "unauthed": "अप्रमाणित",
+    "securitygroup": "सुरक्षा समूह",
+    "score": "प्रतिष्ठा अंक",
+    "country": "देश",
+    "server": "सर्भर",
+    "class": "जडान वर्ग",
+    "realname": "वास्तविक नाम",
+    "realmask": "मास्क + वास्तविक नाम",
+    "fingerprint": "TLS फिंगरप्रिन्ट",
+    "oper": "अपर खाता",
+    "opertype": "अपर प्रकार",
+    "channel": "च्यानलमा",
+    "share": "अन्यत्र प्रतिबन्धित",
+    "gateway": "WebIRC गेटवे"
   }
 }

@@ -200,7 +200,9 @@
       "clear": "Kaldır",
       "topicBy": "Belirleyen",
       "tabOverview": "Genel bakış",
-      "tabModes": "Modlar"
+      "tabModes": "Modlar",
+      "extbans": "Genişletilmiş banlar",
+      "extbanType": "Extban türü"
     },
     "report": {
       "reasonLabel": "Neler oluyor?",
@@ -921,5 +923,32 @@
     "manageLabel": "İstatistik çerezleri",
     "manageOn": "Etkin — Google Analytics aktif",
     "manageOff": "Devre dışı — Google'a hiçbir şey gönderilmez"
+  },
+  "extbans": {
+    "mute": "Sustur",
+    "blockcolor": "Renkleri engelle",
+    "noctcp": "CTCP engelle",
+    "nonick": "Nick değişimi yok",
+    "nonotice": "Notice yok",
+    "stripcolor": "Renkleri kaldır",
+    "nokick": "Kick yok",
+    "opmoderated": "Op denetimli",
+    "blockinvite": "Davetleri engelle",
+    "redirect": "Yönlendir",
+    "account": "Hesap",
+    "unauthed": "Kimliksiz",
+    "securitygroup": "Güvenlik grubu",
+    "score": "İtibar puanı",
+    "country": "Ülke",
+    "server": "Sunucu",
+    "class": "Bağlantı sınıfı",
+    "realname": "Gerçek ad",
+    "realmask": "Maske + gerçek ad",
+    "fingerprint": "TLS parmak izi",
+    "oper": "Oper hesabı",
+    "opertype": "Oper türü",
+    "channel": "Bir kanalda",
+    "share": "Başka yerde yasaklı",
+    "gateway": "WebIRC ağ geçidi"
   }
 }

@@ -228,7 +228,9 @@
       "clear": "Remove",
       "topicBy": "Set by",
       "tabOverview": "Overview",
-      "tabModes": "Modes"
+      "tabModes": "Modes",
+      "extbans": "Extended bans",
+      "extbanType": "Extban type"
     }
   },
   "settings": {
@@ -921,5 +923,32 @@
     "manageLabel": "Analytics cookies",
     "manageOn": "Enabled — Google Analytics is active",
     "manageOff": "Disabled — nothing is sent to Google"
+  },
+  "extbans": {
+    "mute": "Mute",
+    "blockcolor": "Block colours",
+    "noctcp": "Block CTCP",
+    "nonick": "No nick change",
+    "nonotice": "No notices",
+    "stripcolor": "Strip colours",
+    "nokick": "No kicks",
+    "opmoderated": "Op-moderated",
+    "blockinvite": "Block invites",
+    "redirect": "Redirect",
+    "account": "Account",
+    "unauthed": "Unauthenticated",
+    "securitygroup": "Security group",
+    "score": "Reputation score",
+    "country": "Country",
+    "server": "Server",
+    "class": "Connect class",
+    "realname": "Real name",
+    "realmask": "Mask + real name",
+    "fingerprint": "TLS fingerprint",
+    "oper": "Oper account",
+    "opertype": "Oper type",
+    "channel": "On a channel",
+    "share": "Banned elsewhere",
+    "gateway": "WebIRC gateway"
   }
 }

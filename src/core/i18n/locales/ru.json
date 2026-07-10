@@ -200,7 +200,9 @@
       "clear": "Убрать",
       "topicBy": "Задал",
       "tabOverview": "Обзор",
-      "tabModes": "Режимы"
+      "tabModes": "Режимы",
+      "extbans": "Расширенные баны",
+      "extbanType": "Тип расширенного бана"
     },
     "report": {
       "reasonLabel": "Что случилось?",
@@ -921,5 +923,32 @@
     "manageLabel": "Cookie статистики",
     "manageOn": "Включено — Google Analytics активен",
     "manageOff": "Отключено — в Google ничего не отправляется"
+  },
+  "extbans": {
+    "mute": "Мьют",
+    "blockcolor": "Блок цветов",
+    "noctcp": "Блок CTCP",
+    "nonick": "Ник закреплён",
+    "nonotice": "Без notice",
+    "stripcolor": "Убрать цвета",
+    "nokick": "Без киков",
+    "opmoderated": "Модерация опами",
+    "blockinvite": "Блок приглашений",
+    "redirect": "Перенаправить",
+    "account": "Аккаунт",
+    "unauthed": "Не авторизован",
+    "securitygroup": "Группа безопасности",
+    "score": "Рейтинг репутации",
+    "country": "Страна",
+    "server": "Сервер",
+    "class": "Класс подключения",
+    "realname": "Настоящее имя",
+    "realmask": "Маска + имя",
+    "fingerprint": "Отпечаток TLS",
+    "oper": "Аккаунт опера",
+    "opertype": "Тип опера",
+    "channel": "На канале",
+    "share": "Забанен в другом месте",
+    "gateway": "Шлюз WebIRC"
   }
 }

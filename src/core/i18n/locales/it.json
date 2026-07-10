@@ -200,7 +200,9 @@
       "clear": "Rimuovi",
       "topicBy": "Impostato da",
       "tabOverview": "Panoramica",
-      "tabModes": "Modalità"
+      "tabModes": "Modalità",
+      "extbans": "Ban estesi",
+      "extbanType": "Tipo di ban esteso"
     },
     "report": {
       "reasonLabel": "Cosa sta succedendo?",
@@ -921,5 +923,32 @@
     "manageLabel": "Cookie statistici",
     "manageOn": "Attivo — Google Analytics è attivo",
     "manageOff": "Disattivato — non viene inviato nulla a Google"
+  },
+  "extbans": {
+    "mute": "Muto",
+    "blockcolor": "Blocca colori",
+    "noctcp": "Blocca CTCP",
+    "nonick": "Nick bloccato",
+    "nonotice": "Niente notice",
+    "stripcolor": "Rimuovi colori",
+    "nokick": "Niente kick",
+    "opmoderated": "Moderato dagli op",
+    "blockinvite": "Blocca inviti",
+    "redirect": "Reindirizza",
+    "account": "Account",
+    "unauthed": "Non autenticato",
+    "securitygroup": "Gruppo di sicurezza",
+    "score": "Punteggio reputazione",
+    "country": "Paese",
+    "server": "Server",
+    "class": "Classe di connessione",
+    "realname": "Nome reale",
+    "realmask": "Maschera + nome reale",
+    "fingerprint": "Impronta TLS",
+    "oper": "Account oper",
+    "opertype": "Tipo di oper",
+    "channel": "In un canale",
+    "share": "Bannato altrove",
+    "gateway": "Gateway WebIRC"
   }
 }

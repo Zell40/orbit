@@ -4,6 +4,7 @@ import { useActiveChat } from '../../core/networks';
 import { formatIrc } from '../../lib/format';
 import { buildModeContext } from '../../core/irc/modes';
 import { setterMask, ago } from '../../lib/topic';
+import { availableExtbans, matchExtban } from '../../lib/extbans';
 import { Modal } from './Modal';
 
 // Curated channel flags (no-parameter, type-D). Only the ones the server advertises
@@ -54,6 +55,8 @@ export function ChanAdminModal() {
 
   const [tab, setTab] = useState<Tab>('overview');
   const [newban, setNewban] = useState('');
+  const [ebType, setEbType] = useState('');
+  const [ebVal, setEbVal] = useState('');
   const [topic, setTopicVal] = useState(buffer?.topic || '');
   const [editingTopic, setEditingTopic] = useState(false);
   const [keyVal, setKeyVal] = useState(curKey);
@@ -77,6 +80,15 @@ export function ChanAdminModal() {
     const v = newban.trim(); if (!v) return;
     client?.ban(chan, v.includes('@') || v.includes('!') ? v : `${v}!*@*`);
     setNewban(''); setTimeout(() => loadBanList(chan), 500);
+  };
+  // Extended bans the server advertises (core + reputation/securitygroups modules).
+  const exts = availableExtbans(client?.server.isupport ?? {});
+  const ebSel = ebType || exts[0]?.name || '';
+  const curExt = exts.find((e) => e.name === ebSel);
+  const addExtban = () => {
+    const v = ebVal.trim(); if (!v || !curExt) return;
+    client?.ban(chan, `${curExt.name}:${v}`);
+    setEbVal(''); setTimeout(() => loadBanList(chan), 500);
   };
   const applyKey = () => { const v = keyVal.trim(); if (v) setChannelModeParam(chan, 'k', true, v); };
   const clearKey = () => { setChannelModeParam(chan, 'k', false, curKey || '*'); setKeyVal(''); };
@@ -175,6 +187,22 @@ export function ChanAdminModal() {
               );
             })}
           </div>
+          {exts.length > 0 && (
+            <div className="ca-sec ca-extbans">
+              <h4 className="ca-h">{t('modals.chanadmin.extbans')}</h4>
+              <div className="ca-param">
+                <select className="modal__input ca-extban__type" value={ebSel}
+                  onChange={(e) => setEbType(e.target.value)} aria-label={t('modals.chanadmin.extbanType')}>
+                  {exts.map((e) => (
+                    <option key={e.letter} value={e.name}>{t(`extbans.${e.name}`, e.name)}</option>
+                  ))}
+                </select>
+                <input className="modal__input" value={ebVal} placeholder={curExt?.hint}
+                  onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
+                <button className="upbtn upbtn--primary" onClick={addExtban}>{t('modals.chanadmin.ban')}</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -189,14 +217,18 @@ export function ChanAdminModal() {
           </div>
           <ul className="ca-bans">
             {banlist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noBans')}</li>}
-            {banlist.map((b) => (
+            {banlist.map((b) => {
+              const eb = matchExtban(b.mask);
+              return (
               <li key={b.mask} className="ca-ban">
-                <span className="ca-ban__mask">{b.mask}</span>
+                {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
+                <span className="ca-ban__mask">{eb ? b.mask.slice(b.mask.indexOf(':') + 1) : b.mask}</span>
                 {b.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: b.by })}</span>}
                 <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
                   onClick={() => { removeBan(chan, b.mask); setTimeout(() => loadBanList(chan), 500); }}>✕</button>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </aside>
       </div>
