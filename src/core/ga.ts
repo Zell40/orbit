@@ -51,13 +51,14 @@ export function initGa(): void {
 }
 
 // Flip the consent state (banner Accept/Refuse, settings toggle). The tag is already
-// loaded by initGa(); this tells gtag whether it may use storage. Denying also clears
-// any GA cookies already set.
+// loaded by initGa(); this tells gtag whether it may use storage. This is an ad-free
+// site, so ONLY audience measurement is ever granted — the ad signals (ad_storage /
+// ad_user_data / ad_personalization) stay denied, matching the marketing site.
+// Denying also clears any GA cookies already set.
 export function setGaConsent(granted: boolean): void {
   const w = window as unknown as { gtag?: (...a: unknown[]) => void };
   if (typeof w.gtag !== 'function') return;
-  const g = granted ? 'granted' : 'denied';
-  w.gtag('consent', 'update', { ad_storage: g, ad_user_data: g, ad_personalization: g, analytics_storage: g });
+  w.gtag('consent', 'update', { analytics_storage: granted ? 'granted' : 'denied' });
   if (!granted) clearGaCookies();
 }
 
