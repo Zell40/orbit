@@ -45,10 +45,12 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
   }
 
   // Share a caption as a CTCP ACTION (+ optimistic echo if the server won't echo).
+  // Bold + italic (reset with \x0F) so the share stands out in the log everywhere.
   function share(client: IrcClient, active: string, caption: string): void {
-    client.action(active, caption);
+    const styled = `\x02\x1D${caption}\x0F`;
+    client.action(active, styled);
     if (!client.ircv3.hasCap('echo-message')) {
-      addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: caption, ts: Date.now(), kind: 'action', self: true });
+      addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: styled, ts: Date.now(), kind: 'action', self: true });
     }
   }
 
