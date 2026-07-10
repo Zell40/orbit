@@ -792,9 +792,9 @@ html[data-actions="off"] .msg-actions { display: none; }
  
  
 
-/* away members dimmed + amber presence dot */
-.member.is-away { opacity: .5; }
-.member.is-away .avatar { filter: grayscale(.55); }
+/* away members: amber/orange name, dimmed grayscale avatar with an amber presence dot */
+.member.is-away .member__name { color: #e0a93a; }
+.member.is-away .avatar { filter: grayscale(.55); opacity: .7; }
 .member.is-away .avatar::after { background: #e0a93a; }
 
 /* bot tag */

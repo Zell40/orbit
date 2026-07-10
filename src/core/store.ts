@@ -329,6 +329,9 @@ export function createChatStore(ns = '') {
 
     setAway(reason) {
       get().client?.setAway(reason);
+      // away-notify tells OTHER members we're away, never us — patch our own entry
+      // in every channel so the member list reflects it immediately.
+      helpers.patchMemberEverywhere(get().nick, { away: !!reason });
       set({ away: !!reason });
     },
 
