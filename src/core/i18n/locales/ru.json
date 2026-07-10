@@ -206,7 +206,8 @@
       "noExtbans": "Пока нет расширенных банов",
       "filter": "Фильтр…",
       "extRestrict": "Ограничения",
-      "extMatch": "Бан по"
+      "extMatch": "Бан по",
+      "example": "Пример:"
     },
     "report": {
       "reasonLabel": "Что случилось?",

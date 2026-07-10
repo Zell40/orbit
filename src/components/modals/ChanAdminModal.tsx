@@ -256,6 +256,12 @@ export function ChanAdminModal() {
               onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
             <button className="upbtn upbtn--primary" onClick={addExtban}>{t('modals.chanadmin.ban')}</button>
           </div>
+          {/* Show the full command for the picked type. */}
+          {curExt && (
+            <div className="ca-extexample">
+              {t('modals.chanadmin.example')} <code>+b {curExt.name}:{curExt.hint}</code>
+            </div>
+          )}
           <ul className="ca-bans">
             {extbanList.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noExtbans')}</li>}
             {extbanList.map((b) => {

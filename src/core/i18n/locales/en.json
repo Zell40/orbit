@@ -234,7 +234,8 @@
       "noExtbans": "No extended bans yet",
       "filter": "Filter…",
       "extRestrict": "Restrictions",
-      "extMatch": "Ban by"
+      "extMatch": "Ban by",
+      "example": "Example:"
     }
   },
   "settings": {

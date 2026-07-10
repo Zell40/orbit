@@ -206,7 +206,8 @@
       "noExtbans": "Henüz genişletilmiş ban yok",
       "filter": "Filtrele…",
       "extRestrict": "Kısıtlamalar",
-      "extMatch": "Şuna göre banla"
+      "extMatch": "Şuna göre banla",
+      "example": "Örnek:"
     },
     "report": {
       "reasonLabel": "Neler oluyor?",

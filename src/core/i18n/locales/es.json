@@ -206,7 +206,8 @@
       "noExtbans": "Sin bans extendidos",
       "filter": "Filtrar…",
       "extRestrict": "Restricciones",
-      "extMatch": "Banear por"
+      "extMatch": "Banear por",
+      "example": "Ejemplo:"
     },
     "report": {
       "reasonLabel": "¿Qué está pasando?",

@@ -1575,6 +1575,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   background: transparent; color: var(--ink); font: inherit; font-size: .85rem; cursor: pointer; }
 .ca-extsel__opt:hover { background: var(--bg-soft); }
 .ca-extsel__opt.is-on { background: var(--accent-soft); color: var(--accent-d, var(--accent)); font-weight: 600; }
+.ca-extexample { margin: -.35rem 0 1rem; font-size: .8rem; color: var(--muted); }
+.ca-extexample code { font-family: ui-monospace, Menlo, monospace; color: var(--ink);
+  background: var(--bg-soft); padding: .12rem .4rem; border-radius: 6px; }
 .ca-bans__empty { font-size: .82rem; color: var(--muted); padding: .3rem; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
