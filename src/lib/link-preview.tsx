@@ -56,7 +56,7 @@ export function LinkPreview({ url }: { url: string }) {
     <div className="lp-anchor" ref={ref}>
       {data && (
         <a className="lpcard" href={data.url || url} target="_blank" rel="noopener noreferrer">
-          {data.image && <img className="lpcard__img" src={data.image} alt="" loading="lazy" />}
+          {data.image && <img className="lpcard__img" src={data.image} alt="" loading="lazy" decoding="async" width={92} height={92} />}
           <span className="lpcard__body">
             {data.siteName && <span className="lpcard__site">{data.siteName}</span>}
             {data.title && <span className="lpcard__title">{data.title}</span>}

@@ -10,7 +10,7 @@ export function Avatar({ nick, size = 40, account }: { nick: string; size?: numb
   if (url) {
     return (
       <span className="avatar group__avatar avatar--img" style={{ width: size, height: size }}>
-        <img src={url} alt={n} loading="lazy" width={size} height={size}
+        <img src={url} alt={n} loading="lazy" decoding="async" width={size} height={size}
           onError={(e) => { e.currentTarget.style.display = 'none'; }} />
       </span>
     );
