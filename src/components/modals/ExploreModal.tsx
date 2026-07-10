@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Icon } from '../Icon';
 import { formatIrc, avatarBg } from '@/lib/format';
 import { useActiveChat } from '@/core/networks';
 import { Modal } from './Modal';
@@ -38,7 +39,7 @@ export function ExploreModal() {
       <div className="explore">
         <div className="explore-bar">
           <div className="explore-search">
-            <span className="explore-search__icon">🔍</span>
+            <span className="explore-search__icon"><Icon name="search" size={15} /></span>
             <input name="channel-search" type="search" autoComplete="off" placeholder={t('modals.join.search')} value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && q.trim()) join(q); }} autoFocus />

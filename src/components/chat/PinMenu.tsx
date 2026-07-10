@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Icon } from '../Icon';
 
 import { nickColor } from '@/lib/format';
 import { stripFormatting } from '@/core/store/text';
@@ -42,7 +43,7 @@ export function PinMenu() {
     <div className="nmenu" ref={ref}>
       <button className="topbar__search" aria-haspopup="menu" aria-expanded={open}
         title={t('pins.title')} aria-label={t('pins.aria', { count: pins.length })}
-        onClick={() => setOpen((o) => !o)}>📌<span className="nmenu__badge">{pins.length}</span></button>
+        onClick={() => setOpen((o) => !o)}><Icon name="pin" size={18} /><span className="nmenu__badge">{pins.length}</span></button>
       {open && (
         <div className="nmenu__pop nmenu__pop--pins" role="menu" aria-label={t('pins.title')}>
           <div className="nmenu__head">{t('pins.title')}</div>

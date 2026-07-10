@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { avatarBg } from '../lib/format';
 import { buildSwitcherResults, type SwitcherItem } from '../lib/switcher';
 import { useActiveChat } from '../core/networks';
+import { Icon } from './Icon';
 
 // Command-palette-style quick switcher (Ctrl/⌘-K): fuzzy-jump to any open
 // channel/DM, any person in your channels, or join a channel by name.
@@ -54,7 +55,7 @@ export function QuickSwitcher() {
     <div className="qswitch-scrim" onClick={close}>
       <div className="qswitch" role="dialog" aria-label={t('switcher.title')} onClick={(e) => e.stopPropagation()}>
         <div className="qswitch__bar">
-          <span className="qswitch__ic" aria-hidden>🔍</span>
+          <span className="qswitch__ic" aria-hidden><Icon name="search" size={15} /></span>
           <input className="qswitch__input" autoFocus value={q} onChange={(e) => { setQ(e.target.value); setSel(0); }}
             onKeyDown={onKey} placeholder={t('switcher.placeholder')} aria-label={t('switcher.placeholder')} />
         </div>

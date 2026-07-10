@@ -8,6 +8,7 @@ import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
   const { t, i18n } = useTranslation();
@@ -33,7 +34,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const serverName = useActiveChat((s) => s.serverName);
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
-  if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button></div>;
+  if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button></div>;
   const n = members ? Object.keys(members).length : 0;
   const setter = topicBy ? setterMask(topicBy, members || {}) : '';
   const setterTitle = setter ? `${t('modals.chanadmin.topicBy')} ${setter}${topicAt ? ` · ${ago(topicAt, locale)}` : ''}` : '';
@@ -43,18 +44,18 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   if (searching || search) {
     return (
       <div className="topbar topbar--search">
-        <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button>
-        <span className="topbar__searchicon">🔍</span>
+        <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button>
+        <span className="topbar__searchicon"><Icon name="search" size={16} /></span>
         <input className="topbar__searchinput" name="message-search" type="search" autoComplete="off" autoFocus placeholder={t('topbar.searchIn', { label })}
           value={search} onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Escape') { setSearch(''); setSearching(false); } }} />
-        <button className="topbar__searchclose" onClick={() => { setSearch(''); setSearching(false); }} aria-label={t('topbar.closeSearch')}>✕</button>
+        <button className="topbar__searchclose" onClick={() => { setSearch(''); setSearching(false); }} aria-label={t('topbar.closeSearch')}><Icon name="close" size={16} /></button>
       </div>
     );
   }
   return (
     <div className={`topbar ${isServer ? 'topbar--console' : ''} ${isChannel ? 'topbar--channel' : ''}`}>
-      <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>☰</button>
+      <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button>
       {isServer
         ? <span className="term-lights"><i /><i /><i /></span>
         : <span className="topbar__av" style={{ background: avatarBg(bname) }}>{isChannel ? '#' : label[0]?.toUpperCase()}</span>}
@@ -83,15 +84,15 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
         )}
       </div>
       {topbarItems.filter((u) => u.slot === 'topbar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}
-      {!isServer && <button className="topbar__search" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}>🔍</button>}
+      {!isServer && <button className="topbar__search" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
       {isChannel && <PinMenu />}
       {isChannel && <NotifyMenu />}
-      {isChannel && amOp && <button className="topbar__search" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}>🛠️</button>}
+      {isChannel && amOp && <button className="topbar__search" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
       {!isServer && (
         <button className="topbar__leave" onClick={() => closeBuffer(bname)}
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
-          aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}>✕</button>
+          aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}><Icon name="close" size={18} /></button>
       )}
     </div>
   );

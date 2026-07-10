@@ -154,7 +154,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       {getConfig().features.multiNetwork && <NetworkTabs />}
 
       <div className="side-search">
-        <span className="side-search__icon">🔍</span>
+        <span className="side-search__icon"><Icon name="search" size={14} /></span>
         <input name="room-filter" type="search" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('sidebar.search')} aria-label={t('sidebar.search')} />
       </div>
 

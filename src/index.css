@@ -316,7 +316,7 @@ input, textarea { font-family: inherit; }
   .app.nav-open .sidebar { transform: none; }
   .nav-toggle {
     display: inline-grid; place-items: center; width: 36px; height: 36px; flex: none; margin-right: .15rem;
-    border: 1px solid var(--border); border-radius: 9px; background: var(--bg-soft); color: var(--ink-2); font-size: 1.1rem;
+    border: 1px solid var(--border); border-radius: 9px; background: var(--bg-soft); color: var(--ink-2);
   }
   .nav-backdrop { position: fixed; inset: 0; z-index: 55; background: rgba(20,30,45,.4); }
 }
@@ -413,7 +413,7 @@ input, textarea { font-family: inherit; }
 .side-compose:hover { background: var(--accent-soft); color: var(--accent-d); border-color: rgba(20,82,204,.35); }
 
 .side-search { position: relative; margin: .1rem .8rem .55rem; }
-.side-search__icon { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); font-size: .85rem; opacity: .55; pointer-events: none; }
+.side-search__icon { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); display: inline-flex; opacity: .55; pointer-events: none; }
 .side-search input {
   width: 100%; padding: .58rem .8rem .58rem 2.1rem; font-size: .92rem; color: var(--ink);
   background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; outline: none; transition: border-color .15s, background .15s, box-shadow .15s;
@@ -684,15 +684,23 @@ html[data-actions="off"] .msg-actions { display: none; }
 
 /* ---- in-buffer search ---- */
 .topbar--search { gap: .5rem; }
-.topbar__search { flex: none; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 1rem; cursor: pointer; transition: background .13s; }
+.topbar__search { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background .13s; }
 .topbar__search:hover { background: var(--bg-soft-2); color: var(--ink); }
 /* Leave/close the current window (parts a channel, closes a DM) — far-right of the header. */
-.topbar__leave { flex: none; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 1rem; cursor: pointer; transition: background .13s, color .13s; }
+.topbar__leave { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background .13s, color .13s; }
 .topbar__leave:hover { background: var(--danger-soft, rgba(224,49,80,.14)); color: var(--danger); }
-.topbar__searchicon { font-size: 1rem; opacity: .7; }
+.topbar__searchicon { display: inline-flex; opacity: .7; }
 .topbar__searchinput { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: .95rem; color: var(--ink); outline: none; }
-.topbar__searchclose { flex: none; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: .95rem; padding: .3rem .5rem; border-radius: 8px; }
+.topbar__searchclose { flex: none; display: inline-flex; align-items: center; border: 0; background: none; color: var(--muted); cursor: pointer; padding: .3rem .5rem; border-radius: 8px; }
 .topbar__searchclose:hover { background: var(--bg-soft-2); color: var(--ink); }
+/* Themed toolbar icons: render the stroke SVGs crisply, and give the buttons the
+   same tactile press + focus ring as the footer tabs. */
+.topbar__search svg, .topbar__leave svg, .topbar__searchclose svg, .topbar__searchicon svg,
+.nav-toggle svg, .side-search__icon svg, .explore-search__icon svg, .qswitch__ic svg, .nmenu__ic svg { display: block; }
+.topbar__search:active, .topbar__leave:active, .nav-toggle:active { transform: scale(.92); transition: transform .08s ease; }
+.topbar__search:focus-visible, .topbar__leave:focus-visible, .nav-toggle:focus-visible {
+  outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent-ring, rgba(20, 82, 204, .45));
+}
 .messages--search { padding: .6rem 1rem; }
 .search-count { font-size: .82rem; font-weight: 700; color: var(--muted); padding: .3rem .2rem .6rem; }
 .search-hit { padding: .5rem .6rem; border-radius: 10px; margin-bottom: .25rem; transition: background .12s; }
@@ -1312,7 +1320,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .explore { display: flex; flex-direction: column; gap: .55rem; }
 .explore-bar { display: flex; gap: .5rem; align-items: center; }
 .explore-search { position: relative; flex: 1; display: flex; align-items: center; min-width: 0; }
-.explore-search__icon { position: absolute; left: .7rem; font-size: .85rem; opacity: .55; pointer-events: none; }
+.explore-search__icon { position: absolute; left: .7rem; display: inline-flex; opacity: .55; pointer-events: none; }
 .explore-search input { width: 100%; padding: .62rem .8rem .62rem 2.1rem; border-radius: 11px; border: 1px solid var(--border); background: var(--bg-soft); color: var(--ink); font: inherit; outline: none; transition: border-color .12s, box-shadow .12s; }
 .explore-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(20,82,204,.14); }
 .explore-search__clear { position: absolute; right: .55rem; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: .82rem; padding: .2rem; }
@@ -1776,7 +1784,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
   box-shadow: 0 24px 70px rgba(0,0,0,.35); overflow: hidden; }
 .qswitch__bar { display: flex; align-items: center; gap: .6rem; padding: .8rem 1rem; border-bottom: 1px solid var(--border); }
-.qswitch__ic { opacity: .55; font-size: .95rem; }
+.qswitch__ic { opacity: .55; display: inline-flex; }
 .qswitch__input { flex: 1; border: 0; background: transparent; color: var(--ink); font-size: 1.02rem; outline: none; min-width: 0; }
 .qswitch__list { list-style: none; margin: 0; padding: .35rem; overflow-y: auto; }
 .qswitch__item { display: flex; align-items: center; gap: .6rem; padding: .5rem .55rem; border-radius: 9px; cursor: pointer; }
@@ -1824,7 +1832,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   border: 0; background: transparent; color: var(--ink); padding: .5rem .55rem; border-radius: 8px; cursor: pointer; }
 .nmenu__item:hover { background: var(--accent-soft); }
 .nmenu__item.is-on { background: var(--accent-soft); }
-.nmenu__ic { flex: none; font-size: 1rem; }
+.nmenu__ic { flex: none; display: inline-flex; }
 .nmenu__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .nmenu__txt b { font-size: .88rem; font-weight: 600; }
 .nmenu__txt span { font-size: .73rem; color: var(--muted); }
