@@ -88,7 +88,10 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
   const channelTopic = b.isChannel ? stripFormatting(b.topic || '').trim() : '';
   const genericSub = !isServer && !channelTopic; // no real subtitle (topicless channel or a DM)
   return (
-    <button className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`} onClick={() => { setActive(name); onNavigate(); }}>
+    <div className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`}
+      role="button" tabIndex={0}
+      onClick={() => { setActive(name); onNavigate(); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(name); onNavigate(); } }}>
       <span className="room__av" data-server={isServer || undefined}
         style={isServer ? undefined : { background: avatarBg(name) }}>
         {b.isChannel ? <span className="room__hash">#</span> : glyph}
@@ -103,15 +106,14 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
       </span>
       {b.unread > 0 && <span className="room__badge">{b.unread}</span>}
       {!isServer && (
-        <span
+        <button
+          type="button"
           className="room__close"
-          role="button"
-          tabIndex={-1}
           title={b.isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           onClick={(e) => { e.stopPropagation(); closeBuffer(name); }}
-        >✕</span>
+        >✕</button>
       )}
-    </button>
+    </div>
   );
 });
 

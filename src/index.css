@@ -438,6 +438,7 @@ input, textarea { font-family: inherit; }
 .room {
   position: relative; display: flex; align-items: center; gap: .55rem; width: 100%; text-align: left;
   padding: .42rem .5rem; margin: 1px 0; border: 0; background: none; border-radius: 10px; font: inherit;
+  cursor: pointer; -webkit-user-select: none; user-select: none;   /* it's a div[role=button] now */
   transition: background .13s;
 }
 .room:hover { background: var(--bg-soft); }
@@ -460,7 +461,7 @@ input, textarea { font-family: inherit; }
 }
 /* close / leave button on a room row — appears on hover, replaces the unread badge */
 .room__close {
-  flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px;
+  flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 6px; border: 0; background: none;
   color: var(--faint); font-size: .78rem; opacity: 0; cursor: pointer; transition: opacity .12s, background .12s, color .12s;
 }
 .room:hover .room__close, .room.is-active .room__close { opacity: 1; }
