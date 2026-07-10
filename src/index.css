@@ -1556,6 +1556,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-ban__by { font-size: .76rem; color: var(--muted); margin-left: auto; }
 .ca-ban__type { flex: none; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
   color: var(--accent-d, var(--accent)); background: var(--accent-soft); border-radius: 5px; padding: .1rem .32rem; }
+.ca-ban__mode { flex: none; font-family: ui-monospace, Menlo, monospace; font-size: .68rem; font-weight: 700; border-radius: 5px; padding: .05rem .3rem; }
+.ca-ban__mode--b { color: #d6465f; background: rgba(214,70,95,.13); }
+.ca-ban__mode--e { color: #2ea043; background: rgba(46,160,67,.13); }
+.ca-ban__mode--I { color: #3b82f6; background: rgba(59,130,246,.14); }
 /* Extbans tab: a compact combobox (button + overlay menu) beside the value input, so
    picking a type and typing the mask stay on one row — no scrolling. */
 .ca-extban-add { margin-bottom: .9rem; align-items: stretch; }

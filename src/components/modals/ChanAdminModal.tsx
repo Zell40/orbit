@@ -94,6 +94,8 @@ export function ChanAdminModal() {
   const setModal = useActiveChat((s) => s.setModal);
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const banlist = useActiveChat((s) => s.banlists[s.active] || []);
+  const exceptlist = useActiveChat((s) => s.exceptlists[s.active] || []);
+  const invexlist = useActiveChat((s) => s.invexlists[s.active] || []);
   const loadBanList = useActiveChat((s) => s.loadBanList);
   const setChannelMode = useActiveChat((s) => s.setChannelMode);
   const setChannelModeParam = useActiveChat((s) => s.setChannelModeParam);
@@ -151,7 +153,17 @@ export function ChanAdminModal() {
   // Keep the two lists apart: plain nick!user@host bans on the right, typed extbans
   // in their own tab.
   const plainBans = banlist.filter((b) => !matchExtban(b.mask));
-  const extbanList = banlist.filter((b) => matchExtban(b.mask));
+  // The Extbans tab lists the typed +b extbans plus the whole +e / +I lists, each
+  // tagged with its mode. Plain +b masks stay in the Bans tab.
+  const extEntries = [
+    ...banlist.filter((b) => matchExtban(b.mask)).map((b) => ({ mode: 'b' as const, mask: b.mask, by: b.by })),
+    ...exceptlist.map((b) => ({ mode: 'e' as const, mask: b.mask, by: b.by })),
+    ...invexlist.map((b) => ({ mode: 'I' as const, mask: b.mask, by: b.by })),
+  ];
+  const removeExt = (mode: 'b' | 'e' | 'I', mask: string) => {
+    if (mode === 'b') removeBan(chan, mask); else setChannelModeParam(chan, mode, false, mask);
+    setTimeout(() => loadBanList(chan), 500);
+  };
   const addExtban = () => {
     const v = ebVal.trim(); if (!v || !curExt) return;
     const mask = `${curExt.name}:${v}`;
@@ -291,16 +303,17 @@ export function ChanAdminModal() {
             </div>
           )}
           <ul className="ca-bans">
-            {extbanList.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noExtbans')}</li>}
-            {extbanList.map((b) => {
-              const eb = matchExtban(b.mask)!;
+            {extEntries.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noExtbans')}</li>}
+            {extEntries.map((e) => {
+              const eb = matchExtban(e.mask);
               return (
-                <li key={b.mask} className="ca-ban">
-                  <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>
-                  <span className="ca-ban__mask">{b.mask.slice(b.mask.indexOf(':') + 1)}</span>
-                  {b.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: b.by })}</span>}
+                <li key={e.mode + e.mask} className="ca-ban">
+                  <span className={`ca-ban__mode ca-ban__mode--${e.mode}`}>+{e.mode}</span>
+                  {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
+                  <span className="ca-ban__mask">{eb ? e.mask.slice(e.mask.indexOf(':') + 1) : e.mask}</span>
+                  {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
                   <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
-                    onClick={() => { removeBan(chan, b.mask); setTimeout(() => loadBanList(chan), 500); }}>✕</button>
+                    onClick={() => removeExt(e.mode, e.mask)}>✕</button>
                 </li>
               );
             })}

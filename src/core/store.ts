@@ -52,6 +52,8 @@ export interface ChatState {
   addFriend: (nick: string) => void;
   removeFriend: (nick: string) => void;
   banlists: Record<string, { mask: string; by: string; ts: number }[]>; // channel key → +b list
+  exceptlists: Record<string, { mask: string; by: string; ts: number }[]>; // +e ban exceptions
+  invexlists: Record<string, { mask: string; by: string; ts: number }[]>;  // +I invite exceptions
   loadBanList: (channel: string) => void;
   setChannelMode: (channel: string, mode: string, add: boolean) => void;
   setChannelModeParam: (channel: string, mode: string, add: boolean, param?: string) => void;
@@ -162,6 +164,8 @@ export function createChatStore(ns = '') {
     friends: loadFriends(),
     friendsOnline: {},
     banlists: {},
+    exceptlists: {},
+    invexlists: {},
     notifyLevel: loadNotify(ns),
     highlightWords: loadStr(HIGHLIGHT_KEY),
     drafts: {},
@@ -349,8 +353,17 @@ export function createChatStore(ns = '') {
 
     loadBanList(channel) {
       const key = canon(channel);
-      set({ banlists: { ...get().banlists, [key]: [] } }); // reset; 367 fills it
-      get().client?.modeList(channel, 'b');
+      const c = get().client;
+      // Reset all three lists; the 367/348/346 replies refill them.
+      set({
+        banlists: { ...get().banlists, [key]: [] },
+        exceptlists: { ...get().exceptlists, [key]: [] },
+        invexlists: { ...get().invexlists, [key]: [] },
+      });
+      const typeA = (c?.server.isupport.CHANMODES || '').split(',')[0] || 'b';
+      c?.modeList(channel, 'b');
+      if (typeA.includes('e')) c?.modeList(channel, 'e'); // ban exceptions, if supported
+      if (typeA.includes('I')) c?.modeList(channel, 'I'); // invite exceptions, if supported
     },
     setChannelModeParam(channel, mode, add, param) {
       if (isChannelName(channel)) get().client?.setChannelModeParam(channel, mode, add, param);

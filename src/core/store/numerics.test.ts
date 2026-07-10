@@ -14,7 +14,7 @@ function setup(over: Record<string, unknown> = {}) {
   const state = {
     client: { numerics: new Numerics() },
     active: '#x', account: '', channels: [], listLoading: false, away: false,
-    buffers: {}, banlists: {}, friends: [], friendsOnline: {},
+    buffers: {}, banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
     prefs: { sound: false }, whois: {},
     ...over,
   };

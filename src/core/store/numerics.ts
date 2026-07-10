@@ -152,13 +152,21 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         }
         return true;
       }
-      case '348': // RPL_EXCEPTLIST
-      case '346': { // RPL_INVEXLIST
+      case '348':   // RPL_EXCEPTLIST (+e)
+      case '346': { // RPL_INVEXLIST (+I) — collect into state for the channel panel
         const ch = msg.params[1];
         const mask = msg.params[2];
-        const tag = msg.command === '348' ? 'Exception' : 'Invitation';
-        const who = msg.params[3] ? ` — par ${msg.params[3].split('!')[0]}` : '';
-        if (isChannelName(ch) && mask) sysLine(ch, `📋 ${tag} : ${mask}${who}`, 'info');
+        if (isChannelName(ch) && mask) {
+          const key = canon(ch);
+          const entry = { mask, by: (msg.params[3] || '').split('!')[0], ts: Number(msg.params[4]) * 1000 || 0 };
+          if (msg.command === '348') {
+            const cur = get().exceptlists[key] || [];
+            if (cur.length < 5000) set({ exceptlists: { ...get().exceptlists, [key]: [...cur, entry] } });
+          } else {
+            const cur = get().invexlists[key] || [];
+            if (cur.length < 5000) set({ invexlists: { ...get().invexlists, [key]: [...cur, entry] } });
+          }
+        }
         return true;
       }
       case '368': // RPL_ENDOFBANLIST
