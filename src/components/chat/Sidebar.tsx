@@ -39,7 +39,7 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
   return (
     <footer className="appbar">
       <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
-        onClick={(e) => setStatusAnchor((a) => (a ? null : e.currentTarget.getBoundingClientRect()))}>
+        onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setStatusAnchor((a) => (a ? null : r)); }}>
         <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
         <span className="appbar__meta">
           <span className="appbar__name">{nick}</span>
