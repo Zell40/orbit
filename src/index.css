@@ -49,8 +49,11 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow: hidden;
+  -webkit-text-size-adjust: 100%;            /* iOS: don't auto-inflate text in landscape */
+  -webkit-tap-highlight-color: transparent;  /* no grey flash on tap — native feel */
+  overscroll-behavior: none;                 /* no pull-to-refresh / bounce past the app */
 }
-button { font-family: inherit; cursor: pointer; }
+button { font-family: inherit; cursor: pointer; -webkit-user-select: none; user-select: none; }
 input, textarea { font-family: inherit; }
 ::selection { background: rgba(42,107,255,.22); }
 .aurora { display: none; }   /* no decorative aurora in the Element look */
@@ -485,7 +488,7 @@ input, textarea { font-family: inherit; }
 
 
 /* ============ MESSAGE LIST ============ */
-.messages { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 1rem 0 .6rem; }
+.messages { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 1rem 0 .6rem; }
 .daysep { display: flex; align-items: center; gap: 1rem; margin: 1.1rem 1.3rem .5rem; }
 .daysep::before, .daysep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .daysep span { font-size: .74rem; font-weight: 700; color: var(--faint); padding: .2rem .8rem; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); text-transform: capitalize; }
@@ -1656,6 +1659,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
      Height only — never `top`, which must track scroll instantly. */
   .ios .app, .ios .shell > .app { transition: height .25s cubic-bezier(.32, .72, 0, 1); }
 
+  /* iOS zooms into any focused text field under 16px — keep the small ones at 16px
+     on phones so tapping search / filter / age never zooms the whole page. */
+  .topbar__searchinput, .members__search input, .cjoin__mini { font-size: 16px; }
+
   /* Composer: the text field gets its own full-width row; the controls
      (image / format / emoji / send) wrap onto the row below. Fixes the
      placeholder being squished into a tall 5-line column. */
@@ -1668,7 +1675,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
   /* Topbar: tighter, and drop the channel-mode chip (advanced info) so the
      title/topic and the online pill always fit. */
-  .topbar { padding: .55rem .6rem; gap: .35rem; min-height: 56px; }
+  .topbar { padding: calc(.55rem + env(safe-area-inset-top, 0px)) .6rem .55rem; gap: .35rem; min-height: 56px; }
   .topbar__modes { display: none; }
   .topbar__setby { display: none; }
   .topbar__av { display: none; }        /* the title already names the channel */
