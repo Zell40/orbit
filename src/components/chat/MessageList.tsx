@@ -22,6 +22,7 @@ export function MessageList() {
   const markReadHere = useActiveChat((s) => s.markReadHere);
   useActiveChat((s) => s.prefs.clock24); // re-render timestamps when the clock format changes
   const ref = useRef<HTMLDivElement>(null);
+  const flowRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const prevHeight = useRef(0);
   const prevActive = useRef(active);
@@ -71,14 +72,14 @@ export function MessageList() {
         if (el) el.scrollTop = el.scrollHeight;
       });
     };
-    // Any time the list box shrinks — the composer growing (multi-line, reply
-    // bar, format toolbar) or the mobile keyboard opening — the newest messages
-    // would slide behind the composer. Re-pin on the resize so they stay visible
-    // above it. ResizeObserver catches the composer growth (incl. desktop); the
-    // events catch the mobile keyboard, which resizes the viewport not the list.
+    // The newest lines slide out of view two ways: the list box SHRINKS (composer
+    // growing, mobile keyboard) or its CONTENT GROWS after paint (a link-preview
+    // card's image loads, an embed expands). Observe both — the box and the row
+    // flow — so an async height change re-pins to the bottom when we were there.
+    // The events cover the mobile keyboard, which resizes the viewport not the list.
     const ro = new ResizeObserver(repin);
-    if (ref.current)
-      ro.observe(ref.current);
+    if (ref.current) ro.observe(ref.current);
+    if (flowRef.current) ro.observe(flowRef.current);
     window.addEventListener('tchatou:vh', repin);
     window.visualViewport?.addEventListener('resize', repin);
     return () => {
@@ -136,7 +137,7 @@ export function MessageList() {
       role="log" aria-label={t('a11y.messages')}>
       {histLoading && <div className="histload"><span className="histload__spin" /> {t('messages.loadingHistory')}</div>}
       {showJump && <button className="jump-unread" onClick={jumpToUnread}>↑ {t('messages.newMessages')}</button>}
-      {rows}
+      <div ref={flowRef}>{rows}</div>
     </div>
   );
 }
