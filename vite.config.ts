@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { execSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'))
@@ -86,6 +87,7 @@ const stampServiceWorker: Plugin = {
 // https://vite.dev/config/
 export default defineConfig({
   base: '/app/',
+  resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } }, // @/x → src/x
   plugins: [react(), emitVersion, sandboxGuest, stampServiceWorker],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),

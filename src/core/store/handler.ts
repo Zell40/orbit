@@ -1,5 +1,5 @@
 import i18n from '../i18n';
-import { desktopNotify, blip } from '../../platform/notify';
+import { desktopNotify, blip } from '@/platform/notify';
 import { makeWhois } from './whois';
 import { makeMembership } from './membership';
 import { makeBatch } from './batch';

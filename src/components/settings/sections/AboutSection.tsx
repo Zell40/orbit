@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getConfig } from '../../../core/config';
+import { getConfig } from '@/core/config';
 
 // About — the app's own identity card (version/build injected at build time +
 // the project's open-source links). Orbit is the client; branding.* is the host.

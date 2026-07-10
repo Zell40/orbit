@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { getConfig } from '../../../core/config';
-import { useActiveChat } from '../../../core/networks';
+import { getConfig } from '@/core/config';
+import { useActiveChat } from '@/core/networks';
 
 // Server / IRCd facts, pulled live from the registration numerics + ISUPPORT.
 export function ServerSection() {

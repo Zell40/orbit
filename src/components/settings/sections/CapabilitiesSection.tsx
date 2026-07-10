@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { CAP_INFO } from '../../../core/irc/cap-info';
-import { useActiveChat } from '../../../core/networks';
+import { CAP_INFO } from '@/core/irc/cap-info';
+import { useActiveChat } from '@/core/networks';
 
 const CAP_KEYS = Object.keys(CAP_INFO);
 

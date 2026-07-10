@@ -8,7 +8,7 @@ import diceSource from './features/dice.js?raw';
 import pulseSource from './features/pulse.js?raw';
 import analyticsSource from './features/analytics.js?raw';
 import { mountSandboxed } from './host';
-import { getConfig } from '../../core/config';
+import { getConfig } from '@/core/config';
 
 // The registry of built-in feature modules. To add one, see features/README.md.
 const BUILTINS = [

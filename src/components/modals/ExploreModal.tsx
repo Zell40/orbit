@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatIrc, avatarBg } from '../../lib/format';
-import { useActiveChat } from '../../core/networks';
+import { formatIrc, avatarBg } from '@/lib/format';
+import { useActiveChat } from '@/core/networks';
 import { Modal } from './Modal';
 
 export function ExploreModal() {

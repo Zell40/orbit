@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useActiveChat } from '../../../core/networks';
-import { Avatar } from '../../Avatar';
-import { Modal } from '../../modals/Modal';
-import { clearResume } from '../../../core/resume';
+import { useActiveChat } from '@/core/networks';
+import { Avatar } from '@/components/Avatar';
+import { Modal } from '@/components/modals/Modal';
+import { clearResume } from '@/core/resume';
 
 export function ProfileSection() {
   const { t } = useTranslation();

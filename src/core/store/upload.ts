@@ -7,7 +7,7 @@
 // request / POST / error mapping factored into helpers (they were duplicated
 // verbatim between the two).
 import i18n from '../i18n';
-import { fetchTimeout } from '../../lib/net';
+import { fetchTimeout } from '@/lib/net';
 import { SERVER, newId } from './context';
 import type { IrcClient } from '../irc/client';
 import type { StoreApi } from 'zustand';

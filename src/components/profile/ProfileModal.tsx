@@ -1,11 +1,11 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { IRCOP_COLOR, hashHue, fmtDuration, formatUserModes } from '../../lib/format';
+import { IRCOP_COLOR, hashHue, fmtDuration, formatUserModes } from '@/lib/format';
 import { Avatar } from '../Avatar';
-import { usePluginRegistry } from '../../modules/registry';
+import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
 const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes']);

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LANGS, setLang, getLang } from '../../../core/i18n';
-import { getTheme, setTheme, usePluginThemes, type Theme } from '../../../themes';
-import { useActiveChat } from '../../../core/networks';
+import { LANGS, setLang, getLang } from '@/core/i18n';
+import { getTheme, setTheme, usePluginThemes, type Theme } from '@/themes';
+import { useActiveChat } from '@/core/networks';
 import { ToggleRow } from '../rows';
 
 const TEXT_SIZES: Array<{ v: number; label: string }> = [

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { escapeHtml } from '../../../lib/escape';
+import { escapeHtml } from '@/lib/escape';
 import { useTranslation } from 'react-i18next';
-import { getConfig } from '../../../core/config';
-import { getTheme } from '../../../themes';
-import { Turnstile } from '../../Turnstile';
-import { useActiveChat, activeStore } from '../../../core/networks';
+import { getConfig } from '@/core/config';
+import { getTheme } from '@/themes';
+import { Turnstile } from '@/components/Turnstile';
+import { useActiveChat, activeStore } from '@/core/networks';
 
 // Change the current IRC nick — lives in the Compte section so you can align
 // your pseudo with your account name BEFORE identifying.

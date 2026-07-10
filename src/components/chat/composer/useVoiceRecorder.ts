@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { activeStore } from '../../../core/networks';
+import { activeStore } from '@/core/networks';
 
 interface VoiceRecorderOpts {
   enabled: boolean;   // canUpload && not the console buffer

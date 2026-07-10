@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER } from '../../core/store';
-import { useActiveChat } from '../../core/networks';
+import { SERVER } from '@/core/store';
+import { useActiveChat } from '@/core/networks';
 import { MsgRow } from './MsgRow';
 import { SystemLine } from './SystemLine';
 import { SearchResults } from './SearchResults';

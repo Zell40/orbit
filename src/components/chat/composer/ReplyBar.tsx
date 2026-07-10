@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { nickColor } from '../../../lib/format';
-import { useActiveChat } from '../../../core/networks';
+import { nickColor } from '@/lib/format';
+import { useActiveChat } from '@/core/networks';
 
 export function ReplyBar() {
   const { t } = useTranslation();

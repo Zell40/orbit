@@ -7,7 +7,7 @@
 // `handleWhois()` before its main switch and uses `clearWhois()` for the 401
 // (no-such-nick) fallback. RPL_AWAY (301) intentionally stays in the dispatcher —
 // it also drives the "user is away" query notice.
-import { fmtDuration, formatUserModes } from '../../lib/format-text';
+import { fmtDuration, formatUserModes } from '@/lib/format-text';
 import type { IrcMessage, WhoisInfo } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';

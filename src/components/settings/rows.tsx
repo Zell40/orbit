@@ -1,4 +1,4 @@
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 
 // One preference toggle row: icon · label/hint · switch. Shared by the
 // Appearance and Notifications sections.

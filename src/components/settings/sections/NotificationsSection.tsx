@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getConfig } from '../../../core/config';
-import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../../platform/push';
-import { useActiveChat } from '../../../core/networks';
-import { getConsent, setConsent } from '../../../core/consent';
-import { setGaConsent } from '../../../core/ga';
+import { getConfig } from '@/core/config';
+import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '@/platform/push';
+import { useActiveChat } from '@/core/networks';
+import { getConsent, setConsent } from '@/core/consent';
+import { setGaConsent } from '@/core/ga';
 import { ToggleRow } from '../rows';
 
 // Withdraw / grant Google Analytics consent (only shown when GA is configured).

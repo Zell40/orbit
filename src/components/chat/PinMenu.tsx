@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { nickColor } from '../../lib/format';
-import { stripFormatting } from '../../core/store/text';
-import type { Pin } from '../../core/store/persistence';
-import { useActiveChat } from '../../core/networks';
+import { nickColor } from '@/lib/format';
+import { stripFormatting } from '@/core/store/text';
+import type { Pin } from '@/core/store/persistence';
+import { useActiveChat } from '@/core/networks';
 
 const EMPTY: Pin[] = [];
 

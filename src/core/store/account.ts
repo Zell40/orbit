@@ -3,7 +3,7 @@
 // change and Turnstile completion hit the same-origin Django endpoints (which keep
 // Anope + the website in sync). Split out of store.ts.
 import i18n from '../i18n';
-import { fetchTimeout } from '../../lib/net';
+import { fetchTimeout } from '@/lib/net';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER } from '../../core/store';
-import { MIRC_PALETTE } from '../../lib/format';
-import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '../../lib/editor';
-import { getConfig } from '../../core/config';
-import { usePluginRegistry } from '../../modules/registry';
+import { SERVER } from '@/core/store';
+import { MIRC_PALETTE } from '@/lib/format';
+import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '@/lib/editor';
+import { getConfig } from '@/core/config';
+import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
-import { useActiveChat, activeStore } from '../../core/networks';
+import { useActiveChat, activeStore } from '@/core/networks';
 import { EMOJIS, EMOJI_NAMES, SLASH_COMMANDS } from './composer/constants';
 import { TypingIndicator } from './composer/TypingIndicator';
 import { ReplyBar } from './composer/ReplyBar';

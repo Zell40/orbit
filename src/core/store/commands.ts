@@ -5,8 +5,8 @@
 // plain-message path (with reply + channel-context tags and the optimistic echo).
 // Split out of store.ts; the store wires `sendInput: makeCommands(...).sendInput`.
 import i18n from '../i18n';
-import { getTheme } from '../../themes';
-import { usePluginRegistry } from '../../modules/registry';
+import { getTheme } from '@/themes';
+import { usePluginRegistry } from '@/modules/registry';
 import { isService, maskSecret, detectServiceLeak } from '../services';
 import { stripFormatting, tidyOutgoing } from './text';
 import { SERVER, newId, canon, isChannelName } from './context';

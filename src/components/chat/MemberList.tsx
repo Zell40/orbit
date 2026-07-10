@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { Member } from '../../core/irc/types';
+import type { Member } from '@/core/irc/types';
 import { Avatar } from '../Avatar';
 import { MemberMenu } from './MemberMenu';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 const ROLES: Record<string, { key: string; cls: string }> = {
   '~': { key: 'owner', cls: 'owner' },
   '&': { key: 'admin', cls: 'admin' },

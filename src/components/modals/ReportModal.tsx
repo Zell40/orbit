@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 import { Modal } from './Modal';
 
 export function ReportModal() {

@@ -1,15 +1,15 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ChatMessage } from '../../core/irc/types';
-import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '../../lib/format';
-import { firstPreviewableUrl, LinkPreview } from '../../lib/link-preview';
-import { stripFormatting } from '../../core/store/text';
-import { getConfig } from '../../core/config';
-import { useTheme } from '../../themes';
+import type { ChatMessage } from '@/core/irc/types';
+import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '@/lib/format';
+import { firstPreviewableUrl, LinkPreview } from '@/lib/link-preview';
+import { stripFormatting } from '@/core/store/text';
+import { getConfig } from '@/core/config';
+import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
-import { usePluginRegistry, type MessageInfo } from '../../modules/registry';
+import { usePluginRegistry, type MessageInfo } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
 

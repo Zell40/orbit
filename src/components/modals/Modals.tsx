@@ -1,7 +1,7 @@
 import { SettingsModal } from '../settings/SettingsModal';
 import { QuickSwitcher } from '../QuickSwitcher';
 import { Shortcuts } from '../Shortcuts';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 import { JoinDialog } from './JoinDialog';
 import { ExploreModal } from './ExploreModal';
 import { FriendsModal } from './FriendsModal';

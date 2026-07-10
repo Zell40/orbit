@@ -1,16 +1,16 @@
 import { memo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER } from '../../core/store';
-import { avatarBg } from '../../lib/format';
-import { stripFormatting } from '../../core/store/text';
-import { useTheme } from '../../themes';
+import { SERVER } from '@/core/store';
+import { avatarBg } from '@/lib/format';
+import { stripFormatting } from '@/core/store/text';
+import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
-import { usePluginRegistry } from '../../modules/registry';
+import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 import { NetworkTabs } from './NetworkTabs';
 import { StatusMenu } from './StatusMenu';
-import { getConfig } from '../../core/config';
+import { getConfig } from '@/core/config';
 // The footer bar (TabBar) is in the DOM twice for the responsive layout — a
 // window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on
 // mobile (`.sidebar .appbar`), with CSS showing one at the 880px breakpoint. So

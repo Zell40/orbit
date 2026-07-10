@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getConfig } from '../../core/config';
-import { usePluginRegistry } from '../../modules/registry';
+import { getConfig } from '@/core/config';
+import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 import { ProfileSection } from './sections/ProfileSection';
 import { AppearanceSection } from './sections/AppearanceSection';
 import { NotificationsSection } from './sections/NotificationsSection';

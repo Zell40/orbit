@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useActiveChat } from '../../../core/networks';
+import { useActiveChat } from '@/core/networks';
 
 export function TypingIndicator() {
   const { t } = useTranslation();

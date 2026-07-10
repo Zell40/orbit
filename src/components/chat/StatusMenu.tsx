@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 
 // Presence menu opened by clicking your own avatar in the footer (Slack/Discord
 // style): pick Available or Away. Away reveals an editable reason with a default

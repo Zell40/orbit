@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import type { ChatMessage } from '../../core/irc/types';
-import { fmtTime, nickColor } from '../../lib/format';
-import { useActiveChat } from '../../core/networks';
+import type { ChatMessage } from '@/core/irc/types';
+import { fmtTime, nickColor } from '@/lib/format';
+import { useActiveChat } from '@/core/networks';
 
 // In-buffer text search: flat list of matching privmsg/action/notice lines with
 // the hit highlighted, newest first.

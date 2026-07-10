@@ -1,9 +1,9 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ChatMessage } from '../../core/irc/types';
-import { fmtTime, nickColor, formatIrc } from '../../lib/format';
-import { useTheme } from '../../themes';
-import { useActiveChat } from '../../core/networks';
+import type { ChatMessage } from '@/core/irc/types';
+import { fmtTime, nickColor, formatIrc } from '@/lib/format';
+import { useTheme } from '@/themes';
+import { useActiveChat } from '@/core/networks';
 
 // Renders a non-message event (join/part/mode/topic/ban/notice/info/warning/…)
 // as its own status line. The container routes every kind that isn't a

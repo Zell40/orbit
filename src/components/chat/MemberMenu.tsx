@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useActiveChat } from '../../core/networks';
-import { getTheme } from '../../themes';
+import { useActiveChat } from '@/core/networks';
+import { getTheme } from '@/themes';
 
 // mIRC-style right-click op menu for a nick in the member list. Whois for
 // everyone (printed inline to the active window under yomirc, like classic mIRC;

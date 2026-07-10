@@ -1,5 +1,5 @@
 import i18n from '../i18n';
-import { desktopNotify, blip } from '../../platform/notify';
+import { desktopNotify, blip } from '@/platform/notify';
 import type { IrcMessage } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { SERVER, canon, isChannelName } from './context';

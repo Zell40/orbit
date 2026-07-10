@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from 'zustand';
-import { useNetworks, passKey, type NetworkEntry } from '../../core/networks';
-import { getConfig } from '../../core/config';
+import { useNetworks, passKey, type NetworkEntry } from '@/core/networks';
+import { getConfig } from '@/core/config';
 
 // One network chip: connection dot + label + (when it's not the active one) an
 // unread badge. Subscribes to THIS network's own store for its status/unread.

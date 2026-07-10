@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useActiveChat } from '../../core/networks';
-import { formatIrc } from '../../lib/format';
-import { buildModeContext } from '../../core/irc/modes';
-import { setterMask, ago } from '../../lib/topic';
-import { availableExtbans, matchExtban, type ExtBan } from '../../lib/extbans';
-import { getConfig } from '../../core/config';
+import { useActiveChat } from '@/core/networks';
+import { formatIrc } from '@/lib/format';
+import { buildModeContext } from '@/core/irc/modes';
+import { setterMask, ago } from '@/lib/topic';
+import { availableExtbans, matchExtban, type ExtBan } from '@/lib/extbans';
+import { getConfig } from '@/core/config';
 import { Modal } from './Modal';
 
 // Curated channel flags (no-parameter, type-D). Only the ones the server advertises

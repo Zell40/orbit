@@ -5,7 +5,7 @@
 // JOIN/PART/KICK, the buffer + active window). Split out of handler.ts; the
 // dispatcher calls handleMembership(msg, me) before its command switch.
 import i18n from '../i18n';
-import { desktopNotify, blip } from '../../platform/notify';
+import { desktopNotify, blip } from '@/platform/notify';
 import { hostmask } from './text';
 import { SERVER, canon, isChannelName, inQuietBatch } from './context';
 import type { IrcMessage } from '../irc/types';

@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER } from '../../core/store';
-import { avatarBg, formatIrc } from '../../lib/format';
-import { setterMask, ago } from '../../lib/topic';
-import { stripFormatting } from '../../core/store/text';
+import { SERVER } from '@/core/store';
+import { avatarBg, formatIrc } from '@/lib/format';
+import { setterMask, ago } from '@/lib/topic';
+import { stripFormatting } from '@/core/store/text';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
-import { usePluginRegistry } from '../../modules/registry';
+import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
-import { useActiveChat } from '../../core/networks';
+import { useActiveChat } from '@/core/networks';
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || 'fr';

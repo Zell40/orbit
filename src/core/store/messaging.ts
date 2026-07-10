@@ -7,8 +7,8 @@
 // collection, and mention/notify. Split out of handler.ts; the dispatcher calls
 // handleMessaging(msg, me) before its command switch.
 import i18n from '../i18n';
-import { desktopNotify, blip } from '../../platform/notify';
-import { usePluginRegistry } from '../../modules/registry';
+import { desktopNotify, blip } from '@/platform/notify';
+import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, maskSecret, routeMessage, hasServiceTag } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';

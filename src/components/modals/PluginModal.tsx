@@ -1,4 +1,4 @@
-import { usePluginRegistry } from '../../modules/registry';
+import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { Modal } from './Modal';
 
