@@ -160,7 +160,6 @@ loadConfig().then(async () => {
   )
 })
 
-// PWA + seamless updates: registers the service worker (installable, offline app
-// shell, web push) and polls version.json so a fresh deploy refreshes the tab in
-// place — a themed cross-fade instead of a manual hard reload. See ./ui/appUpdate.
+// PWA: register the service worker (installable, offline app shell, web push).
+// A new deploy applies on the next manual refresh/reopen — no auto-reload.
 registerAppUpdates()
