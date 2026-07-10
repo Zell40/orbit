@@ -64,7 +64,7 @@ function LiveFeed({ chan }: { chan: string }) {
   // read during render) — and hand the ref its starting value from that same
   // state, so live ticking continues the clock forward instead of jumping back
   // to "now" the moment the first streamed line lands.
-  const INITIAL = 8;
+  const INITIAL = 10;
   const [seed] = useState(() => {
     const gen = makeLineGen(t);
     let clock = new Date();
@@ -99,7 +99,10 @@ function LiveFeed({ chan }: { chan: string }) {
       toMsg = window.setTimeout(() => {
         if (!alive) return;
         setTyping('');
-        setMsgs((m) => [...m.slice(-10), { ...next, id, at: stamp() }]);
+        // Keep a CONSTANT number of lines so the stream's height never changes
+        // (drop the oldest, append the newest) — this alone stops the feed from
+        // re-centering and shifting the layout on every tick (CLS).
+        setMsgs((m) => [...m.slice(1), { ...next, id, at: stamp() }]);
         nextId.current += 1;
         toNext = window.setTimeout(step, 1500 + Math.random() * 900);
       }, next.sys ? 150 : 850);
@@ -115,18 +118,24 @@ function LiveFeed({ chan }: { chan: string }) {
         <span className="cfeed__count"><i />{t('connect.live')}</span>
       </div>
       <div className="cfeed__stream">
-        {msgs.map((m) => m.sys ? (
-          <div className="ctx ctx--sys" key={m.id}>
-            <span className="ctx__t">{m.at}</span>
-            <span>{t('connect.joinLine', { who: m.who, chan })}</span>
-          </div>
-        ) : (
-          <div className="ctx" key={m.id}>
-            <span className="ctx__t">{m.at}</span>
-            <span className="ctx__nick" style={{ color: `hsl(${m.hue},60%,52%)` }}>{m.who}</span>
-            <span className="ctx__txt">{m.text}{m.react && <span className="ctx__react">{m.react}</span>}</span>
-          </div>
-        ))}
+        {msgs.map((m, i) => {
+          // Fixed slots keyed by index → the nodes never move (no per-line CLS);
+          // only the newest line is keyed by id so it still plays the entrance
+          // animation as it rolls in.
+          const key = i === msgs.length - 1 ? `n${m.id}` : `s${i}`;
+          return m.sys ? (
+            <div className="ctx ctx--sys" key={key}>
+              <span className="ctx__t">{m.at}</span>
+              <span>{t('connect.joinLine', { who: m.who, chan })}</span>
+            </div>
+          ) : (
+            <div className="ctx" key={key}>
+              <span className="ctx__t">{m.at}</span>
+              <span className="ctx__nick" style={{ color: `hsl(${m.hue},60%,52%)` }}>{m.who}</span>
+              <span className="ctx__txt">{m.text}{m.react && <span className="ctx__react">{m.react}</span>}</span>
+            </div>
+          );
+        })}
         <div className="ccursor">
           {typing && <span>{t('connect.typing', { who: typing })}</span>}
           <span className="ccursor__blink" />
