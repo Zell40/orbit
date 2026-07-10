@@ -34,7 +34,7 @@ function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-type Tab = 'overview' | 'modes' | 'extbans';
+type Tab = 'overview' | 'modes' | 'bans' | 'extbans';
 
 // A compact combobox for the extban type: a button + an overlay menu (grouped into
 // restrictions / match-by, filterable). Opening it doesn't push the value input, so
