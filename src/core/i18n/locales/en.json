@@ -504,11 +504,11 @@
   },
   "themes": {
     "light": "Light",
-    "dark": "Dark",
-    "orbit": "Orbit",
-    "orbitDark": "Orbit dark",
-    "yomirc": "yomIRC",
-    "yomircDark": "yomIRC night"
+    "dark": "Night",
+    "orbit": "Night-green",
+    "orbitDark": "Night-orange",
+    "yomirc": "yomirc",
+    "yomircDark": "yomirc-Night"
   },
   "chanFlags": {
     "invite": {

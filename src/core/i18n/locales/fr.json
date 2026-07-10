@@ -503,12 +503,12 @@
     "rejoin": "Rejoindre"
   },
   "themes": {
-    "light": "Clair",
-    "dark": "Sombre",
-    "orbit": "Orbit",
-    "orbitDark": "Orbit sombre",
-    "yomirc": "yomIRC",
-    "yomircDark": "yomIRC nuit"
+    "light": "Light",
+    "dark": "Night",
+    "orbit": "Night-green",
+    "orbitDark": "Night-orange",
+    "yomirc": "yomirc",
+    "yomircDark": "yomirc-Night"
   },
   "chanFlags": {
     "invite": {

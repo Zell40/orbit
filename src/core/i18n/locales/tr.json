@@ -484,12 +484,12 @@
     "rejoin": "Tekrar katıl"
   },
   "themes": {
-    "light": "Açık",
-    "dark": "Koyu",
-    "orbit": "Orbit",
-    "orbitDark": "Orbit koyu",
-    "yomirc": "yomIRC",
-    "yomircDark": "yomIRC gece"
+    "light": "Light",
+    "dark": "Night",
+    "orbit": "Night-green",
+    "orbitDark": "Night-orange",
+    "yomirc": "yomirc",
+    "yomircDark": "yomirc-Night"
   },
   "chanFlags": {
     "invite": {

@@ -32,12 +32,12 @@
 [data-theme="orbit"] .pm-avring {
   background: conic-gradient(from 130deg, #2ea043, #22813a, #176430, #2ea043);
 }
-/* ============ ORBIT-DARK — mirrors tchatou.fr (near-black, monochrome white accent, Geist) ============ */
+/* ============ ORBIT-DARK — mirrors tchatou.fr (near-black, tchatou orange accent, Geist) ============ */
 [data-theme="orbit-dark"] {
   --ink: #f3f4f6; --ink-2: #c9cace; --muted: #8b8c95; --faint: #5c5d66;
   --bg: #0d0d0f; --bg-soft: #141416; --bg-soft-2: #1b1b1e; --bg-active: #212126; --rail-bg: #060607;
   --border: #232327; --border-2: #34343a;
-  --accent: #f2f3f5; --accent-d: #ffffff; --accent-soft: rgba(255,255,255,.10);
+  --accent: #ff6b00; --accent-d: #ff8a3c; --accent-soft: rgba(255,107,0,.16);
   --online: #2ec27e; --online-d: #25a76c; --online-soft: rgba(46,194,126,.16);
   --danger: #f0556e;
   --shadow-pop: 0 14px 44px -14px rgba(0,0,0,.8), 0 2px 8px -2px rgba(0,0,0,.6);
@@ -48,7 +48,7 @@
   color-scheme: dark;
 }
 [data-theme="orbit-dark"] body { background: #060607; }
-/* white accent -> dark text on accent-filled controls (Grok-style white buttons) */
+/* orange accent -> dark text on accent-filled controls (readable on #ff6b00) */
 [data-theme="orbit-dark"] .composer__send,
 [data-theme="orbit-dark"] .cjoin__send,
 [data-theme="orbit-dark"] .pill.is-on,
@@ -59,26 +59,27 @@
 [data-theme="orbit-dark"] .room__badge,
 [data-theme="orbit-dark"] .settings__navitem.is-on .settings__navic { color: #0a0a0b; }
 [data-theme="orbit-dark"] .switch.is-on .switch__dot { background: #0a0a0b; }
-/* drop the hardcoded blue glows now that the controls are white */
+/* neutral drop shadow on the accent-filled controls */
 [data-theme="orbit-dark"] .composer__send,
 [data-theme="orbit-dark"] .pm-btn--primary,
 [data-theme="orbit-dark"] .pm-check,
 [data-theme="orbit-dark"] .pill.is-on,
 [data-theme="orbit-dark"] .sseg button.is-on { box-shadow: 0 2px 12px -3px rgba(0,0,0,.6); }
 [data-theme="orbit-dark"] .room.is-active::before { box-shadow: none; }
-[data-theme="orbit-dark"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(255,255,255,.12); }
-/* connect/welcome screen -> near-black monochrome (not the green cosmic) */
+[data-theme="orbit-dark"] .composer__box:focus-within { box-shadow: 0 0 0 3px rgba(255,107,0,.22); }
+/* connect/welcome screen -> near-black with a faint orange glow */
 [data-theme="orbit-dark"] .connect {
   color: var(--ink);
-  background: radial-gradient(70% 55% at 50% -8%, rgba(255,255,255,.05), transparent 60%), linear-gradient(180deg, #0c0c0e, #08080a 62%, #050506);
+  background: radial-gradient(70% 55% at 50% -8%, rgba(255,107,0,.07), transparent 60%), linear-gradient(180deg, #0c0c0e, #08080a 62%, #050506);
 }
-[data-theme="orbit-dark"] .cjoin__composer:focus-within { border-color: rgba(255,255,255,.5); }
-/* profile banner + avatar ring: monochrome, not the per-nick hue */
+[data-theme="orbit-dark"] .cjoin__composer:focus-within { border-color: rgba(255,107,0,.6); }
+/* profile banner + avatar ring: tchatou orange, not the per-nick hue */
 [data-theme="orbit-dark"] .pm-cover {
   background:
-    radial-gradient(130% 150% at 18% 0%, rgba(255,255,255,.10), transparent 60%),
-    linear-gradient(135deg, #1a1a1f, #0d0d10);
+    radial-gradient(130% 150% at 18% 0%, rgba(255,107,0,.30), transparent 60%),
+    radial-gradient(120% 160% at 92% 0%, rgba(214,90,0,.26), transparent 55%),
+    linear-gradient(135deg, #7a3a00, #3a1c00);
 }
 [data-theme="orbit-dark"] .pm-avring {
-  background: conic-gradient(from 130deg, #3a3a42, #1c1c21, #2a2a30, #3a3a42);
+  background: conic-gradient(from 130deg, #ff6b00, #cc5600, #8a3a00, #ff6b00);
 }

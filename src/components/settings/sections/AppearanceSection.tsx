@@ -23,8 +23,8 @@ export function AppearanceSection() {
   const THEME_OPTS: Array<{ id: Theme; icon: string; label: string }> = [
     { id: 'light', icon: '☀️', label: 'themes.light' },
     { id: 'dark', icon: '🌙', label: 'themes.dark' },
-    { id: 'orbit', icon: '🛰️', label: 'themes.orbit' },
-    { id: 'orbit-dark', icon: '🌑', label: 'themes.orbitDark' },
+    { id: 'orbit', icon: '🟢', label: 'themes.orbit' },
+    { id: 'orbit-dark', icon: '🟠', label: 'themes.orbitDark' },
     { id: 'yomirc', icon: '🖥️', label: 'themes.yomirc' },
     { id: 'yomirc-dark', icon: '🌑', label: 'themes.yomircDark' },
   ];

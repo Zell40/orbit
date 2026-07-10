@@ -484,12 +484,12 @@
     "rejoin": "Volver a entrar"
   },
   "themes": {
-    "light": "Claro",
-    "dark": "Oscuro",
-    "orbit": "Orbit",
-    "orbitDark": "Orbit oscuro",
-    "yomirc": "yomIRC",
-    "yomircDark": "yomIRC noche"
+    "light": "Light",
+    "dark": "Night",
+    "orbit": "Night-green",
+    "orbitDark": "Night-orange",
+    "yomirc": "yomirc",
+    "yomircDark": "yomirc-Night"
   },
   "chanFlags": {
     "invite": {

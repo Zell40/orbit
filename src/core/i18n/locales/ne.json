@@ -484,12 +484,12 @@
     "rejoin": "पुनः सामेल हुनुहोस्"
   },
   "themes": {
-    "light": "उज्यालो",
-    "dark": "अँध्यारो",
-    "orbit": "Orbit",
-    "orbitDark": "Orbit अँध्यारो",
-    "yomirc": "yomIRC",
-    "yomircDark": "yomIRC रात"
+    "light": "Light",
+    "dark": "Night",
+    "orbit": "Night-green",
+    "orbitDark": "Night-orange",
+    "yomirc": "yomirc",
+    "yomircDark": "yomirc-Night"
   },
   "chanFlags": {
     "invite": {
