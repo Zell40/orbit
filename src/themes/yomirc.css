@@ -56,17 +56,11 @@
   border-color: var(--mirc-shadow);
 }
 [data-theme^="yomirc"] .app { background: var(--mirc-face); gap: 2px; padding: 2px; }
-/* mIRC-tight nicklist: the member column hugs its content instead of a fixed 240px,
-   so a short nick list doesn't leave a wide empty gap out to the right wall. Rows
-   keep width:100% (fill the tight column, long nicks ellipsis-truncate); content-
-   visibility must be visible here so the grid can measure real nick widths. */
-/* ── mIRC layout: the "home" sidebar becomes a horizontal toolbar + switchbar
-   across the TOP; chat + nicklist below, account bar at the bottom. Desktop only
-   — the ≤880px flex layout keeps its own drawer. Members column still hugs its
-   content (fit-content) so the nicklist stays tight. */
+/* mIRC layout: home sidebar → top toolbar; chat + nicklist below; account bar
+   at the bottom. Nicklist has a 200px floor so it stays stable as it populates. */
 @media (min-width: 881px) {
 [data-theme^="yomirc"] .app {
-  grid-template-columns: 1fr fit-content(240px);
+  grid-template-columns: 1fr minmax(200px, fit-content(240px));
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas: "bar bar" "main members" "foot foot";
 }

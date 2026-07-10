@@ -463,7 +463,7 @@ input, textarea { font-family: inherit; }
 
 
 /* ============ MESSAGE LIST ============ */
-.messages { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 1rem 0 .6rem; }
+.messages { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 1rem 0 .6rem; }
 .daysep { display: flex; align-items: center; gap: 1rem; margin: 1.1rem 1.3rem .5rem; }
 .daysep::before, .daysep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .daysep span { font-size: .74rem; font-weight: 700; color: var(--faint); padding: .2rem .8rem; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); text-transform: capitalize; }
@@ -1449,8 +1449,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* chathistory "loading older messages" indicator (top of the timeline) */
 .histload {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 5;
   display: flex; align-items: center; justify-content: center; gap: .5rem;
-  padding: .55rem; font-size: .8rem; color: var(--muted);
+  padding: .55rem; font-size: .8rem; color: var(--muted); background: var(--bg);
 }
 .histload__spin {
   width: 13px; height: 13px; border-radius: 50%;
@@ -1481,7 +1482,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* jump-to-first-unread button (sticky at the top of the timeline) */
 .jump-unread {
-  position: sticky; top: 8px; z-index: 6; display: block; margin: 0 auto .2rem;
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 6;
   padding: .35rem .9rem; border: 0; border-radius: 999px; cursor: pointer;
   background: var(--ink); color: var(--bg); font-size: .8rem; font-weight: 700;
   box-shadow: var(--shadow-pop);
