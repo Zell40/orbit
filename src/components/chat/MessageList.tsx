@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SERVER } from '../../core/store';
 import { useActiveChat } from '../../core/networks';
 import { MsgRow } from './MsgRow';
+import { MsgSkeleton } from './MsgSkeleton';
 import { SystemLine } from './SystemLine';
 import { SearchResults } from './SearchResults';
 
@@ -20,6 +21,7 @@ export function MessageList() {
   const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
   const histDone = useActiveChat((s) => !!s.historyDone[s.active]);
   const markReadHere = useActiveChat((s) => s.markReadHere);
+  const status = useActiveChat((s) => s.status);
   useActiveChat((s) => s.prefs.clock24); // re-render timestamps when the clock format changes
   const ref = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -109,6 +111,10 @@ export function MessageList() {
   if (search.trim()) return <SearchResults messages={buffer.messages} query={search.trim()} />;
 
   const isConsole = buffer.name === SERVER;
+  // A channel with nothing yet AND still settling (connecting / joining / fetching
+  // history) → show the skeleton so a large element paints now instead of ~2s later.
+  const loadingEmpty = buffer.isChannel && !isConsole && buffer.messages.length === 0
+    && (status !== 'registered' || histLoading || !buffer.joined);
   const rows: ReactNode[] = [];
   let lastFrom = '', lastTs = 0, lastKind = '';
   let lastDay = '';
@@ -134,9 +140,9 @@ export function MessageList() {
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
       role="log" aria-label={t('a11y.messages')}>
-      {histLoading && <div className="histload"><span className="histload__spin" /> {t('messages.loadingHistory')}</div>}
+      {histLoading && !loadingEmpty && <div className="histload"><span className="histload__spin" /> {t('messages.loadingHistory')}</div>}
       {showJump && <button className="jump-unread" onClick={jumpToUnread}>↑ {t('messages.newMessages')}</button>}
-      {rows}
+      {loadingEmpty ? <MsgSkeleton /> : rows}
     </div>
   );
 }

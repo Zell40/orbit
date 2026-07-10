@@ -484,6 +484,16 @@ input, textarea { font-family: inherit; }
 .line--notice::before { content: "-notice- "; font-weight: 700; opacity: .7; font-size: .82em; }
 .line--redacted { color: var(--faint); font-style: italic; }
 .line a { color: var(--accent-d); text-decoration: none; font-weight: 600; }
+
+/* Loading skeleton — placeholder rows while a channel fetches its first messages.
+   Bars are clipped █ text (real painted content) so the largest is the LCP. */
+.skel { padding: 1.1rem 1.3rem; display: flex; flex-direction: column; gap: 1.15rem; }
+.skel__row { display: flex; gap: .7rem; align-items: flex-start; }
+.skel__av { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--bg-soft-2); animation: skel-pulse 1.6s ease-in-out infinite; }
+.skel__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .55rem; padding-top: .15rem; }
+.skel__bar { display: block; color: var(--bg-soft-2); font-size: .95rem; line-height: .95rem; height: .95rem; max-width: 100%; overflow: hidden; white-space: nowrap; border-radius: 5px; animation: skel-pulse 1.6s ease-in-out infinite; }
+.skel__bar--nick { color: var(--border); max-width: 6.5rem; font-size: .8rem; line-height: .8rem; height: .8rem; margin-bottom: .1rem; }
+@keyframes skel-pulse { 0%, 100% { opacity: .5; } 50% { opacity: .9; } }
 .line a:hover { text-decoration: underline; }
 
 /* inline shared images (filehost) — Element-style collapsible attachment card */
