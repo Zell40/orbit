@@ -1639,9 +1639,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
   /* Topbar: tighter, and drop the channel-mode chip (advanced info) so the
      title/topic and the online pill always fit. */
-  .topbar { padding: .55rem .7rem; gap: .5rem; min-height: 56px; }
+  .topbar { padding: .55rem .6rem; gap: .35rem; min-height: 56px; }
   .topbar__modes { display: none; }
   .topbar__setby { display: none; }
+  .topbar__av { display: none; }        /* the title already names the channel */
   .topbar__title { font-size: 1rem; }
   .topbar__pill { cursor: pointer; }
 
