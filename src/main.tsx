@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { getTheme, hydrateTheme, useThemeStore } from './themes'
 import { applyConfigDefaultLang } from './core/i18n'
+import { applySeo } from './core/seo.ts'
 import './index.css'
 // Alternate themes, loaded after the base so their [data-theme] rules win.
 import './themes/dark.css'
@@ -83,6 +84,7 @@ loadConfig().then(async () => {
   hydrateTheme() // first-time visitors adopt the config default now config is loaded
   applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
   applyBrandIcon()        // browser tab favicon follows config.branding.icon
+  applySeo()              // <head> description + OG/Twitter/canonical/JSON-LD from config
   const { default: App } = await import('./App.tsx') // also creates the store
   // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
   // then load operator-listed plugins from config. After the store exists,

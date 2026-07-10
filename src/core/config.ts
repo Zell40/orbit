@@ -91,6 +91,17 @@ export interface AppConfig {
     brand?: { text?: string; logo?: string; href?: string };
     links?: { label: string; icon?: string; href: string }[];
   };
+  /** Search/link-unfurl metadata. Applied to <head> at boot by src/core/seo.ts
+   *  (description + Open Graph/Twitter cards + canonical + JSON-LD). Fields default
+   *  to `branding` (title = name, image = a preview screenshot). index.html ships a
+   *  static copy for JS-less unfurlers; this overrides it per deployment. */
+  seo?: {
+    description?: string; // meta + og/twitter description (else branding.subtitle)
+    image?: string;       // absolute URL to a ~1200×630 preview image (og:image)
+    keywords?: string;
+    canonical?: string;   // canonical URL (else branding.url + current path)
+    twitterSite?: string; // @handle
+  };
 }
 
 /** A plugin to load: a bare URL, or a URL with options.
