@@ -5,7 +5,6 @@ import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { ConsentBanner } from './components/ConsentBanner';
 import { refreshPush } from './platform/push';
-import { dismissUpdateCurtain } from './ui/appUpdate';
 import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
 import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks';
@@ -41,10 +40,6 @@ export default function App() {
     const name = getConfig().branding.name;
     document.title = unread > 0 ? `(${unread}) ${name}` : name;
   }, [unread]);
-
-  // App is mounted and painting — fade out any update curtain held over from a
-  // seamless-refresh reload, revealing the fresh build.
-  useEffect(() => { dismissUpdateCurtain(); }, []);
 
   // Guard against an accidental tab close/reload while a session is (or has been)
   // live — the browser shows its native "Leave site?" prompt so you don't lose the

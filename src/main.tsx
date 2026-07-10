@@ -11,13 +11,9 @@ import './themes/dark.css'
 import './themes/orbit.css'
 import './themes/yomirc.css'
 import { initViewport } from './ui/viewport.ts'
-import { registerAppUpdates, markUpdateCurtain } from './ui/appUpdate.ts'
+import { registerAppUpdates } from './ui/appUpdate.ts'
 import { loadConfig, getConfig } from './core/config.ts'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
-
-// If the last load reloaded to pick up a new build, hold a themed curtain up until
-// the app mounts (dismissed in App) so the fresh page fades in instead of popping.
-markUpdateCurtain()
 
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()

@@ -4,8 +4,11 @@
 const CACHE = 'tchatou-__SW_BUILD__';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/orbit-icon.svg', '/app/manifest.webmanifest'];
 
+// No skipWaiting: a new SW stays waiting until every tab closes, so a running tab
+// keeps its cached bundle (a manual refresh still loads the new build — navigate
+// is network-first). This is what makes the app not auto-reload.
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
 });
 
 self.addEventListener('activate', (e) => {
