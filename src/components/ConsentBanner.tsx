@@ -4,9 +4,12 @@ import { getConfig } from '../core/config';
 import { getConsent, setConsent } from '../core/consent';
 import { initGa } from '../core/ga';
 
-// First-visit analytics consent. Only shown when Google Analytics is configured
-// (config.analytics.gaId) and the visitor hasn't chosen yet. Accepting loads gtag;
-// rejecting means it never loads. Reject is as prominent as Accept (CNIL).
+// Analytics consent — a FALLBACK. The Django site (tchatou.fr) already asks and
+// stores the choice in the shared `tchatou-consent` entry (same origin), so anyone
+// arriving from there is never asked again. This only appears when GA is configured
+// AND no choice exists yet — i.e. a direct /app/ visit (installed PWA, bookmark) that
+// never hit the marketing site. Accepting loads gtag; rejecting means it never loads;
+// reject is as prominent as Accept (CNIL). The choice writes the same shared entry.
 export function ConsentBanner() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(() => !!getConfig().analytics?.gaId && getConsent() === 'unset');

@@ -38,7 +38,10 @@ export function initGa(): void {
   s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
   document.head.appendChild(s);
   w.gtag('js', new Date());
-  w.gtag('config', id);
+  // Match the Django site's config: no Google Signals / ad-personalisation, so GA
+  // sets only the first-party _ga cookies the consent banner declares (and doesn't
+  // use the region1.analytics.google.com signals endpoint).
+  w.gtag('config', id, { allow_google_signals: false, allow_ad_personalization_signals: false });
   bus.on('connected', () => w.gtag('event', 'login', { method: 'irc' }));
   bus.on('buffer.active', (name: unknown) => {
     const n = String(name ?? '');
