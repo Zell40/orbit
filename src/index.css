@@ -281,7 +281,12 @@ input, textarea { font-family: inherit; }
   .app > .main { flex: 1; min-height: 0; }
   /* no bar over the conversation on mobile — it docks inside the drawer instead */
   .app > .appbar { display: none; }
-  .sidebar .appbar { display: flex; padding-bottom: env(safe-area-inset-bottom, 0); }
+  /* Docked footer: give the nav its own full-width row so the tabs aren't crushed. */
+  .sidebar .appbar { display: flex; flex-wrap: wrap; height: auto; align-items: center; row-gap: .3rem;
+    padding: .45rem .4rem calc(.45rem + env(safe-area-inset-bottom, 0)); }
+  .sidebar .appbar__me { order: 1; }
+  .sidebar .appbar__actions { order: 2; margin-left: auto; }
+  .sidebar .appbar__nav { order: 3; flex: 1 1 100%; }
   .appbar__meta { display: none; }
   .appbar__me { padding: .3rem; }
   .tab { max-width: none; }
