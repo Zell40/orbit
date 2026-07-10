@@ -57,10 +57,10 @@
 }
 [data-theme^="yomirc"] .app { background: var(--mirc-face); gap: 2px; padding: 2px; }
 /* mIRC layout: home sidebar → top toolbar; chat + nicklist below; account bar
-   at the bottom. Nicklist has a 200px floor so it stays stable as it populates. */
+   at the bottom. Nicklist is a fixed 200px so its width never shifts on join. */
 @media (min-width: 881px) {
 [data-theme^="yomirc"] .app {
-  grid-template-columns: 1fr minmax(200px, fit-content(240px));
+  grid-template-columns: 1fr 200px;
   grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas: "bar bar" "main members" "foot foot";
 }
