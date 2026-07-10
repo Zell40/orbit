@@ -1,14 +1,16 @@
-// Google Analytics 4 — OPT-IN via config.analytics.gaId. Unlike the sandboxed
-// cookieless collector, this is Google's gtag.js: it runs IN-PAGE (it needs the
-// page's cookies and must reach Google's servers, so it can't be sandboxed), sets
-// cookies, and requires googletagmanager.com + google-analytics.com in the app CSP.
-// On an EU/French site it also needs a cookie-consent banner — that's the operator's
-// call; this just wires GA when a measurement id is configured.
+// Google Analytics 4 — OPT-IN via config.analytics.gaId, using Google Consent
+// Mode v2 (advanced), matching the marketing site. gtag.js loads for everyone but
+// starts DENIED: no cookies, only anonymous cookieless pings until the visitor opts
+// in via the consent banner / settings toggle, which flips it with setGaConsent().
+// Consent is SHARED with tchatou.fr through the tchatou-consent key (same origin),
+// so a prior grant is restored here before the first hit. Needs googletagmanager.com
+// + google-analytics.com in the app CSP.
 //
 // SPA-aware: gtag only auto-counts the initial load, so we send a page_view on every
 // channel switch (buffer.active). DM and console names are redacted before they
 // reach Google — only public channels keep their name.
 import { getConfig } from './config';
+import { getConsent } from './consent';
 import { bus } from '../modules/bus';
 
 function pagePath(name: string): string {
@@ -23,8 +25,8 @@ function pageTitle(name: string): string {
 
 let loaded = false;
 
-// Called only once consent is granted (main.tsx at boot if already granted, or the
-// consent banner / settings toggle when the visitor opts in). Idempotent.
+// Load gtag.js in the denied-by-default consent state. Called once at boot. A prior
+// grant (from this app or the marketing site) is restored before gtag.js runs.
 export function initGa(): void {
   if (loaded) return;
   const id = getConfig().analytics?.gaId;
@@ -33,15 +35,14 @@ export function initGa(): void {
   const w = window as unknown as { dataLayer: unknown[]; gtag: (...a: unknown[]) => void };
   w.dataLayer = w.dataLayer || [];
   w.gtag = function gtag() { w.dataLayer.push(arguments); };
+  w.gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied', wait_for_update: 500 });
+  if (getConsent() === 'granted') setGaConsent(true);
   const s = document.createElement('script');
   s.async = true;
   s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
   document.head.appendChild(s);
   w.gtag('js', new Date());
-  // Match the Django site's config: no Google Signals / ad-personalisation, so GA
-  // sets only the first-party _ga cookies the consent banner declares (and doesn't
-  // use the region1.analytics.google.com signals endpoint).
-  w.gtag('config', id, { allow_google_signals: false, allow_ad_personalization_signals: false });
+  w.gtag('config', id);
   bus.on('connected', () => w.gtag('event', 'login', { method: 'irc' }));
   bus.on('buffer.active', (name: unknown) => {
     const n = String(name ?? '');
@@ -49,12 +50,18 @@ export function initGa(): void {
   });
 }
 
-// Withdraw: stop cookie use now (consent-mode deny) and clear GA's cookies. gtag
-// stays loaded for the session but won't be re-initialised on the next visit (the
-// gate blocks it), so tracking ends.
-export function disableGa(): void {
+// Flip the consent state (banner Accept/Refuse, settings toggle). The tag is already
+// loaded by initGa(); this tells gtag whether it may use storage. Denying also clears
+// any GA cookies already set.
+export function setGaConsent(granted: boolean): void {
   const w = window as unknown as { gtag?: (...a: unknown[]) => void };
-  if (typeof w.gtag === 'function') w.gtag('consent', 'update', { ad_storage: 'denied', analytics_storage: 'denied' });
+  if (typeof w.gtag !== 'function') return;
+  const g = granted ? 'granted' : 'denied';
+  w.gtag('consent', 'update', { ad_storage: g, ad_user_data: g, ad_personalization: g, analytics_storage: g });
+  if (!granted) clearGaCookies();
+}
+
+function clearGaCookies(): void {
   try {
     const host = location.hostname;
     const base = host.replace(/^www\./, '');

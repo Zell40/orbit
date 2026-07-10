@@ -4,7 +4,7 @@ import { getConfig } from '../../../core/config';
 import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '../../../platform/push';
 import { useActiveChat } from '../../../core/networks';
 import { getConsent, setConsent } from '../../../core/consent';
-import { initGa, disableGa } from '../../../core/ga';
+import { setGaConsent } from '../../../core/ga';
 import { ToggleRow } from '../rows';
 
 // Withdraw / grant Google Analytics consent (only shown when GA is configured).
@@ -13,8 +13,8 @@ function AnalyticsRow() {
   const [on, setOn] = useState(getConsent() === 'granted');
   if (!getConfig().analytics?.gaId) return null;
   const toggle = () => {
-    if (on) { setConsent('denied'); disableGa(); setOn(false); }
-    else { setConsent('granted'); initGa(); setOn(true); }
+    if (on) { setConsent('denied'); setGaConsent(false); setOn(false); }
+    else { setConsent('granted'); setGaConsent(true); setOn(true); }
   };
   return (
     <div className="srow">
