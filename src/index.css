@@ -354,8 +354,13 @@ input, textarea { font-family: inherit; }
   border-radius: 12px; transition: color .12s, background .12s;
 }
 .tab:hover { color: var(--ink); background: var(--bg); }
-.tab.is-active { color: var(--accent); }
-.tab__ic { position: relative; font-size: 1.2rem; line-height: 1; display: inline-flex; align-items: center; }
+.tab:active, .appbar__act:active, .appbar__me:active { transform: scale(.93); transition: transform .08s ease; }
+.tab.is-active { color: var(--accent); background: var(--accent-soft); }
+.tab:focus-visible, .appbar__act:focus-visible, .appbar__me:focus-visible {
+  outline: none; box-shadow: 0 0 0 2px var(--bg-soft, var(--bg)), 0 0 0 4px var(--accent-ring, rgba(20, 82, 204, .45));
+}
+.tab__ic { position: relative; line-height: 1; display: inline-flex; align-items: center; }
+.tab__ic svg, .appbar__act svg { display: block; }
 .tab__lb { font-size: .68rem; font-weight: 600; letter-spacing: .01em; }
 .tab__badge {
   position: absolute; top: -5px; right: -9px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
@@ -365,7 +370,7 @@ input, textarea { font-family: inherit; }
 .appbar__actions { display: flex; align-items: center; gap: .1rem; flex: 0 0 auto; }
 .appbar__act {
   width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: transparent;
-  border-radius: 11px; font-size: 1.1rem; color: var(--muted); cursor: pointer; transition: background .12s, color .12s;
+  border-radius: 11px; color: var(--muted); cursor: pointer; transition: background .12s, color .12s;
 }
 .appbar__act:hover { background: var(--bg); color: var(--ink); }
 /* host mount point for a sandboxed plugin's iframe (sized to content by the host) */

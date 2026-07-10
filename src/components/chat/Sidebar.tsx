@@ -5,6 +5,7 @@ import { avatarBg } from '@/lib/format';
 import { stripFormatting } from '@/core/store/text';
 import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
+import { Icon } from '../Icon';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
@@ -49,11 +50,11 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
       {statusAnchor && <StatusMenu nick={nick} away={away} anchor={statusAnchor} onClose={() => setStatusAnchor(null)} />}
       <nav className="appbar__nav" aria-label={t('a11y.conversations')}>
         <button className="tab is-active" aria-label={t('nav.home')}>
-          <span className="tab__ic" aria-hidden="true">🏠</span>
+          <span className="tab__ic"><Icon name="home" /></span>
           <span className="tab__lb">{t('nav.home')}</span>
         </button>
         <button className="tab" onClick={() => setModal('explore')} aria-label={t('nav.explore')}>
-          <span className="tab__ic" aria-hidden="true">🧭</span>
+          <span className="tab__ic"><Icon name="compass" /></span>
           <span className="tab__lb">{t('nav.tabRooms')}</span>
         </button>
         <TabFriends onOpen={() => setModal('friends')} />
@@ -62,7 +63,7 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
       <div className="appbar__actions">
         {footerVisible && footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
         <button className="appbar__act" onClick={() => setModal('settings')}
-          title={t('nav.settings')} aria-label={t('nav.settings')}>⚙️</button>
+          title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
       </div>
     </footer>
   );
@@ -194,7 +195,7 @@ function TabFriends({ onOpen }: { onOpen: () => void }) {
   const onlineCount = friends.filter((f) => online[f.toLowerCase()]).length;
   return (
     <button className="tab" onClick={onOpen} aria-label={t('nav.friends')}>
-      <span className="tab__ic" aria-hidden="true">👥{onlineCount > 0 && <span className="tab__badge">{onlineCount}</span>}</span>
+      <span className="tab__ic"><Icon name="users" />{onlineCount > 0 && <span className="tab__badge">{onlineCount}</span>}</span>
       <span className="tab__lb">{t('nav.friends')}</span>
     </button>
   );
