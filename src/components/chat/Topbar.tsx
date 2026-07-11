@@ -6,6 +6,7 @@ import { setterMask, ago } from '@/lib/topic';
 import { stripFormatting } from '@/core/store/text';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
+import { TopbarMore } from './TopbarMore';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { Icon } from '../Icon';
@@ -83,17 +84,20 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           </div>
         )}
       </div>
-      {topbarItems.filter((u) => u.slot === 'topbar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}
-      {!isServer && <button className="topbar__search" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
+      {(() => { const plug = topbarItems.filter((u) => u.slot === 'topbar_item'); return plug.length
+        ? <span className="topbar__plugins topbar__hide-mobile">{plug.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}</span>
+        : null; })()}
+      {!isServer && <button className="topbar__search topbar__hide-mobile" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
       {isChannel && <PinMenu />}
       {isChannel && <NotifyMenu />}
-      {isChannel && amOp && <button className="topbar__search" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
+      {isChannel && amOp && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
       {!isServer && (
-        <button className="topbar__leave" onClick={() => closeBuffer(bname)}
+        <button className="topbar__leave topbar__hide-mobile" onClick={() => closeBuffer(bname)}
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}><Icon name="close" size={18} /></button>
       )}
+      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} amOp={amOp} onSearch={() => setSearching(true)} />}
     </div>
   );
 }

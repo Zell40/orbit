@@ -50,7 +50,8 @@
     "serverTerminal": "Server terminal · type an IRC command (/list, /whois, /join…)",
     "muteOn": "Mute notifications",
     "muteOff": "Unmute notifications",
-    "membersTitle": "Members"
+    "membersTitle": "Members",
+    "more": "More"
   },
   "connect": {
     "onlineBadge": "{{n}} people online",

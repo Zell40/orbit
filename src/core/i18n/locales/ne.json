@@ -50,7 +50,8 @@
     "serverTerminal": "सर्भर टर्मिनल · IRC आदेश टाइप गर्नुहोस् (/list, /whois, /join…)",
     "muteOn": "सूचनाहरू म्युट गर्नुहोस्",
     "muteOff": "सूचनाहरू सक्रिय गर्नुहोस्",
-    "membersTitle": "सदस्यहरू"
+    "membersTitle": "सदस्यहरू",
+    "more": "थप"
   },
   "connect": {
     "onlineBadge": "{{n}} जना अनलाइन",

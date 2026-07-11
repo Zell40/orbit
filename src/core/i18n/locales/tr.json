@@ -50,7 +50,8 @@
     "serverTerminal": "Sunucu terminali · bir IRC komutu yaz (/list, /whois, /join…)",
     "muteOn": "Bildirimleri sustur",
     "muteOff": "Bildirimleri aç",
-    "membersTitle": "Üyeler"
+    "membersTitle": "Üyeler",
+    "more": "Daha fazla"
   },
   "connect": {
     "onlineBadge": "{{n}} kişi çevrimiçi",

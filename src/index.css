@@ -689,6 +689,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 /* Leave/close the current window (parts a channel, closes a DM) — far-right of the header. */
 .topbar__leave { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background .13s, color .13s; }
 .topbar__leave:hover { background: var(--danger-soft, rgba(224,49,80,.14)); color: var(--danger); }
+.topbar .topbar__more { display: none; }   /* overflow "⋮" is mobile-only (shown below the 880px breakpoint) */
 .topbar__searchicon { display: inline-flex; opacity: .7; }
 .topbar__searchinput { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: .95rem; color: var(--ink); outline: none; }
 .topbar__searchclose { flex: none; display: inline-flex; align-items: center; border: 0; background: none; color: var(--muted); cursor: pointer; padding: .3rem .5rem; border-radius: 8px; }
@@ -1712,9 +1713,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .topbar { padding: calc(.55rem + env(safe-area-inset-top, 0px)) .6rem .55rem; gap: .35rem; min-height: 56px; }
   .topbar__modes { display: none; }
   .topbar__setby { display: none; }
-  .topbar__av { display: none; }        /* the title already names the channel */
+  /* Native two-line header: channel glyph · name over topic, then the stateful
+     notify/pin toggles, member count, and a "⋮" overflow for the rest. */
+  .topbar { gap: .5rem; }
+  .topbar__av { display: grid; width: 36px; height: 36px; font-size: 1rem; border-radius: 11px; }
   .topbar__title { font-size: 1rem; }
-  .topbar__pill { cursor: pointer; }
+  .topbar__pill { cursor: pointer; min-width: 0; padding: .38rem .6rem; }
+  .topbar .topbar__hide-mobile { display: none; }   /* search / manage / leave / plugins collapse into ⋮ */
+  .topbar .topbar__more { display: inline-flex; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */
@@ -1845,6 +1851,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* pinned-messages popover */
 .nmenu__pop--pins { width: 300px; max-height: 60vh; overflow-y: auto; }
+.nmenu__item--danger b, .nmenu__item--danger .nmenu__ic { color: var(--danger); }
 .pinrow { display: flex; align-items: stretch; gap: .2rem; }
 .pinrow__go { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left;
   border: 0; background: transparent; color: var(--ink); padding: .45rem .55rem; border-radius: 8px; cursor: pointer; }

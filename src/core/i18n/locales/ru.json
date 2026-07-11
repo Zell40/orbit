@@ -50,7 +50,8 @@
     "serverTerminal": "Терминал сервера · введите команду IRC (/list, /whois, /join…)",
     "muteOn": "Отключить уведомления",
     "muteOff": "Включить уведомления",
-    "membersTitle": "Участники"
+    "membersTitle": "Участники",
+    "more": "Ещё"
   },
   "connect": {
     "onlineBadge": "{{n}} человек онлайн",

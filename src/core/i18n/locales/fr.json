@@ -50,7 +50,8 @@
     "serverTerminal": "Terminal serveur · tape une commande IRC (/list, /whois, /join…)",
     "muteOn": "Couper les notifications",
     "muteOff": "Réactiver les notifications",
-    "membersTitle": "Membres"
+    "membersTitle": "Membres",
+    "more": "Plus"
   },
   "connect": {
     "onlineBadge": "{{n}} personnes en ligne",

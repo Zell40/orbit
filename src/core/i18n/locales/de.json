@@ -50,7 +50,8 @@
     "serverTerminal": "Server-Terminal · gib einen IRC-Befehl ein (/list, /whois, /join…)",
     "muteOn": "Benachrichtigungen stummschalten",
     "muteOff": "Stummschaltung aufheben",
-    "membersTitle": "Mitglieder"
+    "membersTitle": "Mitglieder",
+    "more": "Mehr"
   },
   "connect": {
     "onlineBadge": "{{n}} Personen online",
