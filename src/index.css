@@ -526,7 +526,7 @@ input, textarea { font-family: inherit; }
 .group__avatar { width: 40px; height: 40px; flex: none; }
 .group__time-rail { display: grid; place-items: center; font-size: .66rem; color: var(--faint); opacity: 0; }
 .group:hover .group__time-rail { opacity: 1; }
-.group__body { min-width: 0; flex: 1; }
+.group__body { min-width: 0; flex: 1; container-type: inline-size; container-name: msg; }
 .group__head { display: flex; align-items: baseline; gap: .55rem; margin-bottom: .05rem; }
 .group__nick { font-weight: 800; font-size: .94rem; }
 .group__time { font-size: .7rem; color: var(--faint); font-weight: 600; }
@@ -1948,6 +1948,14 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .lpcard__desc { font-size: .78rem; color: var(--muted);
   overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* Stack the link card (image over text) when the message body — its own
+   container, not the viewport — is too narrow for the side-by-side thumbnail.
+   Correct in every context: a wide desktop column stays horizontal, a phone or a
+   member-list-squeezed column stacks, with one rule. */
+@container msg (max-width: 360px) {
+  .lpcard { flex-direction: column; }
+  .lpcard__img { width: 100%; min-width: 0; height: 150px; }
+}
 
 /* Network switcher (multi-network, behind features.multiNetwork) */
 .nettabs { display: flex; gap: .3rem; padding: .35rem .6rem .1rem; overflow-x: auto; align-items: center; }
