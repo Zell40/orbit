@@ -1856,6 +1856,19 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 /* pinned-messages popover */
 .nmenu__pop--pins { width: 300px; max-height: 60vh; overflow-y: auto; }
 .nmenu__item--danger b, .nmenu__item--danger .nmenu__ic { color: var(--danger); }
+/* Shared nav-panel chrome — matches the radio/games window (card + header + close),
+   anchored above its footer tab. Rises in via @keyframes rise. */
+.opanel { position: fixed; z-index: 60; box-sizing: border-box; width: 320px; max-width: 92vw; max-height: 85vh; overflow-y: auto;
+  padding: 12px; border-radius: 16px; background: var(--bg); color: var(--ink); border: 1px solid var(--border);
+  box-shadow: 0 20px 50px -12px rgba(0,0,0,.6), 0 3px 10px -3px rgba(0,0,0,.4); animation: rise .18s ease both; }
+.opanel__hd { display: flex; align-items: center; gap: .4rem; margin-bottom: 10px; }
+.opanel__hd b { flex: 1; font-weight: 800; font-size: 13px; }
+.opanel__x { flex: none; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; border-radius: 8px; width: 24px; height: 24px; }
+.opanel__x:hover { color: var(--ink); }
+.opanel__add { display: flex; gap: .4rem; margin-bottom: .6rem; }
+.opanel__in { flex: 1; min-width: 0; border: 0; background: var(--bg-soft); color: var(--ink); font: inherit; border-radius: 10px; padding: .5rem .6rem; outline: none; }
+.opanel__btn { flex: none; border: 0; border-radius: 10px; background: var(--accent); color: var(--bg); font: inherit; font-weight: 700; padding: .5rem .8rem; cursor: pointer; }
+.opanel__empty { color: var(--muted); font-size: .85rem; text-align: center; padding: 1.2rem 0; }
 /* Alert dot on a footer nav tab (the Games tab: your move / a pending challenge). */
 .tab__dot { position: absolute; top: -3px; right: -5px; width: 8px; height: 8px; border-radius: 50%; background: var(--online, #2ec27e); box-shadow: 0 0 0 2px var(--bg-soft, var(--bg)); }
 .pinrow { display: flex; align-items: stretch; gap: .2rem; }

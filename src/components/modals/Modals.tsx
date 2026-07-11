@@ -4,7 +4,6 @@ import { Shortcuts } from '../Shortcuts';
 import { useActiveChat } from '@/core/networks';
 import { JoinDialog } from './JoinDialog';
 import { ExploreModal } from './ExploreModal';
-import { FriendsModal } from './FriendsModal';
 import { ChanAdminModal } from './ChanAdminModal';
 import { ReportModal } from './ReportModal';
 import { PluginModal } from './PluginModal';
@@ -16,7 +15,6 @@ export function Modals() {
       {modal === 'join' && <JoinDialog />}
       {modal === 'settings' && <SettingsModal />}
       {modal === 'explore' && <ExploreModal />}
-      {modal === 'friends' && <FriendsModal />}
       {modal === 'chanadmin' && <ChanAdminModal />}
       {modal === 'report' && <ReportModal />}
       {modal === 'switcher' && <QuickSwitcher />}

@@ -6,6 +6,7 @@ import { stripFormatting } from '@/core/store/text';
 import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
 import { Icon } from '../Icon';
+import { toggleFriendsPanel } from './FriendsPanel';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
@@ -53,7 +54,7 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
           <span className="tab__ic"><Icon name="home" /></span>
           <span className="tab__lb">{t('nav.home')}</span>
         </button>
-        <TabFriends onOpen={() => setModal('friends')} />
+        <TabFriends />
         {footerVisible && footerItems.filter((u) => u.slot === 'nav_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="nav_item" />)}
       </nav>
       <div className="appbar__actions">
@@ -184,13 +185,13 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
     </aside>
   );
 }
-function TabFriends({ onOpen }: { onOpen: () => void }) {
+function TabFriends() {
   const { t } = useTranslation();
   const friends = useActiveChat((s) => s.friends);
   const online = useActiveChat((s) => s.friendsOnline);
   const onlineCount = friends.filter((f) => online[f.toLowerCase()]).length;
   return (
-    <button className="tab" onClick={onOpen} aria-label={t('nav.friends')}>
+    <button className="tab" onClick={(e) => toggleFriendsPanel(e.currentTarget.getBoundingClientRect())} aria-label={t('nav.friends')}>
       <span className="tab__ic"><Icon name="users" />{onlineCount > 0 && <span className="tab__badge">{onlineCount}</span>}</span>
       <span className="tab__lb">{t('nav.friends')}</span>
     </button>

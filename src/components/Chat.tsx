@@ -10,6 +10,7 @@ import { MemberList } from './chat/MemberList';
 import { ReconnectBanner, KickToast } from './chat/Banners';
 import { usePluginRegistry } from '../modules/registry';
 import { PluginBoundary } from './PluginBoundary';
+import { FriendsPanel } from './chat/FriendsPanel';
 
 export function Chat() {
   const { t } = useTranslation();
@@ -44,6 +45,7 @@ export function Chat() {
       <ReconnectBanner />
     </div>
       {overlays.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
+      <FriendsPanel />
     </div>
   );
 }
