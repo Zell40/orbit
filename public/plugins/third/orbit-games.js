@@ -199,7 +199,7 @@ Orbit.plugin('games', (orbit, log) => {
     useEffect(() => { refreshStats(); }, []);
     const ms = s.myStats;
     const myPlayed = ms ? Object.keys(GAMES).filter((t) => ms[t] && (ms[t].wins + ms[t].losses + ms[t].draws) > 0) : [];
-    const btn = { border: '1px solid var(--border,#444)', background: 'transparent', color: 'inherit', borderRadius: '8px', padding: '.4rem .7rem', font: 'inherit', fontSize: '.85rem', cursor: 'pointer' };
+    const btn = { border: '0', background: 'var(--bg-soft)', color: 'var(--ink)', borderRadius: '10px', padding: '.45rem .7rem', font: 'inherit', fontSize: '.85rem', fontWeight: '600', cursor: 'pointer', transition: 'background .12s' };
 
     // Anchor the panel above the launcher tab (like the radio window), centred on
     // it and clamped to the viewport; fall back to the corner if we have no rect.
@@ -208,10 +208,10 @@ Orbit.plugin('games', (orbit, log) => {
       ? { left: Math.round(Math.min(Math.max(A.left + A.width / 2 - PW / 2, 8), W - PW - 8)) + 'px', bottom: Math.round(H - A.top + 10) + 'px' }
       : { right: '14px', bottom: '74px' };
 
-    return html`<div style=${{ '--bg2': 'var(--bg)', '--tx': 'var(--ink)', '--tx-dim': 'var(--muted)', '--ac': 'var(--accent)', '--card': 'var(--bg-soft-2)', position: 'fixed', ...pos, zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '16px', boxShadow: 'var(--shadow-pop)', animation: 'rise .18s ease both', padding: '.85rem' }}>
+    return html`<div style=${{ '--bg2': 'var(--bg)', '--tx': 'var(--ink)', '--tx-dim': 'var(--muted)', '--ac': 'var(--accent)', '--card': 'var(--bg-soft-2)', position: 'fixed', ...pos, zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '16px', boxShadow: '0 20px 50px -12px rgba(0,0,0,.6), 0 3px 10px -3px rgba(0,0,0,.4)', animation: 'rise .18s ease both', padding: '12px' }}>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.6rem' }}>
-        <strong style=${{ fontWeight: 700, fontSize: '.95rem', lineHeight: '1' }}>${T('plugins.games.title')}</strong>
-        <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, padding: '.15rem .45rem' }}>✕</button>
+        <strong style=${{ fontWeight: 800, fontSize: '13px', flex: 1, lineHeight: '1' }}>${T('plugins.games.title')}</strong>
+        <button onClick=${() => { s.open = false; notify(); }} style=${{ border: '0', background: 'transparent', color: 'var(--muted)', cursor: 'pointer', fontSize: '15px', lineHeight: '1', borderRadius: '8px', width: '24px', height: '24px' }}>✕</button>
       </div>
 
       ${myPlayed.length ? html`<div style=${{ display: 'flex', flexDirection: 'column', gap: '.3rem', margin: '-.15rem 0 .55rem' }}>
@@ -226,13 +226,13 @@ Orbit.plugin('games', (orbit, log) => {
       ${invites.map((g) => html`<div key=${g.id} style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', background: 'var(--bg-soft)', borderRadius: '8px', padding: '.45rem .6rem', marginBottom: '.4rem' }}>
         <span style=${{ fontSize: '.84rem' }}>${T('plugins.games.toastOffer', { opp: g.opp, game: GAMES[g.type].name })}</span>
         <span style=${{ display: 'flex', gap: '.3rem' }}>
-          <button onClick=${() => accept(g.id)} style=${{ ...btn, color: 'var(--online)', borderColor: 'var(--online)' }}>${T('plugins.games.accept')}</button>
+          <button onClick=${() => accept(g.id)} style=${{ ...btn, background: 'var(--online)', color: 'var(--bg)' }}>${T('plugins.games.accept')}</button>
           <button onClick=${() => decline(g.id)} style=${btn}>${T('plugins.games.decline')}</button>
         </span>
       </div>`)}
 
       ${games.length ? html`<div style=${{ display: 'flex', flexWrap: 'wrap', gap: '.3rem', marginBottom: '.5rem', alignItems: 'center' }}>
-        ${games.map((g) => html`<button key=${g.id} onClick=${() => { s.active = g.id; s.showBoard = false; notify(); }} style=${{ ...btn, fontSize: '.76rem', padding: '.22rem .5rem', borderColor: s.active === g.id && !s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>${GAMES[g.type].icon} ${g.opp}${g.status === 'active' && g.turn === g.mySide ? ' •' : ''}</button>`)}
+        ${games.map((g) => html`<button key=${g.id} onClick=${() => { s.active = g.id; s.showBoard = false; notify(); }} style=${{ ...btn, fontSize: '.76rem', padding: '.22rem .5rem', ...(s.active === g.id && !s.showBoard ? { background: 'var(--accent)', color: 'var(--bg)' } : {}) }}>${GAMES[g.type].icon} ${g.opp}${g.status === 'active' && g.turn === g.mySide ? ' •' : ''}</button>`)}
         <button onClick=${() => { s.active = null; notify(); }} title=${T('plugins.games.newGame')} style=${{ ...btn, fontSize: '.76rem', padding: '.22rem .5rem' }}>＋</button>
       </div>` : null}
 
@@ -252,12 +252,12 @@ Orbit.plugin('games', (orbit, log) => {
         </div>`;
     })() : html`<div>
         <div style=${{ display: 'flex', gap: '.4rem', marginBottom: '.55rem' }}>
-          <button onClick=${() => { store.showBoard = false; notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: !s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>${T('plugins.games.newGame')}</button>
-          <button onClick=${() => { store.showBoard = true; fetchTop(store.topType); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', borderColor: s.showBoard ? 'var(--ac,#5b8cff)' : undefined }}>🏆 ${T('plugins.games.leaderboard')}</button>
+          <button onClick=${() => { store.showBoard = false; notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', ...(!s.showBoard ? { background: 'var(--accent)', color: 'var(--bg)' } : {}) }}>${T('plugins.games.newGame')}</button>
+          <button onClick=${() => { store.showBoard = true; fetchTop(store.topType); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.78rem', ...(s.showBoard ? { background: 'var(--accent)', color: 'var(--bg)' } : {}) }}>🏆 ${T('plugins.games.leaderboard')}</button>
         </div>
         ${s.showBoard ? html`<div>
           <div style=${{ display: 'flex', gap: '.3rem', marginBottom: '.5rem' }}>
-            ${Object.keys(GAMES).map((t) => html`<button key=${t} onClick=${() => { store.topType = t; fetchTop(t); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.74rem', padding: '.25rem .3rem', borderColor: s.topType === t ? 'var(--ac,#5b8cff)' : undefined }}>${GAMES[t].icon} ${GAMES[t].name}</button>`)}
+            ${Object.keys(GAMES).map((t) => html`<button key=${t} onClick=${() => { store.topType = t; fetchTop(t); notify(); }} style=${{ ...btn, flex: 1, fontSize: '.74rem', padding: '.25rem .3rem', ...(s.topType === t ? { background: 'var(--accent)', color: 'var(--bg)' } : {}) }}>${GAMES[t].icon} ${GAMES[t].name}</button>`)}
           </div>
           ${(() => { const board = s.boards[s.topType];
         return !board ? html`<div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#888)', padding: '.5rem 0' }}>${T('plugins.games.loading')}</div>`
