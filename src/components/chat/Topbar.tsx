@@ -37,6 +37,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const [searching, setSearching] = useState(false);
   if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button></div>;
   const n = members ? Object.keys(members).length : 0;
+  const plug = topbarItems.filter((u) => u.slot === 'topbar_item');
   const setter = topicBy ? setterMask(topicBy, members || {}) : '';
   const setterTitle = setter ? `${t('modals.chanadmin.topicBy')} ${setter}${topicAt ? ` · ${ago(topicAt, locale)}` : ''}` : '';
   const isServer = bname === SERVER;
@@ -84,9 +85,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           </div>
         )}
       </div>
-      {(() => { const plug = topbarItems.filter((u) => u.slot === 'topbar_item'); return plug.length
-        ? <span className="topbar__plugins">{plug.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}</span>
-        : null; })()}
+      {plug.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{plug.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}</span>}
       {!isServer && <button className="topbar__search topbar__hide-mobile" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
       {isChannel && <PinMenu />}
       {isChannel && <NotifyMenu />}
@@ -97,7 +96,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}><Icon name="close" size={18} /></button>
       )}
-      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} amOp={amOp} onSearch={() => setSearching(true)} />}
+      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} amOp={amOp} plugins={plug} onSearch={() => setSearching(true)} />}
     </div>
   );
 }

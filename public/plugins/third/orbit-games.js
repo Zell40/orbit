@@ -276,19 +276,25 @@ Orbit.plugin('games', (orbit, log) => {
     const s = useStore();
     const games = Object.values(s.games);
     const alert = games.some((g) => g.status === 'offer') || games.some((g) => g.status === 'active' && g.turn === g.mySide);
-    return html`<${orbit.Fragment}>
-      <button title=${T('plugins.games.title')} onClick=${() => { s.open = !s.open; notify(); }} style=${{ position: 'relative', display: 'flex', alignItems: 'center', background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer', padding: '0 .4rem', alignSelf: 'center' }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style=${{ display: 'block' }}>
-          <line x1="6" x2="10" y1="11" y2="11" />
-          <line x1="8" x2="8" y1="9" y2="13" />
-          <line x1="15" x2="15.01" y1="12" y2="12" />
-          <line x1="18" x2="18.01" y1="10" y2="10" />
-          <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.544-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
-        </svg>
-        ${alert ? html`<span style=${{ position: 'absolute', top: '0', right: '2px', width: '7px', height: '7px', borderRadius: '50%', background: '#2ea043' }}></span>` : null}
-      </button>
-      ${s.open ? html`<${Panel} />` : null}
-    </${orbit.Fragment}>`;
+    return html`<button className="orbit-tbbtn" title=${T('plugins.games.title')} onClick=${() => { s.open = !s.open; notify(); }}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style=${{ display: 'block', flex: 'none' }}>
+        <line x1="6" x2="10" y1="11" y2="11" />
+        <line x1="8" x2="8" y1="9" y2="13" />
+        <line x1="15" x2="15.01" y1="12" y2="12" />
+        <line x1="18" x2="18.01" y1="10" y2="10" />
+        <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.544-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+      </svg>
+      <span className="orbit-tbbtn__lb">${T('plugins.games.title')}</span>
+      ${alert ? html`<span className="orbit-tbbtn__dot"></span>` : null}
+    </button>`;
+  }
+
+  // The games panel lives at the app root via the persistent 'overlay' slot, so
+  // the launcher button above can move between the header and the mobile ⋮ menu
+  // without unmounting the panel.
+  function GamesPanel() {
+    const s = useStore();
+    return s.open ? html`<${Panel} />` : null;
   }
 
   // Rank badge on a profile card (asks GameServ for that account's stats).
@@ -309,6 +315,7 @@ Orbit.plugin('games', (orbit, log) => {
   const refreshStatsFor = (nick) => cmd('STATS ' + nick);
 
   orbit.addUi('topbar_item', () => orbit.h(GamesButton));
+  orbit.addUi('overlay', () => orbit.h(GamesPanel));
   orbit.addUserAction((u) => html`<${RankChip} nick=${u.nick} />`);
   orbit.addUserAction((u) => html`<button className="pm-chip" onClick=${() => { store.challengeNick = u.nick; store.active = null; store.showBoard = false; store.open = true; notify(); u.close(); }}>♟ ${T('plugins.games.challengeAction')}</button>`);
 });

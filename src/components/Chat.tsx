@@ -17,7 +17,10 @@ export function Chat() {
   const [membersOpen, setMembersOpen] = useState(false);
   // A plugin-filled bar across the very top (branding + portal links). Nothing
   // renders it by default, so the shell collapses to just the app.
-  const navbar = usePluginRegistry((s) => s.ui).filter((u) => u.slot === 'navbar');
+  const ui = usePluginRegistry((s) => s.ui);
+  const navbar = ui.filter((u) => u.slot === 'navbar');
+  // Persistent, root-level home for plugin popovers/panels (see UiSlot 'overlay').
+  const overlays = ui.filter((u) => u.slot === 'overlay');
   // Stable so the memoized room rows aren't invalidated on every render.
   const closeNav = useCallback(() => setNavOpen(false), []);
   return (
@@ -40,6 +43,7 @@ export function Chat() {
       <KickToast />
       <ReconnectBanner />
     </div>
+      {overlays.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
     </div>
   );
 }

@@ -8,7 +8,10 @@ import type { ReactNode } from 'react';
 // 'nav_item' sits in the bottom nav next to Home/Rooms/Friends (for a prominent,
 // tab-like control such as the radio player); 'navbar' is a full-width bar across
 // the very top of the app, for network branding + portal links (orbit-navbar).
-export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'sidebar_item' | 'footer_item' | 'nav_item' | 'navbar';
+// 'overlay' renders at the app root, always mounted and free of any transformed
+// or hidden ancestor — the home for a plugin's own fixed popover/panel, so its
+// launcher button can live (and move) anywhere without unmounting the panel.
+export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'sidebar_item' | 'footer_item' | 'nav_item' | 'navbar' | 'overlay';
 
 export interface PluginUi {
   id: string;
