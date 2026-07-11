@@ -690,6 +690,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 .topbar__leave { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background .13s, color .13s; }
 .topbar__leave:hover { background: var(--danger-soft, rgba(224,49,80,.14)); color: var(--danger); }
 .topbar .topbar__more { display: none; }   /* overflow "⋮" is mobile-only (shown below the 880px breakpoint) */
+.topbar__plugins { display: inline-flex; align-items: center; flex: none; }
 .topbar__searchicon { display: inline-flex; opacity: .7; }
 .topbar__searchinput { flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: .95rem; color: var(--ink); outline: none; }
 .topbar__searchclose { flex: none; display: inline-flex; align-items: center; border: 0; background: none; color: var(--muted); cursor: pointer; padding: .3rem .5rem; border-radius: 8px; }

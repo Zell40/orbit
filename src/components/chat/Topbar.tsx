@@ -85,7 +85,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
         )}
       </div>
       {(() => { const plug = topbarItems.filter((u) => u.slot === 'topbar_item'); return plug.length
-        ? <span className="topbar__plugins topbar__hide-mobile">{plug.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}</span>
+        ? <span className="topbar__plugins">{plug.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}</span>
         : null; })()}
       {!isServer && <button className="topbar__search topbar__hide-mobile" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
       {isChannel && <PinMenu />}
