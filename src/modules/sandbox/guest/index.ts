@@ -11,6 +11,7 @@ import type { RpcMethod, StateSnapshot, HostToGuest } from '../protocol';
 
 (function () {
   let port: MessagePort;
+  let hostName = ''; // the host-side plugin id (e.g. "sbx:orbit-radio.js") — the id used in the 'orbit:panel' bus event
   let snap: StateSnapshot = { active: '', nick: '', account: '', buffers: [], network: '', isupport: {}, caps: [] };
   let store: Record<string, unknown> = {};
   const listeners: Record<string, ((...a: unknown[]) => void)[]> = {}; // event name -> [fn]
@@ -163,8 +164,9 @@ import type { RpcMethod, StateSnapshot, HostToGuest } from '../protocol';
         toggle: () => setOpen(!open), isOpen: () => open,
         active: (on: boolean) => { hot = !!on; paint(); }, body: () => body,
       };
-      // Mutual exclusion: close when a DIFFERENT panel announces it opened.
-      (listeners['orbit:panel'] = listeners['orbit:panel'] || []).push((id: unknown) => { if (id !== name && open) setOpen(false); });
+      // Mutual exclusion: close when a DIFFERENT panel announces it opened. Compare
+      // against the host-side id (what panel.opened emits), not our declared name.
+      (listeners['orbit:panel'] = listeners['orbit:panel'] || []).push((id: unknown) => { if (id !== hostName && open) setOpen(false); });
       ui(opts.slot || 'nav_item', (root) => {
         // Centre the trigger over the slot: without this the fit-content trigger
         // left-aligns under the wider card when open and slides onto the next tab.
@@ -270,6 +272,7 @@ import type { RpcMethod, StateSnapshot, HostToGuest } from '../protocol';
       port = e.ports[0];
       snap = m.snapshot || snap;
       store = m.storage || {};
+      hostName = m.name || hostName;
       applyTheme(m.theme);
       port.onmessage = (ev: MessageEvent) => {
         const d = ev.data as HostToGuest;
