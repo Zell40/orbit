@@ -53,10 +53,6 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
           <span className="tab__ic"><Icon name="home" /></span>
           <span className="tab__lb">{t('nav.home')}</span>
         </button>
-        <button className="tab" onClick={() => setModal('explore')} aria-label={t('nav.explore')}>
-          <span className="tab__ic"><Icon name="compass" /></span>
-          <span className="tab__lb">{t('nav.tabRooms')}</span>
-        </button>
         <TabFriends onOpen={() => setModal('friends')} />
         {footerVisible && footerItems.filter((u) => u.slot === 'nav_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="nav_item" />)}
       </nav>

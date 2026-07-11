@@ -10,12 +10,6 @@ const PATHS: Record<string, ReactNode> = {
       <path d="M9.2 21.3V13h5.6v8.3" />
     </>
   ),
-  compass: (
-    <>
-      <circle cx="12" cy="12" r="9.3" />
-      <path d="M16.2 7.8 14.1 14.1 7.8 16.2 9.9 9.9z" />
-    </>
-  ),
   users: (
     <>
       <path d="M16 20.5v-1.8a4 4 0 0 0-4-4H6.2a4 4 0 0 0-4 4v1.8" />
