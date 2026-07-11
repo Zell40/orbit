@@ -103,7 +103,7 @@ Orbit.plugin('games', (orbit, log) => {
   function beep() { try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine'; o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(660, t); o.frequency.setValueAtTime(880, t + 0.12); g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32); o.start(t); o.stop(t + 0.33); } catch (e) { /* no audio */ } }
   function hideToast() { if (toastEl) toastEl.style.opacity = '0'; }
   function showToast(msg, id) {
-    if (!toastEl) { toastEl = document.createElement('div'); Object.assign(toastEl.style, { position: 'fixed', right: '14px', bottom: '120px', zIndex: '70', maxWidth: '260px', background: '#15151a', color: '#eee', border: '1px solid rgba(255,255,255,.14)', borderRadius: '12px', padding: '.6rem .8rem', font: '600 .85rem/1.3 system-ui,sans-serif', boxShadow: '0 16px 40px -16px rgba(0,0,0,.7)', cursor: 'pointer', transition: 'opacity .2s', opacity: '0' }); document.body.appendChild(toastEl); }
+    if (!toastEl) { toastEl = document.createElement('div'); Object.assign(toastEl.style, { position: 'fixed', right: '14px', bottom: '120px', zIndex: '70', maxWidth: '260px', background: 'var(--bg)', color: 'var(--ink)', border: '1px solid var(--border)', borderRadius: '12px', padding: '.6rem .8rem', font: '600 .85rem/1.3 system-ui,sans-serif', boxShadow: '0 14px 36px -14px rgba(0,0,0,.35)', cursor: 'pointer', transition: 'opacity .2s', opacity: '0' }); document.body.appendChild(toastEl); }
     toastEl.textContent = msg; toastEl.onclick = () => { store.open = true; store.active = id; store.showBoard = false; notify(); hideToast(); };
     toastEl.style.opacity = '1'; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 6000);
   }
@@ -201,14 +201,14 @@ Orbit.plugin('games', (orbit, log) => {
     const myPlayed = ms ? Object.keys(GAMES).filter((t) => ms[t] && (ms[t].wins + ms[t].losses + ms[t].draws) > 0) : [];
     const btn = { border: '1px solid var(--border,#444)', background: 'transparent', color: 'inherit', borderRadius: '8px', padding: '.4rem .7rem', font: 'inherit', fontSize: '.85rem', cursor: 'pointer' };
 
-    return html`<div style=${{ position: 'fixed', right: '14px', bottom: '74px', zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '14px', boxShadow: '0 24px 60px -20px rgba(0,0,0,.7)', padding: '.85rem' }}>
+    return html`<div style=${{ '--bg2': 'var(--bg)', '--tx': 'var(--ink)', '--tx-dim': 'var(--muted)', '--ac': 'var(--accent)', '--card': 'var(--bg-soft-2)', position: 'fixed', right: '14px', bottom: '74px', zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '14px', boxShadow: '0 20px 50px -14px rgba(0,0,0,.35)', padding: '.85rem' }}>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.6rem' }}>
         <strong style=${{ fontWeight: 700, fontSize: '.95rem', lineHeight: '1' }}>${T('plugins.games.title')}</strong>
         <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, padding: '.15rem .45rem' }}>✕</button>
       </div>
 
       ${myPlayed.length ? html`<div style=${{ display: 'flex', flexDirection: 'column', gap: '.3rem', margin: '-.15rem 0 .55rem' }}>
-        ${myPlayed.map((t) => { const r = ms[t]; return html`<div key=${t} style=${{ display: 'flex', alignItems: 'center', gap: '.45rem', fontSize: '.78rem', padding: '.32rem .55rem', background: 'rgba(255,255,255,.05)', borderRadius: '8px' }}>
+        ${myPlayed.map((t) => { const r = ms[t]; return html`<div key=${t} style=${{ display: 'flex', alignItems: 'center', gap: '.45rem', fontSize: '.78rem', padding: '.32rem .55rem', background: 'var(--bg-soft)', borderRadius: '8px' }}>
           <span style=${{ width: '1.1rem', textAlign: 'center' }}>${GAMES[t].icon}</span>
           <span style=${{ fontWeight: 700 }}>${RANK_BADGE[r.rank] || ''} ${T('plugins.games.rank.' + r.rank, { defaultValue: r.rank })}</span>
           <span style=${{ color: 'var(--tx-dim,#aaa)' }}>${r.points} pts</span>
@@ -216,10 +216,10 @@ Orbit.plugin('games', (orbit, log) => {
         </div>`; })}
       </div>` : null}
 
-      ${invites.map((g) => html`<div key=${g.id} style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', background: 'rgba(255,255,255,.05)', borderRadius: '8px', padding: '.45rem .6rem', marginBottom: '.4rem' }}>
+      ${invites.map((g) => html`<div key=${g.id} style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', background: 'var(--bg-soft)', borderRadius: '8px', padding: '.45rem .6rem', marginBottom: '.4rem' }}>
         <span style=${{ fontSize: '.84rem' }}>${T('plugins.games.toastOffer', { opp: g.opp, game: GAMES[g.type].name })}</span>
         <span style=${{ display: 'flex', gap: '.3rem' }}>
-          <button onClick=${() => accept(g.id)} style=${{ ...btn, color: '#2ea043', borderColor: '#2ea043' }}>${T('plugins.games.accept')}</button>
+          <button onClick=${() => accept(g.id)} style=${{ ...btn, color: 'var(--online)', borderColor: 'var(--online)' }}>${T('plugins.games.accept')}</button>
           <button onClick=${() => decline(g.id)} style=${btn}>${T('plugins.games.decline')}</button>
         </span>
       </div>`)}
@@ -263,7 +263,7 @@ Orbit.plugin('games', (orbit, log) => {
               </div>`); })()}
         </div>` : html`<div>
           <div style=${{ fontSize: '.8rem', color: 'var(--tx-dim,#aaa)', marginBottom: '.4rem' }}>${T('plugins.games.challengeIntro')}</div>
-          <input value=${nick} onInput=${(e) => setNick(e.target.value)} placeholder=${T('plugins.games.oppPlaceholder')} style=${{ width: '100%', boxSizing: 'border-box', padding: '.5rem .6rem', borderRadius: '8px', border: '1px solid var(--border,#444)', background: 'var(--bg,#0e0e12)', color: 'inherit', font: 'inherit', marginBottom: '.5rem' }} />
+          <input value=${nick} onInput=${(e) => setNick(e.target.value)} placeholder=${T('plugins.games.oppPlaceholder')} style=${{ width: '100%', boxSizing: 'border-box', padding: '.5rem .6rem', borderRadius: '8px', border: '1px solid var(--border,#444)', background: 'var(--bg-soft,#0e0e12)', color: 'inherit', font: 'inherit', marginBottom: '.5rem' }} />
           <div style=${{ display: 'flex', gap: '.4rem' }}>
             ${Object.keys(GAMES).map((id) => html`<button key=${id} onClick=${() => nick.trim() && challenge(nick.trim(), id)} style=${{ ...btn, flex: 1, fontSize: '.8rem' }}>${GAMES[id].icon} ${GAMES[id].name}</button>`)}
           </div>
@@ -314,7 +314,7 @@ Orbit.plugin('games', (orbit, log) => {
       .sort((a, b) => b.points - a.points);
     if (!played.length) return null;
     const best = played[0]; // their strongest game
-    return html`<span title=${T('plugins.games.bestRank', { game: GAMES[best.t].name })} style=${{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.8rem', fontWeight: 600, padding: '.3rem .6rem', borderRadius: '999px', background: 'rgba(255,255,255,.06)', border: '1px solid var(--border,#444)' }}>${GAMES[best.t].icon} ${RANK_BADGE[best.rank] || ''} ${T('plugins.games.rank.' + best.rank, { defaultValue: best.rank })} · ${best.points} pts</span>`;
+    return html`<span title=${T('plugins.games.bestRank', { game: GAMES[best.t].name })} style=${{ display: 'inline-flex', alignItems: 'center', gap: '.3rem', fontSize: '.8rem', fontWeight: 600, padding: '.3rem .6rem', borderRadius: '999px', background: 'var(--bg-soft)', border: '1px solid var(--border,#444)' }}>${GAMES[best.t].icon} ${RANK_BADGE[best.rank] || ''} ${T('plugins.games.rank.' + best.rank, { defaultValue: best.rank })} · ${best.points} pts</span>`;
   }
   const refreshStatsFor = (nick) => cmd('STATS ' + nick);
 
