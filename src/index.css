@@ -1864,6 +1864,11 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .nmenu__plug .orbit-tbbtn:hover { background: var(--bg-soft-2); }
 .nmenu__plug .orbit-tbbtn__lb { display: inline; font-weight: 600; font-size: .9rem; }
 .nmenu__plug .orbit-tbbtn__dot { top: 50%; right: .55rem; transform: translateY(-50%); }
+/* A sandboxed passive display (e.g. the clock, an .sbx-slot iframe) belongs in the
+   header, not the action menu — and it's redundant on phones, where the OS status
+   bar already shows the time. The bar copy is hidden on mobile, so dropping it from
+   the menu hides it there entirely while keeping it in the desktop header. */
+.nmenu__plug:has(.sbx-slot) { display: none; }
 .pinrow { display: flex; align-items: stretch; gap: .2rem; }
 .pinrow__go { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left;
   border: 0; background: transparent; color: var(--ink); padding: .45rem .55rem; border-radius: 8px; cursor: pointer; }
