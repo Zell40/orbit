@@ -80,7 +80,7 @@ Orbit.plugin('games', (orbit, log) => {
   };
 
   // ════════════════════════ store ════════════════════════
-  const store = { games: {}, open: false, active: null, challengeNick: '', subs: new Set(), myStats: null, boards: {}, topType: 'chess', topPending: null, showBoard: false };
+  const store = { games: {}, open: false, anchor: null, active: null, challengeNick: '', subs: new Set(), myStats: null, boards: {}, topType: 'chess', topPending: null, showBoard: false };
   const statsCache = {}; // accountLower -> { [gameType]: { rank, points, wins, losses, draws } }
   function notify() { store.subs.forEach((f) => f()); }
   function useStore() { const [, set] = useState(0); useEffect(() => { const f = () => set((x) => x + 1); store.subs.add(f); return () => store.subs.delete(f); }, []); return store; }
@@ -201,7 +201,14 @@ Orbit.plugin('games', (orbit, log) => {
     const myPlayed = ms ? Object.keys(GAMES).filter((t) => ms[t] && (ms[t].wins + ms[t].losses + ms[t].draws) > 0) : [];
     const btn = { border: '1px solid var(--border,#444)', background: 'transparent', color: 'inherit', borderRadius: '8px', padding: '.4rem .7rem', font: 'inherit', fontSize: '.85rem', cursor: 'pointer' };
 
-    return html`<div style=${{ '--bg2': 'var(--bg)', '--tx': 'var(--ink)', '--tx-dim': 'var(--muted)', '--ac': 'var(--accent)', '--card': 'var(--bg-soft-2)', position: 'fixed', right: '14px', bottom: '74px', zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '16px', boxShadow: 'var(--shadow-pop)', animation: 'rise .18s ease both', padding: '.85rem' }}>
+    // Anchor the panel above the launcher tab (like the radio window), centred on
+    // it and clamped to the viewport; fall back to the corner if we have no rect.
+    const A = s.anchor, W = window.innerWidth, H = window.innerHeight, PW = Math.min(344, W * 0.92);
+    const pos = A
+      ? { left: Math.round(Math.min(Math.max(A.left + A.width / 2 - PW / 2, 8), W - PW - 8)) + 'px', bottom: Math.round(H - A.top + 10) + 'px' }
+      : { right: '14px', bottom: '74px' };
+
+    return html`<div style=${{ '--bg2': 'var(--bg)', '--tx': 'var(--ink)', '--tx-dim': 'var(--muted)', '--ac': 'var(--accent)', '--card': 'var(--bg-soft-2)', position: 'fixed', ...pos, zIndex: 60, width: '344px', maxWidth: '92vw', maxHeight: '85vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch', background: 'var(--bg2,#15151a)', color: 'var(--tx,#eee)', border: '1px solid var(--border,#333)', borderRadius: '16px', boxShadow: 'var(--shadow-pop)', animation: 'rise .18s ease both', padding: '.85rem' }}>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.6rem' }}>
         <strong style=${{ fontWeight: 700, fontSize: '.95rem', lineHeight: '1' }}>${T('plugins.games.title')}</strong>
         <button onClick=${() => { s.open = false; notify(); }} style=${{ ...btn, padding: '.15rem .45rem' }}>✕</button>
@@ -279,7 +286,7 @@ Orbit.plugin('games', (orbit, log) => {
     const s = useStore();
     const games = Object.values(s.games);
     const alert = games.some((g) => g.status === 'offer') || games.some((g) => g.status === 'active' && g.turn === g.mySide);
-    return html`<button className=${'tab' + (s.open ? ' is-active' : '')} title=${T('plugins.games.title')} aria-label=${T('plugins.games.title')} onClick=${() => { s.open = !s.open; notify(); }}>
+    return html`<button className=${'tab' + (s.open ? ' is-active' : '')} title=${T('plugins.games.title')} aria-label=${T('plugins.games.title')} onClick=${(e) => { s.anchor = e.currentTarget.getBoundingClientRect(); s.open = !s.open; notify(); }}>
       <span className="tab__ic">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style=${{ display: 'block' }}>
           <line x1="6" x2="10" y1="11" y2="11" />
