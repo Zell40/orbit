@@ -511,7 +511,7 @@ input, textarea { font-family: inherit; }
 
 
 /* ============ MESSAGE LIST ============ */
-.messages { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 1rem 0 .6rem; }
+.messages { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 1rem 0 .6rem; view-transition-name: chatview; }
 .daysep { display: flex; align-items: center; gap: 1rem; margin: 1.1rem 1.3rem .5rem; }
 .daysep::before, .daysep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .daysep span { font-size: .74rem; font-weight: 700; color: var(--faint); padding: .2rem .8rem; border: 1px solid var(--border); border-radius: 999px; background: var(--bg); text-transform: capitalize; }
@@ -1965,3 +1965,19 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .nettab--add { border: 1px dashed var(--border); background: transparent; color: var(--muted);
   border-radius: 999px; width: 24px; height: 24px; font-size: 1rem; line-height: 1; cursor: pointer; flex: none; }
 .nettab--add:hover { color: var(--ink); border-color: var(--accent); }
+
+/* ── Channel switch view transition ───────────────────────────────────────────
+   Cross-fade just the message region when the user picks another room (see
+   src/lib/viewTransition.ts). The root is opted out so the sidebar, topbar and
+   composer stay live and instant; only .messages morphs. The JS helper skips the
+   transition entirely under reduced motion, so these pseudos never run then. */
+:root { view-transition-name: none; }
+::view-transition-old(chatview),
+::view-transition-new(chatview) {
+  animation-duration: .18s;
+  animation-timing-function: cubic-bezier(.2, 0, 0, 1);
+}
+::view-transition-new(chatview) { animation-name: vt-chat-in; }
+::view-transition-old(chatview) { animation-name: vt-chat-out; }
+@keyframes vt-chat-in  { from { opacity: 0; transform: translateY(6px); } }
+@keyframes vt-chat-out { to   { opacity: 0; transform: translateY(-4px); } }

@@ -2,6 +2,7 @@ import { memo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '@/core/store';
 import { avatarBg } from '@/lib/format';
+import { switchWithTransition } from '@/lib/viewTransition';
 import { stripFormatting } from '@/core/store/text';
 import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
@@ -88,8 +89,8 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
   return (
     <div className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`}
       role="button" tabIndex={0}
-      onClick={() => { setActive(name); onNavigate(); }}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(name); onNavigate(); } }}>
+      onClick={() => { switchWithTransition(() => setActive(name)); onNavigate(); }}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchWithTransition(() => setActive(name)); onNavigate(); } }}>
       <span className="room__av" data-server={isServer || undefined}
         style={isServer ? undefined : { background: avatarBg(name) }}>
         {b.isChannel ? <span className="room__hash">#</span> : glyph}
