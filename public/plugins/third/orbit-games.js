@@ -86,6 +86,9 @@ Orbit.plugin('games', (orbit, log) => {
   function useStore() { const [, set] = useState(0); useEffect(() => { const f = () => set((x) => x + 1); store.subs.add(f); return () => store.subs.delete(f); }, []); return store; }
   const myAccount = () => (orbit.state.get().account || '').toLowerCase();
 
+  // Panel mutual exclusion: close our panel when another one (radio, friends…) opens.
+  orbit.on('orbit:panel', (id) => { if (id !== 'games' && store.open) { store.open = false; notify(); } });
+
   // ════════════════════════ transport: commands to GameServ ════════════════════════
   const cmd = (line) => orbit.irc.send('PRIVMSG GameServ :' + line);
   const challenge = (nick, type) => cmd('CHALLENGE ' + nick + ' ' + type);
@@ -286,7 +289,7 @@ Orbit.plugin('games', (orbit, log) => {
     const s = useStore();
     const games = Object.values(s.games);
     const alert = games.some((g) => g.status === 'offer') || games.some((g) => g.status === 'active' && g.turn === g.mySide);
-    return html`<button className=${'tab' + (s.open ? ' is-active' : '')} title=${T('plugins.games.title')} aria-label=${T('plugins.games.title')} onClick=${(e) => { s.anchor = e.currentTarget.getBoundingClientRect(); s.open = !s.open; notify(); }}>
+    return html`<button className=${'tab' + (s.open ? ' is-active' : '')} title=${T('plugins.games.title')} aria-label=${T('plugins.games.title')} onClick=${(e) => { s.anchor = e.currentTarget.getBoundingClientRect(); s.open = !s.open; if (s.open) orbit.emit('orbit:panel', 'games'); notify(); }}>
       <span className="tab__ic">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" style=${{ display: 'block' }}>
           <line x1="6" x2="10" y1="11" y2="11" />

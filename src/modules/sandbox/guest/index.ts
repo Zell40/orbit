@@ -145,6 +145,7 @@ import type { RpcMethod, StateSnapshot, HostToGuest } from '../protocol';
       function setOpen(v: boolean) {
         open = v; clearPending(); paint();
         if (v) {
+          rpc('panel.opened'); // announce → other panels close
           card.style.visibility = 'hidden'; card.style.display = 'block';
           pendingGrow = () => {
             if (window.innerHeight < card.offsetHeight) return;
@@ -162,6 +163,8 @@ import type { RpcMethod, StateSnapshot, HostToGuest } from '../protocol';
         toggle: () => setOpen(!open), isOpen: () => open,
         active: (on: boolean) => { hot = !!on; paint(); }, body: () => body,
       };
+      // Mutual exclusion: close when a DIFFERENT panel announces it opened.
+      (listeners['orbit:panel'] = listeners['orbit:panel'] || []).push((id: unknown) => { if (id !== name && open) setOpen(false); });
       ui(opts.slot || 'nav_item', (root) => {
         // Centre the trigger over the slot: without this the fit-content trigger
         // left-aligns under the wider card when open and slides onto the next tab.

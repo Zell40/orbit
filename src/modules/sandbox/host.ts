@@ -108,6 +108,8 @@ export function mountSandboxed(spec: SandboxSpec): void {
       pluginNotify(String(a[0] ?? ''), a[1] != null ? String(a[1]) : undefined);
     },
     'storage.set': (a) => persistStorage(name, String(a[0]), a[1]),
+    // Announce this plugin's panel opened → every panel (this one aside) closes.
+    'panel.opened': () => bus.emit('orbit:panel', name),
     // Host-mediated egress: the guest supplies only { t, p }; WE choose the URL
     // (config.analytics.endpoint), send no cookies, and cap rate + payload. So an
     // isolated plugin can beacon a pageview but can't exfiltrate or pick a target.

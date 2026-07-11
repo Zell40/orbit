@@ -50,6 +50,9 @@ export const RPC_CAPABILITY: Record<string, Permission | null> = {
   'command.dispose': null,
   'shortcut.register': null,
   'shortcut.dispose': null,
+  // Broadcasts "my panel opened" so other panels close — the id is fixed to this
+  // plugin's name host-side, so it can only ever announce its own panel.
+  'panel.opened': null,
   'log': null,
 };
 
@@ -111,4 +114,4 @@ export type GuestToHost = RpcMsg;
 
 /** App events forwarded into the sandbox. A deny-list-free allow-list: the guest
  *  only ever sees these, never raw internals. */
-export const FORWARDED_EVENTS = ['connected', 'message', 'buffer.active', 'status'] as const;
+export const FORWARDED_EVENTS = ['connected', 'message', 'buffer.active', 'status', 'orbit:panel'] as const;
