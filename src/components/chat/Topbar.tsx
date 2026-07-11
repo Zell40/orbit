@@ -96,7 +96,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}><Icon name="close" size={18} /></button>
       )}
-      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} amOp={amOp} plugins={plug} onSearch={() => setSearching(true)} />}
+      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} amOp={amOp} onSearch={() => setSearching(true)} />}
     </div>
   );
 }

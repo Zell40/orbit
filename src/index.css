@@ -1853,22 +1853,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 /* pinned-messages popover */
 .nmenu__pop--pins { width: 300px; max-height: 60vh; overflow-y: auto; }
 .nmenu__item--danger b, .nmenu__item--danger .nmenu__ic { color: var(--danger); }
-/* A topbar plugin launcher (e.g. Games): a compact icon in the header bar, and a
-   full labelled row when it drops into the mobile "⋮" overflow menu. */
-.orbit-tbbtn { position: relative; display: inline-flex; align-items: center; gap: .45rem; background: transparent; border: 0; color: var(--muted); cursor: pointer; padding: 0 .4rem; font: inherit; }
-.orbit-tbbtn:hover { color: var(--ink); }
-.orbit-tbbtn__lb { display: none; }
-.orbit-tbbtn__dot { position: absolute; top: 2px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: var(--online, #2ea043); }
-.nmenu__plug { display: block; }
-.nmenu__plug .orbit-tbbtn { width: 100%; padding: .5rem .55rem; border-radius: 9px; gap: .6rem; color: var(--ink); }
-.nmenu__plug .orbit-tbbtn:hover { background: var(--bg-soft-2); }
-.nmenu__plug .orbit-tbbtn__lb { display: inline; font-weight: 600; font-size: .9rem; }
-.nmenu__plug .orbit-tbbtn__dot { top: 50%; right: .55rem; transform: translateY(-50%); }
-/* A sandboxed passive display (e.g. the clock, an .sbx-slot iframe) belongs in the
-   header, not the action menu — and it's redundant on phones, where the OS status
-   bar already shows the time. The bar copy is hidden on mobile, so dropping it from
-   the menu hides it there entirely while keeping it in the desktop header. */
-.nmenu__plug:has(.sbx-slot) { display: none; }
+/* Alert dot on a footer nav tab (the Games tab: your move / a pending challenge). */
+.tab__dot { position: absolute; top: -3px; right: -5px; width: 8px; height: 8px; border-radius: 50%; background: var(--online, #2ec27e); box-shadow: 0 0 0 2px var(--bg-soft, var(--bg)); }
 .pinrow { display: flex; align-items: stretch; gap: .2rem; }
 .pinrow__go { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left;
   border: 0; background: transparent; color: var(--ink); padding: .45rem .55rem; border-radius: 8px; cursor: pointer; }
