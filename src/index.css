@@ -8,7 +8,9 @@
      config.branding.accent overrides it globally when set. */
   --accent: #1452cc;
   --accent-d: #0d3aa0;
-  --accent-soft: #eaf0ff;
+  /* Derived from the accent so it tracks a config.branding.accent override (e.g.
+     tchatou's orange) instead of staying a fixed blue tint. */
+  --accent-soft: color-mix(in srgb, var(--accent) 9%, var(--bg));
   /* "online" green — presence dots only */
   --online: #1fd189;
   --online-d: #15a36a;
@@ -1671,6 +1673,13 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-bans__empty { font-size: .82rem; color: var(--muted); padding: .3rem; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+/* Higher-contrast preference: heavier text (Hanken/Geist are variable fonts, so
+   weight tracks the wght axis) and underlined message links. */
+@media (prefers-contrast: more) {
+  body { font-weight: 460; }
+  .msg a, .lpcard, .topbar__topic { text-decoration-thickness: from-font; }
+  a:not(.btn) { text-decoration: underline; }
+}
 
 /* Alternate themes (dark, orbit, yomirc families) live in src/themes/*.css. */
 
