@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
@@ -14,8 +14,18 @@ const SYSTEM_KINDS = new Set(['notice', 'info', 'warning', 'mode', 'ban', 'topic
 // Presence noise that gets folded into a single EventGroup line.
 const GROUP_KINDS = new Set(['join', 'part', 'quit']);
 
+// Cheap local-day key (YYYYMMDD) for detecting day boundaries without formatting
+// every row. Unique per calendar day, so no cross-year collisions.
+const dayIndex = (ts: number) => {
+  const d = new Date(ts);
+  return d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate();
+};
+
 export function MessageList() {
   const { t, i18n } = useTranslation();
+  // One reusable Intl formatter; formatting is done only at day boundaries (rare),
+  // never once per message per render.
+  const dayFmt = useMemo(() => new Intl.DateTimeFormat(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' }), [i18n.language]);
   const active = useActiveChat((s) => s.active);
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const search = useActiveChat((s) => s.search);
@@ -31,7 +41,7 @@ export function MessageList() {
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const prevHeight = useRef(0);
   const prevActive = useRef(active);
-  const atBottom = useRef(true); // were we pinned to the bottom before the last scroll/resize?
+  const atBottom = useRef(true); // pinned to the very bottom → auto-follow new messages
   const [showJump, setShowJump] = useState(false);
   const count = buffer?.messages.length ?? 0;
 
@@ -92,22 +102,36 @@ export function MessageList() {
     };
   }, []);
 
-  // Scroll near the top of a channel → load older messages (chathistory).
+  // Coalesce scroll handling to one layout read per frame — a Mac trackpad fires
+  // scroll events far faster than paints, and forcing layout on each one is what
+  // makes a busy channel feel janky.
+  const scrollRaf = useRef(0);
   const onScroll = () => {
+    if (scrollRaf.current) return;
+    scrollRaf.current = requestAnimationFrame(() => {
+      scrollRaf.current = 0;
+      const el = ref.current;
+      if (!el) return;
+      const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+      atBottom.current = bottom;
+      // Reached the bottom → you've read everything: advance the marker.
+      if (bottom) markReadHere();
+      // channels and private messages both have server-side history (not the console)
+      if (el.scrollTop < 60 && buffer && buffer.name !== SERVER && !histLoading && !histDone) loadMore(active);
+      // Whenever you're away from the bottom, offer a way straight back to the
+      // newest line — so a fast channel can't strand you scrolled up.
+      setShowJump(!bottom);
+    });
+  };
+  // Snap to the newest line and re-engage follow (used by the floating button).
+  const jumpToBottom = () => {
     const el = ref.current;
     if (!el) return;
-    const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
-    atBottom.current = bottom;
-    // Reached the bottom → you've read everything: advance the marker so the
-    // "New messages" divider and the jump button clear instead of freezing.
-    if (bottom) markReadHere();
-    // channels and private messages both have server-side history (not the console)
-    if (el.scrollTop < 60 && buffer && buffer.name !== SERVER && !histLoading && !histDone) loadMore(active);
-    // show the "jump to new" button while the unread divider is scrolled out of view above
-    const d = dividerRef.current;
-    setShowJump(!bottom && !!d && d.offsetTop < el.scrollTop - 20);
+    el.scrollTop = el.scrollHeight;
+    atBottom.current = true;
+    setShowJump(false);
+    markReadHere();
   };
-  const jumpToUnread = () => dividerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   if (!buffer) return <div className="empty">{t('sidebar.noChannel')}</div>;
   if (search.trim()) return <SearchResults messages={buffer.messages} query={search.trim()} />;
@@ -115,7 +139,7 @@ export function MessageList() {
   const isConsole = buffer.name === SERVER;
   const rows: ReactNode[] = [];
   let lastFrom = '', lastTs = 0, lastKind = '';
-  let lastDay = '';
+  let lastDay = -1;
   let hadRead = false, dividerShown = false;
   // Consecutive join/part/quit lines are collected here and flushed as one
   // EventGroup when the run ends (a real message, a day break, the divider, …).
@@ -129,8 +153,8 @@ export function MessageList() {
   for (const m of buffer.messages) {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
     if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
-    const day = new Date(m.ts).toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' });
-    if (day !== lastDay) { flush(); rows.push(<div key={`d-${m.id}`} className="daysep"><span>{day}</span></div>); lastDay = day; lastFrom = ''; }
+    const day = dayIndex(m.ts);
+    if (day !== lastDay) { flush(); rows.push(<div key={`d-${m.id}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {
       flush();
       rows.push(<div key={`unread-${m.id}`} ref={dividerRef} className="unread-divider"><span>{t('messages.newMessages')}</span></div>);
@@ -153,7 +177,7 @@ export function MessageList() {
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
       role="log" aria-label={t('a11y.messages')}>
       {histLoading && <div className="histload"><span className="histload__spin" /> {t('messages.loadingHistory')}</div>}
-      {showJump && <button className="jump-unread" onClick={jumpToUnread}>↑ {t('messages.newMessages')}</button>}
+      {showJump && <button className="jump-unread" onClick={jumpToBottom}>{t('messages.jumpNewest')} ↓</button>}
       <div ref={flowRef}>{rows}</div>
     </div>
   );

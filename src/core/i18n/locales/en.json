@@ -153,6 +153,7 @@
     "searchResults_one": "{{count}} result for “{{q}}”",
     "searchResults_other": "{{count}} results for “{{q}}”",
     "newMessages": "New messages",
+    "jumpNewest": "Jump to newest",
     "loadingHistory": "Loading history…"
   },
   "modals": {

@@ -153,6 +153,7 @@
     "searchResults_one": "{{count}} résultat pour « {{q}} »",
     "searchResults_other": "{{count}} résultats pour « {{q}} »",
     "newMessages": "Nouveaux messages",
+    "jumpNewest": "Aller au plus récent",
     "loadingHistory": "Chargement de l'historique…"
   },
   "modals": {
