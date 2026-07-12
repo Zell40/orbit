@@ -4,11 +4,15 @@ import { SERVER } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
 import { MsgRow } from './MsgRow';
 import { SystemLine } from './SystemLine';
+import { EventGroup } from './EventGroup';
 import { SearchResults } from './SearchResults';
+import { useTheme } from '@/themes';
 
 // Message kinds rendered as a status line (SystemLine); everything else
 // (privmsg/action, plus any unknown kind) is a grouped message row (MsgRow).
 const SYSTEM_KINDS = new Set(['notice', 'info', 'warning', 'mode', 'ban', 'topic', 'join', 'part', 'quit', 'nick', 'system']);
+// Presence noise that gets folded into a single EventGroup line.
+const GROUP_KINDS = new Set(['join', 'part', 'quit']);
 
 export function MessageList() {
   const { t, i18n } = useTranslation();
@@ -16,6 +20,7 @@ export function MessageList() {
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const search = useActiveChat((s) => s.search);
   const hideJoinQuit = useActiveChat((s) => s.prefs.hideJoinQuit);
+  const mirc = useTheme().startsWith('yomirc');
   const loadMore = useActiveChat((s) => s.loadMoreHistory);
   const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
   const histDone = useActiveChat((s) => !!s.historyDone[s.active]);
@@ -112,16 +117,29 @@ export function MessageList() {
   let lastFrom = '', lastTs = 0, lastKind = '';
   let lastDay = '';
   let hadRead = false, dividerShown = false;
+  // Consecutive join/part/quit lines are collected here and flushed as one
+  // EventGroup when the run ends (a real message, a day break, the divider, …).
+  let pending: typeof buffer.messages = [];
+  const grouping = !mirc && !isConsole; // classic mIRC + the console keep per-line events
+  const flush = () => {
+    if (!pending.length) return;
+    rows.push(<EventGroup key={`eg-${pending[0].id}`} events={pending} />);
+    pending = [];
+  };
   for (const m of buffer.messages) {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
-    if (hideJoinQuit && !isConsole && (m.kind === 'join' || m.kind === 'part' || m.kind === 'quit')) continue;
+    if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
     const day = new Date(m.ts).toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long' });
-    if (day !== lastDay) { rows.push(<div key={`d-${m.id}`} className="daysep"><span>{day}</span></div>); lastDay = day; lastFrom = ''; }
+    if (day !== lastDay) { flush(); rows.push(<div key={`d-${m.id}`} className="daysep"><span>{day}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {
+      flush();
       rows.push(<div key={`unread-${m.id}`} ref={dividerRef} className="unread-divider"><span>{t('messages.newMessages')}</span></div>);
       dividerShown = true; lastFrom = '';
     }
     if (m.ts <= buffer.readTs) hadRead = true;
+    // Fold a run of presence events into one grouped line.
+    if (grouping && GROUP_KINDS.has(m.kind)) { pending.push(m); lastFrom = ''; continue; }
+    flush(); // any other line ends the current run
     if (SYSTEM_KINDS.has(m.kind)) {
       rows.push(<SystemLine key={m.id} m={m} />);
       lastFrom = ''; continue;
@@ -130,6 +148,7 @@ export function MessageList() {
     rows.push(<MsgRow key={m.id} m={m} cont={cont} />);
     lastFrom = m.from; lastTs = m.ts; lastKind = m.kind;
   }
+  flush(); // trailing run
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
       role="log" aria-label={t('a11y.messages')}>

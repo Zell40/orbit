@@ -566,6 +566,16 @@ input, textarea { font-family: inherit; }
 .sysline::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--border-2); margin-right: .45rem; vertical-align: middle; }
 .sysline .who { color: var(--muted); font-weight: 700; }
 
+/* A folded run of join/part/quit events — one compact line with coloured nicks. */
+.eventgroup { padding: .2rem 1.3rem .2rem 3.7rem; color: var(--faint); font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; word-break: break-word; }
+.eventgroup__time { opacity: .65; font-variant-numeric: tabular-nums; margin-right: .5rem; }
+.eventgroup__seg + .eventgroup__seg { margin-left: .55rem; padding-left: .6rem; border-left: 1px solid var(--border-2); }
+.eventgroup__arrow { font-weight: 700; }
+.eventgroup__seg--join .eventgroup__arrow { color: #3fae6b; }
+.eventgroup__seg--left .eventgroup__arrow { color: #d0636b; }
+.eventgroup__nick { font-weight: 600; }
+.eventgroup__more { color: var(--muted); font-weight: 600; cursor: default; }
+
 /* Content-policy rejection alert — stands out from ordinary system lines. */
 .sysline--alert { display: flex; align-items: flex-start; gap: .55rem; padding: .6rem 1.1rem .6rem 1.3rem; margin: .3rem 0; background: rgba(234,130,9,.10); border-left: 3px solid #ea8209; border-radius: 0 8px 8px 0; color: #c96b00; font-size: .88rem; font-weight: 600; line-height: 1.4; }
 .sysline--alert::before { display: none; }

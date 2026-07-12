@@ -430,6 +430,12 @@
     "tag": "Security",
     "leakGuard": "We intercepted your identify command: sent as-is here, your password would have been visible to everyone in {{channel}}. Don't worry — we forwarded it to {{service}} privately, nothing was leaked. Next time, log in from Settings › Account."
   },
+  "events": {
+    "joined_one": "joined",
+    "joined_other": "joined",
+    "left_one": "left",
+    "left_other": "left"
+  },
   "system": {
     "join": "{{nick}} joined the channel",
     "part": "{{nick}} left the channel",
