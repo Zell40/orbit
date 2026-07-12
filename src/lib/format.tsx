@@ -74,6 +74,67 @@ export const MIRC_PALETTE = [
 ];
 const FMT_RE = /[\x02\x03\x04\x0f\x11\x16\x1d\x1e\x1f]/;
 
+// ── Keep user-set text colours readable against the current theme ──────────────
+// mIRC palettes include near-black / dark-blue / grey that disappear on a dark
+// theme (and white / pale that disappear on a light one). We clamp the foreground
+// LIGHTNESS toward the readable side — hue and saturation are preserved, so a dark
+// blue becomes a lighter blue rather than a different colour. Only applied when the
+// author didn't also set a background (then their fg/bg pair is respected).
+function parseColor(s: string): [number, number, number] | null {
+  const h = s.trim();
+  let m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(h);
+  if (m) return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+  m = /^#?([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(h);
+  if (m) return [parseInt(m[1] + m[1], 16), parseInt(m[2] + m[2], 16), parseInt(m[3] + m[3], 16)];
+  const rgb = /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/i.exec(h);
+  return rgb ? [+rgb[1], +rgb[2], +rgb[3]] : null;
+}
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min, l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (d !== 0) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    h = (max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4) * 60;
+  }
+  return [h, s, l];
+}
+function hslToHex(h: number, s: number, l: number): string {
+  h /= 360;
+  const hue = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  let r = l, g = l, b = l;
+  if (s !== 0) {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+    r = hue(p, q, h + 1 / 3); g = hue(p, q, h); b = hue(p, q, h - 1 / 3);
+  }
+  const to = (x: number) => ('0' + Math.round(x * 255).toString(16)).slice(-2);
+  return '#' + to(r) + to(g) + to(b);
+}
+// Cached per theme id: reading the computed --bg once when the theme changes.
+let _themeSig = '', _themeDark = true;
+function themeIsDark(): boolean {
+  const sig = document.documentElement.dataset.theme ?? '';
+  if (sig !== _themeSig) {
+    _themeSig = sig;
+    const rgb = parseColor(getComputedStyle(document.documentElement).getPropertyValue('--bg'));
+    _themeDark = rgb ? (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255 < 0.5 : true;
+  }
+  return _themeDark;
+}
+function readableColor(hex: string): string {
+  const rgb = parseColor(hex);
+  if (!rgb) return hex;
+  const [h, s, l] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+  const nl = themeIsDark() ? Math.max(l, 0.62) : Math.min(l, 0.42);
+  return nl === l ? hex : hslToHex(h, s, nl);
+}
+
 interface FmtState { b: boolean; i: boolean; u: boolean; s: boolean; m: boolean; rev: boolean; fg?: string; bg?: string; }
 
 function fmtToStyle(st: FmtState): CSSProperties {
@@ -85,7 +146,9 @@ function fmtToStyle(st: FmtState): CSSProperties {
   if (st.m) css.fontFamily = 'ui-monospace, "SF Mono", Menlo, monospace';
   let fg = st.fg, bg = st.bg;
   if (st.rev) { const t = fg; fg = bg ?? '#000'; bg = t ?? '#fff'; }
-  if (fg) css.color = fg;
+  // Adapt the text colour to the theme only when it stands on the theme background
+  // (no explicit bg) — otherwise the author's fg/bg pairing is left intact.
+  if (fg) css.color = bg ? fg : readableColor(fg);
   if (bg) { css.backgroundColor = bg; css.padding = '0 .15em'; css.borderRadius = '3px'; }
   return css;
 }
