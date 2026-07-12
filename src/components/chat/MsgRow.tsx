@@ -156,9 +156,14 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
 
   return (
     <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''}`}>
-      {avatarUrl && (cont
+      {/* The avatar column is always reserved so every row lines up. It holds the
+          hover timestamp on continuation lines, a real photo when there is one, and
+          otherwise an empty spacer (no bright fallback bubble). */}
+      {cont
         ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
-        : <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} url={avatarUrl} /></button>)}
+        : avatarUrl
+          ? <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} url={avatarUrl} /></button>
+          : <span className="group__avatar" aria-hidden="true" />}
       <div className="group__body">
         {!cont && (
           <div className="group__head">
