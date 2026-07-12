@@ -12,7 +12,9 @@ function NetTab({ net, active }: { net: NetworkEntry; active: boolean }) {
   const isPrimary = useNetworks((s) => s.networks[0]?.id === net.id);
   const status = useStore(net.store, (s) => s.status);
   const serverName = useStore(net.store, (s) => s.serverName);
-  const unread = useStore(net.store, (s) => Object.values(s.buffers).reduce((a, b) => a + (b.unread || 0), 0));
+  // The active network's badge is never shown (below), so skip the whole-buffer
+  // unread scan for it — that's the network taking the most message traffic.
+  const unread = useStore(net.store, (s) => (active ? 0 : Object.values(s.buffers).reduce((a, b) => a + (b.unread || 0), 0)));
   return (
     <span className={`nettab ${active ? 'is-on' : ''}`}>
       <button className="nettab__main" onClick={() => setActive(net.id)} title={serverName || net.label}>

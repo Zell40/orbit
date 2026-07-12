@@ -1933,6 +1933,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
    render exactly as before, so small channels are unchanged. Degrades to normal
    rendering on browsers without content-visibility. */
 .member { content-visibility: auto; contain-intrinsic-size: auto 44px; }
+/* Same treatment for the conversation list — a network with hundreds of open
+   channels only pays render/layout for the rows on screen, which is most of the
+   cost of switching networks (the whole list remounts for the new one). */
+.room { content-visibility: auto; contain-intrinsic-size: auto 56px; }
 
 
 /* Last-resort crash screen (AppErrorBoundary) */

@@ -1,6 +1,7 @@
 import { memo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '@/core/store';
+import { isChannelName } from '@/core/store/context';
 import { avatarBg } from '@/lib/format';
 import { switchWithTransition } from '@/lib/viewTransition';
 import { stripFormatting } from '@/core/store/text';
@@ -118,8 +119,11 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
 
 export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useTranslation();
+  // Subscribe to `order` only (changes on buffer add/remove/reorder) — NOT the
+  // whole buffers map, which is replaced on every incoming message and would
+  // otherwise re-render + re-map the entire conversation list per line. Each
+  // RoomRow reads its own buffer; channel-vs-DM is derived from the name.
   const order = useActiveChat((s) => s.order);
-  const buffers = useActiveChat((s) => s.buffers);
   const setModal = useActiveChat((s) => s.setModal);
   const refreshChannels = useActiveChat((s) => s.refreshChannels);
   const sidebarItems = usePluginRegistry((s) => s.ui);
@@ -128,8 +132,8 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const mirc = useTheme().startsWith('yomirc');
 
   const match = (n: string) => n.toLowerCase().includes(q.trim().toLowerCase());
-  const channels = order.filter((n) => buffers[n]?.isChannel && match(n));
-  const queries = order.filter((n) => n !== SERVER && !buffers[n]?.isChannel && match(n));
+  const channels = order.filter((n) => isChannelName(n) && match(n));
+  const queries = order.filter((n) => n !== SERVER && !isChannelName(n) && match(n));
   // mIRC always shows the Status window; otherwise it appears under "Tous" and matches search.
   const hasServer = order.includes(SERVER) && (mirc || (filter === 'all' && match('status')));
   const showChannels = filter !== 'people';
