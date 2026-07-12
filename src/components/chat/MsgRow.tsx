@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '@/lib/format';
+import { roleForPrefix } from '@/lib/roles';
 import { firstPreviewableUrl, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
@@ -70,6 +71,9 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   const pinned = useActiveChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
   const isOper = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
   const isBot = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.bot);
+  // Channel access symbol (@ ~ & % +) of the sender, so ops/voiced are spottable
+  // right in the chat, role-coloured to match the member list.
+  const memberPrefix = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.prefix) || '';
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   // Avatars resolve by ACCOUNT. Live messages carry the account tag, but
   // chathistory-replayed ones (e.g. on a fresh mobile join) often don't — so
@@ -158,7 +162,9 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
       <div className="group__body">
         {!cont && (
           <div className="group__head">
-            <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>{m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}</button>
+            <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>
+              {memberPrefix && (() => { const r = roleForPrefix(memberPrefix); return <span className={`group__role role-${r.cls}`} title={t(`members.roles.${r.key}`)}>{memberPrefix}</span>; })()}
+              {m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}</button>
             <span className="group__time">{fmtTime(m.ts)}</span>
           </div>
         )}

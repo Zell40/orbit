@@ -6,15 +6,7 @@ import { Avatar } from '../Avatar';
 import { MemberMenu } from './MemberMenu';
 import { useActiveChat } from '@/core/networks';
 import { useTheme } from '@/themes';
-const ROLES: Record<string, { key: string; cls: string }> = {
-  '~': { key: 'owner', cls: 'owner' },
-  '&': { key: 'admin', cls: 'admin' },
-  '!': { key: 'proprietors', cls: 'owner' },
-  '@': { key: 'op', cls: 'op' },
-  '%': { key: 'halfop', cls: 'halfop' },
-  '+': { key: 'voice', cls: 'voice' },
-  '': { key: 'member', cls: 'member' },
-};
+import { roleForPrefix } from '@/lib/roles';
 
 export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
@@ -49,7 +41,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
       .sort((a, b) => rank(a[0]) - rank(b[0]))
       .map(([p, list]) => ({
         p,
-        role: ROLES[p] ?? { key: 'privileged', cls: 'op' },
+        role: roleForPrefix(p),
         list: list.sort((a, b) => a.nick.localeCompare(b.nick, 'fr', { sensitivity: 'base' })),
       }));
   }, [all, needle, prefixOrder]);
