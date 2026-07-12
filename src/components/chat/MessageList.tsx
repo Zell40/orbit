@@ -113,15 +113,16 @@ export function MessageList() {
       scrollRaf.current = 0;
       const el = ref.current;
       if (!el) return;
-      const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
-      atBottom.current = bottom;
-      // Reached the bottom → you've read everything: advance the marker.
-      if (bottom) markReadHere();
+      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+      // Follow only while pinned to the very bottom, so scrolling up even slightly
+      // to read the last line stops the auto-scroll instead of yanking you down.
+      atBottom.current = dist < 64;
+      if (dist < 140) markReadHere(); // count read across a wider band
       // channels and private messages both have server-side history (not the console)
       if (el.scrollTop < 60 && buffer && buffer.name !== SERVER && !histLoading && !histDone) loadMore(active);
-      // Whenever you're away from the bottom, offer a way straight back to the
-      // newest line — so a fast channel can't strand you scrolled up.
-      setShowJump(!bottom);
+      // Once you're clearly scrolled up, offer a jump straight back to the newest
+      // line — so a fast channel can't strand you.
+      setShowJump(dist > 120);
     });
   };
   // Snap to the newest line and re-engage follow (used by the floating button).
