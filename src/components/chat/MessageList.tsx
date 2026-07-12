@@ -44,6 +44,10 @@ export function MessageList() {
   const atBottom = useRef(true); // pinned to the very bottom → auto-follow new messages
   const [showJump, setShowJump] = useState(false);
   const count = buffer?.messages.length ?? 0;
+  // The buffer is capped (slice(-500)), so once it's full its LENGTH stops changing
+  // as new lines arrive. Keying the follow effect on the newest message's id (which
+  // still changes) is what keeps auto-scroll alive in busy channels.
+  const lastId = count ? buffer!.messages[count - 1].id : '';
 
   // Keep the viewport anchored: stick to the bottom for live messages, but when
   // older history is PREPENDED (we're at the top) preserve the reading position.
@@ -75,7 +79,7 @@ export function MessageList() {
     if (dist < 140) markReadHere();  // but count everything read across a wider band
     setShowJump(dist > 120);         // keep the jump button in sync as lines arrive
     prevHeight.current = el.scrollHeight;
-  }, [count, active, search, markReadHere]);
+  }, [count, lastId, active, search, markReadHere]);
 
   // Returning to a backgrounded tab: the browser freezes rAF and can report stale
   // layout while messages keep arriving, so the follow-pin drifts. Re-pin to the
