@@ -7,6 +7,7 @@ import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
 import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
+import { useAvatarUrl } from '@/platform/avatars';
 import { usePluginRegistry, type MessageInfo } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
@@ -75,6 +76,10 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   // fall back to the author's account from the channel member list.
   const memberAccount = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.account);
   const avatarAccount = m.account || memberAccount;
+  // Only registered users with an uploaded picture get a bubble. Without one we
+  // render no bubble at all (not the bright per-nick gradient) and let the text
+  // run full-width — calmer, and no color-shifting blobs down the gutter.
+  const avatarUrl = useAvatarUrl(avatarAccount);
   const mirc = useTheme().startsWith('yomirc');
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
   const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
@@ -147,9 +152,9 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
 
   return (
     <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''}`}>
-      {cont
+      {avatarUrl && (cont
         ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
-        : <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} /></button>}
+        : <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} url={avatarUrl} /></button>)}
       <div className="group__body">
         {!cont && (
           <div className="group__head">

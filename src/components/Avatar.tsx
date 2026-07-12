@@ -3,14 +3,17 @@ import { hashHue } from '../lib/format';
 
 // `account` (when known) resolves a real uploaded avatar; otherwise fall back to
 // the deterministic gradient-initial avatar (the right default for guests).
-export function Avatar({ nick, size = 40, account }: { nick: string; size?: number; account?: string | null }) {
+// Callers that already resolved the URL (the message list, which suppresses the
+// bubble entirely when there's no real avatar) can pass `url` to skip the lookup.
+export function Avatar({ nick, size = 40, account, url }: { nick: string; size?: number; account?: string | null; url?: string | null }) {
   const n = nick || '?';
   const h = hashHue(n);
-  const url = useAvatarUrl(account);
-  if (url) {
+  const resolved = useAvatarUrl(account);
+  const src = url !== undefined ? url : resolved;
+  if (src) {
     return (
       <span className="avatar group__avatar avatar--img" style={{ width: size, height: size }}>
-        <img src={url} alt={n} loading="lazy" decoding="async" width={size} height={size}
+        <img src={src} alt={n} loading="lazy" decoding="async" width={size} height={size}
           onError={(e) => { e.currentTarget.style.display = 'none'; }} />
       </span>
     );
