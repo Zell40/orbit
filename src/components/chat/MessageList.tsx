@@ -73,8 +73,28 @@ export function MessageList() {
     const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
     atBottom.current = dist < 64;    // follow only while pinned to the very bottom
     if (dist < 140) markReadHere();  // but count everything read across a wider band
+    setShowJump(dist > 120);         // keep the jump button in sync as lines arrive
     prevHeight.current = el.scrollHeight;
   }, [count, active, search, markReadHere]);
+
+  // Returning to a backgrounded tab: the browser freezes rAF and can report stale
+  // layout while messages keep arriving, so the follow-pin drifts. Re-pin to the
+  // bottom (if we were following) once a fresh frame lands, and resync the button.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      requestAnimationFrame(() => {
+        const el = ref.current;
+        if (!el) return;
+        if (atBottom.current) el.scrollTop = el.scrollHeight;
+        const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+        setShowJump(dist > 120);
+        if (dist < 140) markReadHere();
+      });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [markReadHere]);
 
   // The on-screen keyboard opening/closing resizes the VISUAL viewport, which
   // shrinks the message list WITHOUT moving its scrollTop — so a freshly-sent
