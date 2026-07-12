@@ -14,6 +14,13 @@ const SYSTEM_KINDS = new Set(['notice', 'info', 'warning', 'mode', 'ban', 'topic
 // Presence noise that gets folded into a single EventGroup line.
 const GROUP_KINDS = new Set(['join', 'part', 'quit']);
 
+// On a channel/network switch we first render only the last TAIL messages so the
+// paint is cheap (mounting a full 500-line buffer is the bulk of switch latency),
+// then fill the rest during the next idle tick. After the fill the whole buffer is
+// rendered exactly as before — this only defers the off-screen history past the
+// switch, it never drops rows while you read.
+const TAIL = 120;
+
 // Cheap local-day key (YYYYMMDD) for detecting day boundaries without formatting
 // every row. Unique per calendar day, so no cross-year collisions.
 const dayIndex = (ts: number) => {
@@ -49,6 +56,18 @@ export function MessageList() {
   // still changes) is what keeps auto-scroll alive in busy channels.
   const lastId = count ? buffer!.messages[count - 1].id : '';
 
+  // tailOnly: render just the TAIL right after a switch, then fill on idle. Reset
+  // to true whenever the active buffer changes (derived during render so the very
+  // first paint of the new buffer is already cheap — no flash of the full list).
+  // growRef marks the tail→full fill so the scroll effect preserves the reading
+  // position when the older rows get prepended.
+  const [tailOnly, setTailOnly] = useState(true);
+  const winBuf = useRef(active);
+  const growRef = useRef(false);
+  const switchedBuf = winBuf.current !== active;
+  const effTailOnly = switchedBuf ? true : tailOnly;
+  if (switchedBuf) { winBuf.current = active; if (!tailOnly) setTailOnly(true); }
+
   // Keep the viewport anchored: stick to the bottom for live messages, but when
   // older history is PREPENDED (we're at the top) preserve the reading position.
   useLayoutEffect(() => {
@@ -69,9 +88,12 @@ export function MessageList() {
       // lines (e.g. a /cs HELP reply) must scroll down to them rather than be
       // mistaken for a history prepend and leave them hidden under the composer.
       el.scrollTop = el.scrollHeight;
+    } else if (growRef.current) {
+      el.scrollTop += grew;                                // tail→full fill prepended older rows → keep position
     } else if (el.scrollTop < 80 && grew > 0) {
       el.scrollTop = el.scrollHeight - prevHeight.current; // prepend while reading up → keep position
     }
+    growRef.current = false;
     // Ended at the bottom → everything is read: advance the marker here (pre-paint,
     // so an incoming line never flashes a "New messages" divider before it clears).
     const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
@@ -79,7 +101,7 @@ export function MessageList() {
     if (dist < 140) markReadHere();  // but count everything read across a wider band
     setShowJump(dist > 120);         // keep the jump button in sync as lines arrive
     prevHeight.current = el.scrollHeight;
-  }, [count, lastId, active, search, markReadHere]);
+  }, [count, lastId, effTailOnly, active, search, markReadHere]);
 
   // Returning to a backgrounded tab: the browser freezes rAF and can report stale
   // layout while messages keep arriving, so the follow-pin drifts. Re-pin to the
@@ -99,6 +121,20 @@ export function MessageList() {
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [markReadHere]);
+
+  // After the cheap TAIL paint, render the rest of the buffer once the main thread
+  // is idle — off the switch's critical path, so the interaction stays fast.
+  useEffect(() => {
+    if (!effTailOnly) return;
+    const w = window as typeof window & {
+      requestIdleCallback?: (cb: () => void) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const schedule = w.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 120));
+    const cancel = w.cancelIdleCallback ?? window.clearTimeout;
+    const id = schedule(() => { growRef.current = true; setTailOnly(false); });
+    return () => cancel(id as number);
+  }, [active, effTailOnly]);
 
   // The on-screen keyboard opening/closing resizes the VISUAL viewport, which
   // shrinks the message list WITHOUT moving its scrollTop — so a freshly-sent
@@ -137,13 +173,17 @@ export function MessageList() {
       scrollRaf.current = 0;
       const el = ref.current;
       if (!el) return;
+      // Scrolled before the idle fill ran → render the full buffer now, so there's
+      // real older history above rather than the tail's edge.
+      if (effTailOnly) { growRef.current = true; setTailOnly(false); }
       const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
       // Follow only while pinned to the very bottom, so scrolling up even slightly
       // to read the last line stops the auto-scroll instead of yanking you down.
       atBottom.current = dist < 64;
       if (dist < 140) markReadHere(); // count read across a wider band
-      // channels and private messages both have server-side history (not the console)
-      if (el.scrollTop < 60 && buffer && buffer.name !== SERVER && !histLoading && !histDone) loadMore(active);
+      // channels and private messages both have server-side history (not the console);
+      // only once the in-memory buffer is fully shown (not just the tail).
+      if (!effTailOnly && el.scrollTop < 60 && buffer && buffer.name !== SERVER && !histLoading && !histDone) loadMore(active);
       // Once you're clearly scrolled up, offer a jump straight back to the newest
       // line — so a fast channel can't strand you.
       setShowJump(dist > 120);
@@ -176,7 +216,18 @@ export function MessageList() {
     rows.push(<EventGroup key={`eg-${pending[0].id}`} events={pending} />);
     pending = [];
   };
-  for (const m of buffer.messages) {
+  // Windowed slice while tailOnly, extended down to keep the unread divider (and a
+  // little read context, so hadRead flips) inside the rendered range.
+  let start = 0;
+  if (effTailOnly && buffer.messages.length > TAIL) {
+    start = buffer.messages.length - TAIL;
+    if (buffer.readTs > 0) {
+      const u = buffer.messages.findIndex((m) => m.ts > buffer.readTs);
+      if (u > 0) start = Math.min(start, Math.max(0, u - 8));
+    }
+  }
+  const shown = start > 0 ? buffer.messages.slice(start) : buffer.messages;
+  for (const m of shown) {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
     if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
     const day = dayIndex(m.ts);
