@@ -70,8 +70,9 @@ export function MessageList() {
     }
     // Ended at the bottom → everything is read: advance the marker here (pre-paint,
     // so an incoming line never flashes a "New messages" divider before it clears).
-    atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
-    if (atBottom.current) markReadHere();
+    const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+    atBottom.current = dist < 64;    // follow only while pinned to the very bottom
+    if (dist < 140) markReadHere();  // but count everything read across a wider band
     prevHeight.current = el.scrollHeight;
   }, [count, active, search, markReadHere]);
 
