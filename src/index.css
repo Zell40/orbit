@@ -839,9 +839,6 @@ html[data-actions="off"] .msg-actions { display: none; }
 .role-member { color: var(--faint); }
  
  
-.member__prefix.role-owner { color: #d39d2a; } .member__prefix.role-admin { color: #d6465f; }
-.member__prefix.role-op { color: #16a34a; } .member__prefix.role-halfop { color: #1f9e9e; }
-.member__prefix.role-voice { color: #3b82c4; }
  
  
 

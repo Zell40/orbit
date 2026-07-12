@@ -17,10 +17,6 @@
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-op { color: #2ecc71; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-halfop { color: #36c0c0; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-voice { color: #5aa0e0; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-op { color: #2ecc71; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-voice { color: #5aa0e0; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-halfop { color: #36c0c0; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__prefix.role-owner { color: #e3b554; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .member__bot { background: #222a4a; color: #8fa0ee; }
 /* ============ DARK THEME ============ */
 [data-theme="dark"] {

@@ -5,6 +5,7 @@ import type { Member } from '@/core/irc/types';
 import { Avatar } from '../Avatar';
 import { MemberMenu } from './MemberMenu';
 import { useActiveChat } from '@/core/networks';
+import { useTheme } from '@/themes';
 const ROLES: Record<string, { key: string; cls: string }> = {
   '~': { key: 'owner', cls: 'owner' },
   '&': { key: 'admin', cls: 'admin' },
@@ -23,6 +24,10 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const membersMap = useActiveChat((s) => s.buffers[s.active]?.members);
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
   const openUser = useActiveChat((s) => s.openUser);
+  // Modern themes group members under a role header (Op/Voice/…) and colour the
+  // nick, so gluing "@" in front is redundant — drop it. yomIRC keeps the classic
+  // mIRC-style "@nick" prefix.
+  const mirc = useTheme().startsWith('yomirc');
   const prefixOrder = useActiveChat((s) => s.client?.server.prefixModes ?? '~&@%+');
   const [q, setQ] = useState('');
   const needle = q.trim().toLowerCase();
@@ -74,7 +79,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
               >
                 <Avatar nick={m.nick} size={30} account={m.account} />
                 <span className="member__name">
-                  {m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
+                  {mirc && m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
                   {m.nick}
                 </span>
                 {m.bot && <span className="member__bot">BOT</span>}
