@@ -300,7 +300,9 @@
       "textSize": "Dimensione testo",
       "compactHint": "Messaggi più compatti, più contenuti a schermo.",
       "hoverActions": "Azioni al passaggio",
-      "hoverActionsHint": "Pulsanti di reazione, risposta e fissaggio al passaggio su un messaggio."
+      "hoverActionsHint": "Pulsanti di reazione, risposta e fissaggio al passaggio su un messaggio.",
+      "mono": "Messaggi a spaziatura fissa",
+      "monoHint": "Carattere a larghezza fissa per allineare ASCII art e tabelle."
     },
     "notifications": {
       "browser": "Notifiche del browser",

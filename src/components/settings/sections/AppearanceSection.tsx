@@ -56,6 +56,7 @@ export function AppearanceSection() {
         </div>
         <ToggleRow icon="🗜️" label={t('settings.appearance.compact')} hint={t('settings.appearance.compactHint')} prefKey="compact" />
         <ToggleRow icon="🖱️" label={t('settings.appearance.hoverActions')} hint={t('settings.appearance.hoverActionsHint')} prefKey="hoverActions" />
+        <ToggleRow icon="⌨️" label={t('settings.appearance.mono')} hint={t('settings.appearance.monoHint')} prefKey="monoMessages" />
         <div className="srow">
           <span className="srow__ic" aria-hidden>🕓</span>
           <div className="srow__txt"><div className="srow__label">{t('settings.appearance.timeFormat')}</div></div>

@@ -320,7 +320,9 @@
       "textSize": "Taille du texte",
       "compactHint": "Messages plus denses, plus d’infos à l’écran.",
       "hoverActions": "Actions au survol",
-      "hoverActionsHint": "Boutons de réaction, réponse et épingle au survol d'un message."
+      "hoverActionsHint": "Boutons de réaction, réponse et épingle au survol d'un message.",
+      "mono": "Messages à chasse fixe",
+      "monoHint": "Police à largeur fixe pour aligner l'art ASCII et les tableaux."
     },
     "notifications": {
       "browser": "Notifications navigateur",

@@ -320,7 +320,9 @@
       "textSize": "Text size",
       "compactHint": "Denser messages, more on screen.",
       "hoverActions": "Hover actions",
-      "hoverActionsHint": "Quick react, reply and pin buttons when you hover a message."
+      "hoverActionsHint": "Quick react, reply and pin buttons when you hover a message.",
+      "mono": "Monospace messages",
+      "monoHint": "Fixed-width font so ASCII art and tables line up."
     },
     "notifications": {
       "browser": "Browser notifications",

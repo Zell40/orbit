@@ -300,7 +300,9 @@
       "textSize": "Metin boyutu",
       "compactHint": "Daha sık mesajlar, ekranda daha fazlası.",
       "hoverActions": "Fareyle eylemler",
-      "hoverActionsHint": "Bir mesajın üzerine gelince hızlı tepki, yanıt ve sabitleme düğmeleri."
+      "hoverActionsHint": "Bir mesajın üzerine gelince hızlı tepki, yanıt ve sabitleme düğmeleri.",
+      "mono": "Eş aralıklı mesajlar",
+      "monoHint": "ASCII sanatı ve tabloların hizalanması için sabit genişlikli yazı tipi."
     },
     "notifications": {
       "browser": "Tarayıcı bildirimleri",

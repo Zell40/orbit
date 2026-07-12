@@ -300,7 +300,9 @@
       "textSize": "Tamaño de texto",
       "compactHint": "Mensajes más densos, más en pantalla.",
       "hoverActions": "Acciones al pasar el cursor",
-      "hoverActionsHint": "Botones de reacción, respuesta y fijar al pasar el cursor por un mensaje."
+      "hoverActionsHint": "Botones de reacción, respuesta y fijar al pasar el cursor por un mensaje.",
+      "mono": "Mensajes monoespaciados",
+      "monoHint": "Fuente de ancho fijo para alinear el arte ASCII y las tablas."
     },
     "notifications": {
       "browser": "Notificaciones del navegador",

@@ -300,7 +300,9 @@
       "textSize": "Textgröße",
       "compactHint": "Dichtere Nachrichten, mehr auf dem Bildschirm.",
       "hoverActions": "Aktionen beim Überfahren",
-      "hoverActionsHint": "Reaktion, Antwort und Pin beim Überfahren einer Nachricht."
+      "hoverActionsHint": "Reaktion, Antwort und Pin beim Überfahren einer Nachricht.",
+      "mono": "Nachrichten in Monospace",
+      "monoHint": "Feste Zeichenbreite, damit ASCII-Art und Tabellen ausgerichtet bleiben."
     },
     "notifications": {
       "browser": "Browser-Benachrichtigungen",

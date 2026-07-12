@@ -531,9 +531,10 @@ input, textarea { font-family: inherit; }
 .group__nick { font-weight: 800; font-size: .94rem; }
 .group__time { font-size: .7rem; color: var(--faint); font-weight: 600; }
 .group--cont .group__avatar.group__time-rail { height: auto; }
-/* Monospace + the existing pre-wrap keeps ASCII art, tables and box-drawing
-   aligned (every glyph one cell wide, spaces preserved). */
-.line { font-family: var(--mono); font-size: .92rem; line-height: 1.5; color: var(--ink-2); word-wrap: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
+.line { font-size: .96rem; line-height: 1.5; color: var(--ink-2); word-wrap: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
+/* "Monospace messages" pref: a fixed-width font + the existing pre-wrap keeps
+   ASCII art, tables and box-drawing aligned (every glyph one cell wide). */
+html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .line--action { font-style: italic; color: var(--accent-d); }
 .line--notice { color: var(--muted); }
 .line--notice::before { content: "-notice- "; font-weight: 700; opacity: .7; font-size: .82em; }

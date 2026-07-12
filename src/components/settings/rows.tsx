@@ -2,7 +2,7 @@ import { useActiveChat } from '@/core/networks';
 
 // One preference toggle row: icon · label/hint · switch. Shared by the
 // Appearance and Notifications sections.
-export function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string; hint?: string; prefKey: 'sound' | 'hideJoinQuit' | 'compact' | 'linkPreviews' | 'hoverActions' | 'confirmClose' }) {
+export function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string; hint?: string; prefKey: 'sound' | 'hideJoinQuit' | 'compact' | 'linkPreviews' | 'hoverActions' | 'confirmClose' | 'monoMessages' }) {
   const value = useActiveChat((s) => s.prefs[prefKey]);
   const setPref = useActiveChat((s) => s.setPref);
   return (
