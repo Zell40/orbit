@@ -9,13 +9,14 @@ function make(opts: Partial<ConnectOptions> = {}, passkeyAssertion: (c: Uint8Arr
   const sent: string[] = [];
   const statuses: string[] = [];
   const challenges: Uint8Array[] = [];
-  const state = { nick: '', registered: false, backoffResets: 0, away: '' };
+  const state = { nick: '', registered: false, backoffResets: 0, away: '', aborts: 0 };
   const ircv3 = new Ircv3({ send: () => {}, lowSend: () => {}, isupport: () => ({}) });
   const full: ConnectOptions = { url: 'ws://x', nick: 'bob', channels: [], ...opts };
   const reg = new Registration({
     send: (l) => sent.push(l),
     setStatus: (s) => statuses.push(s),
     forward: () => {},
+    abort: () => { state.aborts++; },
     ircv3,
     opts: () => full,
     getNick: () => state.nick,
@@ -119,7 +120,7 @@ describe('Registration handshake', () => {
   });
 
   it('falls back to PLAIN when SCRAM is rejected, and only gives up if PLAIN fails too', () => {
-    const { reg, sent, statuses } = make({ nick: 'bob', password: 'pw', scram: true });
+    const { reg, sent, statuses, state } = make({ nick: 'bob', password: 'pw', scram: true });
     reg.handle(parseLine('CAP * LS :sasl=SCRAM-SHA-256'));
     reg.handle(parseLine('CAP * ACK :sasl'));
     expect(sent).toContain('AUTHENTICATE SCRAM-SHA-256');
@@ -129,9 +130,21 @@ describe('Registration handshake', () => {
     expect(statuses).not.toContain('sasl-failed');
     reg.handle(parseLine('AUTHENTICATE +'));
     expect(sent.some((l) => l.startsWith('AUTHENTICATE ') && l !== 'AUTHENTICATE +')).toBe(true); // PLAIN payload
-    reg.handle(parseLine('904 bob :SASL failed')); // PLAIN also fails → give up now
+    reg.handle(parseLine('904 bob :SASL failed')); // PLAIN also fails → abort, don't register as a guest
     expect(statuses).toContain('sasl-failed');
-    expect(sent).toContain('CAP END');
+    expect(sent).not.toContain('CAP END');
+    expect(state.aborts).toBe(1);
+  });
+
+  it('aborts the connection instead of registering as a guest when SASL fails', () => {
+    const { reg, sent, statuses, state } = make({ nick: 'bob', password: 'wrong' });
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    reg.handle(parseLine('AUTHENTICATE +'));
+    sent.length = 0;
+    reg.handle(parseLine('904 bob :SASL authentication failed'));
+    expect(statuses).toContain('sasl-failed');
+    expect(sent).not.toContain('CAP END'); // did NOT fall through to an unauthenticated session
+    expect(state.aborts).toBe(1);
   });
 
   it('does not use SCRAM when the server does not advertise it', () => {

@@ -32,6 +32,7 @@ export interface RegistrationHost {
   send(line: string): void;
   setStatus(status: ConnectionStatus): void; // emit the 'status' event
   forward(msg: IrcMessage): void;            // re-emit a message (post-registration manual `cap ls`)
+  abort(): void;                             // give up the connection (failed SASL) with no auto-reconnect
   readonly ircv3: Ircv3;
   opts(): ConnectOptions;
   getNick(): string;
@@ -97,8 +98,12 @@ export class Registration {
           this.host.send('AUTHENTICATE PLAIN');
           return;
         }
+        // Authentication failed with no fallback left. Do NOT finish registration
+        // as a guest — the member asked to log in. Abort the connection (no
+        // auto-reconnect) so a wrong password/expired keycard surfaces as a failure
+        // instead of silently landing them in an unauthenticated session.
         this.host.setStatus('sasl-failed');
-        this.endCap();
+        this.host.abort();
         return;
       case '907': // SASL already authenticated
         this.host.setStatus('sasl-failed');
