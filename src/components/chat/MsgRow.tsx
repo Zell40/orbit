@@ -123,7 +123,11 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
         <div data-mid={m.id} className={`mircline ${m.kind === 'action' ? 'mircline--action' : ''} ${m.redacted ? 'is-redacted' : ''}`}>
           <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
           <button className="mircline__nick" style={nickStyle} onClick={() => openUser(m.from)}>
-            {m.kind === 'action' ? '* ' : '<'}{m.from}
+            {m.kind === 'action' ? '* ' : '<'}
+            {m.kind !== 'action' && memberPrefix && (
+              <span className={`mircline__prefix role-${roleForPrefix(memberPrefix).cls}`}>{memberPrefix}</span>
+            )}
+            {m.from}
             {isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
             {m.kind !== 'action' && '>'}
           </button>{' '}
