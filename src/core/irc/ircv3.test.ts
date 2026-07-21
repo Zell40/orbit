@@ -50,6 +50,26 @@ describe('Ircv3 capability negotiation', () => {
     expect(make().cap('CAP * NAK :sasl').do).toBe('end');
   });
 
+  it('never re-runs SASL or CAP END on a post-registration CAP NEW (rehash re-advertise)', () => {
+    // A server rehash re-advertises a value-cap via cap-notify. On a live session
+    // this must NOT re-request sasl or CAP END (that would re-auth with a spent
+    // one-time credential and abort the connection).
+    const reg = { registered: true, hasPassword: true };
+    const withSasl = make();
+    // sasl + the value-cap were both acked during registration
+    withSasl.cap('CAP * ACK :sasl draft/metadata-2', { registered: false, hasPassword: true });
+    // rehash re-advertises them (all already acked) → nothing to do
+    expect(withSasl.cap('CAP * NEW :draft/metadata-2=x sasl', reg).do).toBe('none');
+
+    // a post-registration ACK is bookkeeping only, never SASL/END
+    expect(make().cap('CAP * ACK :sasl', reg).do).toBe('none');
+
+    // but a genuinely new *feature* cap is still pulled in (never sasl)
+    const fresh = make().cap('CAP * NEW :draft/read-marker', reg);
+    expect(fresh.do).toBe('req');
+    if (fresh.do === 'req') expect(fresh.caps).not.toContain('sasl');
+  });
+
   it('tracks acked caps; DEL and reset() forget them', () => {
     const { ircv3, cap } = make();
     cap('CAP * ACK :message-tags draft/read-marker');

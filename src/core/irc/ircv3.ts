@@ -98,6 +98,15 @@ export class Ircv3 {
         }
       }
       if (more) return { do: 'none' };
+      // A cap-notify CAP NEW that arrives AFTER we're online (e.g. a server rehash
+      // re-advertising a cap): just track availability and pull in any genuinely
+      // new feature cap. NEVER re-request `sasl` or send CAP END on a live session
+      // — doing so re-authenticates with a one-time/expired credential (a keycard
+      // token is single-use) which fails and aborts the connection.
+      if (ctx.registered) {
+        const fresh = WANTED_CAPS.filter((c) => c !== 'sasl' && this.available.has(c) && !this.acked.has(c));
+        return fresh.length ? { do: 'req', caps: fresh } : { do: 'none' };
+      }
       const req = WANTED_CAPS.filter((c) => this.available.has(c));
       // Work around servers that drop a capability from CAP LS at a line-split
       // boundary (some servers lose the overflowing cap). message-tags is the
@@ -113,6 +122,10 @@ export class Ircv3 {
 
     if (sub === 'ACK') {
       for (const c of (msg.params[2] ?? '').split(' ').filter(Boolean)) this.acked.add(c);
+      // A post-registration ACK (pulling in a cap advertised via cap-notify after a
+      // rehash) is bookkeeping only: never start SASL or send CAP END on an
+      // already-online session.
+      if (ctx.registered) return { do: 'none' };
       // SASL if the server ACK'd it: a WebAuthn passkey (when requested and offered)
       // takes precedence, else a password → PLAIN, else nothing to authenticate with.
       if (this.acked.has('sasl')) {
