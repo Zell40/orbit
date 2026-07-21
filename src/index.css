@@ -607,6 +607,10 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .noticeline__txt { color: #6d28d9; font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
 /* The channel-context chip sits inline in the notice's baseline flex row. */
 .noticeline .ctx-chip { margin-top: 0; align-self: center; }
+/* When a service notice answers a +draft/reply, stack the quoted parent above it. */
+.noticeline-wrap { display: flex; flex-direction: column; }
+.noticeline-wrap .reply-quote { margin: .15rem 1.1rem -.02rem; font-size: .8rem; }
+.reply-quote--link { background: none; border: 0; cursor: pointer; text-align: left; font: inherit; color: inherit; padding: 0; }
 
 
 /* ban / unban — a clear, prominent channel line (not the faint sysline) */

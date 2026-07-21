@@ -4,6 +4,37 @@ import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, formatIrc } from '@/lib/format';
 import { useTheme } from '@/themes';
 import { useActiveChat } from '@/core/networks';
+import { CtxChip, ReplyQuote } from './affordances';
+import { jumpToMessage } from './msg-jump';
+import { firstOfRun } from './msg-runs';
+
+// A service NOTICE, rendered as its violet callout, surfacing the IRCv3 tags it
+// may carry: a +draft/channel-context chip inline (jump to the channel it concerns)
+// and, above the row, the +draft/reply parent it answers — the parent resolved by
+// msgid among the buffer's messages, shown once at the head of a reply run.
+function NoticeLine({ m }: { m: ChatMessage }) {
+  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
+  const setActive = useActiveChat((s) => s.setActive);
+  const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
+  const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
+  const showReply = !!quoted && firstOfRun(msgs, m, (x) => x.replyTo);
+  const showCtx = firstOfRun(msgs, m, (x) => x.channelContext);
+  const row = (
+    <div className="sysline sysline--mode noticeline">
+      <span className="modeline__tag noticeline__tag">NOTICE</span>
+      {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
+      <span className="noticeline__txt">{formatIrc(m.text, m.self, linkPreviews)}</span>
+      {showCtx && <CtxChip chan={m.channelContext!} onJump={() => setActive(m.channelContext!)} />}
+    </div>
+  );
+  if (!showReply || !quoted) return row;
+  return (
+    <div className="noticeline-wrap">
+      <ReplyQuote quoted={quoted} onJump={() => jumpToMessage(quoted.id)} />
+      {row}
+    </div>
+  );
+}
 
 // Renders a non-message event (join/part/mode/topic/ban/notice/info/warning/…)
 // as its own status line. The container routes every kind that isn't a
@@ -11,7 +42,6 @@ import { useActiveChat } from '@/core/networks';
 export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   const { t } = useTranslation();
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
-  const setActive = useActiveChat((s) => s.setActive);
   const mirc = useTheme().startsWith('yomirc');
 
   // yomIRC: render every server event as a classic mIRC status line — [HH:MM] * …
@@ -106,20 +136,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     return <div className={`sysline ${isCmd ? 'sysline--cmd' : ''}`}><span className="who">{m.from}</span> {m.text.replace(m.from, '').trim()}</div>;
   }
   if (m.kind === 'notice') {
-    return (
-      <div className="sysline sysline--mode noticeline">
-        <span className="modeline__tag noticeline__tag">NOTICE</span>
-        {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
-        <span className="noticeline__txt">{formatIrc(m.text, m.self, linkPreviews)}</span>
-        {/* +draft/channel-context: the channel this notice is about (e.g. an access
-            change), as a clickable chip to jump there — the same idiom as MsgRow. */}
-        {m.channelContext && (
-          <button className="ctx-chip" title={m.channelContext} onClick={() => setActive(m.channelContext!)}>
-            <span className="ctx-chip__ic">↪</span>{t('messages.fromChannel')}&nbsp;<b>{m.channelContext}</b>
-          </button>
-        )}
-      </div>
-    );
+    return <NoticeLine m={m} />;
   }
   return null;
 });

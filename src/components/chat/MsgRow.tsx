@@ -12,25 +12,11 @@ import { useAvatarUrl } from '@/platform/avatars';
 import { usePluginRegistry, type MessageInfo } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
+import { CtxChip, ReplyQuote } from './affordances';
+import { jumpToMessage, highlightMessage } from './msg-jump';
+import { firstOfRun } from './msg-runs';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
-
-// Scroll to a message by its data-mid and briefly flash it — the jump behind a
-// yomIRC reply line (Halloy's clickable reply preview jumps to the original too).
-function jumpToMessage(id: string): void {
-  const el = document.querySelector(`[data-mid="${CSS.escape(id)}"]`);
-  if (!el) return;
-  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  el.classList.add('mircline--flash');
-  window.setTimeout(() => el.classList.remove('mircline--flash'), 1400);
-}
-
-// Softly tint the quoted message while its reply line is hovered — the live preview
-// cue from Halloy's highlight_hovered_message. The background transition on
-// .mircline (yomirc.css) makes it fade in/out instead of snapping.
-function highlightMessage(id: string, on: boolean): void {
-  document.querySelector(`[data-mid="${CSS.escape(id)}"]`)?.classList.toggle('mircline--replytarget', on);
-}
 
 const msgInfo = (m: ChatMessage): MessageInfo =>
   ({ id: m.id, nick: m.from, text: stripFormatting(m.text), raw: m.text, kind: m.kind, ts: m.ts, mine: !!m.self });
@@ -87,19 +73,9 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   const mirc = useTheme().startsWith('yomirc');
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
   const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
-  // +draft/channel-context: badge it only when the context first appears or CHANGES.
-  // Compare against the last message that ACTUALLY carried a context (skip untagged
-  // ones) — otherwise the other person's untagged replies re-trigger the chip on our
-  // next message.
-  let showCtx = false;
-  if (m.channelContext && msgs) {
-    const idx = msgs.indexOf(m);
-    let prevCtx: string | undefined;
-    for (let i = idx - 1; i >= 0; i--) {
-      if (msgs[i].channelContext) { prevCtx = msgs[i].channelContext; break; }
-    }
-    showCtx = prevCtx !== m.channelContext;
-  }
+  // +draft/channel-context: badge it only at the head of a run (when the context
+  // first appears or changes), so a stream sharing one context isn't chip-spammed.
+  const showCtx = firstOfRun(msgs, m, (x) => x.channelContext);
 
   // yomIRC: classic single log line — [HH:MM] <nick> text (nick on every line, no grouping/avatars).
   if (mirc) {
@@ -177,13 +153,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
             <span className="group__time">{fmtTime(m.ts)}</span>
           </div>
         )}
-        {quoted && (
-          <div className="reply-quote" title={t('messages.reply')}>
-            <span className="reply-quote__arrow">↪</span>
-            <span className="reply-quote__from" style={{ color: nickColor(quoted.from) }}>{quoted.from}</span>
-            <span className="reply-quote__txt">{quoted.redacted ? t('messages.deleted') : quoted.text.slice(0, 90)}</span>
-          </div>
-        )}
+        {quoted && <ReplyQuote quoted={quoted} />}
         <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
@@ -193,13 +163,8 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
           return pu ? <LinkPreview url={pu} /> : null;
         })()}
         {showCtx && (
-          <button
-            className="ctx-chip"
-            title={t('messages.dmStarted', { chan: m.channelContext })}
-            onClick={() => setActive(m.channelContext!)}
-          >
-            <span className="ctx-chip__ic">↪</span>{t('messages.fromChannel')}&nbsp;<b>{m.channelContext}</b>
-          </button>
+          <CtxChip chan={m.channelContext!} onJump={() => setActive(m.channelContext!)}
+            label={t('messages.fromChannel')} title={t('messages.dmStarted', { chan: m.channelContext })} />
         )}
         {m.reactions && m.reactions.length > 0 && (
           <div className="reactions">
