@@ -16,7 +16,7 @@ Orbit.plugin('games', (orbit, log) => {
   const { useState, useEffect } = orbit.React;
   const html = orbit.html;
   const T = orbit.i18n.t;
-  const GS = 'gameserv'; // GameServ nick, lower-cased for comparison
+  const GS = 'gamesserv'; // GamesServ nick (singular "GameServ" is reserved), lower-cased for comparison
 
   // ════════════════════════ decoding GameServ's state ════════════════════════
   const GLYPH = { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘', P: '♙', k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
@@ -90,7 +90,7 @@ Orbit.plugin('games', (orbit, log) => {
   orbit.on('orbit:panel', (id) => { if (id !== 'games' && store.open) { store.open = false; notify(); } });
 
   // ════════════════════════ transport: commands to GameServ ════════════════════════
-  const cmd = (line) => orbit.irc.send('PRIVMSG GameServ :' + line);
+  const cmd = (line) => orbit.irc.send('PRIVMSG GamesServ :' + line);
   const challenge = (nick, type) => cmd('CHALLENGE ' + nick + ' ' + type);
   const accept = (id) => cmd('ACCEPT ' + id);
   const decline = (id) => cmd('DECLINE ' + id);
