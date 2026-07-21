@@ -141,8 +141,10 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
         : route === 'active'
           ? (get().active || SERVER)
           : (self ? chanTarget : msg.nick);
-    // +draft/channel-context: this DM relates to a channel. Only meaningful on PMs.
-    const chanCtx = route !== 'active' && !isChan ? msg.tags['+draft/channel-context'] : undefined;
+    // +draft/channel-context: which channel this out-of-channel line relates to —
+    // a DM opened from a channel, or a service notice about one. Not on a channel
+    // target (there the context is the channel itself).
+    const chanCtx = !isChan ? msg.tags['+draft/channel-context'] : undefined;
     // One we send shows the recipient; one we receive shows the sender.
     const noticeText = toActive && self ? `→ ${chanTarget} : ${text}` : statusTag + text;
     const cm: ChatMessage = {
@@ -155,8 +157,9 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       replyTo: msg.tags['+draft/reply'],
       channelContext: chanCtx,
     };
-    // Remember an incoming PM's channel context so our replies carry it back.
-    if (chanCtx && !self && isChannelName(chanCtx)) {
+    // Remember an incoming PM's channel context so our replies carry it back
+    // (a one-off notice isn't a thread we reply into, so it doesn't seed this).
+    if (chanCtx && !self && kind !== 'notice' && isChannelName(chanCtx)) {
       const s = get();
       if (s.pmContext[canon(msg.nick)] !== chanCtx)
         set({ pmContext: { ...s.pmContext, [canon(msg.nick)]: chanCtx } });

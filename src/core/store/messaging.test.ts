@@ -70,6 +70,19 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(serverLines).toContain('the MOTD');
   });
 
+  it('captures +draft/channel-context off a service notice', () => {
+    const { on, added } = setup();
+    on('@+draft/channel-context=#ops :ChanServ!s@services NOTICE me :bob removed your access to #ops');
+    expect(added).toHaveLength(1);
+    expect(added[0].m).toMatchObject({ kind: 'notice', channelContext: '#ops' });
+  });
+
+  it('leaves channelContext unset on a plain notice', () => {
+    const { on, added } = setup();
+    on(':ChanServ!s@services NOTICE me :hello');
+    expect(added[0].m.channelContext).toBeUndefined();
+  });
+
   it('returns false for a non-message command', () => {
     const { on } = setup();
     expect(on(':bob!u@h JOIN #x')).toBe(false);

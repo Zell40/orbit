@@ -11,6 +11,7 @@ import { useActiveChat } from '@/core/networks';
 export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   const { t } = useTranslation();
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
+  const setActive = useActiveChat((s) => s.setActive);
   const mirc = useTheme().startsWith('yomirc');
 
   // yomIRC: render every server event as a classic mIRC status line — [HH:MM] * …
@@ -110,6 +111,13 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
         <span className="modeline__tag noticeline__tag">NOTICE</span>
         {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
         <span className="noticeline__txt">{formatIrc(m.text, m.self, linkPreviews)}</span>
+        {/* +draft/channel-context: the channel this notice is about (e.g. an access
+            change), as a clickable chip to jump there — the same idiom as MsgRow. */}
+        {m.channelContext && (
+          <button className="ctx-chip" title={m.channelContext} onClick={() => setActive(m.channelContext!)}>
+            <span className="ctx-chip__ic">↪</span>{t('messages.fromChannel')}&nbsp;<b>{m.channelContext}</b>
+          </button>
+        )}
       </div>
     );
   }
