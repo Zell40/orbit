@@ -202,6 +202,12 @@
       "reasonPlaceholder": "Décrivez le problème (spam, harcèlement, etc.)",
       "submit": "Envoyer le signalement"
     },
+    "cban": {
+      "title": "Salon indisponible",
+      "sub": "Le salon {{channel}} n’est pas accessible.",
+      "close": "Fermer",
+      "joinSuggested": "Rejoindre {{channel}}"
+    },
     "chanadmin": {
       "title": "Gérer le salon",
       "topic": "Sujet du salon…",

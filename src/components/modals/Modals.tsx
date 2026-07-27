@@ -6,6 +6,7 @@ import { JoinDialog } from './JoinDialog';
 import { ExploreModal } from './ExploreModal';
 import { ChanAdminModal } from './ChanAdminModal';
 import { ReportModal } from './ReportModal';
+import { CbanModal } from './CbanModal';
 import { PluginModal } from './PluginModal';
 
 export function Modals() {
@@ -17,6 +18,7 @@ export function Modals() {
       {modal === 'explore' && <ExploreModal />}
       {modal === 'chanadmin' && <ChanAdminModal />}
       {modal === 'report' && <ReportModal />}
+      {modal === 'cban' && <CbanModal />}
       {modal === 'switcher' && <QuickSwitcher />}
       {modal === 'shortcuts' && <Shortcuts />}
       <PluginModal />

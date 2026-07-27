@@ -22,7 +22,7 @@ const filehost: { resolve: ((token: string) => void) | null; reject: ((err: Erro
 
 
 
-export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'report' | 'switcher' | 'shortcuts';
+export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'report' | 'switcher' | 'shortcuts' | 'cban';
 export interface ChannelInfo { name: string; users: number; topic: string }
 export interface KickInfo { channel: string; by: string; reason: string; kind: 'kick' | 'ban' | 'mute' }
 
@@ -80,6 +80,7 @@ export interface ChatState {
   whois: Record<string, WhoisInfo>;
   modal: Modal;
   reportSubject: string; // nick/channel prefilled into the report window
+  cban: { channel: string; reason: string } | null; // CBANed-join details for the cban window
   kicked: KickInfo | null; // last time we got kicked — drives the dismissible toast
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
 
@@ -183,6 +184,7 @@ export function createChatStore(ns = '') {
     pmContext: {},
     modal: '',
     reportSubject: '',
+    cban: null,
     kicked: null,
 
     connect(opts) {

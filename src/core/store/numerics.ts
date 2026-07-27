@@ -248,6 +248,16 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         set({ kicked: { channel: ch, by: '', reason: '', kind: 'ban' } });
         return true;
       }
+      case '926': { // ERR_BADCHANNEL (m_cban): join refused — channel is CBANed network-wide
+        const ch = msg.params[1] || '';
+        const full = msg.params.length > 1 ? msg.params[msg.params.length - 1] : '';
+        // Message is "Channel #x is CBANed: <reason>" — keep just the reason.
+        const reason = full.replace(/^Channel\s+\S+\s+is\s+CBANed:\s*/i, '').trim() || full;
+        if (isChannelName(ch)) { closedChannels.add(canon(ch)); dropBuffer(ch); }
+        if (get().prefs.sound) blip();
+        set({ cban: { channel: ch, reason }, modal: 'cban' });
+        return true;
+      }
     }
 
     // Every remaining numeric is recognised (see irc/numerics.ts) and routed:

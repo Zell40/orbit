@@ -202,6 +202,12 @@
       "reasonPlaceholder": "Describe the problem (spam, harassment, etc.)",
       "submit": "Send report"
     },
+    "cban": {
+      "title": "Channel unavailable",
+      "sub": "You can't join {{channel}}.",
+      "close": "Close",
+      "joinSuggested": "Join {{channel}}"
+    },
     "chanadmin": {
       "title": "Manage channel",
       "topic": "Channel topic…",
