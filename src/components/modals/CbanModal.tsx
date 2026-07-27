@@ -10,11 +10,14 @@ export function CbanModal() {
   const setModal = useActiveChat((s) => s.setModal);
   const cban = useActiveChat((s) => s.cban);
   const client = useActiveChat((s) => s.client);
+  const setActive = useActiveChat((s) => s.setActive);
   if (!cban) return null;
 
   const suggested = (cban.reason.match(/#[^\s,.:;!?]+/) || [])[0];
   const close = () => setModal('');
-  const joinSuggested = () => { if (suggested) client?.join(suggested); close(); };
+  // Join the suggested channel AND switch the active view to it (same as the
+  // join dialog / the /join command), so the user lands in #accueil.
+  const joinSuggested = () => { if (suggested) { client?.join(suggested); setActive(suggested); } close(); };
 
   return (
     <Modal title={t('modals.cban.title')} onClose={close}>
