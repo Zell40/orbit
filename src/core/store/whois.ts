@@ -134,6 +134,9 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
       case '761': // RPL_KEYVALUE: <me> <target> <key> <visibility> [:<value>]
         applyMeta(msg.params[1], msg.params[2], msg.params[4]);
         return true;
+      case '766': // RPL_KEYNOTSET: <me> <target> <key> :key not set — clear it
+        applyMeta(msg.params[1], msg.params[2], undefined);
+        return true;
       case '762': // RPL_METADATAEND
         return true;
       default:

@@ -57,10 +57,13 @@ describe('makeWhois — draft/metadata-2 profile', () => {
     expect(whois()['bob'].meta).toEqual({ pronouns: 'they/them' });
   });
 
-  it('stores WHOIS-streamed 761 key/value and consumes 762', () => {
+  it('stores GET-streamed 761 key/value, clears on 766, consumes 762', () => {
     const { w, whois } = setup();
     expect(w.handleWhois(parseLine(':srv 761 me bob bio * :Loves IRC'))).toBe(true);
-    expect(whois()['bob'].meta).toEqual({ bio: 'Loves IRC' });
+    expect(w.handleWhois(parseLine(':srv 761 me bob pronouns * :they/them'))).toBe(true);
+    expect(whois()['bob'].meta).toEqual({ bio: 'Loves IRC', pronouns: 'they/them' });
+    expect(w.handleWhois(parseLine(':srv 766 me bob bio :key not set'))).toBe(true);
+    expect(whois()['bob'].meta).toEqual({ pronouns: 'they/them' });
     expect(w.handleWhois(parseLine(':srv 762 me :end of metadata'))).toBe(true);
   });
 });

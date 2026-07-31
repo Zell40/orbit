@@ -214,6 +214,9 @@ export function makeHandler(ctx: HandlerCtx) {
         // never a user command — its failures (e.g. INVALID_TARGET after parting a
         // channel) are benign races, so don't surface them as a scary Status line.
         if (msg.command === 'FAIL' && cmd === 'CHATHISTORY') break;
+        // METADATA (SUB/GET/SYNC) is likewise an automatic client request — its
+        // failures (unsupported subcommand, a key we can't read) are benign.
+        if (msg.command === 'FAIL' && cmd === 'METADATA') break;
         // Otherwise surface it where the user is looking: FAIL/WARN as a ⚠ line,
         // NOTE as an info callout. Label with the command + code when present.
         const tag = cmd && cmd !== '*' ? `${cmd}${code && code !== '*' ? ` (${code})` : ''} — ` : '';

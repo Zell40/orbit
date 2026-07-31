@@ -171,11 +171,12 @@ export class Ircv3 {
     if (!this.acked.has('draft/metadata-2') || !keys.length) return;
     this.tx.send(`METADATA * SUB ${keys.join(' ')}`);
   }
-  // Pull one user's current subscribed metadata on demand (profile card open) —
-  // SUB only streams future changes, so a card needs an explicit SYNC to fill in.
+  // Pull one user's current profile metadata on demand (profile card open). GET
+  // names the keys explicitly, so it works regardless of what we're subscribed to
+  // (SUB only streams FUTURE changes); the reply fills the card in.
   fetchMetadata(target: string): void {
     if (!this.acked.has('draft/metadata-2') || !target) return;
-    this.tx.send(`METADATA ${target} SYNC`);
+    this.tx.send(`METADATA ${target} GET avatar bio pronouns timezone url`);
   }
   // MONITOR (online-notify): + add, - remove, L list, C clear.
   monitor(op: '+' | '-' | 'L' | 'C', targets = ''): void {
