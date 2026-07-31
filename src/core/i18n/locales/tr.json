@@ -369,6 +369,10 @@
     "pt-BR": "Português (Brasil)"
   },
   "whois": {
+    "pronouns": "Zamirler",
+    "timezone": "Saat dilimi",
+    "url": "Web sitesi",
+    "bio": "Biyografi",
     "section": "Bilgi",
     "realname": "Görünen ad",
     "identifier": "Tanımlayıcı",

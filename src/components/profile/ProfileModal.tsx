@@ -8,7 +8,7 @@ import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
-const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes']);
+const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes', 'bio', 'url']);
 
 /* Wide horizontal profile card — pops over a blurred "nebula" of the app */
 export function ProfileModal() {
@@ -61,6 +61,12 @@ export function ProfileModal() {
   // [icon, stable key id, value] — the label is translated from the key at render.
   const rows: Array<[string, string, ReactNode]> = [];
   if (info?.realname) rows.push(['📝', 'realname', info.realname]);
+  // draft/metadata-2 account profile — published by services from the website.
+  if (info?.meta?.pronouns) rows.push(['🗣️', 'pronouns', info.meta.pronouns]);
+  if (info?.meta?.bio) rows.push(['📖', 'bio', info.meta.bio]);
+  if (info?.meta?.timezone) rows.push(['🕰️', 'timezone', info.meta.timezone]);
+  if (info?.meta?.url) rows.push(['🔗', 'url',
+    <a className="pm-link" href={info.meta.url} target="_blank" rel="noopener noreferrer nofollow">{info.meta.url}</a>]);
   if (info?.user || info?.host) rows.push(['🪪', 'identifier', `${info?.user ?? '?'}@${info?.host ?? '?'}`]);
   if (info?.server) rows.push(['🛰️', 'server', info.server + (info.serverInfo ? ` · ${info.serverInfo}` : '')]);
   if (info?.channels) rows.push(['#️⃣', 'channels', info.channels]);
@@ -100,7 +106,7 @@ export function ProfileModal() {
         <div className="pm-hero">
         <div className="pm-avwrap">
           <span className="pm-avring" />
-          <Avatar nick={nick} size={92} account={info?.account} />
+          <Avatar nick={nick} size={92} account={info?.account} url={info?.meta?.avatar} />
           <span className={`pm-presence pm-presence--${statusKey}`} />
         </div>
         <div className="pm-id">

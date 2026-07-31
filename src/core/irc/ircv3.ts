@@ -165,6 +165,18 @@ export class Ircv3 {
   chathistoryLatest(target: string, limit: number): void {
     this.tx.lowSend(`CHATHISTORY LATEST ${target} * ${limit}`);
   }
+  // draft/metadata-2 — subscribe to the account-profile keys the network publishes
+  // so the server pushes them (live + on channel join) for every user we can see.
+  subscribeMetadata(keys: string[]): void {
+    if (!this.acked.has('draft/metadata-2') || !keys.length) return;
+    this.tx.send(`METADATA * SUB ${keys.join(' ')}`);
+  }
+  // Pull one user's current subscribed metadata on demand (profile card open) —
+  // SUB only streams future changes, so a card needs an explicit SYNC to fill in.
+  fetchMetadata(target: string): void {
+    if (!this.acked.has('draft/metadata-2') || !target) return;
+    this.tx.send(`METADATA ${target} SYNC`);
+  }
   // MONITOR (online-notify): + add, - remove, L list, C clear.
   monitor(op: '+' | '-' | 'L' | 'C', targets = ''): void {
     if (this.tx.isupport()['MONITOR'] === undefined) return; // server doesn't advertise MONITOR

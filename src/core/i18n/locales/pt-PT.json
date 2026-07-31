@@ -369,6 +369,10 @@
     "pt-BR": "Português (Brasil)"
   },
   "whois": {
+    "pronouns": "Pronomes",
+    "timezone": "Fuso horário",
+    "url": "Site",
+    "bio": "Bio",
     "section": "Informações",
     "realname": "Nome a mostrar",
     "identifier": "Identificador",

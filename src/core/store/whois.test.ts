@@ -47,6 +47,24 @@ describe('makeWhois — building the WhoisInfo', () => {
   });
 });
 
+describe('makeWhois — draft/metadata-2 profile', () => {
+  it('stores live METADATA keys and clears on an absent value', () => {
+    const { w, whois } = setup();
+    w.handleWhois(parseLine(':srv METADATA bob avatar * :https://x/a.png'));
+    w.handleWhois(parseLine(':srv METADATA bob pronouns * :they/them'));
+    expect(whois()['bob'].meta).toEqual({ avatar: 'https://x/a.png', pronouns: 'they/them' });
+    w.handleWhois(parseLine(':srv METADATA bob avatar *')); // no value = cleared
+    expect(whois()['bob'].meta).toEqual({ pronouns: 'they/them' });
+  });
+
+  it('stores WHOIS-streamed 761 key/value and consumes 762', () => {
+    const { w, whois } = setup();
+    expect(w.handleWhois(parseLine(':srv 761 me bob bio * :Loves IRC'))).toBe(true);
+    expect(whois()['bob'].meta).toEqual({ bio: 'Loves IRC' });
+    expect(w.handleWhois(parseLine(':srv 762 me :end of metadata'))).toBe(true);
+  });
+});
+
 describe('makeWhois — yomirc text WHOIS (printTo)', () => {
   it('on 318 prints the collected WHOIS to its window and clears the entry', () => {
     const { w, whois, lines } = setup({

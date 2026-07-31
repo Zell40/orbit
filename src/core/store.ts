@@ -232,6 +232,8 @@ export function createChatStore(ns = '') {
           // Watch our friends via MONITOR (server pushes 730/731 on presence change).
           const fr = get().friends;
           if (fr.length) client.ircv3.monitor('+', fr.join(','));
+          // Subscribe to account-profile metadata so cards show avatar/bio/etc.
+          client.ircv3.subscribeMetadata(['avatar', 'bio', 'pronouns', 'timezone', 'url']);
           // On a RECONNECT, rejoin every channel we still have open (the client
           // only auto-joins the initial set; this restores ones joined later).
           if (wasReconnect) {
@@ -292,6 +294,7 @@ export function createChatStore(ns = '') {
       const s = get();
       set({ profileUser: nick, whois: { ...s.whois, [nick]: { nick, loading: true } } });
       s.client?.whois(nick);
+      s.client?.ircv3.fetchMetadata(nick);
     },
 
     // Classic-mIRC WHOIS: collect the reply but print it to the window it was run
@@ -314,6 +317,7 @@ export function createChatStore(ns = '') {
       // / duplicate them; keep the rest visible so there's no flash.
       set({ whois: { ...s.whois, [nick]: { ...cur, loading: true, channels: '', special: [] } } });
       s.client?.whois(nick);
+      s.client?.ircv3.fetchMetadata(nick);
     },
 
     closeBuffer(name) {

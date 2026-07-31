@@ -71,6 +71,7 @@ export interface WhoisInfo {
   regnick?: boolean;      // RPL_WHOISREGNICK (307)
   special?: string[];     // RPL_WHOISSPECIAL (320) — one entry per line
   modes?: string;         // RPL_WHOISMODES (379)
+  meta?: Record<string, string>; // draft/metadata-2 profile keys (avatar/bio/pronouns/timezone/url)
   printTo?: string;       // buffer key: print this WHOIS as text lines here (yomirc) instead of the panel
 }
 

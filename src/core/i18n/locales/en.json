@@ -395,6 +395,10 @@
     "pt-BR": "Português (Brasil)"
   },
   "whois": {
+    "pronouns": "Pronouns",
+    "timezone": "Time zone",
+    "url": "Website",
+    "bio": "Bio",
     "section": "Information",
     "realname": "Display name",
     "identifier": "Identifier",

@@ -1425,6 +1425,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .pm-row__k { font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); }
 .pm-row__v { font-size: .92rem; color: var(--ink-2); font-weight: 600; overflow-wrap: anywhere; word-break: break-word; line-height: 1.35; margin-top: .05rem; }
 .pm-fp { display: block; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .76rem; font-weight: 600; line-height: 1.5; letter-spacing: .01em; overflow-wrap: anywhere; word-break: break-all; }
+.pm-link { color: var(--accent-d); font-weight: 600; text-decoration: none; }
+.pm-link:hover { text-decoration: underline; }
 .pm-empty { padding: 1.4rem; text-align: center; color: var(--faint); font-size: .9rem; }
 .pm-skeleton { display: flex; flex-direction: column; gap: .7rem; padding: .8rem .7rem; }
 .pm-skeleton i { height: 38px; border-radius: 11px; background: linear-gradient(90deg, var(--bg-soft), var(--bg-soft-2), var(--bg-soft)); background-size: 200% 100%; animation: pm-shimmer 1.3s ease-in-out infinite; }

@@ -52,6 +52,16 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
     clearWhois(n);
   }
 
+  // Store one draft/metadata-2 key for a user; an empty/absent value clears it.
+  function applyMeta(target: string, key: string, value: string | undefined): void {
+    if (!target || !key) return;
+    patchWhois(target, (w) => {
+      const meta = { ...(w.meta ?? {}) };
+      if (value) meta[key] = value; else delete meta[key];
+      return { ...w, meta };
+    });
+  }
+
   // Handle a RPL_WHOIS*/WHOWAS numeric. Returns true when it was one of ours (so
   // the dispatcher stops and doesn't echo it to the console).
   function handleWhois(msg: IrcMessage): boolean {
@@ -115,6 +125,17 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
         if (w?.printTo) printWhois(w); // yomirc: dump it to the active window as text
         return true;
       }
+      // draft/metadata-2 account profile (avatar/bio/pronouns/timezone/url), pushed
+      // live as we share visibility with a user and streamed on WHOIS. An absent
+      // value means the key was cleared.
+      case 'METADATA': // :src METADATA <target> <key> <visibility> [:<value>]
+        applyMeta(msg.params[0], msg.params[1], msg.params[3]);
+        return true;
+      case '761': // RPL_KEYVALUE: <me> <target> <key> <visibility> [:<value>]
+        applyMeta(msg.params[1], msg.params[2], msg.params[4]);
+        return true;
+      case '762': // RPL_METADATAEND
+        return true;
       default:
         return false;
     }

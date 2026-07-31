@@ -369,6 +369,10 @@
     "pt-BR": "Português (Brasil)"
   },
   "whois": {
+    "pronouns": "Местоимения",
+    "timezone": "Часовой пояс",
+    "url": "Сайт",
+    "bio": "Био",
     "section": "Информация",
     "realname": "Отображаемое имя",
     "identifier": "Идентификатор",

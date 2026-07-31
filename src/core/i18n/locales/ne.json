@@ -369,6 +369,10 @@
     "pt-BR": "Português (Brasil)"
   },
   "whois": {
+    "pronouns": "सर्वनाम",
+    "timezone": "समय क्षेत्र",
+    "url": "वेबसाइट",
+    "bio": "परिचय",
     "section": "जानकारी",
     "realname": "प्रदर्शन नाम",
     "identifier": "पहिचानकर्ता",
