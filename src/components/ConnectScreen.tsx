@@ -413,12 +413,12 @@ export function ConnectScreen() {
               <fieldset className="cjoin__envie">
                 <legend className="cjoin__envie-lab">{t('connect.wantLabel')}</legend>
                 <div className="cjoin__intents">
-                  <button type="button" className={intent === 'chat' ? 'is-on' : ''} aria-pressed={intent === 'chat'}
-                    onClick={() => pickIntent('chat')}>💬 {t('connect.wantChat')}</button>
-                  <button type="button" className={intent === 'love' ? 'is-on' : ''} aria-pressed={intent === 'love'}
-                    onClick={() => pickIntent('love')}>💞 {t('connect.wantLove')}</button>
-                  <button type="button" className={intent === 'play' ? 'is-on' : ''} aria-pressed={intent === 'play'}
-                    onClick={() => pickIntent('play')}>🎮 {t('connect.wantPlay')}</button>
+                  {intents.chat && <button type="button" className={intent === 'chat' ? 'is-on' : ''} aria-pressed={intent === 'chat'}
+                    onClick={() => pickIntent('chat')}>💬 {t('connect.wantChat')}</button>}
+                  {intents.love && <button type="button" className={intent === 'love' ? 'is-on' : ''} aria-pressed={intent === 'love'}
+                    onClick={() => pickIntent('love')}>💞 {t('connect.wantLove')}</button>}
+                  {intents.play && <button type="button" className={intent === 'play' ? 'is-on' : ''} aria-pressed={intent === 'play'}
+                    onClick={() => pickIntent('play')}>🎮 {t('connect.wantPlay')}</button>}
                 </div>
               </fieldset>
             </>

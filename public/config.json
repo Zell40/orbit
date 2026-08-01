@@ -9,15 +9,18 @@
     ],
     "suggestions": [
       "#accueil",
-      "#taverne",
-      "#musique",
-      "#devs",
-      "#orbit"
+      "#30-40",
+      "#adultes",
+      "#quizz",
+      "#trivia"
     ],
     "intents": {
-      "chat": ["#accueil"],
-      "love": ["#rencontre"],
-      "play": ["#gaming"]
+      "chat": [
+        "#accueil"
+      ],
+      "love": [
+        "#accueil"
+      ]
     }
   },
   "branding": {
@@ -58,8 +61,20 @@
     "saslScram": true
   },
   "plugins": [
-    { "url": "/app/plugins/third/orbit-clock.js", "sandbox": true, "permissions": ["none"] },
-    { "url": "/app/plugins/third/orbit-radio.js", "sandbox": true, "permissions": ["storage"] },
+    {
+      "url": "/app/plugins/third/orbit-clock.js",
+      "sandbox": true,
+      "permissions": [
+        "none"
+      ]
+    },
+    {
+      "url": "/app/plugins/third/orbit-radio.js",
+      "sandbox": true,
+      "permissions": [
+        "storage"
+      ]
+    },
     "/app/plugins/third/orbit-copy.js",
     "/app/plugins/third/orbit-games.js",
     "/app/plugins/third/orbit-invite.js",
@@ -71,5 +86,15 @@
     "siteId": "tchatou",
     "gaId": "G-1PQFZWGNFX"
   },
-  "securityGroups": ["kiwiirc", "oper", "ssl", "plain", "registered", "staff", "trusted", "bots", "EU"]
+  "securityGroups": [
+    "kiwiirc",
+    "oper",
+    "ssl",
+    "plain",
+    "registered",
+    "staff",
+    "trusted",
+    "bots",
+    "EU"
+  ]
 }
