@@ -28,7 +28,7 @@
   --bg: #ffffff; --bg-soft: #f2f2ee; --bg-soft-2: #e8e8e2; --bg-active: #daf1e2; --rail-bg: #f2f2ee;
   --border: #dcdcd6; --border-2: #ccccc6;
   --accent: #0a8f3c; --accent-d: #0a5c2b; --accent-soft: #daf1e2;
-  --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
+  --font: var(--mono);
   --shadow-pop: 0 6px 20px -6px rgba(0,0,0,.25);
 }
 [data-theme="yomirc-dark"] {
@@ -43,7 +43,7 @@
   --bg: #000000; --bg-soft: #000000; --bg-soft-2: #000000; --bg-active: #113a22; --rail-bg: #000000;
   --border: #17171d; --border-2: #23232b;
   --accent: #35c46a; --accent-d: #57d07a; --accent-soft: rgba(53,196,106,.14);
-  --font: Tahoma, "MS Sans Serif", Geneva, Verdana, sans-serif;
+  --font: var(--mono);
   --shadow-pop: 0 8px 26px -8px rgba(0,0,0,.85);
 }
 [data-theme^="yomirc"] body { background: var(--mirc-face); }

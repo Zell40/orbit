@@ -41,10 +41,8 @@
   --online: #2ec27e; --online-d: #25a76c; --online-soft: rgba(46,194,126,.16);
   --danger: #f0556e;
   --shadow-pop: 0 14px 44px -14px rgba(0,0,0,.8), 0 2px 8px -2px rgba(0,0,0,.6);
-  /* muted hash avatars + tchatou's Geist face */
+  /* muted hash avatars */
   --av-s1: 30%; --av-l1: 52%; --av-s2: 28%; --av-l2: 42%;
-  --font: "Geist", "Hanken Grotesk", system-ui, -apple-system, sans-serif;
-  --display: "Geist", "Hanken Grotesk", system-ui, sans-serif;
   color-scheme: dark;
 }
 [data-theme="orbit-dark"] body { background: #060607; }

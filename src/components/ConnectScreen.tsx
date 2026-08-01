@@ -3,6 +3,7 @@ import { escapeHtml } from '../lib/escape';
 import { useTranslation } from 'react-i18next';
 
 import { getConfig } from '../core/config';
+import { LANGS, setLang } from '../core/i18n';
 import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
 
@@ -283,7 +284,7 @@ function RecoverOverlay({ onClose, onRecovered }: { onClose: () => void; onRecov
 }
 
 export function ConnectScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const cfg = getConfig();
   const [faq, setFaq] = useState<string | null>(null);
   const [recover, setRecover] = useState(false);
@@ -354,6 +355,12 @@ export function ConnectScreen() {
 
   return (
     <div className="connect">
+      <div className="clang">
+        <select aria-label={t('settings.appearance.language')} value={i18n.language}
+          onChange={(e) => setLang(e.target.value)}>
+          {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+        </select>
+      </div>
       <section className="cjoin">
         <div className="cjoin__brand">
           <span className="cjoin__mark"><img src={cfg.branding.icon} alt="" /></span>
