@@ -76,12 +76,10 @@ export function MessageList() {
     const switched = prevActive.current !== active;
     prevActive.current = active;
     const grew = el.scrollHeight - prevHeight.current;
-    const d = dividerRef.current;
-    if (switched && d) {
-      // Entering a channel that has unread → land on the "New messages" divider so
-      // you read from where you left off, rather than jumping past it to the bottom.
-      el.scrollTop = Math.max(0, d.offsetTop - 48);
-    } else if (switched || atBottom.current) {
+    // Switching into a channel always jumps to the newest line (the last message),
+    // even when it has unread — the "New messages" divider still renders as a marker
+    // to scroll up to. Also follow the tail when already pinned to the bottom.
+    if (switched || atBottom.current) {
       // Buffer switch, or we were pinned to the bottom → follow the newest line.
       // atBottom is checked BEFORE the prepend heuristic on purpose: in a short
       // buffer the bottom itself sits at scrollTop < 80, so a burst of appended

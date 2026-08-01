@@ -192,10 +192,11 @@
 [data-theme^="yomirc"] .mircline--action .mircline__txt { font-style: italic; }
 [data-theme^="yomirc"] .mircline.is-redacted { opacity: .55; font-style: italic; }
 [data-theme^="yomirc"] .mircline .reactions--inline { display: inline-flex; gap: .25rem; margin-left: .4rem; vertical-align: middle; }
-/* Float the hover toolbar ABOVE the dense log line. `top: 0` used to sit it on the
-   line and 14px INTO the next one — that overlap blocked the next line's hover and
-   made hovering flicker/jump. Above the line it clears both neighbours. */
-[data-theme^="yomirc"] .mircline .msg-actions { top: auto; bottom: calc(100% - 4px); }
+/* Compact toolbar that fits WITHIN one dense log line, so it neither clips at the
+   top of the message list (the old `bottom: calc(100% - 4px)` overhung ~26px above
+   and got cut) nor overlaps the neighbouring lines' hover. */
+[data-theme^="yomirc"] .mircline .msg-actions { top: -1px; bottom: auto; padding: 1px; gap: 0; }
+[data-theme^="yomirc"] .mircline .msg-actions button { font-size: .8rem; padding: 1px 3px; }
 /* The reply arrow (↩) is a text glyph, not an emoji, so on the pure-black canvas it
    falls back to the UA button colour (black) and vanishes. Paint the action glyphs
    the classic terminal green so they read against the black. */
