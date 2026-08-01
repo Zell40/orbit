@@ -134,7 +134,8 @@
     "searchResults_one": "«{{q}}» için {{count}} sonuç",
     "searchResults_other": "«{{q}}» için {{count}} sonuç",
     "newMessages": "Yeni mesajlar",
-    "loadingHistory": "Geçmiş yükleniyor…"
+    "loadingHistory": "Geçmiş yükleniyor…",
+    "jumpNewest": "En yeniye git"
   },
   "modals": {
     "closeButton": "Kapat",
@@ -224,6 +225,12 @@
       "targetLabel": "Kim ya da nerede",
       "targetPlaceholder": "nick ya da #kanal",
       "title": "Sorun bildir"
+    },
+    "cban": {
+      "close": "Kapat",
+      "joinSuggested": "{{channel}} kanalına katıl",
+      "sub": "{{channel}} kanalına katılamazsınız.",
+      "title": "Kanal kullanılamıyor"
     }
   },
   "settings": {
@@ -964,5 +971,11 @@
     "channel": "Bir kanalda",
     "share": "Başka yerde yasaklı",
     "gateway": "WebIRC ağ geçidi"
+  },
+  "events": {
+    "joined_one": "katıldı",
+    "joined_other": "katıldı",
+    "left_one": "ayrıldı",
+    "left_other": "ayrıldı"
   }
 }

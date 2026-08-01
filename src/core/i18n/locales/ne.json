@@ -134,7 +134,8 @@
     "searchResults_one": "«{{q}}» का लागि {{count}} परिणाम",
     "searchResults_other": "«{{q}}» का लागि {{count}} परिणाम",
     "newMessages": "नयाँ म्यासेजहरू",
-    "loadingHistory": "इतिहास लोड हुँदैछ…"
+    "loadingHistory": "इतिहास लोड हुँदैछ…",
+    "jumpNewest": "नयाँमा जानुहोस्"
   },
   "modals": {
     "closeButton": "बन्द गर्नुहोस्",
@@ -224,6 +225,12 @@
       "targetLabel": "को वा कहाँ",
       "targetPlaceholder": "nick वा #channel",
       "title": "समस्या रिपोर्ट गर्नुहोस्"
+    },
+    "cban": {
+      "close": "बन्द गर्नुहोस्",
+      "joinSuggested": "{{channel}} मा सामेल हुनुहोस्",
+      "sub": "तपाईं {{channel}} मा सामेल हुन सक्नुहुन्न।",
+      "title": "च्यानल उपलब्ध छैन"
     }
   },
   "settings": {
@@ -964,5 +971,11 @@
     "channel": "च्यानलमा",
     "share": "अन्यत्र प्रतिबन्धित",
     "gateway": "WebIRC गेटवे"
+  },
+  "events": {
+    "joined_one": "सामेल भयो",
+    "joined_other": "सामेल भए",
+    "left_one": "बाहिरियो",
+    "left_other": "बाहिरिए"
   }
 }

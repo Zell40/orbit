@@ -134,7 +134,8 @@
     "searchResults_one": "{{count}} Ergebnis für „{{q}}“",
     "searchResults_other": "{{count}} Ergebnisse für „{{q}}“",
     "newMessages": "Neue Nachrichten",
-    "loadingHistory": "Verlauf wird geladen…"
+    "loadingHistory": "Verlauf wird geladen…",
+    "jumpNewest": "Zum Neuesten springen"
   },
   "modals": {
     "closeButton": "Schließen",
@@ -224,6 +225,12 @@
       "targetLabel": "Wer oder wo",
       "targetPlaceholder": "nick oder #channel",
       "title": "Problem melden"
+    },
+    "cban": {
+      "close": "Schließen",
+      "joinSuggested": "{{channel}} beitreten",
+      "sub": "Du kannst {{channel}} nicht betreten.",
+      "title": "Kanal nicht verfügbar"
     }
   },
   "settings": {
@@ -964,5 +971,11 @@
     "channel": "In einem Channel",
     "share": "Anderswo gebannt",
     "gateway": "WebIRC-Gateway"
+  },
+  "events": {
+    "joined_one": "ist beigetreten",
+    "joined_other": "sind beigetreten",
+    "left_one": "ist gegangen",
+    "left_other": "sind gegangen"
   }
 }

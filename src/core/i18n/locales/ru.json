@@ -134,7 +134,8 @@
     "searchResults_one": "{{count}} результат по «{{q}}»",
     "searchResults_other": "{{count}} результатов по «{{q}}»",
     "newMessages": "Новые сообщения",
-    "loadingHistory": "Загружаю историю…"
+    "loadingHistory": "Загружаю историю…",
+    "jumpNewest": "Перейти к новым"
   },
   "modals": {
     "closeButton": "Закрыть",
@@ -224,6 +225,12 @@
       "targetLabel": "Кто или где",
       "targetPlaceholder": "nick или #канал",
       "title": "Пожаловаться на проблему"
+    },
+    "cban": {
+      "close": "Закрыть",
+      "joinSuggested": "Войти в {{channel}}",
+      "sub": "Вы не можете войти в {{channel}}.",
+      "title": "Канал недоступен"
     }
   },
   "settings": {
@@ -964,5 +971,11 @@
     "channel": "На канале",
     "share": "Забанен в другом месте",
     "gateway": "Шлюз WebIRC"
+  },
+  "events": {
+    "joined_one": "присоединился",
+    "joined_other": "присоединились",
+    "left_one": "вышел",
+    "left_other": "вышли"
   }
 }
