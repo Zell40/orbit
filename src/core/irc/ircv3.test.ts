@@ -11,8 +11,16 @@ function make(isup: Record<string, string> = {}) {
     lowSend: (l) => low.push(l),
     isupport: () => isup,
   });
-  const cap = (line: string, ctx = { registered: false, hasPassword: false }) =>
-    ircv3.handleCap(parseLine(line), ctx);
+  const cap = (
+    line: string,
+    ctx: {
+      registered: boolean;
+      hasPassword: boolean;
+      wantPasskey?: boolean;
+      wantScram?: boolean;
+      wantOauthBearer?: boolean;
+    } = { registered: false, hasPassword: false },
+  ) => ircv3.handleCap(parseLine(line), ctx);
   return { ircv3, sent, low, cap };
 }
 
