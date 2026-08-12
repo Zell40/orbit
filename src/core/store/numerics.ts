@@ -56,17 +56,31 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         }
         return true;
       }
-      case '354': { // RPL_WHOSPCRPL (WHOX): <me> <token> <chan> <nick> <flags> <account>
+      case '354': { // RPL_WHOSPCRPL (WHOX): <me> <token> <chan> <nick> <flags> <account> [:<realname>]
         if (msg.params[1] !== '152') break; // not our query
         const chan = msg.params[2];
         const who = msg.params[3];
         const flags = msg.params[4] ?? '';
         const account = msg.params[5] && msg.params[5] !== '0' ? msg.params[5] : undefined;
+        const realname = msg.params[6]?.trim() || undefined;
         if (isChannelName(chan)) {
           patchBuffer(chan, (b) => {
             const m = b.members[who];
             if (!m) return b;
-            return { ...b, members: { ...b.members, [who]: { ...m, oper: flags.includes('*'), bot: flags.includes('B'), away: flags.startsWith('G'), account } } };
+            return {
+              ...b,
+              members: {
+                ...b.members,
+                [who]: {
+                  ...m,
+                  oper: flags.includes('*'),
+                  bot: flags.includes('B'),
+                  away: flags.startsWith('G'),
+                  account,
+                  ...(realname ? { realname } : {}),
+                },
+              },
+            };
           });
         }
         return true;

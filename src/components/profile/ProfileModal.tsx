@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import { IRCOP_COLOR, hashHue, fmtDuration, formatUserModes } from '@/lib/format';
 import { Avatar } from '../Avatar';
+import { GenderBadge } from '../GenderBadge';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
+import { parseProfileGecos } from '@/lib/profile-gecos';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
 const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes', 'bio', 'url']);
@@ -60,7 +62,10 @@ export function ProfileModal() {
 
   // [icon, stable key id, value] — the label is translated from the key at render.
   const rows: Array<[string, string, ReactNode]> = [];
-  if (info?.realname) rows.push(['📝', 'realname', info.realname]);
+  const profileEarly = parseProfileGecos(info?.realname || targetMember?.realname);
+  // Structured age/sexe/ville is shown under the nick; keep raw GECOS only when it
+  // doesn't match the EntreNous "40 - Homme - Paris" shape.
+  if (info?.realname && !profileEarly) rows.push(['📝', 'realname', info.realname]);
   // draft/metadata-2 account profile — published by services from the website.
   if (info?.meta?.pronouns) rows.push(['🗣️', 'pronouns', info.meta.pronouns]);
   if (info?.meta?.bio) rows.push(['📖', 'bio', info.meta.bio]);
@@ -96,6 +101,8 @@ export function ProfileModal() {
   const statusText = info?.offline ? t('whois.offline') : info?.away ? t('whois.away') : t('whois.online');
   const statusKey = !info?.offline && !info?.away ? 'on' : 'away';
   const chCount = info?.channels?.trim() ? info.channels.trim().split(/\s+/).length : null;
+  const profile = profileEarly;
+  const gender = profile?.gender ?? 'x';
 
   return (
     <div className="pm-backdrop" onClick={close}>
@@ -108,6 +115,7 @@ export function ProfileModal() {
           <span className="pm-avring" />
           <Avatar nick={nick} size={92} account={info?.account} url={info?.meta?.avatar} />
           <span className={`pm-presence pm-presence--${statusKey}`} />
+          <span className="pm-gender"><GenderBadge gender={gender} size="md" /></span>
         </div>
         <div className="pm-id">
           <div className="pm-name" style={info?.oper ? { color: IRCOP_COLOR } : undefined}>
@@ -115,6 +123,13 @@ export function ProfileModal() {
             {info?.account && <span className="pm-check" title={t('whois.registeredTitle', { account: info.account })}>✓</span>}
           </div>
           <div className="pm-handle">{info?.loading && !info?.user ? t('whois.loading') : (info?.account ? `@${info.account}` : t('whois.visitor'))}</div>
+          {profile && (
+            <div className="pm-profile-gecos">
+              {profile.age && <span>{profile.age} ans</span>}
+              {profile.genderLabel && <span>{profile.genderLabel}</span>}
+              {profile.city && <span>{profile.city}</span>}
+            </div>
+          )}
         </div>
         </div>
 

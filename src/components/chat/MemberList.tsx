@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import type { Member } from '@/core/irc/types';
 import { Avatar } from '../Avatar';
+import { GenderBadge } from '../GenderBadge';
 import { MemberMenu } from './MemberMenu';
 import { useActiveChat } from '@/core/networks';
 import { roleForPrefix } from '@/lib/roles';
+import { parseProfileGecos } from '@/lib/profile-gecos';
 
 export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
@@ -68,6 +70,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="member__name">
                   {m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
                   {m.nick}
+                  <GenderBadge gender={parseProfileGecos(m.realname)?.gender ?? 'x'} size="sm" />
                 </span>
                 {m.bot && <span className="member__bot">BOT</span>}
               </button>

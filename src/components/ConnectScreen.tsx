@@ -6,6 +6,7 @@ import { getConfig } from '../core/config';
 import { LANGS, setLang } from '../core/i18n';
 import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
+import { formatProfileGecos } from '../lib/profile-gecos';
 
 function param(name: string, fallback: string): string {
   return new URLSearchParams(window.location.search).get(name) ?? fallback;
@@ -318,12 +319,11 @@ export function ConnectScreen() {
     setChanField(intentChans(i).join(','));
   }
   function realname(): string | undefined {
-    const parts: string[] = [];
-    if (sex === 'f') parts.push(t('connect.sexF'));
-    else if (sex === 'h') parts.push(t('connect.sexH'));
-    if (age.trim()) parts.push(t('connect.ageYears', { age: age.trim() }));
-    if (city.trim()) parts.push(city.trim());
-    return parts.join(' · ') || undefined;
+    // EntreNous GECOS shape shared with the WordPress handoff: "40 - Homme - Paris"
+    if (sex === 'f' || sex === 'h') {
+      return formatProfileGecos(age, sex === 'f' ? 'F' : 'H', city);
+    }
+    return undefined;
   }
 
   const connecting = status === 'connecting';

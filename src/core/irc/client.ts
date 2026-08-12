@@ -267,7 +267,8 @@ export class IrcClient {
   setAway(reason: string): void { this.awayMessage = reason; this.send(reason ? `AWAY :${reason}` : 'AWAY'); }
   // Query a channel's ban/except/invex list (replies via 367/348/346).
   modeList(channel: string, mode: 'b' | 'e' | 'I'): void { this.send(`MODE ${channel} ${mode}`); }
-  // WHOX: request token(t)/channel(c)/nick(n)/flags(f)/account(a) so we can map
-  // members → their services account (for real avatars). Token 152 echoes back.
-  who(target: string): void { this.send(`WHO ${target} %tcnfa,152`); }
+  // WHOX: token(t)/channel(c)/nick(n)/flags(f)/account(a)/realname(r) so we can
+  // map members → services account (avatars) and GECOS (EntreNous age/sexe/ville).
+  // `r` must be last — it's the trailing parameter. Token 152 echoes back.
+  who(target: string): void { this.send(`WHO ${target} %tcnfar,152`); }
 }

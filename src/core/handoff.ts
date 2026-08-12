@@ -14,6 +14,8 @@ export interface Handoff {
   password?: string;
   /** NickServ account when different from the display nick (OAUTHBEARER authzid). */
   account?: string;
+  /** IRC GECOS / realname, e.g. "40 - Homme - Paris" (EntreNous MonIdentité). */
+  realname?: string;
 }
 
 // Read and immediately clear the marker. Returns null when there is no fresh
@@ -28,11 +30,14 @@ export function takeHandoff(): Handoff | null {
   }
   if (!raw) return null;
   try {
-    const o = JSON.parse(raw) as { password?: unknown; account?: unknown; t?: unknown };
+    const o = JSON.parse(raw) as {
+      password?: unknown; account?: unknown; realname?: unknown; t?: unknown;
+    };
     if (typeof o.t !== 'number' || Date.now() - o.t > MAX_AGE_MS) return null;
     const password = typeof o.password === 'string' && o.password ? o.password : undefined;
     const account = typeof o.account === 'string' && o.account ? o.account : undefined;
-    return { password, account };
+    const realname = typeof o.realname === 'string' && o.realname.trim() ? o.realname.trim() : undefined;
+    return { password, account, realname };
   } catch {
     return null;
   }

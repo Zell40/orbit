@@ -130,6 +130,7 @@ loadConfig().then(async () => {
       password: handoff.password,
       keycard: true,
       saslAuthzid: handoff.account || nick,
+      realname: handoff.realname,
       channels,
     })
     cleanUrl()
