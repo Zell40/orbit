@@ -1,4 +1,8 @@
-/** EntreNous-style GECOS / realname: "40 - Homme - Paris" (also accepts older "Femme · 40 ans · Paris"). */
+/** EntreNous-style GECOS / realname.
+ *  Current:  "40 - Homme - Paris"
+ *  Kiwi:     "[19/F/Nice]"  (H=Homme, F=Femme, A=Autre)
+ *  Legacy:   "Femme · 40 ans · Paris"
+ */
 
 export type GenderKind = 'm' | 'f' | 'x';
 
@@ -11,6 +15,13 @@ export interface ProfileGecos {
 
 const MALE = /^(h|m|homme|male|masculin)$/i;
 const FEMALE = /^(f|femme|female|feminin|féminin)$/i;
+
+function genderLabelFr(kind: GenderKind, raw?: string): string {
+  if (kind === 'm') return 'Homme';
+  if (kind === 'f') return 'Femme';
+  if (raw && /^(a|autre|other)$/i.test(raw.trim())) return 'Autre';
+  return raw?.trim() || 'Autre';
+}
 
 export function genderFromLabel(raw: string | undefined | null): GenderKind {
   const s = (raw || '').trim();
@@ -36,8 +47,33 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
   const raw = (realname || '').trim();
   if (!raw) return null;
 
+  // KiwiIRC legacy: "[19/F/Nice]" (whole string, or without brackets)
+  if (/^\[[^\]]+\]$/.test(raw) || /^(\d{1,3})\s*\/\s*[HFAhfa]\s*\/\s*.+$/.test(raw)) {
+    const kiwi = raw.match(/\[?\s*(\d{1,3})\s*\/\s*([HFAhfa])\s*\/\s*([^\]]+?)\s*\]?$/);
+    if (kiwi) {
+      const kind = genderFromLabel(kiwi[2]);
+      return {
+        age: kiwi[1],
+        gender: kind,
+        genderLabel: genderLabelFr(kind, kiwi[2]),
+        city: kiwi[3].trim(),
+      };
+    }
+  }
+  // Same shape embedded in a longer realname, e.g. "pseudo [25/F/Lyon]"
+  const kiwiEmbedded = raw.match(/\[(\d{1,3})\/([HFAhfa])\/([^\]]+)\]/);
+  if (kiwiEmbedded) {
+    const kind = genderFromLabel(kiwiEmbedded[2]);
+    return {
+      age: kiwiEmbedded[1],
+      gender: kind,
+      genderLabel: genderLabelFr(kind, kiwiEmbedded[2]),
+      city: kiwiEmbedded[3].trim(),
+    };
+  }
+
   // Preferred: "40 - Homme - Paris"
-  let m = raw.match(/^(\d{1,3})\s*-\s*([^-]+?)\s*-\s*(.+)$/);
+  const m = raw.match(/^(\d{1,3})\s*-\s*([^-]+?)\s*-\s*(.+)$/);
   if (m) {
     return {
       age: m[1],

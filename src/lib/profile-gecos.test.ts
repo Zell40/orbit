@@ -20,6 +20,20 @@ describe('parseProfileGecos', () => {
     });
     expect(parseProfileGecos('25 - Femme - Lyon')).toMatchObject({ gender: 'f', city: 'Lyon' });
   });
+  it('parses KiwiIRC bracket format [age/sexe/ville]', () => {
+    expect(parseProfileGecos('[19/F/Nice]')).toEqual({
+      age: '19', gender: 'f', genderLabel: 'Femme', city: 'Nice',
+    });
+    expect(parseProfileGecos('[40/H/Paris]')).toMatchObject({
+      age: '40', gender: 'm', genderLabel: 'Homme', city: 'Paris',
+    });
+    expect(parseProfileGecos('[30/A/Nantes]')).toMatchObject({
+      age: '30', gender: 'x', genderLabel: 'Autre', city: 'Nantes',
+    });
+    expect(parseProfileGecos('pseudo [25/F/Lyon]')).toMatchObject({
+      age: '25', gender: 'f', city: 'Lyon',
+    });
+  });
   it('parses legacy middle-dot format', () => {
     const p = parseProfileGecos('Femme · 40 ans · Paris');
     expect(p?.gender).toBe('f');
