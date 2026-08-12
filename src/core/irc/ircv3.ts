@@ -72,7 +72,7 @@ export class Ircv3 {
 
   // Capability negotiation. Mutates the cap sets and returns the action the client
   // should perform next.
-  handleCap(msg: IrcMessage, ctx: { registered: boolean; hasPassword: boolean; wantPasskey?: boolean; wantScram?: boolean }): CapAction {
+  handleCap(msg: IrcMessage, ctx: { registered: boolean; hasPassword: boolean; wantPasskey?: boolean; wantScram?: boolean; wantOauthBearer?: boolean }): CapAction {
     // The subcommand is case-insensitive and the server echoes back the exact case
     // the client sent (`cap ls` → `ls`), so normalise before matching.
     const sub = (msg.params[1] || '').toUpperCase();
@@ -127,10 +127,11 @@ export class Ircv3 {
       // already-online session.
       if (ctx.registered) return { do: 'none' };
       // SASL if the server ACK'd it: a WebAuthn passkey (when requested and offered)
-      // takes precedence, else a password → PLAIN, else nothing to authenticate with.
+      // takes precedence, else OAUTHBEARER for JWT/keycard handoffs, else SCRAM/PLAIN.
       if (this.acked.has('sasl')) {
         if (ctx.wantPasskey && this.saslMechs.has('WEBAUTHN')) return { do: 'sasl', mech: 'WEBAUTHN' };
         if (ctx.hasPassword) {
+          if (ctx.wantOauthBearer && this.saslMechs.has('OAUTHBEARER')) return { do: 'sasl', mech: 'OAUTHBEARER' };
           // Prefer SCRAM-SHA-256 when requested + offered (the password stays off the
           // wire); the registration layer falls back to PLAIN if it fails.
           if (ctx.wantScram && this.saslMechs.has('SCRAM-SHA-256')) return { do: 'sasl', mech: 'SCRAM-SHA-256' };

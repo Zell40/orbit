@@ -111,10 +111,12 @@ export interface ConnectOptions {
   nick: string;
   username?: string;
   realname?: string;
-  password?: string;       // SASL password (optional)
+  password?: string;       // SASL password / token (optional)
   passkey?: boolean;       // authenticate with a WebAuthn passkey via SASL WEBAUTHN instead of a password
   scram?: boolean;         // prefer SASL SCRAM-SHA-256 for this password (falls back to PLAIN); set by the store
-  keycard?: boolean;       // the password is a single-use keycard, not an account password → PLAIN only (SCRAM can't verify a token)
+  keycard?: boolean;       // the password is a single-use keycard/token, not an account password → no SCRAM
+  oauthBearer?: boolean;   // prefer SASL OAUTHBEARER (RFC 7628) with password as Bearer token — for site JWT handoff
+  saslAuthzid?: string;    // SASL authzid (defaults to nick); use the NickServ account when nick ≠ account
   serverPassword?: string; // server connection password — sent via PASS (optional)
   channels?: string[];
 }

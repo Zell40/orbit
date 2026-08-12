@@ -12,6 +12,8 @@ const MAX_AGE_MS = 60_000; // stale markers (old tab, back button) are ignored
 
 export interface Handoff {
   password?: string;
+  /** NickServ account when different from the display nick (OAUTHBEARER authzid). */
+  account?: string;
 }
 
 // Read and immediately clear the marker. Returns null when there is no fresh
@@ -26,10 +28,11 @@ export function takeHandoff(): Handoff | null {
   }
   if (!raw) return null;
   try {
-    const o = JSON.parse(raw) as { password?: unknown; t?: unknown };
+    const o = JSON.parse(raw) as { password?: unknown; account?: unknown; t?: unknown };
     if (typeof o.t !== 'number' || Date.now() - o.t > MAX_AGE_MS) return null;
     const password = typeof o.password === 'string' && o.password ? o.password : undefined;
-    return { password };
+    const account = typeof o.account === 'string' && o.account ? o.account : undefined;
+    return { password, account };
   } catch {
     return null;
   }

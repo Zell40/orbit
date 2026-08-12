@@ -213,6 +213,12 @@ export function createChatStore(ns = '') {
           && getConfig().features.saslScram) {
         opts.scram = true;
       }
+      // Site JWT handoff: prefer SASL OAUTHBEARER when the deployment asks for it
+      // (EntreNous). Falls back to PLAIN if the ircd does not advertise OAUTHBEARER.
+      if (opts.oauthBearer === undefined && opts.password && opts.keycard
+          && getConfig().features.saslOauthBearer) {
+        opts.oauthBearer = true;
+      }
       const client = new IrcClient();
       initNotify();
       set({ client, nick: opts.nick, status: 'connecting' });

@@ -42,6 +42,21 @@ describe('Ircv3 capability negotiation', () => {
     expect(make().cap('CAP * ACK :sasl', { registered: false, hasPassword: false }).do).toBe('end');
   });
 
+  it('prefers OAUTHBEARER when requested and advertised', () => {
+    const { ircv3, cap } = make();
+    cap('CAP * LS :sasl=PLAIN,OAUTHBEARER');
+    const a = cap('CAP * ACK :sasl', { registered: false, hasPassword: true, wantOauthBearer: true });
+    expect(a).toEqual({ do: 'sasl', mech: 'OAUTHBEARER' });
+    expect(ircv3.hasSaslMech('OAUTHBEARER')).toBe(true);
+  });
+
+  it('falls back to PLAIN when OAUTHBEARER is requested but not offered', () => {
+    const { cap } = make();
+    cap('CAP * LS :sasl=PLAIN,SCRAM-SHA-256');
+    const a = cap('CAP * ACK :sasl', { registered: false, hasPassword: true, wantOauthBearer: true });
+    expect(a).toEqual({ do: 'sasl', mech: 'PLAIN' });
+  });
+
   it('forwards a post-registration manual CAP LS instead of renegotiating', () => {
     expect(make().cap('CAP * LS :message-tags', { registered: true, hasPassword: false }).do).toBe('forward');
   });

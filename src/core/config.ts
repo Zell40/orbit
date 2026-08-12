@@ -73,6 +73,7 @@ export interface AppConfig {
     sessionResume: boolean; // reopen the tab straight back into the last session (needs a same-origin keycard endpoint for logged-in members; guests just reconnect)
     passkeySasl: boolean;   // offer passkey (WebAuthn) sign-in on the connect screen — needs the server's SASL WEBAUTHN mechanism enabled
     saslScram: boolean;     // authenticate a typed password over SASL SCRAM-SHA-256 (password stays off the wire) with automatic PLAIN fallback; needs the server to offer SCRAM-SHA-256
+    saslOauthBearer: boolean; // site handoff / keycard uses SASL OAUTHBEARER (RFC 7628) with the JWT as Bearer token; falls back to PLAIN if the server does not offer it
     webmcp: boolean;        // expose the chat as WebMCP tools for AI agents (browsers that support document.modelContext); no-op elsewhere
   };
   /**
@@ -146,7 +147,7 @@ const DEFAULT_CONFIG: AppConfig = {
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
   report: { service: 'ReportServ', target: '#staff' },
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
-  features: { push: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false, passkeySasl: false, saslScram: false, webmcp: true },
+  features: { push: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false, passkeySasl: false, saslScram: false, saslOauthBearer: false, webmcp: true },
   plugins: [],
   builtins: [],
 };

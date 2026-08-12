@@ -135,6 +135,7 @@ export class Registration {
       hasPassword: !!this.host.opts().password,
       wantPasskey: this.host.opts().passkey === true,
       wantScram: this.host.opts().scram === true,
+      wantOauthBearer: this.host.opts().oauthBearer === true,
     });
     switch (action.do) {
       case 'req': this.host.send(`CAP REQ :${action.caps.join(' ')}`); break;
@@ -152,9 +153,16 @@ export class Registration {
   private handleAuthenticate(msg: IrcMessage): void {
     if (this.mech === 'WEBAUTHN') { this.handleWebauthn(msg); return; }
     if (this.mech === 'SCRAM-SHA-256') { this.handleScram(msg); return; }
-    // PLAIN: the server sends a bare '+' when it's ready for our client-first data.
+    // PLAIN / OAUTHBEARER: the server sends a bare '+' when it's ready for client-first data.
     if (msg.params[0] !== '+') return;
     const o = this.host.opts();
+    if (this.mech === 'OAUTHBEARER') {
+      // RFC 7628: n,a=<authzid>,\x01auth=Bearer <token>\x01\x01
+      const authzid = o.saslAuthzid || o.nick;
+      const token = o.password ?? '';
+      this.sendSaslData(b64utf8(`n,a=${authzid},\x01auth=Bearer ${token}\x01\x01`));
+      return;
+    }
     this.sendSaslData(b64utf8(`\0${o.nick}\0${o.password ?? ''}`));
   }
 

@@ -122,8 +122,16 @@ loadConfig().then(async () => {
     const channels = (params.get('channel') || cfg.startup.channels.join(','))
       .split(',').map((c) => c.trim()).filter(Boolean)
     useChat.setState({ autoConnecting: true })
-    // A handoff password is a single-use keycard, not an account password → PLAIN.
-    useChat.getState().connect({ url: cfg.server.url, nick, password: handoff.password, keycard: true, channels })
+    // A handoff password is a single-use keycard/JWT. With features.saslOauthBearer
+    // the store upgrades it to SASL OAUTHBEARER; otherwise PLAIN.
+    useChat.getState().connect({
+      url: cfg.server.url,
+      nick,
+      password: handoff.password,
+      keycard: true,
+      saslAuthzid: handoff.account || nick,
+      channels,
+    })
     cleanUrl()
   } else if (!nick && cfg.features.sessionResume) {
     // No fresh site entry — resume the last session (opt-in). A still-signed-in
