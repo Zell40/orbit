@@ -24,7 +24,9 @@ function setup() {
   return { uploadImage, uploadAudio, client, added, lines, filehost };
 }
 
-const okJson = (body: unknown, status = 200) => vi.fn(async () => new Response(JSON.stringify(body), { status }));
+const okJson = (body: unknown, status = 200) =>
+  vi.fn(async (_input?: RequestInfo | URL, _init?: RequestInit) =>
+    new Response(JSON.stringify(body), { status }));
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
