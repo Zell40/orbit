@@ -39,28 +39,29 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     const target = msg.params[0];
     let text = msg.params[1] ?? '';
     const self = msg.nick === me;
+
+    // FILEHOST token / help — may arrive as a bare server NOTICE *or* from a
+    // services-looking nick!user@host. Always intercept before normal routing so
+    // an in-flight upload never times out waiting for a swallowed/misrouted line.
+    if (msg.command === 'NOTICE' && /FILEHOST|file hosting|\/upload\?[^ \t]*token=/i.test(text)) {
+      if (filehost.resolve) {
+        const tok = text.match(/[?&]token=([A-Za-z0-9._\-]+)/);
+        if (tok) {
+          if (filehost.timer) clearTimeout(filehost.timer);
+          const r = filehost.resolve; filehost.resolve = null; filehost.reject = null;
+          r(tok[1]);
+        } else if (/must be logged in|not (logged|identif|authentic)/i.test(text)) {
+          if (filehost.timer) clearTimeout(filehost.timer);
+          const rj = filehost.reject; filehost.resolve = null; filehost.reject = null;
+          rj?.(new Error('not_identified'));
+        }
+      }
+      return true; // swallow all FILEHOST service notices
+    }
+
     // Server-originated NOTICE (no user@host, or to "*") → Server console,
     // styled as an info callout.
     if (msg.command === 'NOTICE' && (target === '*' || !msg.user)) {
-      // FILEHOST service notices are machine/help noise triggered by our own
-      // automatic /FILEHOST command (every image/voice upload) — always hide
-      // them. When an upload is waiting, pull the one-time token from the URL,
-      // or surface the not-identified case (a guest can't upload).
-      if (/FILEHOST|file hosting/i.test(text)) {
-        if (filehost.resolve) {
-          const tok = text.match(/[?&]token=([\w.-]+)/);
-          if (tok) {
-            if (filehost.timer) clearTimeout(filehost.timer);
-            const r = filehost.resolve; filehost.resolve = null; filehost.reject = null;
-            r(tok[1]);
-          } else if (/must be logged in|not (logged|identif|authentic)/i.test(text)) {
-            if (filehost.timer) clearTimeout(filehost.timer);
-            const rj = filehost.reject; filehost.resolve = null; filehost.reject = null;
-            rj?.(new Error('not_identified'));
-          }
-        }
-        return true; // swallow all FILEHOST service notices
-      }
       // Cloudflare/Turnstile anti-bot gate during REGISTER → surface it in the
       // account UI instead of dumping the raw challenge link in the console.
       const inReg = get().reg.busy || !!get().reg.challengeUrl;

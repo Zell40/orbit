@@ -87,4 +87,36 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     const { on } = setup();
     expect(on(':bob!u@h JOIN #x')).toBe(false);
   });
+
+  it('extracts a FILEHOST token from a services nick NOTICE (not only bare server notices)', () => {
+    let token = '';
+    const state = {
+      active: '#x', isActive: true, ignored: [] as string[],
+      reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
+      highlightWords: [] as string[], prefs: { sound: false }, pmContext: {} as Record<string, string>,
+    };
+    const helpers = {
+      addMessage: () => {},
+      patchBuffer: () => {},
+      serverLine: () => {},
+      tsOf: () => 1000,
+    } as unknown as StoreHelpers;
+    const filehost = {
+      resolve: ((t: string) => { token = t; }) as ((token: string) => void) | null,
+      reject: null as ((err: Error) => void) | null,
+      timer: null as ReturnType<typeof setTimeout> | null,
+    };
+    const { handleMessaging } = makeMessaging({
+      get: () => state as unknown as ChatState,
+      set: (p) => Object.assign(state, p),
+      knownServices: new Set<string>(),
+      filehost, helpers,
+    } as Parameters<typeof makeMessaging>[0]);
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJGSUxFSE9TVCJ9.sig';
+    const ok = handleMessaging(parseLine(
+      `:FileHost!fh@services NOTICE me :FILEHOST https://webchat.example/app/upload?token=${jwt}`,
+    ), 'me');
+    expect(ok).toBe(true);
+    expect(token).toBe(jwt);
+  });
 });

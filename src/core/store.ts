@@ -219,6 +219,26 @@ export function createChatStore(ns = '') {
           && getConfig().features.saslOauthBearer) {
         opts.oauthBearer = true;
       }
+      // EntreNous / site JWT: refresh the Bearer before every (re)registration so a
+      // tab reload or WS drop does not reuse an expired handoff token.
+      if (opts.oauthBearer && !opts.refreshBearer) {
+        opts.refreshBearer = async () => {
+          try {
+            const ctrl = new AbortController();
+            const to = setTimeout(() => ctrl.abort(), 4000);
+            const r = await fetch('/accounts/api/chat_resume/', {
+              credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal,
+            }).finally(() => clearTimeout(to));
+            if (!r.ok) return undefined;
+            const j = await r.json() as { ok?: boolean; keycard?: string; nick?: string };
+            if (j?.ok && j.keycard) {
+              if (typeof j.nick === 'string' && j.nick) opts.nick = j.nick;
+              return j.keycard;
+            }
+          } catch { /* offline / no endpoint */ }
+          return undefined;
+        };
+      }
       const client = new IrcClient();
       initNotify();
       set({ client, nick: opts.nick, status: 'connecting' });

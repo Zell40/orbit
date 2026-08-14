@@ -117,6 +117,8 @@ export interface ConnectOptions {
   scram?: boolean;         // prefer SASL SCRAM-SHA-256 for this password (falls back to PLAIN); set by the store
   keycard?: boolean;       // the password is a single-use keycard/token, not an account password → no SCRAM
   oauthBearer?: boolean;   // prefer SASL OAUTHBEARER (RFC 7628) with password as Bearer token — for site JWT handoff
+  /** Before (re)registration, mint a fresh Bearer token (e.g. /accounts/api/chat_resume/). */
+  refreshBearer?: () => Promise<string | undefined>;
   saslAuthzid?: string;    // SASL authzid (defaults to nick); use the NickServ account when nick ≠ account
   serverPassword?: string; // server connection password — sent via PASS (optional)
   channels?: string[];

@@ -57,6 +57,8 @@ export class Registration {
   // Socket just opened → send the registration burst (spec order: CAP LS, [PASS],
   // NICK, USER; CAP END follows once negotiation finishes). Resets the negotiated
   // caps + registration flags so a (re)connect starts clean.
+  // When oauthBearer+refreshBearer are set, mint a fresh JWT first so a tab
+  // reload / WS reconnect does not reuse an expired handoff token.
   start(): void {
     this.capEnded = false;
     this.mech = 'PLAIN';
@@ -66,10 +68,20 @@ export class Registration {
     this.host.setRegistered(false);
     const o = this.host.opts();
     this.host.setNick(o.nick);
-    this.host.send(`CAP LS 302`);
-    if (o.serverPassword) this.host.send(`PASS :${o.serverPassword}`);
-    this.host.send(`NICK ${o.nick}`);
-    this.host.send(`USER ${o.username || 'guest'} 0 * :${o.realname || o.nick}`);
+    const begin = () => {
+      this.host.send(`CAP LS 302`);
+      if (o.serverPassword) this.host.send(`PASS :${o.serverPassword}`);
+      this.host.send(`NICK ${o.nick}`);
+      this.host.send(`USER ${o.username || 'guest'} 0 * :${o.realname || o.nick}`);
+    };
+    if (o.oauthBearer && o.refreshBearer) {
+      void o.refreshBearer()
+        .then((token) => { if (token) o.password = token; })
+        .catch(() => { /* keep existing password */ })
+        .finally(begin);
+      return;
+    }
+    begin();
   }
 
   // Handle a registration-relevant line: CAP, AUTHENTICATE, the SASL result

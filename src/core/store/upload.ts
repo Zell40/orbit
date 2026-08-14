@@ -22,6 +22,14 @@ interface UploadDeps {
 
 const MAX_BYTES = 16 * 1024 * 1024;
 
+/** Same-origin upload URL. SPA is under /app/ on EntreNous — prefer /app/upload
+ *  so an Alias DocumentRoot still hits filehost-upload.php; fall back to /upload. */
+function uploadUrl(token: string): string {
+  const underApp = typeof location !== 'undefined' && location.pathname.startsWith('/app');
+  const path = underApp ? '/app/upload' : '/upload';
+  return `${path}?token=${encodeURIComponent(token)}`;
+}
+
 export function makeUpload({ get, filehost, helpers }: UploadDeps) {
   const { addMessage, sysLine } = helpers;
 
@@ -34,7 +42,11 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     });
     const fd = new FormData();
     fd.append('file', file);
-    const res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
+    let res = await fetchTimeout(uploadUrl(token), { method: 'POST', body: fd }, 30000);
+    // Legacy deployments that only rewrite bare /upload (DocumentRoot = web root).
+    if (res.status === 404 && uploadUrl(token).startsWith('/app/')) {
+      res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
+    }
     if (!res.ok) {
       let detail = `http_${res.status}`;
       try { const j = await res.json(); if (j?.detail) detail = `${res.status}:${j.detail}`; } catch { /* ignore */ }

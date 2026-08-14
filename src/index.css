@@ -534,7 +534,7 @@ input, textarea { font-family: inherit; }
 .group__nick { font-weight: 800; font-size: .94rem; }
 .group__time { font-size: .7rem; color: var(--faint); font-weight: 600; }
 .group--cont .group__avatar.group__time-rail { height: auto; }
-.line { font-size: .96rem; line-height: 1.5; color: var(--ink-2); word-wrap: break-word; overflow-wrap: anywhere; white-space: pre-wrap; }
+.line { font-size: .96rem; line-height: 1.5; color: var(--ink-2); word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
 /* "Monospace messages" pref: a fixed-width font + the existing pre-wrap keeps
    ASCII art, tables and box-drawing aligned (every glyph one cell wide). */
 html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
@@ -675,31 +675,38 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 /* Bubble messages (default on via html[data-bubbles=on]) */
 html[data-bubbles="on"] .group:not(.group--cont) { margin-top: .45rem; }
-html[data-bubbles="on"] .group__body { max-width: min(42rem, 92%); }
+html[data-bubbles="on"] .group__body { max-width: min(42rem, 92%); min-width: 0; }
 html[data-bubbles="on"] .group .line {
-  display: inline-block; max-width: 100%;
+  display: inline-block;
+  max-width: 100%;
   padding: .55rem .8rem; border-radius: 16px 16px 16px 6px;
   background: var(--bg-soft); border: 1px solid var(--border);
   box-shadow: 0 1px 0 rgba(20,30,45,.04);
+  /* break long words, but never per-letter (overflow-wrap:anywhere + fit-content
+     was collapsing own bubbles into a 1-glyph column). */
+  overflow-wrap: break-word;
+  word-break: normal;
 }
-/* Own bubbles: shrink body so margin-left:auto actually pins to the right
-   (flex:1 on .group__body otherwise fills the row and looks “centered”). */
+/* Own bubbles: pin to the right without shrink-wrapping to 1 character. */
 html[data-bubbles="on"] .group--self {
   flex-direction: row-reverse;
   justify-content: flex-start;
 }
 html[data-bubbles="on"] .group--self .group__body {
   flex: 0 1 auto;
-  width: fit-content;
   max-width: min(36rem, 85%);
   margin-left: auto;
   margin-right: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  min-width: min(100%, 12rem);
 }
 html[data-bubbles="on"] .group--self .group__head { justify-content: flex-end; width: 100%; }
 html[data-bubbles="on"] .group--self .line {
+  width: max-content;
+  max-width: 100%;
+  min-width: 3ch;
   border-radius: 16px 16px 6px 16px;
   background: color-mix(in srgb, var(--accent) 14%, var(--bg));
   border-color: color-mix(in srgb, var(--accent) 28%, var(--border));

@@ -39,13 +39,27 @@ describe('upload', () => {
 
   it('uploads an image: requests a FILEHOST token, POSTs, shares the URL as an action', async () => {
     const { uploadImage, client, filehost } = setup();
-    vi.stubGlobal('fetch', okJson({ url: 'https://h/files/x.png' }));
+    const fetchMock = okJson({ url: 'https://h/files/x.png' });
+    vi.stubGlobal('fetch', fetchMock);
     const p = uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
     expect(client.calls).toEqual([['send', ['FILEHOST']]]); // token requested synchronously
     filehost.resolve!('tok123'); // messaging handler would do this on the service NOTICE
     await p;
     const action = client.calls.find(([n]) => n === 'action');
     expect(String(action![1][1])).toContain('https://h/files/x.png');
+    const posted = String(fetchMock.mock.calls[0]?.[0] ?? '');
+    expect(posted).toMatch(/\/upload\?token=tok123$/);
+  });
+
+  it('POSTs to /app/upload when the SPA path is under /app', async () => {
+    const { uploadImage, filehost } = setup();
+    vi.stubGlobal('location', { ...location, pathname: '/app/' });
+    const fetchMock = okJson({ url: 'https://h/app/files/x.png' });
+    vi.stubGlobal('fetch', fetchMock);
+    const p = uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
+    filehost.resolve!('tok');
+    await p;
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe('/app/upload?token=tok');
   });
 
   it('surfaces a content-policy rejection as an alert', async () => {
