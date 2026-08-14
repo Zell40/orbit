@@ -33,7 +33,6 @@ export function ChannelTopicBanner() {
         aria-label={label}
       />
       <div className="chan-hero__body">
-        <div className="chan-hero__title">#{label}</div>
         {topic
           ? <div className="chan-hero__topic" title={stripFormatting(topic)}>{formatIrc(topic, false)}</div>
           : <div className="chan-hero__topic chan-hero__topic--muted">{t('topbar.publicChannel', { n })}</div>}

@@ -667,9 +667,8 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   background-image: var(--rg-pic) !important;
 }
 .chan-hero__body { display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: 0; min-width: 0; }
-.chan-hero__title { font-size: .98rem; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
 .chan-hero__topic { font-size: .84rem; line-height: 1.4; color: var(--ink-2); overflow-wrap: anywhere;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .chan-hero__topic--muted { color: var(--muted); font-style: italic; }
 .chan-hero__by { font-size: .72rem; color: var(--faint); }
 .chan-hero__who { color: var(--ink-2); font-weight: 600; }
@@ -1877,8 +1876,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero { grid-template-columns: 48px 1fr; padding: .35rem .6rem .35rem .45rem; gap: .55rem; }
   .chan-hero__media { width: 48px; height: 48px; min-height: 48px; border-radius: 10px; }
   .chan-hero__body { padding: 0; gap: .1rem; }
-  .chan-hero__title { font-size: .9rem; }
-  .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 2; }
+  .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .motdline, .infoline, .warnline { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
