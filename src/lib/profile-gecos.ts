@@ -4,7 +4,7 @@
  *  Legacy:   "Femme · 40 ans · Paris"
  */
 
-export type GenderKind = 'm' | 'f' | 'x';
+export type GenderKind = 'm' | 'f' | 'x' | 'u';
 
 export interface ProfileGecos {
   age?: string;
@@ -17,26 +17,30 @@ export interface ProfileGecos {
 export const GENDER_COLOR: Record<GenderKind, string> = {
   m: '#2563eb',
   f: '#db2777',
-  x: '#78839a', // Autre / non-binaire déclaré — neutre, pas « inconnu »
+  x: '#7c6a9a', // Autre — soft plum, not flashy
+  u: '#2f9e6b', // Non défini / non indiqué — green
 };
 
 const MALE = /^(h|m|homme|male|masculin)$/i;
 const FEMALE = /^(f|femme|female|feminin|féminin)$/i;
+const OTHER = /^(a|autre|other|x|nb|non-?binaire)$/i;
+const UNDEFINED = /^(u|\?|nd|n\/?d|non\s*d[eé]fini|undefined|unspecified|inconnu)$/i;
 
 function genderLabelFr(kind: GenderKind, raw?: string): string {
   if (kind === 'm') return 'Homme';
   if (kind === 'f') return 'Femme';
-  if (raw && /^(a|autre|other)$/i.test(raw.trim())) return 'Autre';
+  if (kind === 'u') return 'Non défini';
+  if (raw && OTHER.test(raw.trim())) return 'Autre';
   return raw?.trim() || 'Autre';
 }
 
 export function genderFromLabel(raw: string | undefined | null): GenderKind {
   const s = (raw || '').trim();
-  if (!s) return 'x';
+  if (!s || UNDEFINED.test(s)) return 'u';
   if (MALE.test(s)) return 'm';
   if (FEMALE.test(s)) return 'f';
-  if (/^(a|autre|other|x|nb|non-?binaire)$/i.test(s)) return 'x';
-  return 'x';
+  if (OTHER.test(s)) return 'x';
+  return 'u';
 }
 
 /** Build the IRC realname string from MonIdentité fields (H/F/A). */
@@ -44,9 +48,13 @@ export function formatProfileGecos(age: string | number, sexe: string, ville: st
   const a = String(age ?? '').trim();
   const city = String(ville ?? '').trim().replace(/[\r\n]/g, ' ').slice(0, 40);
   const kind = genderFromLabel(sexe);
-  const label = kind === 'm' ? 'Homme' : kind === 'f' ? 'Femme' : (sexe.trim() ? 'Autre' : '');
+  const label = kind === 'm' ? 'Homme' : kind === 'f' ? 'Femme' : kind === 'x' ? 'Autre' : (sexe.trim() ? 'Non défini' : '');
   if (!a || !label || !city) return undefined;
   return `${a} - ${label} - ${city}`;
+}
+
+function isKnownGenderToken(label: string): boolean {
+  return MALE.test(label) || FEMALE.test(label) || OTHER.test(label) || UNDEFINED.test(label);
 }
 
 /** Parse a realname/GECOS into age / gender / city when it matches known shapes.
@@ -56,8 +64,8 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
   if (!raw) return null;
 
   // KiwiIRC legacy: "[19/F/Nice]" (whole string, or without brackets)
-  if (/^\[[^\]]+\]$/.test(raw) || /^(\d{1,3})\s*\/\s*[HFAhfa]\s*\/\s*.+$/.test(raw)) {
-    const kiwi = raw.match(/\[?\s*(\d{1,3})\s*\/\s*([HFAhfa])\s*\/\s*([^\]]+?)\s*\]?$/);
+  if (/^\[[^\]]+\]$/.test(raw) || /^(\d{1,3})\s*\/\s*[HFAhfauU?\s]\s*\/\s*.+$/.test(raw)) {
+    const kiwi = raw.match(/\[?\s*(\d{1,3})\s*\/\s*([HFAhfauU?])\s*\/\s*([^\]]+?)\s*\]?$/);
     if (kiwi) {
       const kind = genderFromLabel(kiwi[2]);
       return {
@@ -68,7 +76,7 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
       };
     }
   }
-  const kiwiEmbedded = raw.match(/\[(\d{1,3})\/([HFAhfa])\/([^\]]+)\]/);
+  const kiwiEmbedded = raw.match(/\[(\d{1,3})\/([HFAhfauU?])\/([^\]]+)\]/);
   if (kiwiEmbedded) {
     const kind = genderFromLabel(kiwiEmbedded[2]);
     return {
@@ -82,13 +90,9 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
   // Preferred: "40 - Homme - Paris"
   const m = raw.match(/^(\d{1,3})\s*-\s*([^-]+?)\s*-\s*(.+)$/);
   if (m) {
-    const kind = genderFromLabel(m[2]);
-    // Require a recognisable gender token so random "1 - foo - bar" realnames
-    // from other clients don't get a gender colour.
     const label = m[2].trim();
-    if (!MALE.test(label) && !FEMALE.test(label) && !/^(a|autre|other)$/i.test(label)) {
-      return null;
-    }
+    if (!isKnownGenderToken(label)) return null;
+    const kind = genderFromLabel(label);
     return {
       age: m[1],
       genderLabel: genderLabelFr(kind, label),
@@ -106,7 +110,7 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
     for (const p of parts) {
       const am = p.match(/^(\d{1,3})\s*(?:ans)?$/i);
       if (am) { age = am[1]; continue; }
-      if (MALE.test(p) || FEMALE.test(p) || /^(a|autre|other|h|f)$/i.test(p)) {
+      if (isKnownGenderToken(p)) {
         genderLabel = p;
         continue;
       }
@@ -123,4 +127,20 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
   }
 
   return null;
+}
+
+/** Haystack for member search (nick + age/sexe/ville synonyms). */
+export function profileSearchText(realname: string | undefined | null, nick: string): string {
+  const bits = [nick];
+  const p = parseProfileGecos(realname);
+  if (p) {
+    if (p.age) bits.push(p.age, `${p.age} ans`);
+    if (p.city) bits.push(p.city);
+    if (p.genderLabel) bits.push(p.genderLabel);
+    if (p.gender === 'm') bits.push('homme', 'h', 'male', 'm');
+    if (p.gender === 'f') bits.push('femme', 'f', 'female');
+    if (p.gender === 'x') bits.push('autre', 'a', 'other', 'nb');
+    if (p.gender === 'u') bits.push('non défini', 'non defini', 'nd', 'undefined');
+  }
+  return bits.join(' ').toLowerCase();
 }

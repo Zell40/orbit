@@ -46,8 +46,9 @@ describe('parseProfileGecos', () => {
     expect(parseProfileGecos('1 - foo - bar')).toBeNull();
     expect(parseProfileGecos('irssi user')).toBeNull();
   });
-  it('parses Autre as neutral gender x', () => {
+  it('parses Autre as soft-plum gender x and Non défini as green u', () => {
     expect(parseProfileGecos('30 - Autre - Nantes')).toMatchObject({ gender: 'x', genderLabel: 'Autre' });
+    expect(parseProfileGecos('30 - Non défini - Nantes')).toMatchObject({ gender: 'u', genderLabel: 'Non défini' });
   });
 });
 
@@ -56,6 +57,8 @@ describe('genderFromLabel', () => {
     expect(genderFromLabel('H')).toBe('m');
     expect(genderFromLabel('Homme')).toBe('m');
     expect(genderFromLabel('F')).toBe('f');
-    expect(genderFromLabel('')).toBe('x');
+    expect(genderFromLabel('')).toBe('u');
+    expect(genderFromLabel('Autre')).toBe('x');
+    expect(genderFromLabel('non défini')).toBe('u');
   });
 });

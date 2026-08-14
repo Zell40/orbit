@@ -300,10 +300,10 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         if (get().prefs.sound) blip();
         return true;
       }
-      // Informational numeric → console. Tag unknown ones with their RPL name so
-      // it's recognised rather than a bare number.
+      // Informational numeric → console as Info (LUSERS, VERSION leftovers, …).
+      // Tag unknown ones with their RPL name so it's recognised rather than a bare number.
       const label = numerics?.name(code);
-      serverLine(label && !serverText ? `[${label}]` : msg.params.slice(1).join(' '));
+      serverLine(label && !serverText ? `[${label}]` : msg.params.slice(1).join(' '), 'info');
       return true;
     }
 

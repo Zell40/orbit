@@ -5,6 +5,7 @@ const TITLE: Record<GenderKind, string> = {
   m: 'Homme',
   f: 'Femme',
   x: 'Autre',
+  u: 'Non défini',
 };
 
 /** Compact gender mark — only render when GECOS matched a known profile shape. */
@@ -16,7 +17,7 @@ export function GenderBadge({
   size?: 'sm' | 'md';
 }) {
   const cls = `gender-badge gender-badge--${gender} gender-badge--${size}`;
-  const glyph = gender === 'm' ? '♂' : gender === 'f' ? '♀' : '◇';
+  const glyph = gender === 'm' ? '♂' : gender === 'f' ? '♀' : gender === 'u' ? '?' : '◇';
   return (
     <span
       className={cls}

@@ -135,7 +135,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   }
 
   return (
-    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''} ${m.self ? 'group--self' : ''}`}>
+    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''} ${m.self ? 'group--self' : ''} ${/^actu$/i.test(m.from) ? 'group--rss' : ''}`}>
       {/* The avatar column is always reserved so every row lines up. It holds the
           hover timestamp on continuation lines, a real photo when there is one, and
           otherwise an empty spacer (no bright fallback bubble). */}
@@ -154,11 +154,11 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
           </div>
         )}
         {quoted && <ReplyQuote quoted={quoted} />}
-        <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
+        <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''} ${/^actu$/i.test(m.from) ? 'line--rss' : ''}`}>
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
         </div>
-        {!m.redacted && linkPreviews && getConfig().features.linkPreviews && (() => {
+        {!m.redacted && (linkPreviews || /^actu$/i.test(m.from)) && getConfig().features.linkPreviews && (() => {
           const pu = firstPreviewableUrl(stripFormatting(m.text));
           return pu ? <LinkPreview url={pu} /> : null;
         })()}

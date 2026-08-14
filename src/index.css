@@ -640,34 +640,38 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   padding: .2rem .55rem; border-radius: 999px; background: #3b7bff; color: #fff; box-shadow: 0 2px 6px -2px rgba(59,123,255,.6); }
 .infoline__txt { font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
 
-/* MOTD — same callout language as Info, amber/teal “day” accent; IRC colours via formatIrc */
+/* MOTD — same callout language as Info; high-contrast tag (white on deep green) */
 .motdline { display: flex; align-items: flex-start; gap: .6rem; margin: .35rem 1.3rem; padding: .55rem .8rem; border-radius: 12px;
-  background: rgba(16, 185, 129, .08); border: 1px solid rgba(16, 185, 129, .28); box-shadow: inset 3px 0 0 #10b981; }
+  background: rgba(16, 185, 129, .08); border: 1px solid rgba(16, 185, 129, .28); box-shadow: inset 3px 0 0 #059669; }
 .motdline__tag { flex: none; margin-top: .05rem; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-  padding: .2rem .55rem; border-radius: 999px; background: #059669; color: #fff; box-shadow: 0 2px 6px -2px rgba(5,150,105,.55); }
+  padding: .2rem .55rem; border-radius: 999px; background: #047857; color: #fff !important;
+  box-shadow: 0 2px 6px -2px rgba(4,120,87,.55); }
 .motdline__txt { font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; white-space: pre-wrap; }
-.messages--console .motdline { background: rgba(16, 185, 129, .10); border-color: transparent; box-shadow: inset 3px 0 0 #34d399; }
-.messages--console .motdline__tag { background: color-mix(in srgb, #34d399 35%, transparent); color: #6ee7b7; }
+.messages--console .motdline { background: rgba(16, 185, 129, .10); border-color: transparent; box-shadow: inset 3px 0 0 #10b981; }
+.messages--console .motdline__tag { background: #047857 !important; color: #fff !important; }
 .messages--console .motdline__txt { color: var(--term-fg); }
 
-/* Channel topic + room image — lives in the message list so the topbar stays icon-friendly */
+/* Channel topic + compact square room picture */
 .chan-hero {
-  display: grid; grid-template-columns: minmax(88px, 28%) 1fr; gap: .85rem; align-items: stretch;
-  margin: 0; padding: 0; overflow: hidden; flex: none;
+  display: grid; grid-template-columns: 56px 1fr; gap: .7rem; align-items: center;
+  margin: 0; padding: .45rem .85rem .45rem .55rem; overflow: hidden; flex: none;
   border-bottom: 1px solid var(--border); background: var(--bg-soft);
-  min-height: 88px;
+  min-height: 0;
 }
 .chan-hero__media {
-  min-height: 88px; background-size: cover; background-position: center; background-repeat: no-repeat;
+  width: 56px; height: 56px; min-height: 56px; border-radius: 12px;
+  background-size: cover; background-position: center 22%; background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(20,30,45,.08);
 }
 .chan-hero__media[data-rg-pic] {
   background-image: var(--rg-pic) !important;
 }
-.chan-hero__body { display: flex; flex-direction: column; justify-content: center; gap: .28rem; padding: .65rem .9rem .65rem 0; min-width: 0; }
-.chan-hero__title { font-size: 1.05rem; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
-.chan-hero__topic { font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
+.chan-hero__body { display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: 0; min-width: 0; }
+.chan-hero__title { font-size: .98rem; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
+.chan-hero__topic { font-size: .84rem; line-height: 1.4; color: var(--ink-2); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .chan-hero__topic--muted { color: var(--muted); font-style: italic; }
-.chan-hero__by { font-size: .75rem; color: var(--faint); }
+.chan-hero__by { font-size: .72rem; color: var(--faint); }
 .chan-hero__who { color: var(--ink-2); font-weight: 600; }
 
 /* Bubble messages (default on via html[data-bubbles=on]) */
@@ -679,16 +683,45 @@ html[data-bubbles="on"] .group .line {
   background: var(--bg-soft); border: 1px solid var(--border);
   box-shadow: 0 1px 0 rgba(20,30,45,.04);
 }
-html[data-bubbles="on"] .group--self .group__body { margin-left: auto; }
-html[data-bubbles="on"] .group--self { flex-direction: row-reverse; }
-html[data-bubbles="on"] .group--self .group__head { justify-content: flex-end; }
+/* Own bubbles: shrink body so margin-left:auto actually pins to the right
+   (flex:1 on .group__body otherwise fills the row and looks “centered”). */
+html[data-bubbles="on"] .group--self {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+html[data-bubbles="on"] .group--self .group__body {
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: min(36rem, 85%);
+  margin-left: auto;
+  margin-right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+html[data-bubbles="on"] .group--self .group__head { justify-content: flex-end; width: 100%; }
 html[data-bubbles="on"] .group--self .line {
   border-radius: 16px 16px 6px 16px;
   background: color-mix(in srgb, var(--accent) 14%, var(--bg));
   border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  text-align: left;
 }
 html[data-bubbles="on"] .group--cont .line { margin-top: .18rem; }
 html[data-bubbles="off"] .group .line { background: transparent; border: 0; padding: 0; box-shadow: none; }
+
+/* Actu RSS bot — emphasise article links */
+.group--rss .line--rss a,
+.group--rss .line a {
+  display: inline-flex; align-items: center; gap: .35rem;
+  margin: .2rem 0; padding: .45rem .7rem; border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  color: var(--accent-d); font-weight: 700; text-decoration: none;
+  max-width: 100%; overflow-wrap: anywhere;
+}
+.group--rss .line a::before { content: "🔗"; font-size: .85em; }
+.group--rss .line a:hover { background: color-mix(in srgb, var(--accent) 18%, var(--bg)); text-decoration: underline; }
+.group--rss .lpcard { margin-top: .45rem; border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); box-shadow: 0 6px 18px -10px rgba(20,82,204,.35); }
 
 
 /* security / warning notice — amber, with a shield and a tag (a real callout) */
@@ -869,7 +902,13 @@ html[data-actions="off"] .msg-actions { display: none; }
 .gender-badge--md { width: 1.55rem; height: 1.55rem; font-size: 1rem; }
 .gender-badge--m { color: #fff; background: #2563eb; }
 .gender-badge--f { color: #fff; background: #db2777; }
-.gender-badge--x { color: #fff; background: #78839a; }
+.gender-badge--x { color: #fff; background: #7c6a9a; }
+.gender-badge--u { color: #fff; background: #2f9e6b; }
+
+.member__reg {
+  flex: none; color: #d4a017; font-size: .78rem; line-height: 1;
+  filter: drop-shadow(0 0 1px rgba(180, 120, 0, .45));
+}
 
 .pm-gender {
   position: absolute; right: -2px; top: -2px; z-index: 2;
@@ -1834,12 +1873,12 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .topbar .topbar__hide-mobile { display: none; }   /* search / manage / leave / plugins collapse into ⋮ */
   .topbar .topbar__more { display: inline-flex; }
 
-  /* Topic banner under topbar: compact on phones so messages keep height */
-  .chan-hero { grid-template-columns: 64px 1fr; min-height: 64px; }
-  .chan-hero__media { min-height: 64px; }
-  .chan-hero__body { padding: .45rem .65rem .5rem 0; gap: .15rem; }
-  .chan-hero__title { font-size: .95rem; }
-  .chan-hero__topic { font-size: .8rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  /* Topic banner under topbar: compact square thumbnail */
+  .chan-hero { grid-template-columns: 48px 1fr; padding: .35rem .6rem .35rem .45rem; gap: .55rem; }
+  .chan-hero__media { width: 48px; height: 48px; min-height: 48px; border-radius: 10px; }
+  .chan-hero__body { padding: 0; gap: .1rem; }
+  .chan-hero__title { font-size: .9rem; }
+  .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 2; }
   .motdline, .infoline, .warnline { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the

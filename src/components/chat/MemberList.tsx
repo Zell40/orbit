@@ -7,7 +7,7 @@ import { GenderBadge } from '../GenderBadge';
 import { MemberMenu } from './MemberMenu';
 import { useActiveChat } from '@/core/networks';
 import { roleForPrefix } from '@/lib/roles';
-import { GENDER_COLOR, parseProfileGecos } from '@/lib/profile-gecos';
+import { GENDER_COLOR, parseProfileGecos, profileSearchText } from '@/lib/profile-gecos';
 
 export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
@@ -22,7 +22,9 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const all = useMemo(() => (membersMap ? Object.values(membersMap) : []), [membersMap]);
   const groups = useMemo(() => {
     const rank = (p: string) => (!p ? 99 : prefixOrder.indexOf(p) === -1 ? 98 : prefixOrder.indexOf(p));
-    const members = needle ? all.filter((m) => m.nick.toLowerCase().includes(needle)) : all;
+    const members = needle
+      ? all.filter((m) => profileSearchText(m.realname, m.nick).includes(needle))
+      : all;
     const byPrefix = new Map<string, Member[]>();
     for (const m of members) {
       const p = m.prefix || '';
@@ -44,7 +46,12 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
       <div className="members__h">{t('topbar.membersCount', { n: all.length })}</div>
       {all.length > 12 && (
         <div className="members__search">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('profile.filterMembers')} aria-label={t('profile.filterMembers')} />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t('profile.filterMembersHint')}
+            aria-label={t('profile.filterMembers')}
+          />
         </div>
       )}
       <div className="members__list">
@@ -57,7 +64,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
               return (
                 <button
                   type="button"
-                  className={`member ${m.oper ? 'member--oper' : ''} ${m.away ? 'is-away' : ''} ${profile ? `member--g-${profile.gender}` : ''}`}
+                  className={`member ${m.oper ? 'member--oper' : ''} ${m.away ? 'is-away' : ''} ${profile ? `member--g-${profile.gender}` : ''} ${m.account ? 'member--reg' : ''}`}
                   key={m.nick}
                   title={m.away ? t('members.away', { nick: m.nick }) : m.oper ? t('members.operTitle', { nick: m.nick }) : t('members.viewProfile', { nick: m.nick })}
                   onClick={() => { openUser(m.nick); onNavigate?.(); }}
@@ -67,6 +74,9 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
                   <span className="member__name">
                     {m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
                     <span className="member__nick" style={genderColor ? { color: genderColor } : undefined}>{m.nick}</span>
+                    {m.account && (
+                      <span className="member__reg" title={t('whois.registeredTitle', { account: m.account })} aria-label={t('whois.badgeRegistered')}>★</span>
+                    )}
                     {profile && <GenderBadge gender={profile.gender} size="sm" />}
                   </span>
                   {m.bot && <span className="member__bot">BOT</span>}

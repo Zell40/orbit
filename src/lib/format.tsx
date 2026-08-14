@@ -44,14 +44,22 @@ function linkify(text: string, selfMsg = false, embeds = true): ReactNode {
   return text.split(/(\|\|.+?\|\|)/g).map((seg, si) => {
     const sp = /^\|\|(.+)\|\|$/.exec(seg);
     if (sp) return <Spoiler key={`sp${si}`} text={sp[1]} />;
-    return seg.split(/(https?:\/\/[^\s]+)/g).map((p, i) => {
+    return seg.split(/(https?:\/\/[^\s<>"']+)/g).map((p, i) => {
       const k = `${si}-${i}`;
-      if (!/^https?:\/\//.test(p)) return <span key={k}>{p}</span>;
-      if (embeds && isImageUrl(p)) return <ImageAttachment key={k} url={p} defaultShown={selfMsg} />;
-      if (embeds && isAudioUrl(p)) return <AudioAttachment key={k} url={p} />;
-      const yt = embeds ? youtubeId(p) : null;
-      if (yt) return <YouTubeEmbed key={k} id={yt} url={p} />;
-      return <a key={k} href={p} target="_blank" rel="noopener noreferrer">{p}</a>;
+      // Trim trailing punctuation that IRC/bots often leave glued to the URL.
+      let url = p;
+      let trail = '';
+      if (/^https?:\/\//.test(p)) {
+        const m = p.match(/^(https?:\/\/[^\s]+?)([),.;:!?\]]+)$/);
+        if (m) { url = m[1]; trail = m[2]; }
+      } else {
+        return <span key={k}>{p}</span>;
+      }
+      if (embeds && isImageUrl(url)) return <span key={k}><ImageAttachment url={url} defaultShown={selfMsg} />{trail}</span>;
+      if (embeds && isAudioUrl(url)) return <span key={k}><AudioAttachment url={url} />{trail}</span>;
+      const yt = embeds ? youtubeId(url) : null;
+      if (yt) return <span key={k}><YouTubeEmbed id={yt} url={url} />{trail}</span>;
+      return <span key={k}><a href={url} target="_blank" rel="noopener noreferrer">{url}</a>{trail}</span>;
     });
   });
 }

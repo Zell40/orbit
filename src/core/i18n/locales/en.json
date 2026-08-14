@@ -381,6 +381,7 @@
     "noInfo": "No public information available.",
     "noMembers": "No members",
     "filterMembers": "Filter members",
+    "filterMembersHint": "Nick, age, gender, city…",
     "openDM": "Direct message",
     "openProfile": "Profile",
     "cancel": "Cancel"
