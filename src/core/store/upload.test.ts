@@ -53,7 +53,7 @@ describe('upload', () => {
 
   it('POSTs to /app/upload when the SPA path is under /app', async () => {
     const { uploadImage, filehost } = setup();
-    vi.stubGlobal('location', { ...location, pathname: '/app/' });
+    vi.stubGlobal('location', { pathname: '/app/' } as Location);
     const fetchMock = okJson({ url: 'https://h/app/files/x.png' });
     vi.stubGlobal('fetch', fetchMock);
     const p = uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
