@@ -328,7 +328,11 @@
       "hoverActions": "Hover actions",
       "hoverActionsHint": "Quick react, reply and pin buttons when you hover a message.",
       "mono": "Monospace messages",
-      "monoHint": "Fixed-width font so ASCII art and tables line up."
+      "monoHint": "Fixed-width font so ASCII art and tables line up.",
+      "bubbles": "Bubble messages",
+      "bubblesHint": "Show messages like a modern messenger (recommended).",
+      "topicFull": "Full topic setter mask",
+      "topicFullHint": "Show nick!user@host instead of nick only (default: nick)."
     },
     "notifications": {
       "browser": "Browser notifications",

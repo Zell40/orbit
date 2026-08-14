@@ -7,25 +7,19 @@ import { GenderBadge } from '../GenderBadge';
 import { MemberMenu } from './MemberMenu';
 import { useActiveChat } from '@/core/networks';
 import { roleForPrefix } from '@/lib/roles';
-import { parseProfileGecos } from '@/lib/profile-gecos';
+import { GENDER_COLOR, parseProfileGecos } from '@/lib/profile-gecos';
 
 export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
-  // Subscribe to the members map BY REFERENCE (it's replaced immutably on
-  // join/part/mode/away/nick) — NOT the whole buffer, so ordinary incoming
-  // messages don't re-render and re-sort the list. Critical for large channels.
   const membersMap = useActiveChat((s) => s.buffers[s.active]?.members);
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
   const openUser = useActiveChat((s) => s.openUser);
   const prefixOrder = useActiveChat((s) => s.client?.server.prefixModes ?? '~&@%+');
   const [q, setQ] = useState('');
   const needle = q.trim().toLowerCase();
-  // Right-click op menu (mIRC-style): opened at the cursor for the clicked nick.
   const [menu, setMenu] = useState<{ nick: string; x: number; y: number } | null>(null);
 
   const all = useMemo(() => (membersMap ? Object.values(membersMap) : []), [membersMap]);
-  // Group by role + sort names — recomputed only when membership, the filter, or
-  // the prefix order changes (memoised), never on every incoming message.
   const groups = useMemo(() => {
     const rank = (p: string) => (!p ? 99 : prefixOrder.indexOf(p) === -1 ? 98 : prefixOrder.indexOf(p));
     const members = needle ? all.filter((m) => m.nick.toLowerCase().includes(needle)) : all;
@@ -57,24 +51,28 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
         {groups.map((g) => (
           <div className="mgroup" key={g.p || 'none'}>
             <div className={`mgroup__h role-${g.role.cls}`}>{t(`members.roles.${g.role.key}`)}<span className="mgroup__n">{g.list.length}</span></div>
-            {g.list.map((m) => (
-              <button
-                type="button"
-                className={`member ${m.oper ? 'member--oper' : ''} ${m.away ? 'is-away' : ''}`}
-                key={m.nick}
-                title={m.away ? t('members.away', { nick: m.nick }) : m.oper ? t('members.operTitle', { nick: m.nick }) : t('members.viewProfile', { nick: m.nick })}
-                onClick={() => { openUser(m.nick); onNavigate?.(); }}
-                onContextMenu={(e) => { e.preventDefault(); setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
-              >
-                <Avatar nick={m.nick} size={30} account={m.account} />
-                <span className="member__name">
-                  {m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
-                  {m.nick}
-                  <GenderBadge gender={parseProfileGecos(m.realname)?.gender ?? 'x'} size="sm" />
-                </span>
-                {m.bot && <span className="member__bot">BOT</span>}
-              </button>
-            ))}
+            {g.list.map((m) => {
+              const profile = parseProfileGecos(m.realname);
+              const genderColor = profile ? GENDER_COLOR[profile.gender] : undefined;
+              return (
+                <button
+                  type="button"
+                  className={`member ${m.oper ? 'member--oper' : ''} ${m.away ? 'is-away' : ''} ${profile ? `member--g-${profile.gender}` : ''}`}
+                  key={m.nick}
+                  title={m.away ? t('members.away', { nick: m.nick }) : m.oper ? t('members.operTitle', { nick: m.nick }) : t('members.viewProfile', { nick: m.nick })}
+                  onClick={() => { openUser(m.nick); onNavigate?.(); }}
+                  onContextMenu={(e) => { e.preventDefault(); setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
+                >
+                  <Avatar nick={m.nick} size={30} account={m.account} ring={genderColor} />
+                  <span className="member__name">
+                    {m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
+                    <span className="member__nick" style={genderColor ? { color: genderColor } : undefined}>{m.nick}</span>
+                    {profile && <GenderBadge gender={profile.gender} size="sm" />}
+                  </span>
+                  {m.bot && <span className="member__bot">BOT</span>}
+                </button>
+              );
+            })}
           </div>
         ))}
         {groups.length === 0 && <div className="rooms-empty">{t('profile.noMembers')}</div>}
@@ -83,6 +81,3 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
     </aside>
   );
 }
-
-// Info fields whose values are long → span the full width of the 2-column grid.
-/* ---- Modal shell + dialogs ---- */

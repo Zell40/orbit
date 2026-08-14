@@ -55,6 +55,8 @@ export function AppearanceSection() {
           </div>
         </div>
         <ToggleRow icon="🗜️" label={t('settings.appearance.compact')} hint={t('settings.appearance.compactHint')} prefKey="compact" />
+        <ToggleRow icon="💬" label={t('settings.appearance.bubbles')} hint={t('settings.appearance.bubblesHint')} prefKey="bubbleMessages" />
+        <ToggleRow icon="🏷️" label={t('settings.appearance.topicFull')} hint={t('settings.appearance.topicFullHint')} prefKey="topicSetterFull" />
         <ToggleRow icon="🖱️" label={t('settings.appearance.hoverActions')} hint={t('settings.appearance.hoverActionsHint')} prefKey="hoverActions" />
         <ToggleRow icon="⌨️" label={t('settings.appearance.mono')} hint={t('settings.appearance.monoHint')} prefKey="monoMessages" />
         <div className="srow">

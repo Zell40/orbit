@@ -17,6 +17,7 @@ export type MessageKind =
   | 'notice'
   | 'system'
   | 'info'
+  | 'motd'
   | 'warning'
   | 'mode'
   | 'ban'

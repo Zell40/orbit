@@ -10,7 +10,7 @@ import { useTheme } from '@/themes';
 
 // Message kinds rendered as a status line (SystemLine); everything else
 // (privmsg/action, plus any unknown kind) is a grouped message row (MsgRow).
-const SYSTEM_KINDS = new Set(['notice', 'info', 'warning', 'mode', 'ban', 'topic', 'join', 'part', 'quit', 'nick', 'system']);
+const SYSTEM_KINDS = new Set(['notice', 'info', 'motd', 'warning', 'mode', 'ban', 'topic', 'join', 'part', 'quit', 'nick', 'system']);
 // Presence noise that gets folded into a single EventGroup line.
 const GROUP_KINDS = new Set(['join', 'part', 'quit']);
 

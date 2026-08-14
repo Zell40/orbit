@@ -57,6 +57,8 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
         : <>{m.from} {t('modeline.topicRemoved')}</>;
     } else if (m.kind === 'info' || m.kind === 'ban') {
       body = m.text.replace(/^[*•»]+\s*/, '');
+    } else if (m.kind === 'motd') {
+      body = formatIrc(m.text, false, false);
     } else { // join / part / quit / nick / kick / system
       const rest = m.text.replace(m.from, '').trim();
       body = m.from
@@ -75,7 +77,15 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     return (
       <div className="infoline">
         <span className="infoline__tag">Info</span>
-        <span className="infoline__txt">{m.text.replace(/^[*•]+\s*/, '')}</span>
+        <span className="infoline__txt">{formatIrc(m.text.replace(/^[*•]+\s*/, ''), false, linkPreviews)}</span>
+      </div>
+    );
+  }
+  if (m.kind === 'motd') {
+    return (
+      <div className="motdline">
+        <span className="motdline__tag">MOTD</span>
+        <span className="motdline__txt">{formatIrc(m.text, false, false)}</span>
       </div>
     );
   }

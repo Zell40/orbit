@@ -43,6 +43,11 @@ describe('parseProfileGecos', () => {
   it('returns null for unrelated realnames', () => {
     expect(parseProfileGecos('Bob')).toBeNull();
     expect(parseProfileGecos('')).toBeNull();
+    expect(parseProfileGecos('1 - foo - bar')).toBeNull();
+    expect(parseProfileGecos('irssi user')).toBeNull();
+  });
+  it('parses Autre as neutral gender x', () => {
+    expect(parseProfileGecos('30 - Autre - Nantes')).toMatchObject({ gender: 'x', genderLabel: 'Autre' });
   });
 });
 

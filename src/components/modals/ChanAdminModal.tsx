@@ -97,6 +97,7 @@ export function ChanAdminModal() {
   const locale = i18n.language || 'fr';
   const setModal = useActiveChat((s) => s.setModal);
   const buffer = useActiveChat((s) => s.buffers[s.active]);
+  const topicFull = useActiveChat((s) => s.prefs.topicSetterFull);
   const banlist = useActiveChat((s) => s.banlists[s.active] || []);
   const exceptlist = useActiveChat((s) => s.exceptlists[s.active] || []);
   const invexlist = useActiveChat((s) => s.invexlists[s.active] || []);
@@ -223,7 +224,11 @@ export function ChanAdminModal() {
                 <div className="ca-topicby">
                   <span className="ca-topicby__by">
                     {t('modals.chanadmin.topicBy')}{' '}
-                    <span className="ca-topicby__who">{setterMask(buffer.topicBy, buffer.members || {})}</span>
+                    <span className="ca-topicby__who">{
+                      topicFull
+                        ? setterMask(buffer.topicBy, buffer.members || {})
+                        : buffer.topicBy.split('!')[0]
+                    }</span>
                   </span>
                   {buffer.topicAt ? <span className="ca-topicby__when"> · {ago(buffer.topicAt, locale)}</span> : null}
                 </div>

@@ -7,7 +7,7 @@ import { GenderBadge } from '../GenderBadge';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
-import { parseProfileGecos } from '@/lib/profile-gecos';
+import { GENDER_COLOR, parseProfileGecos } from '@/lib/profile-gecos';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
 const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes', 'bio', 'url']);
@@ -102,23 +102,28 @@ export function ProfileModal() {
   const statusKey = !info?.offline && !info?.away ? 'on' : 'away';
   const chCount = info?.channels?.trim() ? info.channels.trim().split(/\s+/).length : null;
   const profile = profileEarly;
-  const gender = profile?.gender ?? 'x';
+  const genderColor = profile ? GENDER_COLOR[profile.gender] : undefined;
 
   return (
     <div className="pm-backdrop" onClick={close}>
       <div className="pm-neb pm-neb--1" /><div className="pm-neb pm-neb--2" />
-      <div className="pm-card" style={{ ['--hue' as string]: String(hue) } as CSSProperties} onClick={(e) => e.stopPropagation()}>
+      <div className="pm-card" style={{
+        ['--hue' as string]: String(hue),
+        ...(genderColor ? { ['--gender' as string]: genderColor, boxShadow: `0 0 0 2px color-mix(in srgb, ${genderColor} 35%, transparent), var(--shadow-pop, 0 20px 50px rgba(0,0,0,.35))` } : {}),
+      } as CSSProperties} onClick={(e) => e.stopPropagation()}>
         <button className="pm-x" onClick={close} aria-label={t('profile.close')}>✕</button>
-        <div className="pm-cover"><span className="pm-cover__glow" /></div>
+        <div className="pm-cover" style={genderColor ? { background: `linear-gradient(135deg, color-mix(in srgb, ${genderColor} 55%, transparent), transparent 70%)` } : undefined}>
+          <span className="pm-cover__glow" />
+        </div>
         <div className="pm-hero">
         <div className="pm-avwrap">
-          <span className="pm-avring" />
-          <Avatar nick={nick} size={92} account={info?.account} url={info?.meta?.avatar} />
+          <span className="pm-avring" style={genderColor ? { boxShadow: `0 0 0 3px ${genderColor}` } : undefined} />
+          <Avatar nick={nick} size={92} account={info?.account} url={info?.meta?.avatar} ring={genderColor} />
           <span className={`pm-presence pm-presence--${statusKey}`} />
-          <span className="pm-gender"><GenderBadge gender={gender} size="md" /></span>
+          {profile && <span className="pm-gender"><GenderBadge gender={profile.gender} size="md" /></span>}
         </div>
         <div className="pm-id">
-          <div className="pm-name" style={info?.oper ? { color: IRCOP_COLOR } : undefined}>
+          <div className="pm-name" style={info?.oper ? { color: IRCOP_COLOR } : genderColor ? { color: genderColor } : undefined}>
             {nick}
             {info?.account && <span className="pm-check" title={t('whois.registeredTitle', { account: info.account })}>✓</span>}
           </div>

@@ -13,6 +13,13 @@ export interface ProfileGecos {
   city?: string;
 }
 
+/** Colours for member list / profile when GECOS matches a known profile shape. */
+export const GENDER_COLOR: Record<GenderKind, string> = {
+  m: '#2563eb',
+  f: '#db2777',
+  x: '#78839a', // Autre / non-binaire déclaré — neutre, pas « inconnu »
+};
+
 const MALE = /^(h|m|homme|male|masculin)$/i;
 const FEMALE = /^(f|femme|female|feminin|féminin)$/i;
 
@@ -42,7 +49,8 @@ export function formatProfileGecos(age: string | number, sexe: string, ville: st
   return `${a} - ${label} - ${city}`;
 }
 
-/** Parse a realname/GECOS into age / gender / city when it matches known shapes. */
+/** Parse a realname/GECOS into age / gender / city when it matches known shapes.
+ *  Returns null for arbitrary IRC client realnames (no badge / no colour). */
 export function parseProfileGecos(realname: string | undefined | null): ProfileGecos | null {
   const raw = (realname || '').trim();
   if (!raw) return null;
@@ -60,7 +68,6 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
       };
     }
   }
-  // Same shape embedded in a longer realname, e.g. "pseudo [25/F/Lyon]"
   const kiwiEmbedded = raw.match(/\[(\d{1,3})\/([HFAhfa])\/([^\]]+)\]/);
   if (kiwiEmbedded) {
     const kind = genderFromLabel(kiwiEmbedded[2]);
@@ -75,15 +82,22 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
   // Preferred: "40 - Homme - Paris"
   const m = raw.match(/^(\d{1,3})\s*-\s*([^-]+?)\s*-\s*(.+)$/);
   if (m) {
+    const kind = genderFromLabel(m[2]);
+    // Require a recognisable gender token so random "1 - foo - bar" realnames
+    // from other clients don't get a gender colour.
+    const label = m[2].trim();
+    if (!MALE.test(label) && !FEMALE.test(label) && !/^(a|autre|other)$/i.test(label)) {
+      return null;
+    }
     return {
       age: m[1],
-      genderLabel: m[2].trim(),
-      gender: genderFromLabel(m[2]),
+      genderLabel: genderLabelFr(kind, label),
+      gender: kind,
       city: m[3].trim(),
     };
   }
 
-  // Legacy ConnectScreen: "Femme · 40 ans · Paris" (any order of sex / age / city)
+  // Legacy ConnectScreen: "Femme · 40 ans · Paris"
   const parts = raw.split(/\s*[·•|]\s*/).map((p) => p.trim()).filter(Boolean);
   if (parts.length >= 2) {
     let age: string | undefined;
@@ -92,17 +106,16 @@ export function parseProfileGecos(realname: string | undefined | null): ProfileG
     for (const p of parts) {
       const am = p.match(/^(\d{1,3})\s*(?:ans)?$/i);
       if (am) { age = am[1]; continue; }
-      const g = genderFromLabel(p);
-      if (g !== 'x' || /^(homme|femme|autre|h|f|a)$/i.test(p)) {
+      if (MALE.test(p) || FEMALE.test(p) || /^(a|autre|other|h|f)$/i.test(p)) {
         genderLabel = p;
         continue;
       }
       if (!city) city = p;
     }
-    if (age || genderLabel || city) {
+    if (age && genderLabel && city) {
       return {
         age,
-        genderLabel,
+        genderLabel: genderLabelFr(genderFromLabel(genderLabel), genderLabel),
         gender: genderFromLabel(genderLabel),
         city,
       };

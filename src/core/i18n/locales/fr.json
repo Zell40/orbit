@@ -328,7 +328,11 @@
       "hoverActions": "Actions au survol",
       "hoverActionsHint": "Boutons de réaction, réponse et épingle au survol d'un message.",
       "mono": "Messages à chasse fixe",
-      "monoHint": "Police à largeur fixe pour aligner l'art ASCII et les tableaux."
+      "monoHint": "Police à largeur fixe pour aligner l'art ASCII et les tableaux.",
+      "bubbles": "Messages en bulles",
+      "bubblesHint": "Affiche les messages comme une messagerie moderne (recommandé).",
+      "topicFull": "Auteur du topic en masque complet",
+      "topicFullHint": "Affiche nick!user@host au lieu du seul pseudo (défaut : pseudo)."
     },
     "notifications": {
       "browser": "Notifications navigateur",

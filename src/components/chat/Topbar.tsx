@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '@/core/store';
-import { avatarBg, formatIrc } from '@/lib/format';
-import { setterMask, ago } from '@/lib/topic';
-import { stripFormatting } from '@/core/store/text';
+import { avatarBg } from '@/lib/format';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
 import { TopbarMore } from './TopbarMore';
@@ -11,16 +9,12 @@ import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
+
+/** Channel chrome: title + modes + action icons. Topic / setter live in ChannelTopicBanner. */
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language || 'fr';
-  // Narrow per-field selects (stable on message updates) so the topbar doesn't
-  // re-render — and recount members — on every incoming line in a busy channel.
+  const { t } = useTranslation();
   const bname = useActiveChat((s) => s.buffers[s.active]?.name);
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
-  const topic = useActiveChat((s) => s.buffers[s.active]?.topic ?? '');
-  const topicBy = useActiveChat((s) => s.buffers[s.active]?.topicBy ?? '');
-  const topicAt = useActiveChat((s) => s.buffers[s.active]?.topicAt ?? 0);
   const modes = useActiveChat((s) => s.buffers[s.active]?.modes ?? '');
   const members = useActiveChat((s) => s.buffers[s.active]?.members);
   const search = useActiveChat((s) => s.search);
@@ -29,7 +23,6 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const myPrefix = useActiveChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
-  // mIRC-style status line: "Status: <nick> [+<umodes>] on <servername>"
   const myNick = useActiveChat((s) => s.nick);
   const myUmodes = useActiveChat((s) => s.umodes);
   const serverName = useActiveChat((s) => s.serverName);
@@ -38,8 +31,6 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button></div>;
   const n = members ? Object.keys(members).length : 0;
   const plug = topbarItems.filter((u) => u.slot === 'topbar_item');
-  const setter = topicBy ? setterMask(topicBy, members || {}) : '';
-  const setterTitle = setter ? `${t('modals.chanadmin.topicBy')} ${setter}${topicAt ? ` · ${ago(topicAt, locale)}` : ''}` : '';
   const isServer = bname === SERVER;
   const label = isServer ? 'Status' : bname.replace(/^#/, '');
   const statusTitle = `Status: ${myNick || '…'}${myUmodes ? ` [+${myUmodes}]` : ''}${serverName ? ` on ${serverName}` : ''}`;
@@ -68,20 +59,14 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
             <span className="topbar__modes" title={t('topbar.modes')}>{modes}</span>
           )}
         </span>
-        {(isServer || isChannel) && (
+        {isServer && (
           <div className="topbar__sub">
-            {isServer
-              ? <span className="topbar__topic topbar__topic--muted">{t('topbar.serverTerminal')}</span>
-              : topic
-                ? <span className="topbar__topic" title={stripFormatting(topic)}>{formatIrc(topic, false)}</span>
-                : <span className="topbar__topic topbar__topic--muted">{t('topbar.publicChannel', { n })}</span>}
-            {isChannel && setter && (
-              <span className="topbar__setby" title={setterTitle}>
-                {t('modals.chanadmin.topicBy')}{' '}
-                <span className="topbar__setby-who">{setter}</span>
-                {topicAt ? <span className="topbar__setby-when"> · {ago(topicAt, locale)}</span> : null}
-              </span>
-            )}
+            <span className="topbar__topic topbar__topic--muted">{t('topbar.serverTerminal')}</span>
+          </div>
+        )}
+        {!isServer && !isChannel && (
+          <div className="topbar__sub">
+            <span className="topbar__topic topbar__topic--muted">{t('sidebar.privateMessage')}</span>
           </div>
         )}
       </div>
@@ -100,4 +85,3 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
     </div>
   );
 }
-

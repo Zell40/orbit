@@ -19,7 +19,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354']);
+const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422']);
 
 // Numeric replies (RPL_*/ERR_*), split out of handler.ts. Returns true when the
 // numeric was consumed. Every 3-digit reply is either handled by name here or
@@ -272,6 +272,17 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         set({ cban: { channel: ch, reason }, modal: 'cban' });
         return true;
       }
+      case '375': // RPL_MOTDSTART — keep the server's ":- <server> Message of the day -" line
+        serverLine(msg.params[1] || 'Message of the day', 'motd');
+        return true;
+      case '372': // RPL_MOTD — body lines (may include mIRC colour codes from InspIRCd)
+        serverLine(msg.params[1] || '', 'motd');
+        return true;
+      case '376': // RPL_ENDOFMOTD — no extra line; the styled block already marks the MOTD
+        return true;
+      case '422': // ERR_NOMOTD
+        serverLine(msg.params[1] || 'No MOTD', 'motd');
+        return true;
     }
 
     // Every remaining numeric is recognised (see irc/numerics.ts) and routed:

@@ -6,6 +6,7 @@ import { MessageList } from './chat/MessageList';
 import { Composer } from './chat/Composer';
 import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
+import { ChannelTopicBanner } from './chat/ChannelTopicBanner';
 import { MemberList } from './chat/MemberList';
 import { ReconnectBanner, KickToast } from './chat/Banners';
 import { usePluginRegistry } from '../modules/registry';
@@ -32,6 +33,7 @@ export function Chat() {
       <Sidebar onNavigate={closeNav} />
       <main className="main" id="orbit-main">
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
+        <ChannelTopicBanner />
         <MessageList />
         <Composer />
       </main>

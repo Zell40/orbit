@@ -73,11 +73,12 @@ describe('store numerics handler', () => {
     expect(sys.some((l) => l.text.includes('⚠️'))).toBe(true);
   });
 
-  it('routes an informational numeric to the console (via client.numerics.name)', () => {
+  it('routes MOTD numerics to the console as motd lines', () => {
     const { handleNumerics, server } = setup();
-    // 372 RPL_MOTD — not an error → server console.
-    expect(handleNumerics(mk('372', ['me', 'motd line']))).toBe(true);
-    expect(server.some((l) => l.includes('motd line'))).toBe(true);
+    expect(handleNumerics(mk('375', ['me', '- server Message of the day -']))).toBe(true);
+    expect(handleNumerics(mk('372', ['me', '- \x032coloured\x0f line']))).toBe(true);
+    expect(handleNumerics(mk('376', ['me', 'End of MOTD']))).toBe(true);
+    expect(server.some((l) => l.includes('coloured') || l.includes('Message of the day'))).toBe(true);
   });
 
   it('returns false for a non-numeric command', () => {

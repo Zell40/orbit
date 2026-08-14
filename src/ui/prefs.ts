@@ -11,6 +11,10 @@ export interface Prefs {
   hoverActions: boolean; // quick react/reply/pin toolbar on message hover (off = classic)
   confirmClose: boolean; // warn (beforeunload) before closing/reloading the tab while connected
   monoMessages: boolean; // render message text in a fixed-width font so ASCII art/tables line up
+  /** Modern chat bubbles (default on). Off = classic flat lines. */
+  bubbleMessages: boolean;
+  /** Topic author as nick!user@host. Off (default) = nick only. */
+  topicSetterFull: boolean;
 }
 
 const KEY = 'tchatou-prefs';
@@ -18,7 +22,11 @@ const KEY = 'tchatou-prefs';
 // Defaults come from config.json (so a deployment can preset compact/sound/etc.).
 function defaults(): Prefs {
   const d = getConfig().defaults;
-  return { sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24, textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false };
+  return {
+    sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24,
+    textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
+    bubbleMessages: true, topicSetterFull: false,
+  };
 }
 
 export function getPrefs(): Prefs {
@@ -40,6 +48,7 @@ export function applyPrefs(p: Prefs): void {
   document.documentElement.dataset.density = p.compact ? 'compact' : 'comfortable';
   document.documentElement.dataset.actions = p.hoverActions ? 'on' : 'off';
   document.documentElement.dataset.mono = p.monoMessages ? 'on' : 'off';
+  document.documentElement.dataset.bubbles = p.bubbleMessages ? 'on' : 'off';
   const scale = Math.min(1.4, Math.max(0.8, p.textScale || 1));
   document.documentElement.style.fontSize = Math.round(scale * 100) + '%';
 }
