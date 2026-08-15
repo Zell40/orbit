@@ -50,7 +50,9 @@
     "muteOn": "Couper les notifications",
     "muteOff": "Réactiver les notifications",
     "membersTitle": "Membres",
-    "more": "Plus"
+    "more": "Plus",
+    "topicExpand": "Voir le topic entier",
+    "topicCollapse": "Réduire le topic"
   },
   "connect": {
     "onlineBadge": "{{n}} personnes en ligne",
@@ -396,6 +398,7 @@
     "aslColNick": "Pseudo",
     "aslColAge": "Âge",
     "aslColCity": "Ville",
+    "aslToggle": "Filtre ASL (âge / genre / ville)",
     "openDM": "Message privé",
     "openProfile": "Profil",
     "cancel": "Annuler"

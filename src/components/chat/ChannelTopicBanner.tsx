@@ -1,3 +1,4 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { avatarBg, formatIrc } from '@/lib/format';
 import { setterMask, ago } from '@/lib/topic';
@@ -17,6 +18,25 @@ export function ChannelTopicBanner() {
   const members = useActiveChat((s) => s.buffers[s.active]?.members);
   const n = members ? Object.keys(members).length : 0;
   const full = useActiveChat((s) => s.prefs.topicSetterFull);
+  const topicRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => { setExpanded(false); }, [bname, topic]);
+
+  useLayoutEffect(() => {
+    const el = topicRef.current;
+    if (!el || !topic) { setOverflows(false); return; }
+    const measure = () => {
+      if (expanded) return;
+      setOverflows(el.scrollHeight > el.clientHeight + 1);
+    };
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [topic, expanded, bname]);
+
   if (!isChannel || !bname) return null;
 
   const who = topicBy
@@ -25,7 +45,7 @@ export function ChannelTopicBanner() {
   const label = bname.replace(/^#/, '');
 
   return (
-    <div className="chan-hero" data-chan={bname}>
+    <div className={`chan-hero ${expanded ? 'chan-hero--topic-open' : ''}`} data-chan={bname}>
       <div
         className="chan-hero__media"
         style={{ background: avatarBg(bname) }}
@@ -33,9 +53,29 @@ export function ChannelTopicBanner() {
         aria-label={label}
       />
       <div className="chan-hero__body">
-        {topic
-          ? <div className="chan-hero__topic" title={stripFormatting(topic)}>{formatIrc(topic, false)}</div>
-          : <div className="chan-hero__topic chan-hero__topic--muted">{t('topbar.publicChannel', { n })}</div>}
+        {topic ? (
+          <>
+            <div
+              ref={topicRef}
+              className={`chan-hero__topic ${expanded ? 'is-expanded' : ''}`}
+              title={expanded ? undefined : stripFormatting(topic)}
+            >
+              {formatIrc(topic, false)}
+            </div>
+            {overflows && (
+              <button
+                type="button"
+                className="chan-hero__more"
+                aria-expanded={expanded}
+                onClick={() => setExpanded((v) => !v)}
+              >
+                {expanded ? t('topbar.topicCollapse') : t('topbar.topicExpand')}
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="chan-hero__topic chan-hero__topic--muted">{t('topbar.publicChannel', { n })}</div>
+        )}
         {who && (
           <div className="chan-hero__by">
             {t('modals.chanadmin.topicBy')}{' '}

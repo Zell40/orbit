@@ -50,7 +50,9 @@
     "muteOn": "Mute notifications",
     "muteOff": "Unmute notifications",
     "membersTitle": "Members",
-    "more": "More"
+    "more": "More",
+    "topicExpand": "Show full topic",
+    "topicCollapse": "Collapse topic"
   },
   "connect": {
     "onlineBadge": "{{n}} people online",
@@ -396,6 +398,7 @@
     "aslColNick": "Nick",
     "aslColAge": "Age",
     "aslColCity": "City",
+    "aslToggle": "ASL filter (age / gender / city)",
     "openDM": "Direct message",
     "openProfile": "Profile",
     "cancel": "Cancel"

@@ -669,7 +669,17 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .chan-hero__body { display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: 0; min-width: 0; }
 .chan-hero__topic { font-size: .84rem; line-height: 1.4; color: var(--ink-2); overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.chan-hero__topic.is-expanded {
+  display: block; -webkit-line-clamp: unset; overflow: visible;
+}
 .chan-hero__topic--muted { color: var(--muted); font-style: italic; }
+.chan-hero__more {
+  align-self: flex-start; margin-top: .15rem; padding: 0;
+  border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: .72rem; font-weight: 700;
+  color: var(--accent-d, var(--accent));
+}
+.chan-hero__more:hover { text-decoration: underline; }
 .chan-hero__by { font-size: .72rem; color: var(--faint); }
 .chan-hero__who { color: var(--ink-2); font-weight: 600; }
 
@@ -928,7 +938,23 @@ html[data-actions="off"] .msg-actions { display: none; }
 
 /* ============ MEMBERS (right panel) ============ */
 .members { display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); }
-.members__h { padding: 1.15rem 1.2rem .55rem; font-size: .74rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
+.members__h {
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  padding: 1.15rem 1.2rem .55rem; font-size: .74rem; font-weight: 800;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--faint);
+}
+.members__aslbtn {
+  flex: none; width: 2rem; height: 2rem; border-radius: 9px;
+  border: 1px solid var(--border); background: var(--bg-soft); color: var(--muted);
+  font-size: 1rem; line-height: 1; cursor: pointer;
+  display: inline-grid; place-items: center;
+  transition: background .15s, border-color .15s, color .15s, transform .12s;
+}
+.members__aslbtn:hover { color: #db2777; border-color: color-mix(in srgb, #db2777 40%, var(--border)); }
+.members__aslbtn.is-on {
+  color: #fff; background: #db2777; border-color: #db2777;
+  box-shadow: 0 4px 12px -4px rgba(219, 39, 119, .55);
+}
 .members__list { flex: 1; overflow-y: auto; padding: 0 .6rem 1rem; }
 .members__asl {
   display: flex; flex-direction: column; gap: .45rem;
@@ -961,12 +987,14 @@ html[data-actions="off"] .msg-actions { display: none; }
   border: 1px solid var(--border); border-radius: 8px;
 }
 .members__search { padding: 0; }
+.members__search--simple { padding: 0 .9rem .5rem; }
 .members__search input { width: 100%; padding: .42rem .7rem; font-size: .85rem; color: var(--ink); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.members__search--simple input { border-radius: 999px; }
 .members__search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(20,82,204,.14); }
 .members__aslmeta { font-size: .68rem; color: var(--faint); font-weight: 600; }
 .members__cols {
   display: grid; grid-template-columns: minmax(0, 1.4fr) 2.4rem minmax(0, 1fr);
-  gap: .25rem; padding: .25rem .85rem .15rem;
+  gap: .25rem; padding: .35rem 0 0;
   font-size: .62rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint);
 }
 .member--asl {
@@ -1972,6 +2000,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__media { width: 48px; height: 48px; min-height: 48px; border-radius: 10px; }
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
+  .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
   .motdline, .infoline, .warnline { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
