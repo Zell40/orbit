@@ -57,6 +57,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   const pinned = useActiveChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
   const isOper = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
   const isBot = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.bot);
+  const isActu = /^actu$/i.test(m.from);
   // Channel access symbol (@ ~ & % +) of the sender, so ops/voiced are spottable
   // right in the chat, role-coloured to match the member list.
   const memberPrefix = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.prefix) || '';
@@ -135,7 +136,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   }
 
   return (
-    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''} ${m.self ? 'group--self' : ''} ${/^actu$/i.test(m.from) ? 'group--rss' : ''}`}>
+    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''} ${m.self ? 'group--self' : ''} ${isActu ? 'group--rss' : ''}`}>
       {/* The avatar column is always reserved so every row lines up. It holds the
           hover timestamp on continuation lines, a real photo when there is one, and
           otherwise an empty spacer (no bright fallback bubble). */}
@@ -143,22 +144,24 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
         ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
         : avatarUrl
           ? <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} url={avatarUrl} /></button>
-          : <span className="group__avatar" aria-hidden="true" />}
+          : <span className="group__avatar group__avatar--rss" aria-hidden="true">{isActu ? '📰' : ''}</span>}
       <div className="group__body">
         {!cont && (
           <div className="group__head">
             <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>
               {memberPrefix && (() => { const r = roleForPrefix(memberPrefix); return <span className={`group__role role-${r.cls}`} title={t(`members.roles.${r.key}`)}>{memberPrefix}</span>; })()}
-              {m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}</button>
+              {m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
+              {isActu && <span className="nick-actu" title={t('messages.actuBadge')}>{t('messages.actuBadge')}</span>}
+            </button>
             <span className="group__time">{fmtTime(m.ts)}</span>
           </div>
         )}
         {quoted && <ReplyQuote quoted={quoted} />}
-        <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''} ${/^actu$/i.test(m.from) ? 'line--rss' : ''}`}>
+        <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''} ${isActu ? 'line--rss' : ''}`}>
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
         </div>
-        {!m.redacted && (linkPreviews || /^actu$/i.test(m.from)) && getConfig().features.linkPreviews && (() => {
+        {!m.redacted && (linkPreviews || isActu) && getConfig().features.linkPreviews && (() => {
           const pu = firstPreviewableUrl(stripFormatting(m.text));
           return pu ? <LinkPreview url={pu} /> : null;
         })()}

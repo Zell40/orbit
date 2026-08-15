@@ -144,3 +144,17 @@ export function profileSearchText(realname: string | undefined | null, nick: str
   }
   return bits.join(' ').toLowerCase();
 }
+
+/** Kiwi-style age ranges: `all` | `<25` | `25-45` | `>45`. */
+export function ageMatchesRange(age: string | undefined, range: string): boolean {
+  if (!range || range === 'all') return true;
+  const n = Number(age);
+  if (!Number.isFinite(n)) return false;
+  if (range.startsWith('<')) return n < Number(range.slice(1));
+  if (range.startsWith('>')) return n > Number(range.slice(1));
+  const parts = range.split('-').map(Number);
+  if (parts.length === 2 && parts.every(Number.isFinite)) {
+    return n >= parts[0]! && n <= parts[1]!;
+  }
+  return true;
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatProfileGecos, parseProfileGecos, genderFromLabel } from './profile-gecos';
+import { formatProfileGecos, parseProfileGecos, genderFromLabel, ageMatchesRange } from './profile-gecos';
 
 describe('formatProfileGecos', () => {
   it('builds age - Homme/Femme - ville', () => {
@@ -49,6 +49,19 @@ describe('parseProfileGecos', () => {
   it('parses Autre as soft-plum gender x and Non défini as green u', () => {
     expect(parseProfileGecos('30 - Autre - Nantes')).toMatchObject({ gender: 'x', genderLabel: 'Autre' });
     expect(parseProfileGecos('30 - Non défini - Nantes')).toMatchObject({ gender: 'u', genderLabel: 'Non défini' });
+  });
+});
+
+describe('ageMatchesRange', () => {
+  it('matches Kiwi-style ranges', () => {
+    expect(ageMatchesRange('24', 'all')).toBe(true);
+    expect(ageMatchesRange('24', '<25')).toBe(true);
+    expect(ageMatchesRange('25', '<25')).toBe(false);
+    expect(ageMatchesRange('30', '25-45')).toBe(true);
+    expect(ageMatchesRange('46', '25-45')).toBe(false);
+    expect(ageMatchesRange('50', '>45')).toBe(true);
+    expect(ageMatchesRange('45', '>45')).toBe(false);
+    expect(ageMatchesRange(undefined, '<25')).toBe(false);
   });
 });
 

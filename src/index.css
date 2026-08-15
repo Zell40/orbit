@@ -715,19 +715,60 @@ html[data-bubbles="on"] .group--self .line {
 html[data-bubbles="on"] .group--cont .line { margin-top: .18rem; }
 html[data-bubbles="off"] .group .line { background: transparent; border: 0; padding: 0; box-shadow: none; }
 
-/* Actu RSS bot — emphasise article links */
+/* Actu RSS bot — full news card (not just link chips), distinct from user bubbles */
+.group--rss {
+  margin: .55rem .15rem;
+  padding: .55rem .65rem .7rem;
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, #0284c7 14%, var(--bg)) 0%,
+      color-mix(in srgb, var(--accent) 8%, var(--bg)) 100%);
+  border: 1px solid color-mix(in srgb, #0284c7 40%, var(--border));
+  box-shadow: inset 4px 0 0 #0284c7, 0 4px 14px -10px rgba(2, 132, 199, .45);
+}
+.group--rss.group--cont {
+  margin-top: .2rem;
+  padding-top: .35rem;
+}
+.group--rss .group__avatar--rss {
+  display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 12px;
+  background: color-mix(in srgb, #0284c7 18%, var(--bg));
+  font-size: 1.15rem; line-height: 1;
+}
+.group--rss .group__body { max-width: min(40rem, 96%); }
+.group--rss .line--rss,
+html[data-bubbles="on"] .group--rss .line {
+  display: block; width: 100%; max-width: 100%;
+  background: color-mix(in srgb, #fff 55%, transparent);
+  border: 1px solid color-mix(in srgb, #0284c7 22%, var(--border));
+  border-radius: 12px;
+  padding: .55rem .75rem;
+  box-shadow: none;
+}
+.nick-actu {
+  display: inline-flex; align-items: center; margin-left: .4rem;
+  padding: .12rem .45rem; border-radius: 999px;
+  font-size: .62rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  background: #0284c7; color: #fff; vertical-align: middle;
+}
 .group--rss .line--rss a,
 .group--rss .line a {
   display: inline-flex; align-items: center; gap: .35rem;
-  margin: .2rem 0; padding: .45rem .7rem; border-radius: 10px;
-  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  color: var(--accent-d); font-weight: 700; text-decoration: none;
+  margin: .35rem 0 0; padding: .45rem .7rem; border-radius: 10px;
+  background: color-mix(in srgb, #0284c7 12%, var(--bg));
+  border: 1px solid color-mix(in srgb, #0284c7 32%, var(--border));
+  color: #0369a1; font-weight: 700; text-decoration: none;
   max-width: 100%; overflow-wrap: anywhere;
 }
 .group--rss .line a::before { content: "🔗"; font-size: .85em; }
-.group--rss .line a:hover { background: color-mix(in srgb, var(--accent) 18%, var(--bg)); text-decoration: underline; }
-.group--rss .lpcard { margin-top: .45rem; border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); box-shadow: 0 6px 18px -10px rgba(20,82,204,.35); }
+.group--rss .line a:hover { background: color-mix(in srgb, #0284c7 20%, var(--bg)); text-decoration: underline; }
+.group--rss .lpcard {
+  margin-top: .45rem; max-width: 100%;
+  border-color: color-mix(in srgb, #0284c7 40%, var(--border));
+  box-shadow: 0 6px 18px -10px rgba(2,132,199,.4);
+}
 
 
 /* security / warning notice — amber, with a shield and a tag (a real callout) */
@@ -889,6 +930,55 @@ html[data-actions="off"] .msg-actions { display: none; }
 .members { display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--border); }
 .members__h { padding: 1.15rem 1.2rem .55rem; font-size: .74rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
 .members__list { flex: 1; overflow-y: auto; padding: 0 .6rem 1rem; }
+.members__asl {
+  display: flex; flex-direction: column; gap: .45rem;
+  padding: 0 .75rem .55rem; border-bottom: 1px solid var(--border);
+  margin-bottom: .25rem;
+}
+.members__sexes { display: flex; flex-wrap: wrap; gap: .35rem; }
+.members__sex {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .28rem .55rem; border-radius: 8px; cursor: pointer;
+  font-size: .72rem; font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--sex-color, var(--border)) 45%, var(--border));
+  color: var(--muted); background: var(--bg-soft);
+  user-select: none;
+}
+.members__sex input { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+.members__sex.is-on {
+  color: var(--sex-color, var(--accent-d));
+  background: color-mix(in srgb, var(--sex-color, var(--accent)) 14%, var(--bg));
+  border-color: color-mix(in srgb, var(--sex-color, var(--accent)) 55%, var(--border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sex-color, var(--accent)) 25%, transparent);
+}
+.members__age {
+  display: flex; align-items: center; gap: .45rem;
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+}
+.members__age select {
+  flex: 1; min-width: 0; padding: .35rem .5rem;
+  font-size: .82rem; color: var(--ink); background: var(--bg-soft);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.members__search { padding: 0; }
+.members__search input { width: 100%; padding: .42rem .7rem; font-size: .85rem; color: var(--ink); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.members__search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(20,82,204,.14); }
+.members__aslmeta { font-size: .68rem; color: var(--faint); font-weight: 600; }
+.members__cols {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) 2.4rem minmax(0, 1fr);
+  gap: .25rem; padding: .25rem .85rem .15rem;
+  font-size: .62rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint);
+}
+.member--asl {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) 2.4rem minmax(0, 1fr);
+  align-items: center; gap: .25rem; position: relative;
+}
+.member__asl-nick { display: flex; align-items: center; gap: .45rem; min-width: 0; }
+.member__asl-age { text-align: center; font-size: .78rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.member__asl-city {
+  font-size: .72rem; color: var(--muted); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+}
 .member { display: flex; align-items: center; gap: .6rem; padding: .42rem .6rem; border-radius: 10px; width: 100%; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background .12s; }
 .member:hover:not(:disabled) { background: var(--bg-soft); }
 .member:disabled { cursor: default; }
@@ -950,11 +1040,6 @@ html[data-actions="off"] .msg-actions { display: none; }
 .memberrsn__btn { border: 1px solid var(--border-2); background: var(--bg-soft); color: var(--ink); font: inherit; font-weight: 600; padding: .5rem .9rem; border-radius: 9px; cursor: pointer; }
 .memberrsn__btn:hover { border-color: var(--accent); }
 .memberrsn__btn--go { border-color: var(--accent); background: var(--accent); color: #fff; }
-
-/* member filter */
-.members__search { padding: 0 .9rem .5rem; }
-.members__search input { width: 100%; padding: .42rem .7rem; font-size: .85rem; color: var(--ink); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; outline: none; transition: border-color .15s, box-shadow .15s; }
-.members__search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(20,82,204,.14); }
 
 /* role groups */
 .mgroup { margin-bottom: .35rem; }
@@ -1853,7 +1938,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
   /* iOS zooms into any focused text field under 16px — keep the small ones at 16px
      on phones so tapping search / filter / age never zooms the whole page. */
-  .topbar__searchinput, .members__search input, .cjoin__mini { font-size: 16px; }
+  .topbar__searchinput, .members__search input, .members__age select, .cjoin__mini { font-size: 16px; }
+  .members__asl { padding: 0 .65rem .5rem; }
+  .members__cols { padding-left: .65rem; padding-right: .65rem; }
+  .group--rss { margin-left: .35rem; margin-right: .35rem; }
 
   /* Composer: the text field gets its own full-width row; the controls
      (image / format / emoji / send) wrap onto the row below. Fixes the
@@ -1890,7 +1978,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
      online pill is tapped (mirrors the left room-list drawer). */
   .members {
     display: flex !important; position: fixed; top: 0; bottom: 0; right: 0;
-    width: min(82vw, 300px); z-index: 60; border-left: 1px solid var(--border); border-right: 0;
+    width: min(92vw, 340px); z-index: 60; border-left: 1px solid var(--border); border-right: 0;
     transform: translateX(102%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
     box-shadow: 0 0 60px rgba(20,30,45,.35);
   }
