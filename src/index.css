@@ -631,30 +631,39 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .sysline::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--border-2); margin-right: .45rem; vertical-align: middle; }
 .sysline .who { color: var(--muted); font-weight: 700; }
 
-/* A folded run of join/part/quit events — notice-style bubble so room art
-   never washes out the nicks (same idea as .infoline / .noticeline). */
+/* Folded join/part/quit — compact notice-style chips (fit content, JOIN/PART tags). */
+.eventgroup-wrap {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: .3rem; margin: .35rem 1.3rem;
+}
 .eventgroup {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .55rem;
-  margin: .35rem 1.3rem; padding: .5rem .75rem;
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem;
+  width: fit-content; max-width: 100%;
+  margin: 0; padding: .4rem .65rem .4rem .5rem;
   border-radius: 12px;
   background: color-mix(in srgb, var(--bg-soft) 92%, var(--bg));
   border: 1px solid var(--border);
-  box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 3px 0 0 #6b8f71;
-  color: var(--ink-2); font-size: .84rem; line-height: 1.45;
+  box-shadow: 0 1px 0 rgba(20,30,45,.04);
+  color: var(--ink-2); font-size: .84rem; line-height: 1.4;
   overflow-wrap: anywhere; word-break: break-word;
+}
+.eventgroup--join { box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 3px 0 0 #2f9e6b; }
+.eventgroup--part { box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 3px 0 0 #c45b63; }
+.eventgroup__tag {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: 999px; color: #fff;
+}
+.eventgroup--join .eventgroup__tag {
+  background: #2f9e6b; box-shadow: 0 2px 6px -2px rgba(47,158,107,.55);
+}
+.eventgroup--part .eventgroup__tag {
+  background: #c45b63; box-shadow: 0 2px 6px -2px rgba(196,91,99,.55);
 }
 .eventgroup__time {
   flex: none; font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums;
-  color: var(--faint); margin-right: .15rem;
+  color: var(--faint);
 }
-.eventgroup__seg { display: inline; }
-.eventgroup__seg + .eventgroup__seg {
-  margin-left: .15rem; padding-left: .55rem;
-  border-left: 1px solid var(--border-2);
-}
-.eventgroup__arrow { font-weight: 800; }
-.eventgroup__seg--join .eventgroup__arrow { color: #2f9e6b; }
-.eventgroup__seg--left .eventgroup__arrow { color: #c45b63; }
+.eventgroup__body { min-width: 0; }
 .eventgroup__nick { font-weight: 700; }
 .eventgroup__verb { color: var(--muted); font-weight: 600; }
 .eventgroup__more { color: var(--muted); font-weight: 700; cursor: default; }
@@ -2085,7 +2094,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .warnline, .eventgroup { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .warnline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */

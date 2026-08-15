@@ -78,6 +78,8 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
       : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
       : msg.includes('violent_image') ? i18n.t('system.uploadViolent')
       : msg.includes('infected') ? i18n.t('system.uploadInfected')
+      : msg.includes('too_large') || msg.includes('post_too_large') || msg.includes('413:')
+        ? i18n.t('system.imageTooLarge')
       : i18n.t('system.uploadFailed', { msg });
     sysLine(active, isPolicyHit ? `\x01ALERT\x01${human}` : `⚠️ ${human}`, 'system');
   }

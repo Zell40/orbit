@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor } from '@/lib/format';
 
-// A run of consecutive join/part/quit lines folded into one compact status line
-// with coloured nicks, so a busy channel doesn't drown in one-line-per-event.
+// A run of consecutive join/part/quit lines folded into compact notice-style
+// bubbles (JOIN / PART tags), so a busy channel doesn't drown in noise and
+// room art never washes out the nicks.
 const MAX = 14; // nicks shown per section before it collapses to "+N"
 
 function Nicks({ nicks }: { nicks: string[] }) {
@@ -43,19 +44,26 @@ export const EventGroup = memo(function EventGroup({ events }: { events: ChatMes
 
   const ts = events[events.length - 1].ts;
   return (
-    <div className="eventgroup">
-      <span className="eventgroup__time">{fmtTime(ts)}</span>
+    <div className="eventgroup-wrap">
       {jn.length > 0 && (
-        <span className="eventgroup__seg eventgroup__seg--join">
-          <span className="eventgroup__arrow" aria-hidden>→</span>{' '}
-          <Nicks nicks={jn} /> <span className="eventgroup__verb">{t('events.joined', { count: jn.length })}</span>
-        </span>
+        <div className="eventgroup eventgroup--join">
+          <span className="eventgroup__tag">JOIN</span>
+          <span className="eventgroup__time">{fmtTime(ts)}</span>
+          <span className="eventgroup__body">
+            <Nicks nicks={jn} />{' '}
+            <span className="eventgroup__verb">{t('events.joined', { count: jn.length })}</span>
+          </span>
+        </div>
       )}
       {lv.length > 0 && (
-        <span className="eventgroup__seg eventgroup__seg--left">
-          <span className="eventgroup__arrow" aria-hidden>←</span>{' '}
-          <Nicks nicks={lv} /> <span className="eventgroup__verb">{t('events.left', { count: lv.length })}</span>
-        </span>
+        <div className="eventgroup eventgroup--part">
+          <span className="eventgroup__tag">PART</span>
+          <span className="eventgroup__time">{fmtTime(ts)}</span>
+          <span className="eventgroup__body">
+            <Nicks nicks={lv} />{' '}
+            <span className="eventgroup__verb">{t('events.left', { count: lv.length })}</span>
+          </span>
+        </div>
       )}
     </div>
   );
