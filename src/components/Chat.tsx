@@ -32,6 +32,8 @@ export function Chat() {
       <a className="skip-link" href="#orbit-main">{t('a11y.skip')}</a>
       <Sidebar onNavigate={closeNav} />
       <main className="main" id="orbit-main">
+        {/* Gallery plugin paints --rg-pic here for a soft room backdrop. */}
+        <div className="main__room-bg" aria-hidden="true" />
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
         <ChannelTopicBanner />
         <MessageList />
