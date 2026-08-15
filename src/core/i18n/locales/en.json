@@ -334,6 +334,8 @@
       "monoHint": "Fixed-width font so ASCII art and tables line up.",
       "bubbles": "Bubble messages",
       "bubblesHint": "Show messages like a modern messenger (recommended).",
+      "showStatus": "Show Status page",
+      "showStatusHint": "Show the server console (Status) in the conversation list. Hidden by default.",
       "topicFull": "Full topic setter mask",
       "topicFullHint": "Show nick!user@host instead of nick only (default: nick)."
     },

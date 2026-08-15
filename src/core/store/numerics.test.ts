@@ -32,6 +32,7 @@ function setup(over: Record<string, unknown> = {}) {
     get, set, helpers,
     closedChannels: new Set<string>(), lastCantSend: {}, lastAwayNotice: {},
     clearWhois: () => {},
+    namesInFlight: new Set<string>(),
   } as Parameters<typeof makeNumerics>[0]);
   return { handleNumerics, state, sys, server };
 }

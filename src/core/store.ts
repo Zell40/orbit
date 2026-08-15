@@ -130,6 +130,7 @@ export function createChatStore(ns = '') {
   let lastTypingSent = 0;
   const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
   const knownServices = new Set<string>(); // canon nicks the server tagged as services
+  const namesInFlight = new Set<string>(); // channels currently receiving a NAMES (353…366) burst
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
   const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
   const store = create<ChatState>((set, get) => {
@@ -138,7 +139,7 @@ export function createChatStore(ns = '') {
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine } = helpers;
   const readMarkSent: Record<string, number> = {}; // throttle server MARKREAD per buffer
 
-  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost });
+  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
   const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers });
@@ -277,6 +278,16 @@ export function createChatStore(ns = '') {
       client.on('reconnecting', (secs) => {
         resetBatches(); // drop any batch left half-open when the socket dropped
         knownServices.clear(); // re-learn services after reconnect rather than accrete forever
+        namesInFlight.clear();
+        // Drop stale nicklists immediately — NAMES on rejoin will refill them.
+        // Avoids ghost guests (Harry208 + Harry365) while the socket is down.
+        const s = get();
+        for (const name of s.order) {
+          const b = s.buffers[name];
+          if (b?.isChannel && Object.keys(b.members).length) {
+            patchBuffer(name, (bb) => ({ ...bb, members: {} }));
+          }
+        }
         set({ reconnectIn: secs as number });
         sysLine(SERVER, i18n.t('system.reconnecting', { secs }), 'system');
       });
@@ -625,6 +636,11 @@ export function createChatStore(ns = '') {
       savePrefs(prefs);
       applyPrefs(prefs);
       set({ prefs });
+      // Leaving Status hidden while looking at it → jump to a real conversation.
+      if (key === 'showStatus' && value === false && get().active === SERVER) {
+        const next = get().order.find((n) => n !== SERVER) || '';
+        if (next) get().setActive(next);
+      }
       syncGlobal();
     },
   };

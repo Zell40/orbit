@@ -334,6 +334,8 @@
       "monoHint": "Police à largeur fixe pour aligner l'art ASCII et les tableaux.",
       "bubbles": "Messages en bulles",
       "bubblesHint": "Affiche les messages comme une messagerie moderne (recommandé).",
+      "showStatus": "Afficher la page Status",
+      "showStatusHint": "Montre la console serveur (Status) dans la liste des conversations. Masquée par défaut.",
       "topicFull": "Auteur du topic en masque complet",
       "topicFullHint": "Affiche nick!user@host au lieu du seul pseudo (défaut : pseudo)."
     },

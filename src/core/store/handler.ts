@@ -24,12 +24,13 @@ interface HandlerCtx {
   lastCantSend: Record<string, number>;
   lastAwayNotice: Record<string, number>;
   filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
+  namesInFlight: Set<string>;
 }
 
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
-  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost } = ctx;
+  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight } = ctx;
   const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
@@ -47,7 +48,7 @@ export function makeHandler(ctx: HandlerCtx) {
   // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
   const { handleMode } = makeMode({ get, set, helpers });
   // Numeric replies (RPL_*/ERR_*) + the generic error/console fallback. See ./numerics.
-  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois });
+  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -161,6 +162,7 @@ export function makeHandler(ctx: HandlerCtx) {
       case '353': { // RPL_NAMREPLY
         const ch = msg.params[2];
         ensureBuffer(ch);
+        const key = canon(ch);
         const prefixChars = get().client?.server.prefixModes ?? '@+';
         const adds: Record<string, Member> = {};
         for (const raw of (msg.params[3] ?? '').split(' ').filter(Boolean)) {
@@ -176,7 +178,10 @@ export function makeHandler(ctx: HandlerCtx) {
           const prefixes = raw.slice(0, i); // all prefix symbols (multi-prefix), strongest-first
           adds[nick] = { nick, user, host, prefixes, prefix: prefixes[0] ?? '' };
         }
-        patchBuffer(ch, (b) => ({ ...b, members: { ...b.members, ...adds } }));
+        // First reply of a NAMES burst replaces (reconnect / /names); later lines merge.
+        const replace = !namesInFlight.has(key);
+        namesInFlight.add(key);
+        patchBuffer(ch, (b) => ({ ...b, members: replace ? adds : { ...b.members, ...adds } }));
         break;
       }
       // ---- draft/account-registration structured replies ----

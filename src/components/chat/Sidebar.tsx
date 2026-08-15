@@ -126,6 +126,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const order = useActiveChat((s) => s.order);
   const setModal = useActiveChat((s) => s.setModal);
   const refreshChannels = useActiveChat((s) => s.refreshChannels);
+  const showStatus = useActiveChat((s) => s.prefs.showStatus);
   const sidebarItems = usePluginRegistry((s) => s.ui);
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
@@ -134,8 +135,8 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const match = (n: string) => n.toLowerCase().includes(q.trim().toLowerCase());
   const channels = order.filter((n) => isChannelName(n) && match(n));
   const queries = order.filter((n) => n !== SERVER && !isChannelName(n) && match(n));
-  // mIRC always shows the Status window; otherwise it appears under "Tous" and matches search.
-  const hasServer = order.includes(SERVER) && (mirc || (filter === 'all' && match('status')));
+  // Status (server console): always in yomIRC; otherwise only when the user opts in.
+  const hasServer = order.includes(SERVER) && (mirc || (showStatus && filter === 'all' && match('status')));
   const showChannels = filter !== 'people';
   const showQueries = filter !== 'rooms';
 

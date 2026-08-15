@@ -298,6 +298,11 @@ input, textarea { font-family: inherit; }
 .onav__link::after { content: "↗"; font-size: .7rem; opacity: .5; margin-left: .05rem; }
 @media (max-width: 720px) { .onav__links { display: none; } }
 .nav-toggle { display: none; }
+.nav-toggle__badge {
+  position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 9px; background: var(--accent); color: #fff; font: 700 .62rem/16px system-ui, sans-serif; text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+}
 
 @media (max-width: 880px) {
   .app { display: flex; flex-direction: column; }
@@ -322,6 +327,7 @@ input, textarea { font-family: inherit; }
   .nav-toggle {
     display: inline-grid; place-items: center; width: 36px; height: 36px; flex: none; margin-right: .15rem;
     border: 1px solid var(--border); border-radius: 9px; background: var(--bg-soft); color: var(--ink-2);
+    position: relative;
   }
   .nav-backdrop { position: fixed; inset: 0; z-index: 55; background: rgba(20,30,45,.4); }
 }
@@ -639,7 +645,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .eventgroup {
   display: inline-flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem;
   width: fit-content; max-width: 100%;
-  margin: 0; padding: .4rem .65rem .4rem .5rem;
+  margin: 0; padding: .45rem .7rem;
   border-radius: 12px;
   background: color-mix(in srgb, var(--bg-soft) 92%, var(--bg));
   border: 1px solid var(--border);
@@ -647,11 +653,12 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   color: var(--ink-2); font-size: .84rem; line-height: 1.4;
   overflow-wrap: anywhere; word-break: break-word;
 }
-.eventgroup--join { box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 3px 0 0 #2f9e6b; }
-.eventgroup--part { box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 3px 0 0 #c45b63; }
+.eventgroup--join { box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 4px 0 0 #2f9e6b; }
+.eventgroup--part { box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 4px 0 0 #c45b63; }
 .eventgroup__tag {
   flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   padding: .2rem .55rem; border-radius: 999px; color: #fff;
+  margin-left: .15rem;
 }
 .eventgroup--join .eventgroup__tag {
   background: #2f9e6b; box-shadow: 0 2px 6px -2px rgba(47,158,107,.55);
@@ -696,7 +703,15 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .topicline__txt { font-size: .84rem; color: var(--ink-2); font-style: italic; overflow-wrap: anywhere; }
 
 /* NOTICE — a prominent violet callout so it can't get lost in the chat flow */
-.noticeline { background: #f3effe; border-left: 3px solid #8b5cf6; border-radius: 8px; margin: .22rem 1.1rem; padding: .42rem .7rem; gap: .5rem; }
+.noticeline {
+  display: flex; align-items: flex-start; gap: .5rem;
+  background: #f3effe;
+  border: 1px solid rgba(139, 92, 246, .28);
+  border-left: 3px solid #8b5cf6;
+  border-radius: 8px;
+  margin: .22rem 1.1rem;
+  padding: .42rem .7rem;
+}
 .noticeline__tag { background: #8b5cf6 !important; color: #fff !important; box-shadow: 0 2px 6px -2px rgba(139,92,246,.6); }
 .noticeline__txt { color: #6d28d9; font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
 /* The channel-context chip sits inline in the notice's baseline flex row. */
@@ -2125,7 +2140,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .warnline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .warnline, .noticeline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */
@@ -2134,6 +2149,11 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
     width: min(92vw, 340px); z-index: 60; border-left: 1px solid var(--border); border-right: 0;
     transform: translateX(102%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
     box-shadow: 0 0 60px rgba(20,30,45,.35);
+    /* Opaque over room art / chat — otherwise the drawer is unreadable on mobile. */
+    background: var(--bg) !important;
+    opacity: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .app.members-open .members { transform: none; }
 }

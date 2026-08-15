@@ -26,9 +26,18 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const myNick = useActiveChat((s) => s.nick);
   const myUmodes = useActiveChat((s) => s.umodes);
   const serverName = useActiveChat((s) => s.serverName);
+  // Unread outside the active buffer — badge the mobile hamburger so new mail is visible.
+  const otherUnread = useActiveChat((s) =>
+    Object.entries(s.buffers).reduce((n, [k, b]) => n + (k === s.active ? 0 : (b.unread || 0)), 0));
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
-  if (!bname) return <div className="topbar"><button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button></div>;
+  const menuBtn = (
+    <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>
+      <Icon name="menu" size={20} />
+      {otherUnread > 0 && <span className="nav-toggle__badge">{otherUnread > 99 ? '99+' : otherUnread}</span>}
+    </button>
+  );
+  if (!bname) return <div className="topbar">{menuBtn}</div>;
   const n = members ? Object.keys(members).length : 0;
   const plug = topbarItems.filter((u) => u.slot === 'topbar_item');
   const isServer = bname === SERVER;
@@ -37,7 +46,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   if (searching || search) {
     return (
       <div className="topbar topbar--search">
-        <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button>
+        {menuBtn}
         <span className="topbar__searchicon"><Icon name="search" size={16} /></span>
         <input className="topbar__searchinput" name="message-search" type="search" autoComplete="off" autoFocus placeholder={t('topbar.searchIn', { label })}
           value={search} onChange={(e) => setSearch(e.target.value)}
@@ -48,7 +57,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   }
   return (
     <div className={`topbar ${isServer ? 'topbar--console' : ''} ${isChannel ? 'topbar--channel' : ''}`}>
-      <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}><Icon name="menu" size={20} /></button>
+      {menuBtn}
       {isServer
         ? <span className="term-lights"><i /><i /><i /></span>
         : <span className="topbar__av" style={{ background: avatarBg(bname) }}>{isChannel ? '#' : label[0]?.toUpperCase()}</span>}

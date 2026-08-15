@@ -15,6 +15,8 @@ export interface Prefs {
   bubbleMessages: boolean;
   /** Topic author as nick!user@host. Off (default) = nick only. */
   topicSetterFull: boolean;
+  /** Show the Status (server console) buffer in the room list. Off by default. */
+  showStatus: boolean;
 }
 
 const KEY = 'tchatou-prefs';
@@ -25,7 +27,7 @@ function defaults(): Prefs {
   return {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
-    bubbleMessages: true, topicSetterFull: false,
+    bubbleMessages: true, topicSetterFull: false, showStatus: false,
   };
 }
 

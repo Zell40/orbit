@@ -15,6 +15,7 @@ interface NumericsDeps {
   lastCantSend: Record<string, number>;
   lastAwayNotice: Record<string, number>;
   clearWhois: (nick: string) => void;
+  namesInFlight: Set<string>;
 }
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
@@ -25,7 +26,7 @@ const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '900
 // numeric was consumed. Every 3-digit reply is either handled by name here or
 // routed by the generic fallback (errors → a ⚠ line where the user is looking,
 // info → the server console), so nothing is ever dumped unlabelled.
-export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois }: NumericsDeps) {
+export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight }: NumericsDeps) {
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine, serverLine, patchWhois } = helpers;
 
   function handleNumerics(msg: IrcMessage): boolean {
@@ -89,7 +90,11 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         return true;
       case '366': { // RPL_ENDOFNAMES → pull WHO (oper/away flags) + the channel modes
         const chan = msg.params[1];
-        if (isChannelName(chan)) { get().client?.who(chan); get().client?.send(`MODE ${chan}`); }
+        if (isChannelName(chan)) {
+          namesInFlight.delete(canon(chan));
+          get().client?.who(chan);
+          get().client?.send(`MODE ${chan}`);
+        }
         return true;
       }
       case '324': { // RPL_CHANNELMODEIS: <me> <chan> <modes> [params…]
