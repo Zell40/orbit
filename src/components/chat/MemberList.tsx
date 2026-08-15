@@ -11,10 +11,11 @@ import {
   GENDER_COLOR,
   ageMatchesRange,
   parseProfileGecos,
-  type GenderKind,
 } from '@/lib/profile-gecos';
 
-const GENDER_TOGGLES: { id: GenderKind; labelKey: string }[] = [
+type SexOn = Record<'m' | 'f' | 'x', boolean>;
+
+const GENDER_TOGGLES: { id: keyof SexOn; labelKey: string }[] = [
   { id: 'm', labelKey: 'profile.aslMale' },
   { id: 'f', labelKey: 'profile.aslFemale' },
   { id: 'x', labelKey: 'profile.aslOther' },
@@ -26,8 +27,6 @@ const AGE_RANGES = [
   { id: '25-45', labelKey: 'profile.aslAge2545' },
   { id: '>45', labelKey: 'profile.aslAgeOver45' },
 ] as const;
-
-type SexOn = Record<'m' | 'f' | 'x', boolean>;
 
 export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
