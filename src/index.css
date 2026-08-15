@@ -813,12 +813,36 @@ html[data-bubbles="on"] .group--self .line {
   background: color-mix(in srgb, var(--accent) 14%, var(--bg));
   border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
   text-align: left;
+  box-sizing: border-box;
+}
+/* Image shares: don't shrink the bubble below the caption / toolbar */
+html[data-bubbles="on"] .group--self .group__body:has(.imgcard) {
+  flex: 0 0 auto;
+  min-width: min(18rem, 92%);
+  max-width: min(36rem, 92%);
+  align-items: stretch;
+}
+html[data-bubbles="on"] .group--self .line:has(.imgcard),
+html[data-bubbles="on"] .group .line:has(.imgcard) {
+  width: fit-content;
+  max-width: 100%;
+  min-width: min(16rem, 100%);
+  overflow-wrap: break-word;
+  /* italic ACTION captions otherwise bleed past the bubble edge */
+  padding-inline: .9rem 1rem;
+}
+html[data-bubbles="on"] .line:has(.imgcard) .imgcard {
+  width: 100%;
+  max-width: 100%;
 }
 html[data-bubbles="on"] .group--cont .line { margin-top: .18rem; }
 html[data-bubbles="off"] .group .line { background: transparent; border: 0; padding: 0; box-shadow: none; }
 
-/* Actu RSS bot — full news card (not just link chips), distinct from user bubbles */
+/* Actu RSS bot — news card sized to content (not full chat width) */
 .group--rss {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: min(42rem, calc(100% - .3rem));
   margin: .55rem .15rem;
   padding: .55rem .65rem .7rem;
   border-radius: 14px;
@@ -839,10 +863,17 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
   background: color-mix(in srgb, #0284c7 18%, var(--bg));
   font-size: 1.15rem; line-height: 1;
 }
-.group--rss .group__body { max-width: min(40rem, 96%); }
+.group--rss .group__body {
+  flex: 0 1 auto;
+  width: fit-content;
+  max-width: min(40rem, 96%);
+}
 .group--rss .line--rss,
 html[data-bubbles="on"] .group--rss .line {
-  display: block; width: 100%; max-width: 100%;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
   background: color-mix(in srgb, #fff 55%, transparent);
   border: 1px solid color-mix(in srgb, #0284c7 22%, var(--border));
   border-radius: 12px;
