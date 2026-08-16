@@ -547,7 +547,12 @@
     "kickedBy": "par {{by}}",
     "banRefused": "Accès au salon refusé.",
     "bannedOrModerated": "Tu es banni ou le salon est modéré.",
-    "rejoin": "Rejoindre"
+    "rejoin": "Rejoindre",
+    "guestTitle": "Pseudo non enregistré",
+    "guestBody": "Tu es connecté en invité avec le pseudo « {{nick}} ». Enregistre-le via ton profil EntreNous pour le protéger et retrouver tes préférences.",
+    "guestCreateProfile": "Créer mon profil",
+    "guestLogin": "J’ai déjà un compte",
+    "guestLater": "Plus tard"
   },
   "themes": {
     "light": "Light",

@@ -1903,6 +1903,54 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .kicktoast__close:hover { color: var(--ink); }
 @keyframes kt-rise { from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
 
+/* Guest: nick not registered — centered CTA over the chat */
+.guestprompt {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 135;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  width: min(400px, calc(100vw - 1.5rem));
+  padding: 1.35rem 1.25rem 1.1rem;
+  background: var(--bg); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 18px;
+  box-shadow: var(--shadow-pop, 0 18px 50px -16px rgba(20,30,45,.45));
+  animation: kt-rise .22s cubic-bezier(.2,.8,.2,1) both;
+}
+.guestprompt__x {
+  position: absolute; top: .55rem; right: .65rem;
+  border: 0; background: transparent; color: var(--muted);
+  font-size: 1.35rem; line-height: 1; cursor: pointer; padding: .15rem .35rem; border-radius: 8px;
+}
+.guestprompt__x:hover { color: var(--ink); background: var(--bg-soft); }
+.guestprompt__ic { font-size: 1.75rem; line-height: 1; margin-bottom: .45rem; }
+.guestprompt__title {
+  margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; color: var(--ink);
+}
+.guestprompt__txt {
+  margin: .55rem 0 0; font-size: .9rem; line-height: 1.45; color: var(--muted);
+}
+.guestprompt__actions {
+  display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center;
+  width: 100%; margin-top: 1.05rem;
+}
+.guestprompt__primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 1 1 10rem; min-height: 42px; padding: .55rem 1rem; border-radius: 11px;
+  background: var(--accent); color: #fff; font: inherit; font-weight: 700; font-size: .9rem;
+  text-decoration: none; border: 0; cursor: pointer;
+  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.guestprompt__primary:hover { filter: brightness(1.05); }
+.guestprompt__secondary {
+  flex: 1 1 10rem; min-height: 42px; padding: .55rem 1rem; border-radius: 11px;
+  background: var(--bg-soft); color: var(--ink); font: inherit; font-weight: 700; font-size: .9rem;
+  border: 1px solid var(--border); cursor: pointer;
+}
+.guestprompt__secondary:hover { background: var(--bg-soft-2); }
+.guestprompt__later {
+  margin-top: .65rem; border: 0; background: none; color: var(--faint);
+  font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; padding: .25rem .5rem;
+}
+.guestprompt__later:hover { color: var(--muted); text-decoration: underline; }
+
 /* connection-lost / reconnecting banner (top-centre) */
 .reconnect-banner {
   position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 150;

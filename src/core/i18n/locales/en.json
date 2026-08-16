@@ -547,7 +547,12 @@
     "kickedBy": "by {{by}}",
     "banRefused": "Channel access denied.",
     "bannedOrModerated": "You're banned or the channel is moderated.",
-    "rejoin": "Rejoin"
+    "rejoin": "Rejoin",
+    "guestTitle": "Nickname not registered",
+    "guestBody": "You're connected as a guest with the nick “{{nick}}”. Register it via your EntreNous profile to protect it and keep your preferences.",
+    "guestCreateProfile": "Create my profile",
+    "guestLogin": "I already have an account",
+    "guestLater": "Later"
   },
   "themes": {
     "light": "Light",

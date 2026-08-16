@@ -32,6 +32,8 @@ export interface AppConfig {
     taglineEm: string;  // connect screen — emphasised second line
     subtitle: string;   // connect screen — paragraph under the title
     projectUrl: string; // the Orbit project/source page (shown in Settings → À propos)
+    /** Public WordPress (or site) registration URL — guest prompt CTA. */
+    registerUrl?: string;
     links?: { label: string; url: string }[]; // extra links shown in Settings → About (rules, donate, …)
     accent?: string;    // optional accent colour override (the --accent CSS token)
   };
