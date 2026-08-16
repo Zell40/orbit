@@ -521,6 +521,9 @@ input, textarea { font-family: inherit; }
       color-mix(in srgb, var(--bg) 42%, transparent) 100%);
 }
 .main > :not(.main__room-bg) { position: relative; z-index: 1; }
+/* Topbar menus (notify / pins / ⋮) must paint ABOVE the message list. Same
+   z-index as .messages made popovers look “transparent” on mobile. */
+.main > .topbar { z-index: 40; overflow: visible; }
 /* Topic banner may stay soft over the room art; topbar stays solid above. */
 .main:has(.main__room-bg[data-rg-pic]) .chan-hero {
   background: color-mix(in srgb, var(--bg) 72%, transparent);
@@ -2146,16 +2149,31 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
      online pill is tapped (mirrors the left room-list drawer). */
   .members {
     display: flex !important; position: fixed; top: 0; bottom: 0; right: 0;
-    width: min(92vw, 340px); z-index: 60; border-left: 1px solid var(--border); border-right: 0;
+    width: min(92vw, 340px); z-index: 80; border-left: 1px solid var(--border); border-right: 0;
     transform: translateX(102%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
     box-shadow: 0 0 60px rgba(20,30,45,.35);
     /* Opaque over room art / chat — otherwise the drawer is unreadable on mobile. */
     background: var(--bg) !important;
+    color: var(--ink);
     opacity: 1;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    isolation: isolate;
   }
   .app.members-open .members { transform: none; }
+
+  /* Topbar popovers: escape cramped headers; stay opaque above chat */
+  .nmenu__pop {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 3.6rem);
+    right: .5rem;
+    left: auto;
+    width: min(280px, calc(100vw - 1rem));
+    max-height: min(70vh, 420px);
+    overflow-y: auto;
+    z-index: 90;
+    background: var(--bg) !important;
+  }
 }
 
 /* ============ PROFILE MODAL — MOBILE ============ */
@@ -2254,9 +2272,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* Per-channel notification-level popover */
 .nmenu { position: relative; display: inline-flex; }
-.nmenu__pop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; width: 250px;
-  background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
-  box-shadow: var(--shadow-pop); padding: .35rem; animation: rise .16s ease both; }
+.nmenu__pop {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 80; width: min(250px, calc(100vw - 1rem));
+  background: var(--bg); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow-pop, 0 14px 40px -12px rgba(0,0,0,.35), 0 2px 8px -2px rgba(0,0,0,.2));
+  padding: .35rem; animation: rise .16s ease both;
+  opacity: 1; isolation: isolate;
+}
 .nmenu__head { padding: .35rem .55rem .25rem; font-size: .7rem; text-transform: uppercase;
   letter-spacing: .05em; color: var(--muted); }
 .nmenu__item { display: flex; align-items: center; gap: .6rem; width: 100%; text-align: left;

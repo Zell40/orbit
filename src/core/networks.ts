@@ -7,7 +7,7 @@
 // network, so single-network behaviour is exactly preserved.
 import { useSyncExternalStore } from 'react';
 import { create, useStore } from 'zustand';
-import { createChatStore, useChat } from './store';
+import { createChatStore, useChat, SERVER } from './store';
 import { getConfig } from './config';
 
 export type ChatStore = ReturnType<typeof createChatStore>;
@@ -102,8 +102,13 @@ export function useActiveChat<T>(selector: (s: ChatState) => T): T {
 // registry, re-wiring the per-store subscriptions only when the networks list
 // actually changes (add/remove) — NOT on a plain switch (setActive keeps the same
 // array ref). The snapshot is a number, so referential equality stops any loop.
-const unreadOf = (store: ChatStore) =>
-  Object.values(store.getState().buffers).reduce((a, b) => a + (b.unread || 0), 0);
+const unreadOf = (store: ChatStore) => {
+  const s = store.getState();
+  return Object.entries(s.buffers).reduce((a, [k, b]) => {
+    if (k === SERVER && !s.prefs.showStatus) return a;
+    return a + (b.unread || 0);
+  }, 0);
+};
 
 function totalUnread(): number {
   return useNetworks.getState().networks.reduce((sum, n) => sum + unreadOf(n.store), 0);

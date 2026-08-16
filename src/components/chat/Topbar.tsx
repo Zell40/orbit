@@ -27,8 +27,13 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const myUmodes = useActiveChat((s) => s.umodes);
   const serverName = useActiveChat((s) => s.serverName);
   // Unread outside the active buffer — badge the mobile hamburger so new mail is visible.
+  // Status (server console) only counts when the user opted to show that page.
   const otherUnread = useActiveChat((s) =>
-    Object.entries(s.buffers).reduce((n, [k, b]) => n + (k === s.active ? 0 : (b.unread || 0)), 0));
+    Object.entries(s.buffers).reduce((n, [k, b]) => {
+      if (k === s.active) return n;
+      if (k === SERVER && !s.prefs.showStatus) return n;
+      return n + (b.unread || 0);
+    }, 0));
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
   const menuBtn = (
