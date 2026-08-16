@@ -55,6 +55,11 @@ export interface AppConfig {
     service: string;
     /** Fallback channel reports are sent to when `service` is empty. */
     target: string;
+    /**
+     * When set, the profile "Report" action opens a query with this nick
+     * (e.g. SignalMoi) and prefills a REPORT draft, instead of the report modal.
+     */
+    query?: string;
   };
   /** Default preferences for a NEW user (until they change them in Settings). */
   defaults: {

@@ -3,10 +3,10 @@ import i18n from './i18n';
 import { IrcClient } from './irc/client';
 import { initNotify } from '../platform/notify';
 import { getPrefs, savePrefs, applyPrefs, type Prefs } from '../ui/prefs';
-import type { Buffer, ConnectOptions, WhoisInfo } from './irc/types';
+import type { Buffer, ConnectOptions, WhoisInfo, MessageKind } from './irc/types';
 import { getConfig } from './config';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
-import { SERVER, canon, isChannelName, resetBatches } from './store/context';
+import { SERVER, canon, isChannelName, resetBatches, newId } from './store/context';
 export { SERVER } from './store/context';
 import { makeHelpers } from './store/helpers';
 import { makeHandler } from './store/handler';
@@ -115,6 +115,8 @@ export interface ChatState {
   uploadImage: (file: File) => Promise<void>;
   uploadAudio: (blob: Blob, ext: string) => Promise<void>;
   pushSystem: (buffer: string, text: string) => void;
+  /** Local-only line in a buffer (plugins) — does not send IRC. Default kind: privmsg. */
+  pushLocal: (buffer: string, text: string, from?: string, kind?: MessageKind) => void;
   accountRegister: (account: string, email: string, password: string) => void;
   accountVerify: (code: string) => void;
   accountResend: () => void;
@@ -139,7 +141,7 @@ export function createChatStore(ns = '') {
   const store = create<ChatState>((set, get) => {
   // Buffer/message helpers live in store/helpers.ts.
   const helpers = makeHelpers(set, get, closedChannels);
-  const { ensureBuffer, patchBuffer, dropBuffer, sysLine } = helpers;
+  const { ensureBuffer, patchBuffer, dropBuffer, sysLine, addMessage } = helpers;
   const readMarkSent: Record<string, number> = {}; // throttle server MARKREAD per buffer
 
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, profileCache });
@@ -614,7 +616,22 @@ export function createChatStore(ns = '') {
     modSetMode(nick, mode, add) { const { client, active } = get(); if (isChannelName(active)) client?.setUserMode(active, mode, add, nick); },
     modTopic(topic) { const { client, active } = get(); if (isChannelName(active)) client?.setTopic(active, topic); },
     reportUser(nick) {
-      set({ reportSubject: nick, modal: 'report' });
+      const n = (nick || '').trim();
+      if (!n) return;
+      const { query } = getConfig().report;
+      const desk = (query || '').trim();
+      // HelpServ-style desk (e.g. SignalMoi): open the PV, show welcome via plugin,
+      // and prefill REPORT so the user only has to finish the reason.
+      if (desk) {
+        const active = get().active;
+        const fromChan = isChannelName(active) ? active : undefined;
+        const draft = fromChan ? `REPORT ${n} ${fromChan} ` : `REPORT ${n} `;
+        // Prefill before switching focus so Composer picks up the draft on activate.
+        get().setDraft(desk, draft);
+        get().openQuery(desk, fromChan);
+        return;
+      }
+      set({ reportSubject: n, modal: 'report' });
     },
     sendReport(target, reason) {
       const { client, active } = get();
@@ -653,6 +670,22 @@ export function createChatStore(ns = '') {
 
     // Surface a one-off system line in a buffer (used by UI for local hints).
     pushSystem(buffer, text) { sysLine(buffer || get().active, text, 'system'); },
+    // Local-only chat line (e.g. HelpServ welcome plugin) — never hits the wire.
+    pushLocal(buffer, text, from = '', kind: MessageKind = 'privmsg') {
+      const target = (buffer || get().active || '').trim();
+      const body = (text || '').trim();
+      if (!target || !body) return;
+      ensureBuffer(target);
+      addMessage(target, {
+        id: newId(),
+        bufferName: target,
+        from: (from || '').trim(),
+        text: body,
+        ts: Date.now(),
+        kind,
+        self: false,
+      });
+    },
 
     // ---- account management (draft/account-registration) — see store/account.ts ----
     accountRegister,
