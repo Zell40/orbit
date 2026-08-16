@@ -154,7 +154,7 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
           }
         }
         if (get().whois[msg.nick]) patchWhois(msg.nick, (w) => ({ ...w, realname: newReal }));
-        // Keep connect opts in sync so the next WS reconnect's USER/SETNAME reuse ASL.
+        // Keep connect opts in sync so the next WS reconnect's USER reuses ASL.
         if (msg.nick === me && newReal.trim()) get().client?.setRealname(newReal);
         return true;
       }

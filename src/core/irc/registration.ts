@@ -57,8 +57,8 @@ export class Registration {
   // Socket just opened → send the registration burst (spec order: CAP LS, [PASS],
   // NICK, USER; CAP END follows once negotiation finishes). Resets the negotiated
   // caps + registration flags so a (re)connect starts clean.
-  // When oauthBearer+refreshBearer are set, mint a fresh JWT first so a tab
-  // reload / WS reconnect does not reuse an expired handoff token.
+  // When oauthBearer+refreshBearer and/or resolveRealname are set, finish those
+  // first so USER carries a fresh JWT + GECOS (no post-connect SETNAME).
   start(): void {
     this.capEnded = false;
     this.mech = 'PLAIN';
@@ -74,14 +74,25 @@ export class Registration {
       this.host.send(`NICK ${o.nick}`);
       this.host.send(`USER ${o.username || 'guest'} 0 * :${o.realname || o.nick}`);
     };
-    if (o.oauthBearer && o.refreshBearer) {
-      void o.refreshBearer()
-        .then((token) => { if (token) o.password = token; })
-        .catch(() => { /* keep existing password */ })
-        .finally(begin);
+    const needsPrepare = !!(o.oauthBearer && o.refreshBearer) || !!o.resolveRealname;
+    if (!needsPrepare) {
+      begin();
       return;
     }
-    begin();
+    void (async () => {
+      if (o.oauthBearer && o.refreshBearer) {
+        try {
+          const token = await o.refreshBearer();
+          if (token) o.password = token;
+        } catch { /* keep existing password */ }
+      }
+      if (o.resolveRealname) {
+        try {
+          const rn = await o.resolveRealname();
+          if (typeof rn === 'string' && rn.trim()) o.realname = rn.trim();
+        } catch { /* keep existing realname */ }
+      }
+    })().finally(begin);
   }
 
   // Handle a registration-relevant line: CAP, AUTHENTICATE, the SASL result

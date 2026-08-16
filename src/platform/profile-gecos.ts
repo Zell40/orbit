@@ -1,5 +1,5 @@
 // Fetch the user's age/gender/city GECOS from WordPress (via same-origin proxy).
-// WP profile is the source of truth; IRC SETNAME reapplies it after reconnect.
+// WP profile is the source of truth; applied to ConnectOptions.realname before USER.
 import { formatProfileGecos } from '@/lib/profile-gecos';
 
 export async function fetchProfileGecos(account: string): Promise<string | undefined> {

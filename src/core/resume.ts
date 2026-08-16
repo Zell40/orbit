@@ -17,7 +17,7 @@ export interface Resume {
   nick: string;
   account: string; // '' for a guest
   channels: string[];
-  /** IRC GECOS, e.g. "40 - Homme - Paris" — restored on USER/SETNAME after reconnect. */
+  /** IRC GECOS, e.g. "40 - Homme - Paris" — restored on USER after reconnect. */
   realname?: string;
   ts: number;
 }

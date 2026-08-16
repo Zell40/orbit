@@ -70,7 +70,7 @@ export class IrcClient {
   nick = '';
   private registered = false;
 
-  /** Remember GECOS for the next (re)registration USER/SETNAME (EntreNous ASL). */
+  /** Remember GECOS for the next (re)registration USER line (EntreNous ASL). */
   setRealname(realname: string): void {
     if (!this.opts) return;
     this.opts.realname = realname.trim() || undefined;

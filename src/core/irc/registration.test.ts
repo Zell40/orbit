@@ -40,6 +40,35 @@ describe('Registration handshake', () => {
     expect(state.nick).toBe('bob');
   });
 
+  it('awaits resolveRealname before USER so GECOS is on the registration line', async () => {
+    let resolve!: (v: string) => void;
+    const pending = new Promise<string>((r) => { resolve = r; });
+    const { reg, sent } = make({
+      nick: 'bob',
+      resolveRealname: () => pending,
+    });
+    reg.start();
+    expect(sent).toEqual([]); // not yet — waiting on WP / profile lookup
+    resolve('40 - Homme - Paris');
+    await flush();
+    expect(sent).toEqual(['CAP LS 302', 'NICK bob', 'USER guest 0 * :40 - Homme - Paris']);
+  });
+
+  it('refreshes Bearer then resolveRealname before USER', async () => {
+    const order: string[] = [];
+    const { reg, sent } = make({
+      nick: 'bob',
+      password: 'old',
+      oauthBearer: true,
+      refreshBearer: async () => { order.push('bearer'); return 'fresh-jwt'; },
+      resolveRealname: async () => { order.push('gecos'); return '40 - Homme - Paris'; },
+    });
+    reg.start();
+    await flush();
+    expect(order).toEqual(['bearer', 'gecos']);
+    expect(sent).toEqual(['CAP LS 302', 'NICK bob', 'USER guest 0 * :40 - Homme - Paris']);
+  });
+
   it('includes PASS when a server password is set', () => {
     const { reg, sent } = make({ nick: 'bob', serverPassword: 'sekret' });
     reg.start();

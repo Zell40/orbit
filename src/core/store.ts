@@ -225,6 +225,8 @@ export function createChatStore(ns = '') {
       }
       // EntreNous / site JWT: refresh the Bearer before every (re)registration so a
       // tab reload or WS drop does not reuse an expired handoff token.
+      // GECOS may also arrive here (chat_resume prefers WP); resolveRealname below
+      // re-fetches profile_gecos so USER always has ASL before NICK/USER.
       if (opts.oauthBearer && !opts.refreshBearer) {
         opts.refreshBearer = async () => {
           try {
@@ -234,17 +236,26 @@ export function createChatStore(ns = '') {
               credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal,
             }).finally(() => clearTimeout(to));
             if (!r.ok) return undefined;
-            const j = await r.json() as { ok?: boolean; keycard?: string; nick?: string };
+            const j = await r.json() as { ok?: boolean; keycard?: string; nick?: string; realname?: string };
             if (j?.ok && j.keycard) {
               if (typeof j.nick === 'string' && j.nick) opts.nick = j.nick;
-              if (typeof (j as { realname?: string }).realname === 'string'
-                  && (j as { realname: string }).realname.trim()) {
-                opts.realname = (j as { realname: string }).realname.trim();
+              if (typeof j.realname === 'string' && j.realname.trim()) {
+                opts.realname = j.realname.trim();
               }
               return j.keycard;
             }
           } catch { /* offline / no endpoint */ }
           return undefined;
+        };
+      }
+      // WordPress profile = source of truth: resolve âge/genre/ville before USER.
+      if (!opts.resolveRealname) {
+        opts.resolveRealname = async () => {
+          const acct = (opts.saslAuthzid || get().account || '').trim()
+            || ((opts.password || opts.passkey || opts.keycard) ? opts.nick.trim() : '');
+          if (!acct) return opts.realname;
+          const rn = await fetchProfileGecos(acct);
+          return rn || opts.realname;
         };
       }
       const client = new IrcClient();
@@ -268,24 +279,6 @@ export function createChatStore(ns = '') {
           if (fr.length) client.ircv3.monitor('+', fr.join(','));
           // Subscribe to account-profile metadata so cards show avatar/bio/etc.
           client.ircv3.subscribeMetadata(['avatar', 'bio', 'pronouns', 'timezone', 'url']);
-          // WordPress profile = source of truth for âge/genre/ville.
-          // Prefer a live lookup; fall back to handoff/resume GECOS already in opts.
-          const applyGecos = (rn: string) => {
-            const trimmed = rn.trim();
-            if (!trimmed) return;
-            opts.realname = trimmed;
-            client.setRealname(trimmed);
-            if (client.ircv3.hasCap('setname')) client.send(`SETNAME :${trimmed}`);
-          };
-          const acct = get().account || opts.saslAuthzid || '';
-          if (acct) {
-            void fetchProfileGecos(acct).then((rn) => {
-              if (rn) applyGecos(rn);
-              else if ((opts.realname || '').trim()) applyGecos(opts.realname!);
-            });
-          } else if ((opts.realname || '').trim() && client.ircv3.hasCap('setname')) {
-            client.send(`SETNAME :${opts.realname!.trim()}`);
-          }
           // On a RECONNECT, rejoin every channel we still have open (the client
           // only auto-joins the initial set; this restores ones joined later).
           if (wasReconnect) {

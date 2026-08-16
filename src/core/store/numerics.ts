@@ -1,6 +1,5 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
-import { fetchProfileGecos } from '@/platform/profile-gecos';
 import type { IrcMessage } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { SERVER, canon, isChannelName } from './context';
@@ -143,21 +142,9 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '323': // RPL_LISTEND
         set({ listLoading: false });
         return true;
-      case '900': { // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
-        const acct = msg.params[2] || '';
-        set({ account: acct });
-        // WP profile is source of truth — refresh GECOS whenever we identify.
-        if (acct) {
-          void fetchProfileGecos(acct).then((rn) => {
-            if (!rn) return;
-            const cl = get().client;
-            if (!cl) return;
-            cl.setRealname(rn);
-            if (cl.ircv3.hasCap('setname')) cl.send(`SETNAME :${rn}`);
-          });
-        }
+      case '900': // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
+        set({ account: msg.params[2] || '' });
         return true;
-      }
       case '901': // RPL_LOGGEDOUT
         set({ account: '' });
         return true;

@@ -119,6 +119,11 @@ export interface ConnectOptions {
   oauthBearer?: boolean;   // prefer SASL OAUTHBEARER (RFC 7628) with password as Bearer token — for site JWT handoff
   /** Before (re)registration, mint a fresh Bearer token (e.g. /accounts/api/chat_resume/). */
   refreshBearer?: () => Promise<string | undefined>;
+  /**
+   * Before NICK/USER, resolve IRC GECOS (e.g. WordPress âge-genre-ville).
+   * Applied to `realname` so registration never needs a post-connect SETNAME.
+   */
+  resolveRealname?: () => Promise<string | undefined>;
   saslAuthzid?: string;    // SASL authzid (defaults to nick); use the NickServ account when nick ≠ account
   serverPassword?: string; // server connection password — sent via PASS (optional)
   channels?: string[];
