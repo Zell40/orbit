@@ -1,10 +1,10 @@
 // Persistent session resume (opt-in: config.features.sessionResume).
 //
 // We store ONLY non-secret context — the network URL, your nick, your account
-// name (a public label, '' for a guest) and the channels you had open — so
-// reopening the tab drops you straight back in, the way Discord/Slack do. A
-// password is NEVER stored: a logged-in member is re-authenticated on reopen by
-// minting a fresh single-use keycard against the still-live website session cookie
+// name (a public label, '' for a guest), open channels, and the EntreNous-style
+// GECOS realname (âge - genre - ville) so reconnect restores ASL. A password is
+// NEVER stored: a logged-in member is re-authenticated on reopen by minting a
+// fresh single-use keycard against the still-live website session cookie
 // (the /accounts/api/chat_resume/ endpoint); a guest just reconnects under the
 // same nick. So an attacker reading localStorage finds nothing reusable.
 
@@ -17,6 +17,8 @@ export interface Resume {
   nick: string;
   account: string; // '' for a guest
   channels: string[];
+  /** IRC GECOS, e.g. "40 - Homme - Paris" — restored on USER/SETNAME after reconnect. */
+  realname?: string;
   ts: number;
 }
 
@@ -36,6 +38,8 @@ export function loadResume(): Resume | null {
     if (typeof r.ts !== 'number' || Date.now() - r.ts > MAX_AGE_MS) { clearResume(); return null; }
     if (!Array.isArray(r.channels)) r.channels = [];
     r.account = typeof r.account === 'string' ? r.account : '';
+    if (typeof r.realname !== 'string' || !r.realname.trim()) delete r.realname;
+    else r.realname = r.realname.trim();
     return r;
   } catch { return null; }
 }

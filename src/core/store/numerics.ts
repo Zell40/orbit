@@ -1,5 +1,6 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
+import { fetchProfileGecos } from '@/platform/profile-gecos';
 import type { IrcMessage } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { SERVER, canon, isChannelName } from './context';
@@ -16,6 +17,7 @@ interface NumericsDeps {
   lastAwayNotice: Record<string, number>;
   clearWhois: (nick: string) => void;
   namesInFlight: Set<string>;
+  profileCache?: Map<string, { realname?: string; account?: string }>;
 }
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
@@ -26,7 +28,7 @@ const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '900
 // numeric was consumed. Every 3-digit reply is either handled by name here or
 // routed by the generic fallback (errors → a ⚠ line where the user is looking,
 // info → the server console), so nothing is ever dumped unlabelled.
-export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight }: NumericsDeps) {
+export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, profileCache }: NumericsDeps) {
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine, serverLine, patchWhois } = helpers;
 
   function handleNumerics(msg: IrcMessage): boolean {
@@ -84,6 +86,14 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
             };
           });
         }
+        if (realname && who === get().nick) get().client?.setRealname(realname);
+        if (profileCache && (realname || account)) {
+          const prev = profileCache.get(canon(who)) || {};
+          profileCache.set(canon(who), {
+            realname: realname || prev.realname,
+            account: account || prev.account,
+          });
+        }
         return true;
       }
       case '315': // RPL_ENDOFWHO
@@ -133,9 +143,21 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '323': // RPL_LISTEND
         set({ listLoading: false });
         return true;
-      case '900': // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
-        set({ account: msg.params[2] || '' });
+      case '900': { // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
+        const acct = msg.params[2] || '';
+        set({ account: acct });
+        // WP profile is source of truth — refresh GECOS whenever we identify.
+        if (acct) {
+          void fetchProfileGecos(acct).then((rn) => {
+            if (!rn) return;
+            const cl = get().client;
+            if (!cl) return;
+            cl.setRealname(rn);
+            if (cl.ircv3.hasCap('setname')) cl.send(`SETNAME :${rn}`);
+          });
+        }
         return true;
+      }
       case '901': // RPL_LOGGEDOUT
         set({ account: '' });
         return true;

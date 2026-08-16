@@ -59,17 +59,22 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
 
-  // Persist NON-secret session context (nick, account label, open channels) while
-  // registered, so reopening the tab can resume it (see core/resume + main.tsx).
+  // Persist NON-secret session context (nick, account label, open channels, GECOS)
+  // while registered, so reopening the tab can resume it (see core/resume + main.tsx).
   // Recomputes only when that signature actually changes, not on every message.
   const resumeSig = useChat((s) => {
     if (!getConfig().features.sessionResume || s.status !== 'registered') return '';
     const channels = s.order.filter((n) => s.buffers[n]?.isChannel && s.buffers[n]?.joined);
-    return JSON.stringify({ nick: s.nick, account: s.account || '', channels });
+    let realname = '';
+    for (const name of s.order) {
+      const rn = s.buffers[name]?.members[s.nick]?.realname;
+      if (rn && /\d/.test(rn) && rn.includes('-')) { realname = rn; break; }
+    }
+    return JSON.stringify({ nick: s.nick, account: s.account || '', channels, realname });
   });
   useEffect(() => {
     if (!resumeSig) return;
-    saveResume({ url: getConfig().server.url, ...(JSON.parse(resumeSig) as { nick: string; account: string; channels: string[] }) });
+    saveResume({ url: getConfig().server.url, ...(JSON.parse(resumeSig) as { nick: string; account: string; channels: string[]; realname?: string }) });
   }, [resumeSig]);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives

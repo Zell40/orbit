@@ -25,12 +25,13 @@ interface HandlerCtx {
   lastAwayNotice: Record<string, number>;
   filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
   namesInFlight: Set<string>;
+  profileCache: Map<string, { realname?: string; account?: string }>;
 }
 
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
-  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight } = ctx;
+  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, profileCache } = ctx;
   const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
@@ -48,7 +49,7 @@ export function makeHandler(ctx: HandlerCtx) {
   // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
   const { handleMode } = makeMode({ get, set, helpers });
   // Numeric replies (RPL_*/ERR_*) + the generic error/console fallback. See ./numerics.
-  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight });
+  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, profileCache });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -176,7 +177,12 @@ export function makeHandler(ctx: HandlerCtx) {
           const user = bang > -1 && at > bang ? full.slice(bang + 1, at) : undefined;
           const host = at > -1 ? full.slice(at + 1) : undefined;
           const prefixes = raw.slice(0, i); // all prefix symbols (multi-prefix), strongest-first
-          adds[nick] = { nick, user, host, prefixes, prefix: prefixes[0] ?? '' };
+          const cached = profileCache.get(canon(nick));
+          adds[nick] = {
+            nick, user, host, prefixes, prefix: prefixes[0] ?? '',
+            ...(cached?.realname ? { realname: cached.realname } : {}),
+            ...(cached?.account ? { account: cached.account } : {}),
+          };
         }
         // First reply of a NAMES burst replaces (reconnect / /names); later lines merge.
         const replace = !namesInFlight.has(key);

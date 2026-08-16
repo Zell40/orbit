@@ -143,20 +143,33 @@ loadConfig().then(async () => {
     if (resume) {
       let password: string | undefined
       let resumeNick = resume.nick
+      let resumeRealname = resume.realname
       let go = !resume.account // guests reconnect unconditionally
       if (resume.account) {
         try {
           const ctrl = new AbortController()
           const to = setTimeout(() => ctrl.abort(), 4000) // never let a hung endpoint stall boot
           const r = await fetch('/accounts/api/chat_resume/', { credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal }).finally(() => clearTimeout(to))
-          const j = r.ok ? await r.json() : null
-          if (j?.ok && j.keycard && j.nick) { password = j.keycard as string; resumeNick = j.nick as string; go = true }
+          const j = r.ok ? await r.json() as { ok?: boolean; keycard?: string; nick?: string; realname?: string } : null
+          if (j?.ok && j.keycard && j.nick) {
+            password = j.keycard
+            resumeNick = j.nick
+            if (typeof j.realname === 'string' && j.realname.trim()) resumeRealname = j.realname.trim()
+            go = true
+          }
         } catch { /* offline / timeout / no endpoint → fall through to the connect screen */ }
       }
       if (go) {
         useChat.setState({ autoConnecting: true })
         // The resume password (when present) is a single-use keycard → PLAIN.
-        useChat.getState().connect({ url: resume.url || cfg.server.url, nick: resumeNick, password, keycard: !!password, channels: resume.channels })
+        useChat.getState().connect({
+          url: resume.url || cfg.server.url,
+          nick: resumeNick,
+          password,
+          keycard: !!password,
+          realname: resumeRealname,
+          channels: resume.channels,
+        })
         cleanUrl()
       }
     }

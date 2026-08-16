@@ -13,6 +13,7 @@ import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
+import { fetchProfileGecos } from '../platform/profile-gecos';
 
 
 
@@ -131,6 +132,8 @@ export function createChatStore(ns = '') {
   const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
   const knownServices = new Set<string>(); // canon nicks the server tagged as services
   const namesInFlight = new Set<string>(); // channels currently receiving a NAMES (353…366) burst
+  // Soft cache of GECOS/account across reconnect nicklist clears (until WHOX refills).
+  const profileCache = new Map<string, { realname?: string; account?: string }>();
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
   const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
   const store = create<ChatState>((set, get) => {
@@ -139,7 +142,7 @@ export function createChatStore(ns = '') {
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine } = helpers;
   const readMarkSent: Record<string, number> = {}; // throttle server MARKREAD per buffer
 
-  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight });
+  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, profileCache });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
   const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers });
@@ -234,6 +237,10 @@ export function createChatStore(ns = '') {
             const j = await r.json() as { ok?: boolean; keycard?: string; nick?: string };
             if (j?.ok && j.keycard) {
               if (typeof j.nick === 'string' && j.nick) opts.nick = j.nick;
+              if (typeof (j as { realname?: string }).realname === 'string'
+                  && (j as { realname: string }).realname.trim()) {
+                opts.realname = (j as { realname: string }).realname.trim();
+              }
               return j.keycard;
             }
           } catch { /* offline / no endpoint */ }
@@ -261,6 +268,24 @@ export function createChatStore(ns = '') {
           if (fr.length) client.ircv3.monitor('+', fr.join(','));
           // Subscribe to account-profile metadata so cards show avatar/bio/etc.
           client.ircv3.subscribeMetadata(['avatar', 'bio', 'pronouns', 'timezone', 'url']);
+          // WordPress profile = source of truth for âge/genre/ville.
+          // Prefer a live lookup; fall back to handoff/resume GECOS already in opts.
+          const applyGecos = (rn: string) => {
+            const trimmed = rn.trim();
+            if (!trimmed) return;
+            opts.realname = trimmed;
+            client.setRealname(trimmed);
+            if (client.ircv3.hasCap('setname')) client.send(`SETNAME :${trimmed}`);
+          };
+          const acct = get().account || opts.saslAuthzid || '';
+          if (acct) {
+            void fetchProfileGecos(acct).then((rn) => {
+              if (rn) applyGecos(rn);
+              else if ((opts.realname || '').trim()) applyGecos(opts.realname!);
+            });
+          } else if ((opts.realname || '').trim() && client.ircv3.hasCap('setname')) {
+            client.send(`SETNAME :${opts.realname!.trim()}`);
+          }
           // On a RECONNECT, rejoin every channel we still have open (the client
           // only auto-joins the initial set; this restores ones joined later).
           if (wasReconnect) {
@@ -281,10 +306,22 @@ export function createChatStore(ns = '') {
         namesInFlight.clear();
         // Drop stale nicklists immediately — NAMES on rejoin will refill them.
         // Avoids ghost guests (Harry208 + Harry365) while the socket is down.
+        // Keep a short-lived GECOS/account cache so âge/genre/ville flash back
+        // before WHOX arrives (and survive if WHO is slow).
+        profileCache.clear();
         const s = get();
         for (const name of s.order) {
           const b = s.buffers[name];
-          if (b?.isChannel && Object.keys(b.members).length) {
+          if (!b?.isChannel) continue;
+          for (const [nick, m] of Object.entries(b.members || {})) {
+            if (m.realname || m.account) {
+              profileCache.set(canon(nick), {
+                ...(m.realname ? { realname: m.realname } : {}),
+                ...(m.account ? { account: m.account } : {}),
+              });
+            }
+          }
+          if (Object.keys(b.members).length) {
             patchBuffer(name, (bb) => ({ ...bb, members: {} }));
           }
         }

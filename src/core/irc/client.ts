@@ -70,6 +70,12 @@ export class IrcClient {
   nick = '';
   private registered = false;
 
+  /** Remember GECOS for the next (re)registration USER/SETNAME (EntreNous ASL). */
+  setRealname(realname: string): void {
+    if (!this.opts) return;
+    this.opts.realname = realname.trim() || undefined;
+  }
+
   // Fold a nick/channel to its canonical form per the server's CASEMAPPING.
   casefold(name: string): string { return casefold(name, this.server.casemapping); }
 

@@ -45,6 +45,7 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
         const joinAcct = msg.params[1] && msg.params[1] !== '*' && msg.params[1] !== '0' ? msg.params[1] : undefined;
         const joinReal = msg.params[2] || undefined;
         patchBuffer(ch, (b) => ({ ...b, members: { ...b.members, [msg.nick]: { nick: msg.nick, user: msg.user || undefined, host: msg.host || undefined, prefix: '', account: joinAcct, realname: joinReal } } }));
+        if (msg.nick === me && joinReal) get().client?.setRealname(joinReal);
         if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg));
         return true;
       }
@@ -153,6 +154,8 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
           }
         }
         if (get().whois[msg.nick]) patchWhois(msg.nick, (w) => ({ ...w, realname: newReal }));
+        // Keep connect opts in sync so the next WS reconnect's USER/SETNAME reuse ASL.
+        if (msg.nick === me && newReal.trim()) get().client?.setRealname(newReal);
         return true;
       }
       case 'AWAY': {
