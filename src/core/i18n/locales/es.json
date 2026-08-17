@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "Inicio",
     "settings": "Ajustes",
@@ -50,6 +50,7 @@
     "muteOn": "Silenciar notificaciones",
     "muteOff": "Reactivar notificaciones",
     "membersTitle": "Miembros",
+    "userInfo": "Acerca de {{nick}}",
     "more": "Más"
   },
   "connect": {
@@ -231,6 +232,12 @@
       "joinSuggested": "Unirse a {{channel}}",
       "sub": "No puedes unirte a {{channel}}.",
       "title": "Canal no disponible"
+    },
+    "moderated": {
+      "title": "Canal moderado",
+      "sub": "No puedes escribir en {{channel}}.",
+      "body": "Este canal está moderado. Solo operadores y usuarios con voz pueden enviar mensajes. No es un ban: pide voz a un operador si necesitas intervenir.",
+      "close": "Entendido"
     }
   },
   "settings": {

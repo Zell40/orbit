@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, formatIrc } from '@/lib/format';
+import { fmtTime, nickColor, formatIrc, loosenNoticeText } from '@/lib/format';
 import { useTheme } from '@/themes';
 import { useActiveChat } from '@/core/networks';
 import { CtxChip, ReplyQuote } from './affordances';
@@ -21,10 +21,14 @@ function NoticeLine({ m }: { m: ChatMessage }) {
   const showCtx = firstOfRun(msgs, m, (x) => x.channelContext);
   const row = (
     <div className="sysline sysline--mode noticeline">
-      <span className="modeline__tag noticeline__tag">NOTICE</span>
-      {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
-      <span className="noticeline__txt">{formatIrc(m.text, m.self, linkPreviews)}</span>
-      {showCtx && <CtxChip chan={m.channelContext!} onJump={() => setActive(m.channelContext!)} />}
+      <div className="noticeline__head">
+        <span className="modeline__tag noticeline__tag">NOTICE</span>
+        {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
+      </div>
+      <div className="noticeline__body">
+        <span className="noticeline__txt">{formatIrc(loosenNoticeText(m.text), m.self, linkPreviews)}</span>
+        {showCtx && <CtxChip chan={m.channelContext!} onJump={() => setActive(m.channelContext!)} />}
+      </div>
     </div>
   );
   if (!showReply || !quoted) return row;

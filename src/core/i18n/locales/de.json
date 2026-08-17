@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "Startseite",
     "settings": "Einstellungen",
@@ -50,6 +50,7 @@
     "muteOn": "Benachrichtigungen stummschalten",
     "muteOff": "Stummschaltung aufheben",
     "membersTitle": "Mitglieder",
+    "userInfo": "Über {{nick}}",
     "more": "Mehr"
   },
   "connect": {
@@ -231,6 +232,12 @@
       "joinSuggested": "{{channel}} beitreten",
       "sub": "Du kannst {{channel}} nicht betreten.",
       "title": "Kanal nicht verfügbar"
+    },
+    "moderated": {
+      "title": "Kanal ist moderiert",
+      "sub": "Du kannst in {{channel}} nicht schreiben.",
+      "body": "Dieser Kanal ist moderiert. Nur Operatoren und Nutzer mit Voice dürfen Nachrichten senden. Das ist kein Ban — bitte einen Op um Voice, wenn du sprechen musst.",
+      "close": "Verstanden"
     }
   },
   "settings": {

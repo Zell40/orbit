@@ -50,6 +50,7 @@
     "muteOn": "Mute notifications",
     "muteOff": "Unmute notifications",
     "membersTitle": "Members",
+    "userInfo": "About {{nick}}",
     "more": "More",
     "topicExpand": "Show full topic",
     "topicCollapse": "Collapse topic"
@@ -210,6 +211,12 @@
       "sub": "You can't join {{channel}}.",
       "close": "Close",
       "joinSuggested": "Join {{channel}}"
+    },
+    "moderated": {
+      "title": "Channel is moderated",
+      "sub": "You can't write in {{channel}}.",
+      "body": "This channel is moderated. Only operators and voiced users can send messages. This is not a ban — ask an operator for voice if you need to speak.",
+      "close": "Got it"
     },
     "chanadmin": {
       "title": "Manage channel",
@@ -487,9 +494,9 @@
     "cantWriteHere": "You can’t write here right now.",
     "cantWriteTitle": "Can’t write in {{ch}}",
     "cantWriteBody": "You can’t send messages in this channel right now.",
-    "cantWriteModerated": "This channel is moderated — only operators and voiced users can write. This is not a ban.",
+    "cantWriteModerated": "This channel is moderated — you can't write without voice. This is not a ban.",
     "cantWriteModeratedTitle": "Moderated channel — {{ch}}",
-    "cantWriteModeratedBody": "Only operators (and voice) can write here. This is not a ban.",
+    "cantWriteModeratedBody": "This channel is moderated: only operators and voiced users can write.",
     "cantWriteRestricted": "Writing is restricted in this channel — you can’t send messages right now.",
     "cantWriteRestrictedTitle": "Writing restricted — {{ch}}",
     "cantWriteRestrictedBody": "A restriction is blocking your messages here. This is not necessarily a permanent ban.",
@@ -551,7 +558,7 @@
     "bannedTitle": "You are banned from {{channel}}",
     "cantWriteTitle": "You can't write in {{channel}}",
     "moderatedTitle": "Channel is moderated",
-    "moderatedBody": "Only operators and voiced users can write here. This is not a ban — the channel is simply regulated.",
+    "moderatedBody": "This channel is moderated. You can't write without voice (or being an operator). This is not a ban.",
     "restrictedTitle": "Writing restricted in {{channel}}",
     "restrictedBody": "A restriction is blocking your messages for now. This is not necessarily a permanent ban.",
     "kickedBy": "by {{by}}",

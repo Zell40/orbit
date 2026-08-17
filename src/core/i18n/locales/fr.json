@@ -50,6 +50,7 @@
     "muteOn": "Couper les notifications",
     "muteOff": "Réactiver les notifications",
     "membersTitle": "Membres",
+    "userInfo": "À propos de {{nick}}",
     "more": "Plus",
     "topicExpand": "Voir le topic entier",
     "topicCollapse": "Réduire le topic"
@@ -151,7 +152,7 @@
     "deleted": "message supprimé",
     "dmStarted": "Cette discussion privée a démarré dans le salon {{chan}}",
     "profileOf": "Profil de {{nick}}",
-    "actuBadge": "Actu",
+    "actuBadge": "Actualité",
     "fromChannel": "Depuis le salon",
     "searchResults_one": "{{count}} résultat pour « {{q}} »",
     "searchResults_other": "{{count}} résultats pour « {{q}} »",
@@ -210,6 +211,12 @@
       "sub": "Le salon {{channel}} n’est pas accessible.",
       "close": "Fermer",
       "joinSuggested": "Rejoindre {{channel}}"
+    },
+    "moderated": {
+      "title": "Salon modéré",
+      "sub": "Vous ne pouvez pas écrire dans {{channel}}.",
+      "body": "Ce salon est en mode modéré. Seules les personnes qui ont reçu la voix (ou les opérateurs) peuvent y envoyer des messages. Ce n’est pas un ban — demandez la voix à un opérateur si vous devez intervenir.",
+      "close": "Compris"
     },
     "chanadmin": {
       "title": "Gérer le salon",
@@ -487,9 +494,9 @@
     "cantWriteHere": "Tu ne peux pas écrire ici pour le moment.",
     "cantWriteTitle": "Impossible d’écrire dans {{ch}}",
     "cantWriteBody": "Tu ne peux pas envoyer de messages dans ce salon pour le moment.",
-    "cantWriteModerated": "Salon en mode modéré — seuls les opérateurs et les personnes avec la voix peuvent écrire. Ce n’est pas un ban.",
+    "cantWriteModerated": "Salon en mode modéré — impossible d’écrire sans avoir reçu la voix. Ce n’est pas un ban.",
     "cantWriteModeratedTitle": "Salon modéré — {{ch}}",
-    "cantWriteModeratedBody": "Seuls les opérateurs (et la voix) peuvent écrire. Ce n’est pas un ban.",
+    "cantWriteModeratedBody": "Ce salon est modéré : seuls les opérateurs et les personnes voicées peuvent écrire.",
     "cantWriteRestricted": "Écriture restreinte dans ce salon — tu ne peux pas envoyer de messages pour le moment.",
     "cantWriteRestrictedTitle": "Écriture restreinte — {{ch}}",
     "cantWriteRestrictedBody": "Une restriction t’empêche d’écrire ici. Ce n’est pas forcément un bannissement définitif.",
@@ -550,8 +557,8 @@
     "kickedTitle": "Tu as été expulsé de {{channel}}",
     "bannedTitle": "Tu es banni de {{channel}}",
     "cantWriteTitle": "Tu ne peux pas écrire dans {{channel}}",
-    "moderatedTitle": "Salon en mode modéré",
-    "moderatedBody": "Seuls les opérateurs et les personnes avec la voix peuvent écrire ici. Ce n’est pas un ban — le salon est simplement régulé.",
+    "moderatedTitle": "Salon modéré",
+    "moderatedBody": "Ce salon est en mode modéré. Impossible d’écrire sans avoir reçu la voix (ou être opérateur). Ce n’est pas un ban.",
     "restrictedTitle": "Écriture restreinte dans {{channel}}",
     "restrictedBody": "Une restriction t’empêche d’envoyer des messages pour le moment. Ce n’est pas forcément un bannissement définitif.",
     "kickedBy": "par {{by}}",

@@ -213,4 +213,4 @@ export function formatIrc(text: string, selfMsg: boolean, embeds = true): ReactN
 
 // Pure text formatters live in ./format-text (i18n only, no store/DOM); re-exported
 // here so existing `from '../lib/format'` consumers keep working.
-export { fmtDuration, formatUserModes } from './format-text';
+export { fmtDuration, formatUserModes, loosenNoticeText } from './format-text';

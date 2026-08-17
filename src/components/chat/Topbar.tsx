@@ -21,6 +21,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const setSearch = useActiveChat((s) => s.setSearch);
   const setModal = useActiveChat((s) => s.setModal);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
+  const openUser = useActiveChat((s) => s.openUser);
   const myPrefix = useActiveChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
   const myNick = useActiveChat((s) => s.nick);
@@ -90,6 +91,12 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {isChannel && <NotifyMenu />}
       {isChannel && amOp && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
+      {!isServer && !isChannel && bname && (
+        <button className="topbar__search" title={t('topbar.userInfo', { nick: label })}
+          aria-label={t('topbar.userInfo', { nick: label })} onClick={() => openUser(bname)}>
+          <Icon name="user" size={19} />
+        </button>
+      )}
       {!isServer && (
         <button className="topbar__leave topbar__hide-mobile" onClick={() => closeBuffer(bname)}
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}

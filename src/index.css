@@ -284,6 +284,8 @@ input, textarea { font-family: inherit; }
 .shell { height: 100%; display: flex; flex-direction: column; min-height: 0; }
 .shell > .app { flex: 1 1 0; min-height: 0; height: auto; }
 .app { height: 100%; display: grid; grid-template-columns: 248px 1fr 240px; grid-template-rows: minmax(0, 1fr) auto; background: var(--bg); }
+/* Queries / server console: no member list — reclaim the empty right rail. */
+.app.app--nomembers { grid-template-columns: 248px 1fr; }
 
 /* top navbar (orbit-navbar plugin): brand + a row of external portal links */
 .onav { flex: none; display: flex; align-items: center; gap: .85rem; height: 46px; padding: 0 .85rem; background: var(--bg-soft, var(--bg)); border-bottom: 1px solid var(--border); }
@@ -707,7 +709,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 /* NOTICE — a prominent violet callout so it can't get lost in the chat flow */
 .noticeline {
-  display: flex; align-items: flex-start; gap: .5rem;
+  display: flex; flex-direction: column; align-items: stretch; gap: .28rem;
   background: #f3effe;
   border: 1px solid rgba(139, 92, 246, .28);
   border-left: 3px solid #8b5cf6;
@@ -715,9 +717,14 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   margin: .22rem 1.1rem;
   padding: .42rem .7rem;
 }
+.noticeline__head { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.noticeline__body { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .55rem; min-width: 0; }
 .noticeline__tag { background: #8b5cf6 !important; color: #fff !important; box-shadow: 0 2px 6px -2px rgba(139,92,246,.6); }
-.noticeline__txt { color: #6d28d9; font-weight: 700; font-size: .9rem; overflow-wrap: anywhere; }
-/* The channel-context chip sits inline in the notice's baseline flex row. */
+.noticeline__txt {
+  color: #6d28d9; font-weight: 700; font-size: .9rem;
+  overflow-wrap: anywhere; line-height: 1.55;
+  white-space: pre-wrap;
+}
 .noticeline .ctx-chip { margin-top: 0; align-self: center; }
 /* When a service notice answers a +draft/reply, stack the quoted parent above it. */
 .noticeline-wrap { display: flex; flex-direction: column; }
@@ -903,12 +910,25 @@ html[data-bubbles="on"] .group--rss .line {
   border-radius: 0;
   padding: .1rem 0 .15rem;
   box-shadow: none;
+  /* Match the blue card accent (readable on light and dark themes). */
+  color: #0369a1;
+  font-weight: 700;
+}
+/* Bot IRC colour codes (often white) must not override the card text colour. */
+.group--rss .line span {
+  color: inherit !important;
+  background-color: transparent !important;
+}
+.group__head--rss {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;
+  margin-bottom: .28rem;
 }
 .nick-actu {
-  display: inline-flex; align-items: center; margin-left: .35rem;
-  padding: .1rem .4rem; border-radius: 999px;
-  font-size: .62rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
-  background: #0284c7; color: #fff; vertical-align: middle;
+  display: inline-flex; align-items: center;
+  padding: .12rem .45rem; border-radius: 6px;
+  font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  background: #0284c7; color: #fff;
+  box-shadow: 0 2px 6px -2px rgba(2, 132, 199, .55);
 }
 .group--rss .line--rss a,
 .group--rss .line a {

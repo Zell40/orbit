@@ -1,4 +1,4 @@
-{
+﻿{
   "nav": {
     "home": "Ana sayfa",
     "settings": "Ayarlar",
@@ -50,6 +50,7 @@
     "muteOn": "Bildirimleri sustur",
     "muteOff": "Bildirimleri aç",
     "membersTitle": "Üyeler",
+    "userInfo": "{{nick}} hakkında",
     "more": "Daha fazla"
   },
   "connect": {
@@ -231,6 +232,12 @@
       "joinSuggested": "{{channel}} kanalına katıl",
       "sub": "{{channel}} kanalına katılamazsınız.",
       "title": "Kanal kullanılamıyor"
+    },
+    "moderated": {
+      "title": "Kanal denetimli",
+      "sub": "{{channel}} kanalında yazamazsınız.",
+      "body": "Bu kanal denetimli. Yalnızca operatörler ve sesli kullanıcılar mesaj gönderebilir. Bu bir yasak değil — konuşmanız gerekiyorsa bir operatörden ses isteyin.",
+      "close": "Anladım"
     }
   },
   "settings": {

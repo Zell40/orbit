@@ -7,7 +7,7 @@ function setup() {
   const state = {
     active: '#aide.chat',
     nick: 'me',
-    order: ['#aide.chat'] as string[],
+    order: ['#aide.chat', 'aidemoi'] as string[],
     buffers: {
       '#aide.chat': {
         name: '#Aide.chat',
@@ -16,6 +16,14 @@ function setup() {
         messages: [] as ChatMessage[],
         unread: 0,
         joined: true,
+      },
+      aidemoi: {
+        name: 'AideMoi',
+        isChannel: false,
+        members: {},
+        messages: [] as ChatMessage[],
+        unread: 0,
+        joined: false,
       },
     },
     whois: {},
@@ -28,7 +36,10 @@ function setup() {
   const notice = (text: string, id: string, ts = 1000): ChatMessage => ({
     id, bufferName: '#Aide.chat', from: 'AideMoi', text, ts, kind: 'notice', self: false,
   });
-  return { helpers, state, notice };
+  const pm = (text: string, id: string, ts = 1000): ChatMessage => ({
+    id, bufferName: 'AideMoi', from: 'AideMoi', text, ts, kind: 'privmsg', self: false,
+  });
+  return { helpers, state, notice, pm };
 }
 
 describe('addMessage notice coalesce', () => {
@@ -49,5 +60,38 @@ describe('addMessage notice coalesce', () => {
     helpers.addMessage('#Aide.chat', { ...notice('other bot', 'b', 1100), from: 'Operateur' });
     helpers.addMessage('#Aide.chat', notice('later', 'c', 5000));
     expect(state.buffers['#aide.chat'].messages).toHaveLength(3);
+  });
+});
+
+describe('addMessage query privmsg coalesce', () => {
+  it('merges rapid consecutive PMs from the same nick into one bubble', () => {
+    const { helpers, state, pm } = setup();
+    helpers.addMessage('AideMoi', pm(
+      "Le ticket #1 est maintenant ouvert. Un membre de l'équipe va s'en occuper dès que possible. Vous",
+      'p1',
+      1000,
+    ));
+    helpers.addMessage('AideMoi', pm(
+      'pouvez continuer à envoyer des messages ici ; ils seront ajoutés au ticket.',
+      'p2',
+      1100,
+    ));
+    const msgs = state.buffers.aidemoi.messages;
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0].text).toBe(
+      "Le ticket #1 est maintenant ouvert. Un membre de l'équipe va s'en occuper dès que possible. Vous pouvez continuer à envoyer des messages ici ; ils seront ajoutés au ticket.",
+    );
+  });
+
+  it('merges rapid consecutive channel privmsgs from the same nick', () => {
+    const { helpers, state, pm } = setup();
+    const chanPm = (text: string, id: string, ts = 1000): ChatMessage => ({
+      ...pm(text, id, ts), bufferName: '#Aide.chat',
+    });
+    helpers.addMessage('#Aide.chat', chanPm('part one of a long line', 'c1', 1000));
+    helpers.addMessage('#Aide.chat', chanPm('continues here.', 'c2', 1100));
+    const msgs = state.buffers['#aide.chat'].messages;
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0].text).toBe('part one of a long line continues here.');
   });
 });

@@ -17,3 +17,15 @@ export function formatUserModes(modes: string): string {
   const named = letters.map((c) => i18n.t(`umodes.${c}`, '')).filter(Boolean);
   return `+${letters.join('')}${named.length ? ` · ${named.join(', ')}` : ''}`;
 }
+
+/** Soften dense service NOTICE text for readable callouts (INFO blocks, sentences). */
+export function loosenNoticeText(text: string): string {
+  return text
+    // "| INFO | a | INFO | b" → one block per marker
+    .replace(/\s*\|\s*(INFO|WARN(?:ING)?|NOTICE|ALERTE|ERROR|ERR|OK)\s*\|\s*/gi, '\n\n$1 · ')
+    // New paragraph after sentence end when the next clause starts with a capital / quote
+    .replace(/([.!?…])\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"(\[])/g, '$1\n\n')
+    .replace(/^\s+/, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}

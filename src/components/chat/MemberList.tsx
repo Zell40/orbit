@@ -87,7 +87,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
     return groupMembers(members, prefixOrder);
   }, [all, aslBrowser, ageRange, sexOn, needle, prefixOrder]);
 
-  if (!isChannel || !membersMap) return <aside className="members" />;
+  if (!isChannel || !membersMap) return null;
 
   const shown = groups.reduce((n, g) => n + g.list.length, 0);
 

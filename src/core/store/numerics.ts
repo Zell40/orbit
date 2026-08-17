@@ -300,7 +300,11 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         sysLine(ch, i18n.t(lineKey), 'system');
         desktopNotify(i18n.t(titleKey, { ch }), i18n.t(bodyKey));
         if (get().prefs.sound) blip();
-        set({ kicked: { channel: ch, by: '', reason: trailing, kind } });
+        // +m without voice → modal (same shape as CBAN). Ban/quiet → toast.
+        set({
+          kicked: { channel: ch, by: '', reason: trailing, kind },
+          ...(kind === 'moderated' ? { modal: 'moderated' as const } : {}),
+        });
         return true;
       }
       case '474': { // ERR_BANNEDFROMCHAN: join refused — we're banned from the channel

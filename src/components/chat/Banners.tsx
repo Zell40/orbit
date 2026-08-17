@@ -77,30 +77,27 @@ export function KickToast() {
   const dismiss = useActiveChat((s) => s.dismissKick);
   const rejoin = useActiveChat((s) => s.rejoinKicked);
   useEffect(() => {
-    if (!kicked) return;
+    if (!kicked || kicked.kind === 'moderated') return;
     const timer = setTimeout(dismiss, 12000); // auto-dismiss after a while
     return () => clearTimeout(timer);
   }, [kicked, dismiss]);
-  if (!kicked) return null;
+  // Moderated (+m) uses ModeratedModal instead of this toast.
+  if (!kicked || kicked.kind === 'moderated') return null;
   const { kind, channel, by, reason } = kicked;
   const title =
     kind === 'kick' ? t('banners.kickedTitle', { channel })
     : kind === 'ban' ? t('banners.bannedTitle', { channel })
-    : kind === 'moderated' ? t('banners.moderatedTitle', { channel })
     : t('banners.restrictedTitle', { channel });
   const sub =
     kind === 'kick' ? t('banners.kickedBy', { by }) + (reason ? ` — « ${reason} »` : '')
     : kind === 'ban' ? t('banners.banRefused')
-    : kind === 'moderated' ? t('banners.moderatedBody')
     : t('banners.restrictedBody');
-  const tone = kind === 'moderated' ? 'moderated' : kind === 'mute' ? 'restricted' : kind;
+  const tone = kind === 'mute' ? 'restricted' : kind;
   return (
     <div className={`kicktoast kicktoast--${tone}`} role="alert">
       <span className="kicktoast__badge" aria-hidden>
         {kind === 'kick' ? (
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14h7l2-3 3 1 4-2v8H4z" /><path d="M9 14V8a2 2 0 0 1 2-2h1" /></svg>
-        ) : kind === 'moderated' ? (
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4z" /><path d="M5 11a7 7 0 0 0 14 0" /><path d="M12 18v3M8 21h8" /><path d="M4 4l16 16" /></svg>
         ) : (
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8 12h8" /></svg>
         )}

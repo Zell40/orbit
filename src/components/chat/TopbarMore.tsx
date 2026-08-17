@@ -11,6 +11,7 @@ export function TopbarMore({ bname, isChannel, amOp, onSearch }:
   const { t } = useTranslation();
   const setModal = useActiveChat((s) => s.setModal);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
+  const openUser = useActiveChat((s) => s.openUser);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -37,6 +38,12 @@ export function TopbarMore({ bname, isChannel, amOp, onSearch }:
             <span className="nmenu__ic" aria-hidden><Icon name="search" size={18} /></span>
             <span className="nmenu__txt"><b>{t('topbar.search')}</b></span>
           </button>
+          {!isChannel && (
+            <button className="nmenu__item" role="menuitem" onClick={() => run(() => openUser(bname))}>
+              <span className="nmenu__ic" aria-hidden><Icon name="user" size={18} /></span>
+              <span className="nmenu__txt"><b>{t('topbar.userInfo', { nick: bname })}</b></span>
+            </button>
+          )}
           {isChannel && amOp && (
             <button className="nmenu__item" role="menuitem" onClick={() => run(() => setModal('chanadmin'))}>
               <span className="nmenu__ic" aria-hidden><Icon name="sliders" size={18} /></span>
