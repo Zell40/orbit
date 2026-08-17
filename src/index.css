@@ -855,70 +855,79 @@ html[data-bubbles="on"] .line:has(.imgcard) .imgcard {
 html[data-bubbles="on"] .group--cont .line { margin-top: .18rem; }
 html[data-bubbles="off"] .group .line { background: transparent; border: 0; padding: 0; box-shadow: none; }
 
-/* Actu RSS bot — news card sized to content (not full chat width) */
+/* Actu RSS bot — one news card (not a card-inside-a-bubble), content-width. */
 .group--rss {
+  display: flex;
   align-self: flex-start;
-  width: fit-content;
-  max-width: min(42rem, calc(100% - .3rem));
-  margin: .55rem .15rem;
-  padding: .55rem .65rem .7rem;
+  width: max-content;
+  max-width: min(36rem, calc(100% - 2.6rem));
+  margin: .45rem 1.3rem;
+  padding: .55rem .75rem .6rem;
+  gap: .7rem;
   border-radius: 14px;
   background:
     linear-gradient(135deg,
-      color-mix(in srgb, #0284c7 14%, var(--bg)) 0%,
-      color-mix(in srgb, var(--accent) 8%, var(--bg)) 100%);
-  border: 1px solid color-mix(in srgb, #0284c7 40%, var(--border));
-  box-shadow: inset 4px 0 0 #0284c7, 0 4px 14px -10px rgba(2, 132, 199, .45);
+      color-mix(in srgb, #0284c7 12%, var(--bg)) 0%,
+      color-mix(in srgb, var(--accent) 6%, var(--bg)) 100%);
+  border: 1px solid color-mix(in srgb, #0284c7 36%, var(--border));
+  box-shadow: inset 4px 0 0 #0284c7, 0 3px 12px -10px rgba(2, 132, 199, .4);
+  box-sizing: border-box;
 }
 .group--rss.group--cont {
-  margin-top: .2rem;
-  padding-top: .35rem;
+  margin-top: .18rem;
+  padding-top: .4rem;
 }
 .group--rss .group__avatar--rss {
   display: grid; place-items: center;
-  width: 40px; height: 40px; border-radius: 12px;
+  width: 36px; height: 36px; border-radius: 11px;
   background: color-mix(in srgb, #0284c7 18%, var(--bg));
-  font-size: 1.15rem; line-height: 1;
+  font-size: 1.05rem; line-height: 1;
 }
 .group--rss .group__body {
-  flex: 0 1 auto;
-  width: fit-content;
-  max-width: min(40rem, 96%);
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  /* Avoid container-type:inline-size collapsing fit-content cards. */
+  container-type: normal;
 }
 .group--rss .line--rss,
 html[data-bubbles="on"] .group--rss .line {
-  display: inline-block;
-  width: fit-content;
+  display: block;
+  width: auto;
   max-width: 100%;
   box-sizing: border-box;
-  background: color-mix(in srgb, #fff 55%, transparent);
-  border: 1px solid color-mix(in srgb, #0284c7 22%, var(--border));
-  border-radius: 12px;
-  padding: .55rem .75rem;
+  /* Single card = the .group--rss shell; don't nest a second bubble. */
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: .1rem 0 .15rem;
   box-shadow: none;
 }
 .nick-actu {
-  display: inline-flex; align-items: center; margin-left: .4rem;
-  padding: .12rem .45rem; border-radius: 999px;
+  display: inline-flex; align-items: center; margin-left: .35rem;
+  padding: .1rem .4rem; border-radius: 999px;
   font-size: .62rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
   background: #0284c7; color: #fff; vertical-align: middle;
 }
 .group--rss .line--rss a,
 .group--rss .line a {
-  display: inline-flex; align-items: center; gap: .35rem;
-  margin: .35rem 0 0; padding: .45rem .7rem; border-radius: 10px;
+  display: inline-flex; align-items: center; gap: .3rem;
+  margin: .3rem 0 0; padding: .28rem .55rem; border-radius: 8px;
   background: color-mix(in srgb, #0284c7 12%, var(--bg));
-  border: 1px solid color-mix(in srgb, #0284c7 32%, var(--border));
-  color: #0369a1; font-weight: 700; text-decoration: none;
+  border: 1px solid color-mix(in srgb, #0284c7 28%, var(--border));
+  color: #0369a1; font-weight: 700; font-size: .88rem; text-decoration: none;
   max-width: 100%; overflow-wrap: anywhere;
 }
-.group--rss .line a::before { content: "🔗"; font-size: .85em; }
+.group--rss .line a::before { content: "🔗"; font-size: .8em; }
 .group--rss .line a:hover { background: color-mix(in srgb, #0284c7 20%, var(--bg)); text-decoration: underline; }
 .group--rss .lpcard {
-  margin-top: .45rem; max-width: 100%;
+  margin-top: .4rem;
+  max-width: min(100%, 22rem);
   border-color: color-mix(in srgb, #0284c7 40%, var(--border));
-  box-shadow: 0 6px 18px -10px rgba(2,132,199,.4);
+  box-shadow: 0 4px 14px -10px rgba(2,132,199,.35);
 }
+.group--rss .lpcard__img { width: 72px; min-width: 72px; height: 72px; }
 
 
 /* security / warning notice — amber, with a shield and a tag (a real callout) */
@@ -2180,7 +2189,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .topbar__searchinput, .members__search input, .members__age select, .cjoin__mini { font-size: 16px; }
   .members__asl { padding: 0 .65rem .5rem; }
   .members__cols { padding-left: .65rem; padding-right: .65rem; }
-  .group--rss { margin-left: .35rem; margin-right: .35rem; }
+  .group--rss { margin-left: .65rem; margin-right: .65rem; max-width: calc(100% - 1.3rem); }
 
   /* Composer: the text field gets its own full-width row; the controls
      (image / format / emoji / send) wrap onto the row below. Fixes the

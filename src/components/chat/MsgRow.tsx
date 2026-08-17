@@ -150,7 +150,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
           <div className="group__head">
             <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>
               {memberPrefix && (() => { const r = roleForPrefix(memberPrefix); return <span className={`group__role role-${r.cls}`} title={t(`members.roles.${r.key}`)}>{memberPrefix}</span>; })()}
-              {m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
+              {m.from}{!isActu && isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
               {isActu && <span className="nick-actu" title={t('messages.actuBadge')}>{t('messages.actuBadge')}</span>}
             </button>
             <span className="group__time">{fmtTime(m.ts)}</span>
