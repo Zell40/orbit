@@ -57,7 +57,9 @@ export interface AppConfig {
     target: string;
     /**
      * When set, the profile "Report" action opens a query with this nick
-     * (e.g. SignalMoi) and prefills a REPORT draft, instead of the report modal.
+     * (e.g. SignalMoi) and prefills a natural-language draft naming the target,
+     * instead of the report modal. No REPORT command is inserted — HelpServ
+     * handles the ticket after the user's first real message.
      */
     query?: string;
   };

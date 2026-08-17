@@ -626,14 +626,12 @@ export function createChatStore(ns = '') {
       if (!n) return;
       const { query } = getConfig().report;
       const desk = (query || '').trim();
-      // HelpServ-style desk (e.g. SignalMoi): open the PV, show welcome via plugin,
-      // and prefill REPORT so the user only has to finish the reason.
+      // HelpServ-style desk (e.g. SignalMoi): open the PV + natural-language draft
+      // (no REPORT command — the bot opens the ticket on the user's first real message).
       if (desk) {
         const active = get().active;
         const fromChan = isChannelName(active) ? active : undefined;
-        const draft = fromChan ? `REPORT ${n} ${fromChan} ` : `REPORT ${n} `;
-        // Prefill before switching focus so Composer picks up the draft on activate.
-        get().setDraft(desk, draft);
+        get().setDraft(desk, `Je souhaiterais vous signaler ${n} : motif ?`);
         get().openQuery(desk, fromChan);
         return;
       }
