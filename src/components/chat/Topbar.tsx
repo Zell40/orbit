@@ -5,10 +5,27 @@ import { avatarBg } from '@/lib/format';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
 import { TopbarMore } from './TopbarMore';
-import { usePluginRegistry } from '@/modules/registry';
+import { usePluginRegistry, type PluginUi } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
+
+/** Preferred order for left-cluster topbar plugins (invite → clock). */
+const TOPBAR_LEAD = ['invite', 'orbit-clock'] as const;
+/** Video conference sits after search + notifications. */
+const TOPBAR_AFTER_NOTIFY = ['orbit-conference'] as const;
+
+function sortByPluginOrder(items: PluginUi[], order: readonly string[]) {
+  const rank = (p: string) => {
+    const i = order.indexOf(p);
+    return i === -1 ? order.length : i;
+  };
+  return [...items].sort((a, b) => rank(a.plugin) - rank(b.plugin));
+}
+
+function renderPlugins(items: PluginUi[]) {
+  return items.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />);
+}
 
 /** Channel chrome: title + modes + action icons. Topic / setter live in ChannelTopicBanner. */
 export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: () => void }) {
@@ -46,6 +63,11 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   if (!bname) return <div className="topbar">{menuBtn}</div>;
   const n = members ? Object.keys(members).length : 0;
   const plug = topbarItems.filter((u) => u.slot === 'topbar_item');
+  const leadNames = new Set<string>(TOPBAR_LEAD);
+  const afterNotifyNames = new Set<string>(TOPBAR_AFTER_NOTIFY);
+  const plugLead = sortByPluginOrder(plug.filter((u) => leadNames.has(u.plugin)), TOPBAR_LEAD);
+  const plugAfterNotify = sortByPluginOrder(plug.filter((u) => afterNotifyNames.has(u.plugin)), TOPBAR_AFTER_NOTIFY);
+  const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin));
   const isServer = bname === SERVER;
   const label = isServer ? 'Status' : bname.replace(/^#/, '');
   const statusTitle = `Status: ${myNick || '…'}${myUmodes ? ` [+${myUmodes}]` : ''}${serverName ? ` on ${serverName}` : ''}`;
@@ -85,10 +107,13 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           </div>
         )}
       </div>
-      {plug.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{plug.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_item" />)}</span>}
+      {/* invite → clock → search → notifications → camera → pin / manage / … */}
+      {plugLead.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugLead)}</span>}
       {!isServer && <button className="topbar__search topbar__hide-mobile" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
-      {isChannel && <PinMenu />}
       {isChannel && <NotifyMenu />}
+      {plugAfterNotify.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterNotify)}</span>}
+      {plugRest.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugRest)}</span>}
+      {isChannel && <PinMenu />}
       {isChannel && amOp && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
       {!isServer && !isChannel && bname && (
