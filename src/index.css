@@ -807,24 +807,26 @@ html[data-bubbles="on"] .group .line {
   overflow-wrap: break-word;
   word-break: normal;
 }
-/* Own bubbles: pin to the right without shrink-wrapping to 1 character. */
+/* Own bubbles: same wrap width as incoming (flex:1 → definite inline size so
+   container-type:inline-size on .group__body doesn't collapse the bubble).
+   align-items:flex-end keeps short bubbles pinned to the right. */
 html[data-bubbles="on"] .group--self {
   flex-direction: row-reverse;
   justify-content: flex-start;
 }
 html[data-bubbles="on"] .group--self .group__body {
-  flex: 0 1 auto;
-  max-width: min(36rem, 85%);
+  flex: 1;
+  max-width: min(42rem, 92%);
   margin-left: auto;
   margin-right: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  min-width: min(100%, 12rem);
+  min-width: 0;
 }
 html[data-bubbles="on"] .group--self .group__head { justify-content: flex-end; width: 100%; }
 html[data-bubbles="on"] .group--self .line {
-  width: max-content;
+  width: fit-content;
   max-width: 100%;
   min-width: 3ch;
   border-radius: 16px 16px 6px 16px;
@@ -833,11 +835,8 @@ html[data-bubbles="on"] .group--self .line {
   text-align: left;
   box-sizing: border-box;
 }
-/* Image shares: don't shrink the bubble below the caption / toolbar */
+/* Image shares: keep the bubble wide enough for the caption / toolbar */
 html[data-bubbles="on"] .group--self .group__body:has(.imgcard) {
-  flex: 0 0 auto;
-  min-width: min(18rem, 92%);
-  max-width: min(36rem, 92%);
   align-items: stretch;
 }
 html[data-bubbles="on"] .group--self .line:has(.imgcard),
