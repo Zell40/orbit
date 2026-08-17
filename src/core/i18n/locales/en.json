@@ -362,7 +362,7 @@
       "linkPreviews": "Link previews",
       "linkPreviewsHint": "Show inline previews for links, images, audio and video.",
       "highlightLabel": "Highlight keywords",
-      "highlightPlaceholder": "e.g. tchatou, meet, urgent",
+      "highlightPlaceholder": "e.g. orbit, meet, urgent",
       "highlightHint": "Besides your nickname, these words trigger an alert (comma-separated).",
       "confirmClose": "Confirm before closing",
       "confirmCloseHint": "Show your browser’s own confirmation before closing or reloading while you’re connected."

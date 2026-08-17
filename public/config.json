@@ -24,13 +24,13 @@
     }
   },
   "branding": {
-    "name": "Tchatou",
-    "icon": "https://tchatou.fr/static/img/favicon.svg",
-    "url": "https://tchatou.fr",
+    "name": "Orbit",
+    "icon": "/app/orbit-icon.svg",
+    "url": "",
     "tagline": "Soyez au cœur des échanges,",
     "taglineEm": "là où tout commence.",
     "subtitle": "Le tchat français en direct. Choisissez un pseudo, et vous y êtes.",
-    "projectUrl": "https://orbit.tchatou.fr",
+    "projectUrl": "",
     "links": [],
     "accent": ""
   },
@@ -83,7 +83,7 @@
   "builtins": [],
   "analytics": {
     "endpoint": "/accounts/api/analytics/",
-    "siteId": "tchatou",
+    "siteId": "orbit",
     "gaId": "G-1PQFZWGNFX"
   },
   "securityGroups": [

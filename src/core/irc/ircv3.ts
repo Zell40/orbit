@@ -201,7 +201,7 @@ export class Ircv3 {
     if (!this.acked.has('message-tags')) return; // +typing rides on TAGMSG
     this.tx.send(`@+typing=${state} TAGMSG ${target}`);
   }
-  // draft/account-registration: create + confirm a Swaygo/Tchatou account. Gated at
+  // draft/account-registration: create + confirm a network account. Gated at
   // the UI (the register form only shows when the cap is present), so no guard here.
   register(account: string, email: string, password: string): void {
     this.tx.send(`REGISTER ${account} ${email} :${password}`);

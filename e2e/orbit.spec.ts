@@ -10,7 +10,7 @@ test.describe('Orbit against a live IRCv3 server (Ergo)', () => {
     // /app/?nick=…&channel=… . With it present, the client must connect straight
     // away, never showing the join form.
     await page.addInitScript(() => {
-      sessionStorage.setItem('tchatou_handoff', JSON.stringify({ password: '', t: Date.now() }));
+      sessionStorage.setItem('orbit_handoff', JSON.stringify({ password: '', t: Date.now() }));
     });
     await page.goto(`/app/?nick=${n}&channel=%23e2e`);
 

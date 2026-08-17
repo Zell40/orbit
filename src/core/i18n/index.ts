@@ -35,12 +35,19 @@ export const LANGS = [
 
 export type Lang = (typeof LANGS)[number]['code'];
 
-const KEY = 'tchatou-lang';
+const KEY = 'orbit-lang';
+const LEGACY_KEY = 'tchatou-lang';
 const CODES = LANGS.map((l) => l.code) as readonly string[];
 
 function detect(): string {
-  const saved = localStorage.getItem(KEY);
-  if (saved && CODES.includes(saved)) return saved;
+  try {
+    let saved = localStorage.getItem(KEY);
+    if (!saved) {
+      saved = localStorage.getItem(LEGACY_KEY);
+      if (saved) localStorage.setItem(KEY, saved);
+    }
+    if (saved && CODES.includes(saved)) return saved;
+  } catch { /* ignore */ }
   // browser language: exact (pt-BR) then base (pt → pt-PT, en, de…)
   for (const cand of navigator.languages ?? [navigator.language]) {
     if (CODES.includes(cand)) return cand;
@@ -82,7 +89,7 @@ if (i18n.language !== 'fr') void loadLang(i18n.language);
 // runtime config loads, so it can override the browser-detected language.
 export function applyConfigDefaultLang(code?: string): void {
   if (!code) return;
-  if (localStorage.getItem(KEY)) return;        // explicit user choice — honour it
+  if (localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY)) return; // explicit user choice — honour it
   if (!CODES.includes(code)) return;            // unknown language — ignore
   if (i18n.language === code) return;
   void loadLang(code);

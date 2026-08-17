@@ -334,7 +334,7 @@
       "linkPreviews": "Prévias de links",
       "linkPreviewsHint": "Mostra prévias de links, imagens, áudio e vídeo.",
       "highlightLabel": "Palavras-chave de destaque",
-      "highlightPlaceholder": "ex.: tchatou, encontro, urgente",
+      "highlightPlaceholder": "ex.: orbit, encontro, urgente",
       "highlightHint": "Além do seu apelido, estas palavras disparam um alerta (separadas por vírgulas).",
       "confirmClose": "Confirmar antes de fechar",
       "confirmCloseHint": "Mostrar a confirmação do próprio navegador antes de fechar ou recarregar enquanto você está conectado."

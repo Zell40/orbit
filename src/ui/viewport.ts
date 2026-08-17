@@ -22,7 +22,8 @@
 //      visual viewport.
 
 const root = document.documentElement;
-const KB_KEY = 'tchatou-kbh'; // remembered keyboard height, persisted across reloads
+const KB_KEY = 'orbit-kbh'; // remembered keyboard height, persisted across reloads
+const LEGACY_KB = 'tchatou-kbh';
 const ua = navigator.userAgent;
 const isIOS = /iP(hone|od|ad)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const OPEN_THRESHOLD = 60; // px; below this a viewport change isn't the keyboard (suggestion bar, url bar)
@@ -30,14 +31,16 @@ const OPEN_THRESHOLD = 60; // px; below this a viewport change isn't the keyboar
 let kbInset = 0;
 let kbOpen = false;
 let lastH = -1, lastTop = -1, hRaf = 0, topRaf = 0;
-try { kbInset = parseInt(localStorage.getItem(KB_KEY) || '0', 10) || 0; } catch { /* ignore */ }
+try {
+  kbInset = parseInt(localStorage.getItem(KB_KEY) || localStorage.getItem(LEGACY_KB) || '0', 10) || 0;
+} catch { /* ignore */ }
 
 function setH(px: number): void {
   const v = Math.round(px);
   if (v === lastH) return;
   root.style.setProperty('--app-h', `${v}px`);
   lastH = v;
-  window.dispatchEvent(new Event('tchatou:vh')); // re-pin the message list to the bottom
+  window.dispatchEvent(new Event('orbit:vh')); // re-pin the message list to the bottom
 }
 function setTop(px: number): void {
   const v = Math.round(px);

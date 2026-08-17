@@ -1,7 +1,7 @@
-// Tchatou service worker — installable PWA + offline app shell.
+// Orbit service worker — installable PWA + offline app shell.
 // Scope: /app/. Only handles same-origin /app/ GETs; the IRC websocket and all
 // API calls (cloudflare, change_password, upload) pass straight through.
-const CACHE = 'tchatou-__SW_BUILD__';
+const CACHE = 'orbit-__SW_BUILD__';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/orbit-icon.svg', '/app/manifest.webmanifest'];
 
 // No skipWaiting: a new SW stays waiting until every tab closes, so a running tab

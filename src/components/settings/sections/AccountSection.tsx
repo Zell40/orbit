@@ -205,7 +205,7 @@ function ChangePassword() {
   );
 }
 
-// Create a Tchatou account via IRCv3 draft/account-registration (REGISTER → e-mail
+// Create an account via IRCv3 draft/account-registration (REGISTER → e-mail
 // code → VERIFY → the server auto-logs you in).
 function RegisterForm() {
   const { t } = useTranslation();

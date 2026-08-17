@@ -8,7 +8,8 @@
 // works for logged-in accounts (the server persists the subscription by account).
 import type { IrcClient } from '../core/irc/client';
 
-const PREF_KEY = 'tchatou-push';
+const PREF_KEY = 'orbit-push';
+const LEGACY_PUSH = 'tchatou-push';
 
 export function isPushSupported(): boolean {
   return (
@@ -21,7 +22,11 @@ export function isPushSupported(): boolean {
 }
 
 export function pushEnabledPref(): boolean {
-  try { return localStorage.getItem(PREF_KEY) === 'on'; } catch { return false; }
+  try {
+    const v = localStorage.getItem(PREF_KEY) ?? localStorage.getItem(LEGACY_PUSH);
+    if (v === 'on' && !localStorage.getItem(PREF_KEY)) localStorage.setItem(PREF_KEY, 'on');
+    return v === 'on';
+  } catch { return false; }
 }
 
 function setPref(on: boolean): void {

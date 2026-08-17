@@ -145,13 +145,13 @@ const DEFAULT_CONFIG: AppConfig = {
   server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité' },
   startup: { channels: ['#accueil'], suggestions: ['#accueil', '#taverne', '#musique', '#devs', '#orbit'] },
   branding: {
-    name: 'Tchatou',
-    icon: 'https://tchatou.fr/static/img/favicon.svg',
-    url: 'https://tchatou.fr',
+    name: 'Orbit',
+    icon: '/app/orbit-icon.svg',
+    url: '',
     tagline: '',      // empty → connect screen falls back to the localised connect.tagline
     taglineEm: '',
     subtitle: '',
-    projectUrl: 'https://orbit.tchatou.fr',
+    projectUrl: '',
   },
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
   report: { service: 'ReportServ', target: '#staff' },

@@ -3,10 +3,11 @@ import { getConfig } from '../core/config';
 
 // Theme — persisted in localStorage, applied via [data-theme] on <html>.
 // 'yomirc' is a retro classic-mIRC skin (monospace, flat nick list, 16-colour log).
-// 'orbit' mirrors the orbit.tchatou.fr project site; 'orbit-dark' mirrors tchatou.fr.
+// 'orbit' / 'orbit-dark' are the built-in dark Orbit skins.
 export type Theme = 'light' | 'dark' | 'orbit' | 'orbit-dark' | 'yomirc' | 'yomirc-dark';
 
-const KEY = 'tchatou-theme'; // also read by the pre-paint script in index.html
+const KEY = 'orbit-theme'; // also read by the pre-paint script in index.html
+const LEGACY_KEY = 'tchatou-theme';
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
 
 // Themes registered at runtime by plugins (orbit.addTheme). Their ids are plain
@@ -32,8 +33,16 @@ function applyTheme(t: string): void {
 }
 
 const savedTheme = (): string => {
-  const t = localStorage.getItem(KEY) || '';
-  return THEMES.includes(t as Theme) ? t : 'light'; // plugin themes/config default resolved later
+  try {
+    let t = localStorage.getItem(KEY) || '';
+    if (!t) {
+      t = localStorage.getItem(LEGACY_KEY) || '';
+      if (t) localStorage.setItem(KEY, t);
+    }
+    return THEMES.includes(t as Theme) ? t : 'light';
+  } catch {
+    return 'light';
+  }
 };
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
@@ -63,7 +72,7 @@ export function usePluginThemes(): PluginTheme[] { return useThemeStore((s) => s
 
 // First-time visitors (no saved theme) adopt the config default once config loads.
 export function hydrateTheme(): void {
-  if (localStorage.getItem(KEY)) return;
+  if (localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY)) return;
   const d = getConfig().defaults.theme;
   const t = THEMES.includes(d as Theme) ? d : 'light';
   applyTheme(t);

@@ -1,15 +1,15 @@
 /* ============================================================================
-   Tchatou client — Element-style theme
+   Orbit client — Element-style theme
    Light, clean, productivity-first. Green accent, spaces rail, room list,
    filter pills, rounded avatars. Modeled on the Element (Matrix) web client.
    ========================================================================== */
 :root {
-  /* App accent (default: Tchatou France blue). Each theme redefines --accent*;
+  /* App accent (default: Orbit blue). Each theme redefines --accent*;
      config.branding.accent overrides it globally when set. */
   --accent: #1452cc;
   --accent-d: #0d3aa0;
-  /* Derived from the accent so it tracks a config.branding.accent override (e.g.
-     tchatou's orange) instead of staying a fixed blue tint. */
+  /* Derived from the accent so it tracks a config.branding.accent override
+     instead of staying a fixed blue tint. */
   --accent-soft: color-mix(in srgb, var(--accent) 9%, var(--bg));
   /* "online" green — presence dots only */
   --online: #1fd189;
@@ -1446,7 +1446,7 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .settings__brand { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 1.15rem 1.15rem .75rem; }
 .settings__brand-title { font-size: 1.18rem; font-weight: 800; letter-spacing: -.02em; }
 .settings__navlist { display: flex; flex-direction: column; gap: .12rem; padding: .3rem .6rem .8rem; overflow-y: auto; flex: 1; }
-/* "Propulsé par Orbit" — links to the project/source page (orbit.tchatou.fr) */
+/* "Propulsé par Orbit" — links to the project/source page (branding.projectUrl) */
 .settings__about { margin-top: auto; display: flex; align-items: center; gap: .6rem; padding: .7rem .9rem; border-top: 1px solid var(--border); color: var(--muted); transition: background .12s, color .12s; }
 .settings__about:hover { background: var(--bg-soft-2); color: var(--ink); }
 .settings__about-mark { font-size: 1.1rem; color: var(--accent-d); }

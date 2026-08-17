@@ -17,7 +17,7 @@ export interface NetOpts { url: string; nick: string; channels: string[] }
 
 export interface NetworkEntry {
   id: string;
-  label: string;      // display name in the sidebar (e.g. "Tchatou", "Libera")
+  label: string;      // display name in the sidebar (e.g. "Orbit", "Libera")
   store: ChatStore;   // the network's own chat store instance
   opts?: NetOpts;     // connection config (no password) — persisted across reloads
 }

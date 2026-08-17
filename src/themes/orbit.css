@@ -1,7 +1,7 @@
 /* Theme: orbit + orbit-dark. Loaded after index.css (see main.tsx) so these override the
    base component styles; only one [data-theme] is ever active at a time. */
 
-/* ============ ORBIT THEME — mirrors orbit.tchatou.fr (near-black slate, green accent) ============ */
+/* ============ ORBIT THEME — near-black slate, green accent ============ */
 [data-theme="orbit"] {
   --accent: #2ea043; --accent-d: #46c35c; --accent-soft: rgba(46,160,67,.16);
   --online: #2ea043; --online-d: #46c35c; --online-soft: rgba(46,160,67,.13);
@@ -32,7 +32,7 @@
 [data-theme="orbit"] .pm-avring {
   background: conic-gradient(from 130deg, #2ea043, #22813a, #176430, #2ea043);
 }
-/* ============ ORBIT-DARK — mirrors tchatou.fr (near-black, tchatou orange accent, Geist) ============ */
+/* ============ ORBIT-DARK — near-black, orange accent, Geist ============ */
 [data-theme="orbit-dark"] {
   --ink: #f3f4f6; --ink-2: #c9cace; --muted: #8b8c95; --faint: #5c5d66;
   --bg: #0d0d0f; --bg-soft: #141416; --bg-soft-2: #1b1b1e; --bg-active: #212126; --rail-bg: #060607;
@@ -71,7 +71,7 @@
   background: radial-gradient(70% 55% at 50% -8%, rgba(255,107,0,.07), transparent 60%), linear-gradient(180deg, #0c0c0e, #08080a 62%, #050506);
 }
 [data-theme="orbit-dark"] .cjoin__composer:focus-within { border-color: rgba(255,107,0,.6); }
-/* profile banner + avatar ring: tchatou orange, not the per-nick hue */
+/* profile banner + avatar ring: theme orange, not the per-nick hue */
 [data-theme="orbit-dark"] .pm-cover {
   background:
     radial-gradient(130% 150% at 18% 0%, rgba(255,107,0,.30), transparent 60%),

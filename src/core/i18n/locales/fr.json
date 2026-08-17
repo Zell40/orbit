@@ -291,7 +291,7 @@
       "wrongPassword": "Mot de passe incorrect.",
       "join": "Rejoindre",
       "channelHint": "Rejoins un salon (commence par #)",
-      "channelPlaceholder": "ex : tchatou, rdv, urgent",
+      "channelPlaceholder": "ex : orbit, rdv, urgent",
       "fromChannel": "Depuis le salon",
       "accountPlaceholder": "Nom du compte",
       "passwordPlaceholder": "Mot de passe",
@@ -362,7 +362,7 @@
       "linkPreviews": "Aperçus de liens",
       "linkPreviewsHint": "Affiche des aperçus pour les liens, images, audio et vidéos.",
       "highlightLabel": "Mots-clés de surbrillance",
-      "highlightPlaceholder": "ex : tchatou, rdv, urgent",
+      "highlightPlaceholder": "ex : orbit, rdv, urgent",
       "highlightHint": "En plus de ton pseudo, ces mots déclenchent une alerte (séparés par des virgules).",
       "confirmClose": "Confirmer avant de fermer",
       "confirmCloseHint": "Afficher la confirmation propre à votre navigateur avant de fermer ou recharger quand vous êtes connecté."

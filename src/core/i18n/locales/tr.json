@@ -334,7 +334,7 @@
       "linkPreviews": "Bağlantı önizlemeleri",
       "linkPreviewsHint": "Bağlantılar, resimler, ses ve videolar için önizleme gösterir.",
       "highlightLabel": "Vurgulama anahtar kelimeleri",
-      "highlightPlaceholder": "örn.: tchatou, buluşma, acil",
+      "highlightPlaceholder": "örn.: orbit, buluşma, acil",
       "highlightHint": "Takma adının yanı sıra bu kelimeler uyarı tetikler (virgülle ayrılmış).",
       "confirmClose": "Kapatmadan önce onayla",
       "confirmCloseHint": "Bağlıyken kapatmadan veya yeniden yüklemeden önce tarayıcının kendi onayını göster."

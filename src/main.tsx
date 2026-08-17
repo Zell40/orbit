@@ -22,15 +22,13 @@ initViewport()
 // register an empty one — enables the native press effect across all tappables.
 document.addEventListener('touchstart', () => {}, { passive: true })
 
-// Coordinated sign-out. Logging out on the tchatou.fr website (any same-origin
-// tab) writes a `tchatou-logout` beacon to localStorage; if this tab holds an
-// IDENTIFIED primary (tchatou) session, drop it too — so signing out means signed
-// out everywhere in this browser, not just on the site. A guest session and any
-// other IRC networks the user added are left untouched: clearing the resume state
-// and reloading returns the primary network to the join screen while extra
-// networks reconnect from their own saved config.
+// Coordinated sign-out. Logging out on the parent website (any same-origin tab)
+// writes an `orbit-logout` beacon to localStorage; if this tab holds an IDENTIFIED
+// primary session, drop it too — so signing out means signed out everywhere in
+// this browser, not just on the site. Legacy `tchatou-logout` is still honoured.
+// A guest session and any other IRC networks the user added are left untouched.
 window.addEventListener('storage', (e) => {
-  if (e.key !== 'tchatou-logout' || !e.newValue) return
+  if ((e.key !== 'orbit-logout' && e.key !== 'tchatou-logout') || !e.newValue) return
   void (async () => {
     const { useChat } = await import('./core/store')
     if (!useChat.getState().account) return // guest here — nothing to sign out

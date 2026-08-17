@@ -152,11 +152,11 @@ export function MessageList() {
     const ro = new ResizeObserver(onResize);
     if (ref.current) ro.observe(ref.current);
     if (flowRef.current) ro.observe(flowRef.current);
-    window.addEventListener('tchatou:vh', onViewport);
+    window.addEventListener('orbit:vh', onViewport);
     window.visualViewport?.addEventListener('resize', onViewport);
     return () => {
       ro.disconnect();
-      window.removeEventListener('tchatou:vh', onViewport);
+      window.removeEventListener('orbit:vh', onViewport);
       window.visualViewport?.removeEventListener('resize', onViewport);
     };
   }, []);

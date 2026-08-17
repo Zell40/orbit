@@ -4,7 +4,7 @@
 // server-first SASL message; we run navigator.credentials.get() over it and return
 // the assertion serialized exactly as the website's passkey login does, so the same
 // Django verifier (py_webauthn) validates it. Empty allowCredentials means the
-// browser offers whatever discoverable tchatou passkeys the authenticator holds —
+// browser offers whatever discoverable passkeys the authenticator holds —
 // no username needed; the passkey itself identifies the account.
 
 function bufToB64u(buf: ArrayBuffer): string {
@@ -27,7 +27,7 @@ export function passkeySupported(): boolean {
  * if the user cancels or the authenticator errors.
  */
 export async function passkeyAssertion(challenge: Uint8Array): Promise<string> {
-  // rpId must match the Django Relying Party (tchatou.fr). Derive it from the page so
+  // rpId must match the site's Relying Party. Derive it from the page so
   // a self-hoster on another domain works with no config, and so the apex + www hosts
   // both resolve to the registrable domain the passkey was created under.
   const rpId = location.hostname.replace(/^www\./, '');

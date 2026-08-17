@@ -334,7 +334,7 @@
       "linkPreviews": "Vistas previas de enlaces",
       "linkPreviewsHint": "Muestra vistas previas de enlaces, imágenes, audio y vídeo.",
       "highlightLabel": "Palabras clave de resaltado",
-      "highlightPlaceholder": "ej.: tchatou, quedada, urgente",
+      "highlightPlaceholder": "ej.: orbit, quedada, urgente",
       "highlightHint": "Además de tu apodo, estas palabras activan una alerta (separadas por comas).",
       "confirmClose": "Confirmar antes de cerrar",
       "confirmCloseHint": "Mostrar la confirmación propia de tu navegador antes de cerrar o recargar mientras estás conectado."

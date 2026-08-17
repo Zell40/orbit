@@ -19,7 +19,8 @@ export interface Prefs {
   showStatus: boolean;
 }
 
-const KEY = 'tchatou-prefs';
+const KEY = 'orbit-prefs';
+const LEGACY_KEY = 'tchatou-prefs';
 
 // Defaults come from config.json (so a deployment can preset compact/sound/etc.).
 function defaults(): Prefs {
@@ -34,8 +35,11 @@ function defaults(): Prefs {
 export function getPrefs(): Prefs {
   const d = defaults();
   try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return { ...d, ...JSON.parse(raw) };
+    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
+    if (raw) {
+      if (!localStorage.getItem(KEY)) localStorage.setItem(KEY, raw);
+      return { ...d, ...JSON.parse(raw) };
+    }
   } catch { /* ignore */ }
   return d;
 }

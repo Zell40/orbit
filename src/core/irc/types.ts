@@ -1,4 +1,4 @@
-// IRC / IRCv3 shared types for the Tchatou client.
+// IRC / IRCv3 shared types for the Orbit client.
 
 export interface IrcMessage {
   raw: string;

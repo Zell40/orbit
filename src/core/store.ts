@@ -296,7 +296,7 @@ export function createChatStore(ns = '') {
               if (b?.isChannel && !closedChannels.has(name)) client.join(b.name);
             }
           }
-          // network icon from the server's draft/ICON ISUPPORT token (else Tchatou favicon)
+          // network icon from the server's draft/ICON ISUPPORT token (else branding favicon)
           const icon = client.server.isupport['draft/ICON'] || client.server.isupport['ICON'];
           if (icon) set({ networkIcon: icon });
         }

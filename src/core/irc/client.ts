@@ -1,4 +1,4 @@
-// Tchatou IRC client — orchestrates the WebSocket transport, the IRCv3 capability
+// Orbit IRC client — orchestrates the WebSocket transport, the IRCv3 capability
 // layer, the registration handshake, and the high-level command senders.
 import { parseLine } from './parser';
 import { casefold } from './casemap';

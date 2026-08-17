@@ -2,7 +2,7 @@
 // Mode v2 (advanced), matching the marketing site. gtag.js loads for everyone but
 // starts DENIED: no cookies, only anonymous cookieless pings until the visitor opts
 // in via the consent banner / settings toggle, which flips it with setGaConsent().
-// Consent is SHARED with tchatou.fr through the tchatou-consent key (same origin),
+// Consent is shared with the parent site through the orbit-consent key (same origin),
 // so a prior grant is restored here before the first hit. Needs googletagmanager.com
 // + google-analytics.com in the app CSP.
 //

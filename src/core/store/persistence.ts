@@ -1,17 +1,24 @@
 // localStorage-backed lists (ignored nicks, friends, muted channels, highlight
 // words). Pure persistence helpers — no store state.
-const IGNORE_KEY = 'tchatou-ignored';
-const FRIENDS_KEY = 'tchatou-friends';
-const MUTED_KEY = 'tchatou-muted';
-export const HIGHLIGHT_KEY = 'tchatou-highlights';
-const NOTIFY_KEY = 'tchatou-notify';
-const PINS_KEY = 'tchatou-pins';
+import { lsRead, lsWrite } from '@/lib/storage-keys';
+
+const IGNORE_KEY = 'orbit-ignored';
+const FRIENDS_KEY = 'orbit-friends';
+const MUTED_KEY = 'orbit-muted';
+export const HIGHLIGHT_KEY = 'orbit-highlights';
+const NOTIFY_KEY = 'orbit-notify';
+const PINS_KEY = 'orbit-pins';
+
+function loadRaw(key: string, legacy: string): string | null {
+  return lsRead(key, legacy);
+}
 
 export function loadStr(key: string): string[] {
-  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+  const legacy = key.replace(/^orbit-/, 'tchatou-');
+  try { return JSON.parse(loadRaw(key, legacy) || '[]'); } catch { return []; }
 }
 export function saveStr(key: string, list: string[]): void {
-  try { localStorage.setItem(key, JSON.stringify(list)); } catch { /* ignore */ }
+  lsWrite(key, JSON.stringify(list));
 }
 
 // Per-channel notification level (canon key → 'all' | 'mentions' | 'mute').
@@ -21,7 +28,7 @@ export type NotifyLevel = 'all' | 'mentions' | 'mute';
 // two networks' same-named channels don't clobber each other in localStorage.
 export function loadNotify(ns = ''): Record<string, NotifyLevel> {
   try {
-    const raw = localStorage.getItem(NOTIFY_KEY + ns);
+    const raw = loadRaw(NOTIFY_KEY + ns, `tchatou-notify${ns}`);
     if (raw) return JSON.parse(raw);
     if (ns) return {};
     // Migrate legacy muted channels → level 'mute' (primary only).
@@ -31,17 +38,19 @@ export function loadNotify(ns = ''): Record<string, NotifyLevel> {
   } catch { return {}; }
 }
 export function saveNotify(map: Record<string, NotifyLevel>, ns = ''): void {
-  try { localStorage.setItem(NOTIFY_KEY + ns, JSON.stringify(map)); } catch { /* ignore */ }
+  lsWrite(NOTIFY_KEY + ns, JSON.stringify(map));
 }
 
 // Pinned messages are client-local (IRC has no pin protocol) — a snapshot of the
 // line, kept per canon channel key, newest first.
 export interface Pin { id: string; from: string; text: string; ts: number; }
 export function loadPins(ns = ''): Record<string, Pin[]> {
-  try { return JSON.parse(localStorage.getItem(PINS_KEY + ns) || '{}'); } catch { return {}; }
+  try {
+    return JSON.parse(loadRaw(PINS_KEY + ns, `tchatou-pins${ns}`) || '{}');
+  } catch { return {}; }
 }
 export function savePins(map: Record<string, Pin[]>, ns = ''): void {
-  try { localStorage.setItem(PINS_KEY + ns, JSON.stringify(map)); } catch { /* ignore */ }
+  lsWrite(PINS_KEY + ns, JSON.stringify(map));
 }
 
 export const PIN_CAP = 30; // most-recent pins kept per channel
