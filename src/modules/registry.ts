@@ -11,7 +11,7 @@ import type { ReactNode } from 'react';
 // 'overlay' renders at the app root, always mounted and free of any transformed
 // or hidden ancestor — the home for a plugin's own fixed popover/panel, so its
 // launcher button can live (and move) anywhere without unmounting the panel.
-export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'sidebar_item' | 'footer_item' | 'nav_item' | 'navbar' | 'overlay';
+export type UiSlot = 'composer_button' | 'settings_section' | 'topbar_item' | 'topbar_more_item' | 'sidebar_item' | 'footer_item' | 'nav_item' | 'navbar' | 'overlay';
 
 export interface PluginUi {
   id: string;
@@ -57,7 +57,14 @@ export interface PluginPerUser {
 // A message offered to plugin filters before it is shown. Returning true from a
 // filter suppresses the message from the chat display (plugins still see it via
 // on('raw')). Used e.g. to hide a service's machine-readable control lines.
-export interface FilterableMessage { nick: string; command: string; target: string; text: string; }
+export interface FilterableMessage {
+  nick: string;
+  command: string;
+  target: string;
+  text: string;
+  /** Client/server tags worth keeping for plugins (e.g. conference invites). */
+  tags?: Record<string, string>;
+}
 export interface PluginFilter {
   id: string;
   plugin: string;

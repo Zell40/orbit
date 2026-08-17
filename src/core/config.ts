@@ -139,10 +139,28 @@ export interface AppConfig {
     channels?: boolean;
     queries?: boolean;
     enabledInChannels?: string[];
+    disabledInChannels?: string[];
     viewHeight?: string;
     inviteText?: string;
     joinText?: string;
     joinButtonText?: string;
+    /** Require a logged-in IRC account (blocks guests / non-reg). */
+    requireAccount?: boolean;
+    /** On channels, only ops (~&@, optionally %) may start a conference. */
+    requireChannelOp?: boolean;
+    /** Prefixes allowed to start (default "~&@"). */
+    startPrefixes?: string;
+    /** Security-group name fragments that forbid join/start (matched in WHOIS special). */
+    denyGroups?: string[];
+    /** If set, user must match at least one (WHOIS special / account heuristics). */
+    requireGroups?: string[];
+    /** Soft cap passed to Jitsi configOverwrite (server MAX_PARTICIPANTS is authoritative). */
+    maxParticipantsChannel?: number;
+    maxParticipantsQuery?: number;
+    /** Append public Meet URL in the IRC invite (for non-Orbit clients). */
+    publicLinkInInvite?: boolean;
+    /** Hide tagged conference IRC lines in Orbit (Join banner instead). */
+    hideInviteForOrbit?: boolean;
   };
   securityGroups?: string[];
 }

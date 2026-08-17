@@ -44,8 +44,8 @@ export function Chat() {
         {/* Gallery plugin paints --rg-pic here for a soft room backdrop. */}
         <div className="main__room-bg" aria-hidden="true" />
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
-        {mainBanners.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
         <ChannelTopicBanner />
+        {mainBanners.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
         <MessageList />
         <Composer />
       </main>

@@ -111,8 +111,8 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {plugLead.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugLead)}</span>}
       {!isServer && <button className="topbar__search topbar__hide-mobile" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
       {isChannel && <NotifyMenu />}
-      {/* Camera stays visible on mobile (next to notifications); not collapsed into ⋮ */}
-      {plugAfterNotify.length > 0 && <span className="topbar__plugins">{renderPlugins(plugAfterNotify)}</span>}
+      {/* Camera: desktop topbar only — mobile uses the ⋮ menu (topbar_more_item). */}
+      {plugAfterNotify.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterNotify)}</span>}
       {plugRest.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugRest)}</span>}
       {isChannel && <PinMenu />}
       {isChannel && amOp && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}

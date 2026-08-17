@@ -99,7 +99,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     const mfilters = usePluginRegistry.getState().messageFilters;
     // A plugin filter that throws must not abort handling of the message.
     const filtered = mfilters.some((f) => {
-      try { return f.fn({ nick: msg.nick || '', command: msg.command, target, text }); }
+      try { return f.fn({ nick: msg.nick || '', command: msg.command, target, text, tags: clientTagsForPlugins(msg.tags) }); }
       catch (e) { console.error('[plugins] message filter threw', e); return false; }
     });
     if (filtered) return true;

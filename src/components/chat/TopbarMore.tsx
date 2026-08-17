@@ -2,16 +2,20 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
+import { usePluginRegistry } from '@/modules/registry';
+import { PluginBoundary } from '../PluginBoundary';
 
 // Mobile overflow ("⋮") for the topbar's one-shot channel actions. A phone header
 // can't hold every button, so search / manage / leave collapse in here; the notify
 // and pin buttons stay inline because their glyph carries state (mute, pin count).
+// Plugins may add `topbar_more_item` rows (e.g. conference on mobile).
 export function TopbarMore({ bname, isChannel, amOp, onSearch }:
   { bname: string; isChannel: boolean; amOp: boolean; onSearch: () => void }) {
   const { t } = useTranslation();
   const setModal = useActiveChat((s) => s.setModal);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const openUser = useActiveChat((s) => s.openUser);
+  const morePlugins = usePluginRegistry((s) => s.ui.filter((u) => u.slot === 'topbar_more_item'));
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -38,6 +42,11 @@ export function TopbarMore({ bname, isChannel, amOp, onSearch }:
             <span className="nmenu__ic" aria-hidden><Icon name="search" size={18} /></span>
             <span className="nmenu__txt"><b>{t('topbar.search')}</b></span>
           </button>
+          {morePlugins.map((u) => (
+            <div key={u.id} role="none" onClick={() => setOpen(false)}>
+              <PluginBoundary render={u.render} label="topbar_more_item" />
+            </div>
+          ))}
           {!isChannel && (
             <button className="nmenu__item" role="menuitem" onClick={() => run(() => openUser(bname))}>
               <span className="nmenu__ic" aria-hidden><Icon name="user" size={18} /></span>
