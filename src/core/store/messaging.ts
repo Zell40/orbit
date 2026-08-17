@@ -21,6 +21,17 @@ import type { StoreHelpers } from './helpers';
 // endless fake service-tagged nicks to grow the learned set without bound.
 const KNOWN_SERVICES_CAP = 256;
 
+/** Client tags plugins may read (skip tags already mapped to first-class fields). */
+function clientTagsForPlugins(tags: Record<string, string>): Record<string, string> | undefined {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(tags)) {
+    if (!k.startsWith('+')) continue;
+    if (k === '+draft/reply' || k === '+draft/channel-context') continue;
+    out[k] = v;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 interface MessagingDeps {
   get: StoreApi<ChatState>['getState'];
   set: StoreApi<ChatState>['setState'];
@@ -157,6 +168,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       text: self && (svcParty || isService(bufferName)) ? maskSecret(noticeText) : noticeText, ts: tsOf(msg), kind, self,
       replyTo: msg.tags['+draft/reply'],
       channelContext: chanCtx,
+      tags: clientTagsForPlugins(msg.tags),
     };
     // Remember an incoming PM's channel context so our replies carry it back
     // (a one-off notice isn't a thread we reply into, so it doesn't seed this).

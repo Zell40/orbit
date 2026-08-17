@@ -24,6 +24,7 @@ function attachClient(client: IrcClient): void {
         target: msg.params[0],
         text: msg.params[1] ?? '',
         self: msg.nick === activeStore().getState().nick,
+        tags: msg.tags,
       });
     }
   });

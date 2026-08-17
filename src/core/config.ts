@@ -128,6 +128,22 @@ export interface AppConfig {
   };
   /** The network's securitygroup names, for the securitygroup extban quick-pick.
    *  The ircd doesn't advertise them, so list them here to click instead of type. */
+  /** Optional Jitsi conference plugin settings (orbit-conference). */
+  conference?: {
+    /** Jitsi Meet domain, e.g. meet.example.com (no https://). */
+    server?: string;
+    /** JWT / EXTJWT auth against a self-hosted Jitsi (not public meet.jit.si). */
+    secure?: boolean;
+    /** Value of the +entrenous.fr/conference client tag. */
+    tagID?: string;
+    channels?: boolean;
+    queries?: boolean;
+    enabledInChannels?: string[];
+    viewHeight?: string;
+    inviteText?: string;
+    joinText?: string;
+    joinButtonText?: string;
+  };
   securityGroups?: string[];
 }
 

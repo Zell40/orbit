@@ -25,7 +25,7 @@ const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomi
 // Plugin API contract version. Bumped on any change to the surface below so
 // plugins can feature-detect (e.g. `if (Orbit.apiVersion >= 6) orbit.server.hasCap(…)`).
 // Still experimental.
-const API_VERSION = 6;
+const API_VERSION = 7;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -79,6 +79,8 @@ export interface OrbitPluginApi {
   irc: {
     send: (line: string) => void;
     msg: (target: string, text: string) => void;
+    /** PRIVMSG with client tags (requires message-tags). Falls back to plain msg. */
+    msgTagged: (target: string, text: string, tags: Record<string, string>) => void;
     say: (text: string) => void;
     join: (channel: string) => void;
     part: (channel: string) => void;
@@ -160,6 +162,7 @@ function makeApi(name: string): OrbitPluginApi {
     irc: {
       send: (line) => activeStore().getState().client?.send(line),
       msg: (target, text) => activeStore().getState().client?.privmsg(target, text),
+      msgTagged: (target, text, tags) => activeStore().getState().client?.privmsgTagged(target, text, tags),
       say: (text) => activeStore().getState().sendInput(text),
       join: (channel) => { const s = activeStore().getState(); s.client?.join(channel); s.setActive(channel); },
       part: (channel) => activeStore().getState().client?.part(channel),

@@ -18,6 +18,16 @@ function unescapeTagValue(value: string): string {
   return out;
 }
 
+/** Escape a tag value for the wire (IRCv3 message-tags). */
+export function escapeTagValue(value: string): string {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\:')
+    .replace(/ /g, '\\s')
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n');
+}
+
 export function parseTags(raw: string): Record<string, string> {
   const tags: Record<string, string> = {};
   for (const part of raw.split(';')) {

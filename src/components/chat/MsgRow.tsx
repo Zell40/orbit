@@ -19,7 +19,10 @@ import { firstOfRun } from './msg-runs';
 const QUICK = ['👍', '😂', '❤️', '🔥'];
 
 const msgInfo = (m: ChatMessage): MessageInfo =>
-  ({ id: m.id, nick: m.from, text: stripFormatting(m.text), raw: m.text, kind: m.kind, ts: m.ts, mine: !!m.self });
+  ({
+    id: m.id, nick: m.from, text: stripFormatting(m.text), raw: m.text,
+    kind: m.kind, ts: m.ts, mine: !!m.self, buffer: m.bufferName, tags: m.tags,
+  });
 
 // Plugin-contributed inline decorators (badges/chips after the message text).
 // Each runs inside its own error boundary so a crashing plugin can't take down the list.

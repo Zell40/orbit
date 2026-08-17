@@ -47,6 +47,8 @@ export interface ChatMessage {
   reactions?: Reaction[];
   replyTo?: string;      // msgid this replies to
   channelContext?: string; // +draft/channel-context: this DM relates to this channel
+  /** Client / server message-tags worth keeping for plugins (e.g. conference invites). */
+  tags?: Record<string, string>;
   mask?: string;         // user@host for join/part/quit lines (shown mIRC-style in yomirc)
 }
 

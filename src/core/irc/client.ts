@@ -1,6 +1,6 @@
 // Orbit IRC client — orchestrates the WebSocket transport, the IRCv3 capability
 // layer, the registration handshake, and the high-level command senders.
-import { parseLine } from './parser';
+import { parseLine, escapeTagValue } from './parser';
 import { casefold } from './casemap';
 import { Transport } from './transport';
 import { Ircv3 } from './ircv3';
@@ -208,6 +208,17 @@ export class IrcClient {
     }
     const pre = ctx ? `@${ctx} ` : '';
     for (const part of this.splitForLine('PRIVMSG', target, text)) this.send(`${pre}PRIVMSG ${target} :${part}`);
+  }
+  /** PRIVMSG with arbitrary client tags (needs message-tags). Falls back to plain msg. */
+  privmsgTagged(target: string, text: string, tags: Record<string, string>): void {
+    if (!this.ircv3.hasCap('message-tags') || !Object.keys(tags).length) {
+      this.privmsg(target, text);
+      return;
+    }
+    const tagStr = Object.entries(tags)
+      .map(([k, v]) => (v === '' ? k : `${k}=${escapeTagValue(v)}`))
+      .join(';');
+    for (const part of this.splitForLine('PRIVMSG', target, text)) this.send(`@${tagStr} PRIVMSG ${target} :${part}`);
   }
   private batchSeq = 0;
   private multilineMsg(target: string, lines: string[], ctx = ''): void {

@@ -32,6 +32,10 @@ export interface MessageInfo {
   kind: string;
   ts: number;
   mine: boolean;
+  /** Buffer this message lives in (#channel or query nick). */
+  buffer?: string;
+  /** Client message-tags available to plugins (e.g. +entrenous.fr/conference). */
+  tags?: Record<string, string>;
 }
 
 // Per-message contributions. A decorator renders inline after the text (badges,
