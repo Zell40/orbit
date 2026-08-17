@@ -1,10 +1,10 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
-import type { IrcMessage } from '../irc/types';
+import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { SERVER, canon, isChannelName } from './context';
 import type { StoreApi } from 'zustand';
-import type { ChatState } from '../store';
+import type { ChatState, KickInfo } from '../store';
 import type { StoreHelpers } from './helpers';
 
 interface NumericsDeps {
@@ -22,6 +22,39 @@ interface NumericsDeps {
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
 const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422']);
+
+function findSelfMember(buf: ChatState['buffers'][string] | undefined, nick: string): Member | undefined {
+  if (!buf) return undefined;
+  if (buf.members[nick]) return buf.members[nick];
+  const folded = canon(nick);
+  for (const [k, m] of Object.entries(buf.members)) {
+    if (canon(k) === folded) return m;
+  }
+  return undefined;
+}
+
+function canSpeak(member: Member | undefined): boolean {
+  const p = member?.prefixes || member?.prefix || '';
+  return /[~&@%+]/.test(p);
+}
+
+/** Split ERR_CANNOTSENDTOCHAN into calm +m vs ban/quiet — never conflate the two. */
+function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatState>['getState']): Extract<KickInfo['kind'], 'moderated' | 'mute'> {
+  const text = trailing.toLowerCase();
+  const banish = /\(\+[bq]\)|\bbanned\b|\bban(?:ned)?\b|\bquiet(?:ed)?\b|\bsilenced?\b/.test(text);
+  const moderated = /\(\+m\)|\bmoderat|\bno.?voice|\bneed.?voice|\bonly\s+oper|\bvoices?\s+only/.test(text);
+  if (banish && !moderated) return 'mute';
+  if (moderated) return 'moderated';
+
+  const buf = get().buffers[canon(ch)];
+  const modes = buf?.modes || '';
+  if (modes.includes('m') && !canSpeak(findSelfMember(buf, get().nick))) return 'moderated';
+  if (modes.includes('m') && canSpeak(findSelfMember(buf, get().nick))) return 'mute';
+  if (banish) return 'mute';
+  // No clear signal: prefer the calmer +m reading when the channel is moderated.
+  if (modes.includes('m')) return 'moderated';
+  return 'mute';
+}
 
 // Numeric replies (RPL_*/ERR_*), split out of handler.ts. Returns true when the
 // numeric was consumed. Every 3-digit reply is either handled by name here or
@@ -253,16 +286,21 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         }
         break;
       }
-      case '404': { // ERR_CANNOTSENDTOCHAN: we tried to talk but we're banned / channel is moderated
+      case '404': { // ERR_CANNOTSENDTOCHAN — distinguish +m (calm) from ban/quiet (restricted)
         const ch = msg.params[1];
         if (!isChannelName(ch)) return true;
         const now = Date.now();
-        if (now - (lastCantSend[ch] || 0) < 12000) return true; // already told them recently — don't spam
+        if (now - (lastCantSend[ch] || 0) < 12000) return true;
         lastCantSend[ch] = now;
-        sysLine(ch, `⛔ ${i18n.t('system.cantWriteHere')}`, 'system');
-        desktopNotify(i18n.t('system.cantWriteTitle', { ch }), i18n.t('system.cantWriteBody'));
+        const trailing = (msg.params[msg.params.length - 1] || '').trim();
+        const kind = classifyCannotSend(ch, trailing, get);
+        const lineKey = kind === 'moderated' ? 'system.cantWriteModerated' : 'system.cantWriteRestricted';
+        const titleKey = kind === 'moderated' ? 'system.cantWriteModeratedTitle' : 'system.cantWriteRestrictedTitle';
+        const bodyKey = kind === 'moderated' ? 'system.cantWriteModeratedBody' : 'system.cantWriteRestrictedBody';
+        sysLine(ch, i18n.t(lineKey), 'system');
+        desktopNotify(i18n.t(titleKey, { ch }), i18n.t(bodyKey));
         if (get().prefs.sound) blip();
-        set({ kicked: { channel: ch, by: '', reason: '', kind: 'mute' } });
+        set({ kicked: { channel: ch, by: '', reason: trailing, kind } });
         return true;
       }
       case '474': { // ERR_BANNEDFROMCHAN: join refused — we're banned from the channel

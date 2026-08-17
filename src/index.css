@@ -1877,28 +1877,51 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .composer--console .composer__send { background: var(--accent); box-shadow: none; }
 .composer--console .composer__send:hover:not(:disabled) { background: var(--term-accent-2); }
 
-/* "You were kicked" box — centred on screen */
+/* Kick / can't-write toast — centred; tone varies (kick/ban vs calm +m) */
 .kicktoast {
   position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 140;
-  display: flex; align-items: center; gap: .7rem;
-  max-width: min(440px, 94vw); padding: .85rem 1rem .85rem 1.05rem;
-  background: var(--bg); border: 1px solid var(--border); border-left: 4px solid var(--danger);
-  border-radius: 14px; box-shadow: var(--shadow-pop);
+  display: flex; align-items: flex-start; gap: .75rem;
+  max-width: min(420px, 94vw); padding: 1rem 1.05rem 1rem 1rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 16px; box-shadow: var(--shadow-pop);
   animation: kt-rise .22s cubic-bezier(.2,.8,.2,1) both;
 }
-.kicktoast__ic { font-size: 1.3rem; flex: none; }
-.kicktoast__body { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
-.kicktoast__body strong { font-size: .92rem; color: var(--ink); }
-.kicktoast__sub { font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kicktoast--kick,
+.kicktoast--ban { border-left: 4px solid var(--danger); }
+.kicktoast--restricted { border-left: 4px solid color-mix(in srgb, var(--danger) 72%, #c47a2a); }
+.kicktoast--moderated { border-left: 4px solid var(--accent); }
+.kicktoast__badge {
+  flex: none; width: 2.35rem; height: 2.35rem; border-radius: 50%;
+  display: grid; place-items: center; margin-top: .05rem;
+}
+.kicktoast--kick .kicktoast__badge,
+.kicktoast--ban .kicktoast__badge {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, var(--bg));
+}
+.kicktoast--restricted .kicktoast__badge {
+  color: color-mix(in srgb, var(--danger) 70%, #b86a1a);
+  background: color-mix(in srgb, var(--danger) 10%, var(--bg));
+}
+.kicktoast--moderated .kicktoast__badge {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.kicktoast__body { display: flex; flex-direction: column; gap: .28rem; min-width: 0; flex: 1; padding-top: .12rem; }
+.kicktoast__body strong { font-size: .95rem; font-weight: 700; color: var(--ink); line-height: 1.25; }
+.kicktoast__sub {
+  font-size: .82rem; line-height: 1.4; color: var(--muted);
+  white-space: normal; overflow: visible; text-overflow: unset;
+}
 .kicktoast__rejoin {
-  flex: none; border: 0; border-radius: 9px; padding: .42rem .8rem;
+  flex: none; align-self: center; border: 0; border-radius: 9px; padding: .42rem .8rem;
   background: var(--ink); color: var(--bg); font-size: .82rem; font-weight: 700; cursor: pointer;
   transition: opacity .14s;
 }
 .kicktoast__rejoin:hover { opacity: .85; }
 .kicktoast__close {
   flex: none; border: 0; background: transparent; color: var(--muted);
-  font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0 .2rem;
+  font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0 .15rem; margin-top: -.1rem;
 }
 .kicktoast__close:hover { color: var(--ink); }
 @keyframes kt-rise { from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
