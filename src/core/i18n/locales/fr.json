@@ -768,7 +768,10 @@
     "emoji": "Emoji",
     "send": "Envoyer",
     "replyTo": "Réponse à",
-    "cancelReply": "Annuler la réponse"
+    "cancelReply": "Annuler la réponse",
+    "autocomplete": "Suggestions",
+    "autocompleteHint": "Tab pour valider · ↑↓ pour choisir",
+    "autocompleteCmd": "cmd"
   },
   "media": {
     "image": "Image",

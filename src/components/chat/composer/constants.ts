@@ -16,4 +16,8 @@ export const EMOJI_NAMES: Record<string, string> = {
 };
 
 // Slash commands offered by tab-completion (with a leading '/').
-export const SLASH_COMMANDS = ['me', 'msg', 'join', 'part', 'nick', 'whois', 'topic', 'kick', 'ban', 'op', 'deop', 'voice', 'ignore', 'unignore', 'list', 'clear', 'help'];
+export const SLASH_COMMANDS = [
+  'away', 'ban', 'clear', 'deop', 'help', 'ignore', 'invite', 'join', 'kick',
+  'list', 'me', 'mode', 'msg', 'names', 'nick', 'notice', 'op', 'part', 'query',
+  'quit', 'topic', 'unignore', 'voice', 'whois',
+];

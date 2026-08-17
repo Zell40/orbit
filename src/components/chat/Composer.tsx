@@ -11,8 +11,15 @@ import { EMOJIS, EMOJI_NAMES, SLASH_COMMANDS } from './composer/constants';
 import { TypingIndicator } from './composer/TypingIndicator';
 import { ReplyBar } from './composer/ReplyBar';
 import { useVoiceRecorder } from './composer/useVoiceRecorder';
-import { completeToken } from './composer/complete';
+import { completeToken, type CompletionKind } from './composer/complete';
 import { createSentHistory } from './composer/history';
+
+type AcState = { start: number; cands: string[]; idx: number; kind: CompletionKind };
+
+function acLabel(pick: string, kind: CompletionKind): string {
+  if (kind === 'emoji') return pick;
+  return pick.replace(/\s+$/, '');
+}
 
 // ── Rich composer plumbing ───────────────────────────────────────────────────
 // The composer is a contentEditable so the user sees real bold/italic/colour as
@@ -38,6 +45,7 @@ export function Composer() {
   const [empty, setEmpty] = useState(true);   // truly empty → show the placeholder hint
   const [blank, setBlank] = useState(true);   // whitespace-only → keep the send button disabled
   const [fmt, setFmt] = useState({ b: false, i: false, u: false });
+  const [ac, setAc] = useState<AcState | null>(null);
   const fgRef = useRef('');                 // active text colour, kept sticky across sends
   const ed = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -75,12 +83,50 @@ export function Composer() {
     setEmpty(!text);
     setBlank(!text.trim());
   }
+
+  function completeCtx() {
+    const st = activeStore().getState();
+    const members = Array.from(new Set([
+      ...Object.keys(st.buffers[active]?.members ?? {}),
+      ...st.order.filter((n) => st.buffers[n] && !st.buffers[n].isChannel && n !== SERVER),
+    ]));
+    const channels = Array.from(new Set([
+      ...st.order.filter((n) => st.buffers[n]?.isChannel),
+      ...st.channels.map((c) => c.name),
+      ...(getConfig().startup.suggestions ?? []),
+    ]));
+    const pluginCmds = usePluginRegistry.getState().commands.map((cmd) => cmd.name);
+    return { members, channels, pluginCmds, slashCommands: SLASH_COMMANDS, emojiNames: EMOJI_NAMES };
+  }
+
+  function refreshAc() {
+    const root = ed.current; if (!root) { setAc(null); return; }
+    const text = root.textContent || '';
+    const pos = caretIndex(root);
+    const res = completeToken(text, pos, completeCtx());
+    if (!res) { setAc(null); return; }
+    if (res.kind === 'channel' && !listed.current) {
+      const st = activeStore().getState();
+      if (!st.channels.length) { listed.current = true; st.refreshChannels(); }
+    }
+    setAc((prev) => {
+      const same = prev
+        && prev.start === res.start
+        && prev.kind === res.kind
+        && prev.cands.length === res.candidates.length
+        && prev.cands.every((c, i) => c === res.candidates[i]);
+      if (same && prev) return prev;
+      return { start: res.start, cands: res.candidates, idx: 0, kind: res.kind };
+    });
+  }
+
   function changed() {
     const root = ed.current; if (!root) return;
     reflect();
     if ((root.textContent || '').trim() && !isConsole) notifyTyping();
     history.reset(); // typing exits history-recall mode
     syncFmt();
+    refreshAc();
   }
 
   // Keep the toolbar in sync as the caret/selection moves around the editor.
@@ -106,6 +152,7 @@ export function Composer() {
     root.innerHTML = ircToHtml(activeStore().getState().drafts[active] ?? '');
     reflect();
     cyc.current = null;
+    setAc(null);
     prevActive.current = active;
   }, [active, setDraft]);
 
@@ -130,6 +177,7 @@ export function Composer() {
     setEmpty(true); setBlank(true);
     setDraft(active, '');
     cyc.current = null;
+    setAc(null);
     reapplySticky();   // keep bold/italic/colour active for the next line
   }
 
@@ -186,7 +234,18 @@ export function Composer() {
 
   // Tab-completion over the editor's plain text: nicks, /commands, :emoji:. The
   // candidate logic is pure (composer/complete.ts, unit-tested); here we own the
-  // cycle-through-matches state and the DOM insertion.
+  // cycle-through-matches state, the suggestion popup, and the DOM insertion.
+  function applyCompletion(cands: string[], start: number, idx: number) {
+    const root = ed.current; if (!root) return;
+    const pick = cands[idx];
+    const pos = caretIndex(root);
+    selectRange(root, start, pos);
+    document.execCommand('insertText', false, pick);
+    cyc.current = { start, len: pick.length, cands, idx };
+    setAc(null);
+    reflect();
+  }
+
   function tabComplete() {
     const root = ed.current; if (!root) return;
     const text = root.textContent || '';
@@ -199,25 +258,28 @@ export function Composer() {
       selectRange(root, c.start, c.start + c.len);
       document.execCommand('insertText', false, pick);
       c.len = pick.length;
+      setAc(null);
+      reflect();
       return;
     }
 
-    const st = activeStore().getState();
-    const members = Object.keys(st.buffers[active]?.members ?? {});
-    // Channels: ones I'm in + the network LIST + configured suggestions. The first
-    // channel Tab kicks off a one-time LIST so completion covers the whole network.
-    const channels = Array.from(new Set([
-      ...st.order.filter((n) => st.buffers[n]?.isChannel),
-      ...st.channels.map((c) => c.name),
-      ...(getConfig().startup.suggestions ?? []),
-    ]));
-    const pluginCmds = usePluginRegistry.getState().commands.map((cmd) => cmd.name);
-    const res = completeToken(text, pos, { members, channels, pluginCmds, slashCommands: SLASH_COMMANDS, emojiNames: EMOJI_NAMES });
+    if (ac && ac.cands.length) {
+      applyCompletion(ac.cands, ac.start, ac.idx);
+      return;
+    }
+
+    const res = completeToken(text, pos, completeCtx());
     if (!res) return;
-    if (text[res.start] === '#' && !st.channels.length && !listed.current) { listed.current = true; st.refreshChannels(); }
-    selectRange(root, res.start, pos);
-    document.execCommand('insertText', false, res.candidates[0]);
-    cyc.current = { start: res.start, len: res.candidates[0].length, cands: res.candidates, idx: 0 };
+    if (res.kind === 'channel' && !listed.current) {
+      const st = activeStore().getState();
+      if (!st.channels.length) { listed.current = true; st.refreshChannels(); }
+    }
+    applyCompletion(res.candidates, res.start, 0);
+  }
+
+  function acceptAc(idx: number) {
+    if (!ac) return;
+    applyCompletion(ac.cands, ac.start, idx);
   }
 
   function uploadFrom(dt: DataTransfer | null | undefined): boolean {
@@ -267,6 +329,29 @@ export function Composer() {
         onDragOver={(e) => { if (!isConsole) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { setDragOver(false); if (uploadFrom(e.dataTransfer)) e.preventDefault(); }}>
+        {ac && ac.cands.length > 0 && (
+          <div className="composer__ac" role="listbox" aria-label={t('composer.autocomplete')}>
+            <div className="composer__ac-hint">{t('composer.autocompleteHint')}</div>
+            <ul className="composer__ac-list">
+              {ac.cands.slice(0, 12).map((cand, i) => (
+                <li key={`${ac.kind}-${cand}-${i}`}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={i === ac.idx}
+                    className={`composer__ac-item ${i === ac.idx ? 'is-on' : ''} composer__ac-item--${ac.kind}`}
+                    onMouseDown={(e) => { e.preventDefault(); acceptAc(i); }}
+                  >
+                    <span className="composer__ac-main">{acLabel(cand, ac.kind)}</span>
+                    {ac.kind === 'slash' && <span className="composer__ac-tag">{t('composer.autocompleteCmd')}</span>}
+                    {ac.kind === 'channel' && <span className="composer__ac-tag">#</span>}
+                    {ac.kind === 'nick' && <span className="composer__ac-tag">@</span>}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {recording && (
           <div className="composer__rec">
             <span className="composer__rec-dot" aria-hidden="true" />
@@ -312,6 +397,21 @@ export function Composer() {
             if (t != null) { e.preventDefault(); document.execCommand('insertText', false, t); changed(); }
           }}
           onKeyDown={(e) => {
+            if (ac && ac.cands.length) {
+              if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const dir = e.key === 'ArrowDown' ? 1 : -1;
+                const max = Math.min(ac.cands.length, 12);
+                setAc((a) => a && ({ ...a, idx: (a.idx + dir + max) % max }));
+                return;
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setAc(null);
+                cyc.current = null;
+                return;
+              }
+            }
             if (e.key === 'Tab') { e.preventDefault(); tabComplete(); return; }
             if (e.key !== 'Tab') cyc.current = null;
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); return; }
