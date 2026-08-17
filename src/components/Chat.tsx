@@ -24,7 +24,10 @@ export function Chat() {
   const ui = usePluginRegistry((s) => s.ui);
   const navbar = ui.filter((u) => u.slot === 'navbar');
   // Persistent, root-level home for plugin popovers/panels (see UiSlot 'overlay').
+  // Conference sits in the main column under the topbar so chrome stays visible.
   const overlays = ui.filter((u) => u.slot === 'overlay');
+  const mainBanners = overlays.filter((u) => u.plugin === 'orbit-conference');
+  const rootOverlays = overlays.filter((u) => u.plugin !== 'orbit-conference');
   // Stable so the memoized room rows aren't invalidated on every render.
   const closeNav = useCallback(() => setNavOpen(false), []);
   // PMs / server console have no member list — drop the empty side column.
@@ -41,6 +44,7 @@ export function Chat() {
         {/* Gallery plugin paints --rg-pic here for a soft room backdrop. */}
         <div className="main__room-bg" aria-hidden="true" />
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
+        {mainBanners.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
         <ChannelTopicBanner />
         <MessageList />
         <Composer />
@@ -55,7 +59,7 @@ export function Chat() {
       <GuestRegisterPrompt />
       <ReconnectBanner />
     </div>
-      {overlays.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
+      {rootOverlays.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
       <FriendsPanel />
     </div>
   );
