@@ -548,6 +548,7 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 .main:has(.main__room-bg[data-rg-pic]) .infoline,
 .main:has(.main__room-bg[data-rg-pic]) .warnline,
 .main:has(.main__room-bg[data-rg-pic]) .noticeline,
+.main:has(.main__room-bg[data-rg-pic]) .actuline,
 .main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert) {
   background: color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter: blur(4px);
@@ -862,92 +863,66 @@ html[data-bubbles="on"] .line:has(.imgcard) .imgcard {
 html[data-bubbles="on"] .group--cont .line { margin-top: .18rem; }
 html[data-bubbles="off"] .group .line { background: transparent; border: 0; padding: 0; box-shadow: none; }
 
-/* Actu RSS bot — one news card (not a card-inside-a-bubble), content-width. */
-.group--rss {
-  display: flex;
+/* Actu RSS bot — same callout shell as NOTICE/INFO (badge left, no avatar). */
+.actuline {
+  display: flex; flex-direction: column; align-items: stretch; gap: .28rem;
   align-self: flex-start;
   width: max-content;
-  max-width: min(36rem, calc(100% - 2.6rem));
-  margin: .45rem 1.3rem;
-  padding: .55rem .75rem .6rem;
-  gap: .7rem;
-  border-radius: 14px;
-  background:
-    linear-gradient(135deg,
-      color-mix(in srgb, #0284c7 12%, var(--bg)) 0%,
-      color-mix(in srgb, var(--accent) 6%, var(--bg)) 100%);
-  border: 1px solid color-mix(in srgb, #0284c7 36%, var(--border));
-  box-shadow: inset 4px 0 0 #0284c7, 0 3px 12px -10px rgba(2, 132, 199, .4);
+  max-width: min(36rem, calc(100% - 2.2rem));
+  margin: .22rem 1.1rem;
+  padding: .42rem .7rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, #0284c7 12%, var(--bg));
+  border: 1px solid color-mix(in srgb, #0284c7 28%, var(--border));
+  border-left: 3px solid #0284c7;
   box-sizing: border-box;
 }
-.group--rss.group--cont {
-  margin-top: .18rem;
-  padding-top: .4rem;
-}
-.group--rss .group__avatar--rss {
-  display: grid; place-items: center;
-  width: 36px; height: 36px; border-radius: 11px;
-  background: color-mix(in srgb, #0284c7 18%, var(--bg));
-  font-size: 1.05rem; line-height: 1;
-}
-.group--rss .group__body {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-  max-width: 100%;
-  /* Avoid container-type:inline-size collapsing fit-content cards. */
-  container-type: normal;
-}
-.group--rss .line--rss,
-html[data-bubbles="on"] .group--rss .line {
-  display: block;
-  width: auto;
-  max-width: 100%;
-  box-sizing: border-box;
-  /* Single card = the .group--rss shell; don't nest a second bubble. */
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  padding: .1rem 0 .15rem;
-  box-shadow: none;
-  /* Match the blue card accent (readable on light and dark themes). */
-  color: #0369a1;
-  font-weight: 700;
-}
-/* Bot IRC colour codes (often white) must not override the card text colour. */
-.group--rss .line span {
-  color: inherit !important;
-  background-color: transparent !important;
-}
-.group__head--rss {
-  display: flex; align-items: center; flex-wrap: wrap; gap: .45rem;
-  margin-bottom: .28rem;
-}
-.nick-actu {
-  display: inline-flex; align-items: center;
+.actuline--cont { margin-top: .12rem; }
+.actuline__head { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.actuline__tag {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   padding: .12rem .45rem; border-radius: 6px;
-  font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   background: #0284c7; color: #fff;
   box-shadow: 0 2px 6px -2px rgba(2, 132, 199, .55);
 }
-.group--rss .line--rss a,
-.group--rss .line a {
+.actuline__who {
+  border: 0; background: none; padding: 0; cursor: pointer;
+  font: inherit; font-weight: 800;
+}
+.actuline__time {
+  font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--faint);
+}
+.actuline__body { min-width: 0; }
+.actuline__txt {
+  display: block;
+  color: #0369a1; font-weight: 700; font-size: .9rem;
+  overflow-wrap: anywhere; line-height: 1.55; white-space: pre-wrap;
+  /* Same surface as the card — kill IRC colour-code / nested “white box” fills. */
+  background: transparent !important;
+}
+.actuline__txt *,
+.actuline__txt span {
+  color: inherit !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.actuline__txt a {
   display: inline-flex; align-items: center; gap: .3rem;
   margin: .3rem 0 0; padding: .28rem .55rem; border-radius: 8px;
-  background: color-mix(in srgb, #0284c7 12%, var(--bg));
+  background: color-mix(in srgb, #0284c7 12%, var(--bg)) !important;
   border: 1px solid color-mix(in srgb, #0284c7 28%, var(--border));
-  color: #0369a1; font-weight: 700; font-size: .88rem; text-decoration: none;
+  color: #0369a1 !important; font-weight: 700; font-size: .88rem; text-decoration: none;
   max-width: 100%; overflow-wrap: anywhere;
 }
-.group--rss .line a::before { content: "🔗"; font-size: .8em; }
-.group--rss .line a:hover { background: color-mix(in srgb, #0284c7 20%, var(--bg)); text-decoration: underline; }
-.group--rss .lpcard {
-  margin-top: .4rem;
+.actuline__txt a::before { content: "🔗"; font-size: .8em; }
+.actuline__txt a:hover { background: color-mix(in srgb, #0284c7 20%, var(--bg)) !important; text-decoration: underline; }
+.actuline .lpcard {
+  margin-top: .35rem;
   max-width: min(100%, 22rem);
   border-color: color-mix(in srgb, #0284c7 40%, var(--border));
   box-shadow: 0 4px 14px -10px rgba(2,132,199,.35);
 }
-.group--rss .lpcard__img { width: 72px; min-width: 72px; height: 72px; }
+.actuline .lpcard__img { width: 72px; min-width: 72px; height: 72px; }
 
 
 /* security / warning notice — amber, with a shield and a tag (a real callout) */
@@ -2234,7 +2209,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .topbar__searchinput, .members__search input, .members__age select, .cjoin__mini { font-size: 16px; }
   .members__asl { padding: 0 .65rem .5rem; }
   .members__cols { padding-left: .65rem; padding-right: .65rem; }
-  .group--rss { margin-left: .65rem; margin-right: .65rem; max-width: calc(100% - 1.3rem); }
+  .actuline { margin-left: .7rem; margin-right: .7rem; max-width: calc(100% - 1.4rem); }
 
   /* Composer: the text field gets its own full-width row; the controls
      (image / format / emoji / send) wrap onto the row below. Fixes the
@@ -2267,7 +2242,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .warnline, .noticeline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .warnline, .noticeline, .actuline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */

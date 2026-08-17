@@ -138,8 +138,36 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
     );
   }
 
+  // Actu RSS bot — same callout language as NOTICE/INFO (badge left, no avatar,
+  // no nested chat bubble that paints a white rectangle inside the card).
+  if (isActu) {
+    const previewUrl = (!m.redacted && getConfig().features.linkPreviews)
+      ? firstPreviewableUrl(stripFormatting(m.text))
+      : null;
+    return (
+      <div data-mid={m.id} className={`actuline ${cont ? 'actuline--cont' : ''}`}>
+        {!cont && (
+          <div className="actuline__head">
+            <span className="actuline__tag" title={t('messages.actuBadge')}>{t('messages.actuBadge')}</span>
+            <button type="button" className="actuline__who" style={{ color: nickColor(m.from) }} onClick={() => openUser(m.from)}>
+              {m.from}
+            </button>
+            <span className="actuline__time">{fmtTime(m.ts)}</span>
+          </div>
+        )}
+        <div className="actuline__body">
+          <span className="actuline__txt">
+            {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
+            {!m.redacted && <MsgDecorations m={m} />}
+          </span>
+        </div>
+        {!m.redacted && previewUrl && <LinkPreview url={previewUrl} />}
+      </div>
+    );
+  }
+
   return (
-    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''} ${m.self ? 'group--self' : ''} ${isActu ? 'group--rss' : ''}`}>
+    <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''} ${m.self ? 'group--self' : ''}`}>
       {/* The avatar column is always reserved so every row lines up. It holds the
           hover timestamp on continuation lines, a real photo when there is one, and
           otherwise an empty spacer (no bright fallback bubble). */}
@@ -147,24 +175,23 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
         ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
         : avatarUrl
           ? <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} url={avatarUrl} /></button>
-          : <span className="group__avatar group__avatar--rss" aria-hidden="true">{isActu ? '📰' : ''}</span>}
+          : <span className="group__avatar" aria-hidden="true" />}
       <div className="group__body">
         {!cont && (
-          <div className={`group__head ${isActu ? 'group__head--rss' : ''}`}>
-            {isActu && <span className="nick-actu" title={t('messages.actuBadge')}>{t('messages.actuBadge')}</span>}
+          <div className="group__head">
             <button className="group__nick" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }} onClick={() => openUser(m.from)}>
-              {!isActu && memberPrefix && (() => { const r = roleForPrefix(memberPrefix); return <span className={`group__role role-${r.cls}`} title={t(`members.roles.${r.key}`)}>{memberPrefix}</span>; })()}
-              {m.from}{!isActu && isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
+              {memberPrefix && (() => { const r = roleForPrefix(memberPrefix); return <span className={`group__role role-${r.cls}`} title={t(`members.roles.${r.key}`)}>{memberPrefix}</span>; })()}
+              {m.from}{isBot && <span className="nick-bot" aria-label="bot">🤖</span>}
             </button>
             <span className="group__time">{fmtTime(m.ts)}</span>
           </div>
         )}
         {quoted && <ReplyQuote quoted={quoted} />}
-        <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''} ${isActu ? 'line--rss' : ''}`}>
+        <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
         </div>
-        {!m.redacted && (linkPreviews || isActu) && getConfig().features.linkPreviews && (() => {
+        {!m.redacted && linkPreviews && getConfig().features.linkPreviews && (() => {
           const pu = firstPreviewableUrl(stripFormatting(m.text));
           return pu ? <LinkPreview url={pu} /> : null;
         })()}

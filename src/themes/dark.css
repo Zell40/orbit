@@ -7,6 +7,10 @@
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline { background: rgba(139,92,246,.16); border-left-color: #a78bfa; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__tag { background: #8b6fe0 !important; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__txt { color: #ddd0ff; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .actuline { background: rgba(2,132,199,.16); border-color: rgba(56,189,248,.28); border-left-color: #38bdf8; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .actuline__tag { background: #0284c7; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .actuline__txt { color: #7dd3fc; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .actuline__txt a { color: #7dd3fc !important; border-color: rgba(56,189,248,.35); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { background: rgba(214, 70, 95, .16); border-color: rgba(214, 70, 95, .38); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { color: #f3a9b5; background: #311a1f; border-color: #5a2a32; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .mode-add { color: #2ecc71; }

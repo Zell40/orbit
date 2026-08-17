@@ -15,7 +15,10 @@ export function TopbarMore({ bname, isChannel, amOp, onSearch }:
   const setModal = useActiveChat((s) => s.setModal);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const openUser = useActiveChat((s) => s.openUser);
-  const morePlugins = usePluginRegistry((s) => s.ui.filter((u) => u.slot === 'topbar_more_item'));
+  // Select the stable `ui` array — never `.filter()` inside the selector (new
+  // array every read → zustand Object.is → infinite re-render / React #185).
+  const pluginUi = usePluginRegistry((s) => s.ui);
+  const morePlugins = pluginUi.filter((u) => u.slot === 'topbar_more_item');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
