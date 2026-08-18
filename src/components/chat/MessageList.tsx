@@ -243,7 +243,8 @@ export function MessageList() {
       rows.push(<SystemLine key={m.id} m={m} />);
       lastFrom = ''; continue;
     }
-    const cont = m.from === lastFrom && m.ts - lastTs < 5 * 60000 && !!lastKind;
+    const cont = m.from === lastFrom && m.ts - lastTs < 5 * 60000 && !!lastKind
+      && !/^actu$/i.test(m.from);
     rows.push(<MsgRow key={m.id} m={m} cont={cont} />);
     lastFrom = m.from; lastTs = m.ts; lastKind = m.kind;
   }

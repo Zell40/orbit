@@ -29,3 +29,25 @@ export function loosenNoticeText(text: string): string {
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
+
+/** One block per `[ACTU …]` marker when an RSS bot concatenates several items. */
+export function splitActuItems(text: string): string[] {
+  const t = text.replace(/^\s+/, '').trim();
+  if (!t) return [t];
+  const parts = t.split(/(?=\[ACTU\b)/i).map((s) => s.trim()).filter(Boolean);
+  return parts.length ? parts : [t];
+}
+
+/** Unwrap IRC-style `<https://…>` so the leftover `<>` don't sit around the link pill. */
+export function unwrapActuUrls(text: string): string {
+  return text.replace(/<\s*(https?:\/\/[^\s>]+)\s*>/gi, '$1');
+}
+
+/** Headline only — drop trailing raw URLs (the preview card is the link). */
+export function actuItemHeadline(text: string): string {
+  return unwrapActuUrls(text)
+    .replace(/\s*[-–]?\s*https?:\/\/[^\s<>"']+/gi, '')
+    .replace(/\s+[-–]\s*$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}

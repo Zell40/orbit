@@ -912,7 +912,7 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
   border-left: 3px solid #0284c7;
   box-sizing: border-box;
 }
-.actuline--cont { margin-top: .12rem; }
+.actuline--cont { margin-top: .55rem; }
 .actuline__head { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
 .actuline__tag {
   flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
@@ -928,6 +928,11 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
   font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--faint);
 }
 .actuline__body { min-width: 0; }
+.actuline__item { display: flex; flex-direction: column; align-items: stretch; gap: .35rem; min-width: 0; }
+.actuline__item + .actuline__item {
+  margin-top: .55rem; padding-top: .55rem;
+  border-top: 1px solid color-mix(in srgb, #0284c7 22%, var(--border));
+}
 .actuline__txt {
   display: block;
   color: #0369a1; font-weight: 700; font-size: .9rem;
@@ -951,6 +956,7 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
 }
 .actuline__txt a::before { content: "🔗"; font-size: .8em; }
 .actuline__txt a:hover { background: color-mix(in srgb, #0284c7 20%, var(--bg)) !important; text-decoration: underline; }
+.actuline__item:has(.lpcard) .actuline__txt a { display: none; }
 .actuline .lpcard,
 .infoline .lpcard,
 .noticeline .lpcard {
@@ -2521,10 +2527,12 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .crash__btn:hover { filter: brightness(1.08); }
 
 /* Link-preview cards (OpenGraph, via the same-origin server unfurl endpoint) */
+.lp-anchor { min-height: 1px; width: 100%; }
 .lpcard { display: flex; gap: 0; margin-top: .35rem; max-width: 440px; text-decoration: none;
   border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
   background: var(--panel, var(--bg)); color: inherit; transition: background .12s; }
 .lpcard:hover { background: var(--accent-soft); }
+.lpcard--plain { display: block; padding: .45rem .6rem; font-size: .82rem; font-weight: 600; overflow-wrap: anywhere; }
 .lpcard__img { width: 92px; min-width: 92px; height: 92px; object-fit: cover; background: var(--muted); }
 .lpcard__body { display: flex; flex-direction: column; gap: .12rem; padding: .5rem .6rem; min-width: 0; }
 .lpcard__site { font-size: .66rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }

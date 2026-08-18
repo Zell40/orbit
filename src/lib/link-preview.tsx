@@ -5,20 +5,29 @@ import { useState, useRef, useEffect } from 'react';
 import { isImageUrl, isAudioUrl, youtubeId } from './media';
 
 interface Preview { url: string; title?: string | null; description?: string | null; image?: string | null; siteName?: string | null }
-const UNFURL = '/accounts/api/unfurl/?url=';
+const UNFURL_PATHS = ['/accounts/api/unfurl/?url=', '/app/accounts/api/unfurl/?url='];
 const previewCache = new Map<string, Promise<Preview | null>>();
 const PREVIEW_CACHE_MAX = 200; // bound: evict oldest so a long-lived tab can't grow forever
 
 // The first http(s) URL in a message worth a card — i.e. not one that already
 // renders its own inline embed (image / audio / YouTube).
 export function firstPreviewableUrl(text: string): string | null {
+  const all = previewableUrls(text);
+  return all[0] ?? null;
+}
+
+export function previewableUrls(text: string): string[] {
   const m = text.match(/https?:\/\/[^\s<>"']+/g);
-  if (!m) return null;
+  if (!m) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
   for (const raw of m) {
     const u = raw.replace(/[),.;:!?\]]+$/g, '');
-    if (u && !isImageUrl(u) && !isAudioUrl(u) && !youtubeId(u)) return u;
+    if (!u || isImageUrl(u) || isAudioUrl(u) || youtubeId(u) || seen.has(u)) continue;
+    seen.add(u);
+    out.push(u);
   }
-  return null;
+  return out;
 }
 
 function fetchPreview(url: string): Promise<Preview | null> {
@@ -26,11 +35,17 @@ function fetchPreview(url: string): Promise<Preview | null> {
   if (!p) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000); // don't hang on a slow unfurl endpoint
-    p = fetch(UNFURL + encodeURIComponent(url), { signal: ctrl.signal })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: Preview | null) => (d && (d.title || d.description || d.image) ? d : null))
-      .catch(() => null)
-      .finally(() => clearTimeout(timer));
+    p = (async () => {
+      try {
+        for (const prefix of UNFURL_PATHS) {
+          const r = await fetch(prefix + encodeURIComponent(url), { signal: ctrl.signal });
+          if (!r.ok) continue;
+          const d = await r.json() as Preview | null;
+          return (d && (d.title || d.description || d.image)) ? d : null;
+        }
+      } catch { /* aborted or network */ }
+      return null;
+    })().finally(() => clearTimeout(timer));
     if (previewCache.size >= PREVIEW_CACHE_MAX) previewCache.delete(previewCache.keys().next().value!);
     previewCache.set(url, p);
   }
@@ -46,14 +61,18 @@ export function LinkPreview({ url }: { url: string }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    let cancelled = false;
+    const run = () => {
+      fetchPreview(url).then((d) => { if (!cancelled) setData(d); });
+    };
     const io = new IntersectionObserver((entries) => {
       if (entries.some((e) => e.isIntersecting)) {
         io.disconnect();
-        fetchPreview(url).then((d) => setData(d));
+        run();
       }
-    });
+    }, { rootMargin: '160px', threshold: 0 });
     io.observe(el);
-    return () => io.disconnect();
+    return () => { cancelled = true; io.disconnect(); };
   }, [url]);
   return (
     <div className="lp-anchor" ref={ref}>
@@ -66,6 +85,9 @@ export function LinkPreview({ url }: { url: string }) {
             {data.description && <span className="lpcard__desc">{data.description}</span>}
           </span>
         </a>
+      )}
+      {data === null && (
+        <a className="lpcard lpcard--plain" href={url} target="_blank" rel="noopener noreferrer">{url}</a>
       )}
     </div>
   );

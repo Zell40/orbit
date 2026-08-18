@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, IRCOP_COLOR, formatIrc } from '@/lib/format';
+import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, splitActuItems, unwrapActuUrls, actuItemHeadline } from '@/lib/format';
 import { roleForPrefix } from '@/lib/roles';
 import { firstPreviewableUrl, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
@@ -141,9 +141,8 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   // Actu RSS bot — same callout language as NOTICE/INFO (badge left, no avatar,
   // no nested chat bubble that paints a white rectangle inside the card).
   if (isActu) {
-    const previewUrl = (!m.redacted && linkPreviews && getConfig().features.linkPreviews)
-      ? firstPreviewableUrl(stripFormatting(m.text))
-      : null;
+    const items = m.redacted ? [] : splitActuItems(m.text);
+    const showPreviews = !m.redacted && linkPreviews && getConfig().features.linkPreviews;
     return (
       <div data-mid={m.id} className={`actuline ${cont ? 'actuline--cont' : ''}`}>
         {!cont && (
@@ -155,13 +154,24 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
             <span className="actuline__time">{fmtTime(m.ts)}</span>
           </div>
         )}
-        <div className="actuline__body">
-          <span className="actuline__txt">
-            {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
-            {!m.redacted && <MsgDecorations m={m} />}
-          </span>
-        </div>
-        {!m.redacted && previewUrl && <LinkPreview url={previewUrl} />}
+        {m.redacted ? (
+          <div className="actuline__body">
+            <span className="actuline__txt">{`⊘ ${t('messages.deleted')}`}</span>
+          </div>
+        ) : items.map((item, i) => {
+          const body = unwrapActuUrls(item);
+          const previewUrl = showPreviews ? firstPreviewableUrl(stripFormatting(body)) : null;
+          const display = previewUrl ? (actuItemHeadline(body) || body) : body;
+          return (
+            <div key={`${m.id}-a${i}`} className="actuline__item">
+              <span className="actuline__txt">
+                {formatIrc(display, m.self, false)}
+                {i === items.length - 1 && <MsgDecorations m={m} />}
+              </span>
+              {previewUrl && <LinkPreview url={previewUrl} />}
+            </div>
+          );
+        })}
       </div>
     );
   }
