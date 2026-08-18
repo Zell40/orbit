@@ -878,17 +878,20 @@ html[data-bubbles="on"] .group--self .line {
   text-align: left;
   box-sizing: border-box;
 }
-/* Image shares: keep the bubble wide enough for the caption / toolbar */
-html[data-bubbles="on"] .group--self .group__body:has(.imgcard) {
-  align-items: stretch;
-}
-html[data-bubbles="on"] .group--self .line:has(.imgcard),
-html[data-bubbles="on"] .group .line:has(.imgcard) {
+/* Image shares: fit the caption/toolbar, stay pinned right like own text bubbles. */
+html[data-bubbles="on"] .group--self .line:has(.imgcard) {
   width: fit-content;
-  max-width: 100%;
+  max-width: min(480px, 100%);
   min-width: min(16rem, 100%);
   overflow-wrap: break-word;
-  /* italic ACTION captions otherwise bleed past the bubble edge */
+  padding-inline: .9rem 1rem;
+  margin-inline-start: auto;
+}
+html[data-bubbles="on"] .group:not(.group--self) .line:has(.imgcard) {
+  width: fit-content;
+  max-width: min(480px, 100%);
+  min-width: min(16rem, 100%);
+  overflow-wrap: break-word;
   padding-inline: .9rem 1rem;
 }
 html[data-bubbles="on"] .line:has(.imgcard) .imgcard {
