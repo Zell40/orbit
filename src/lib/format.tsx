@@ -4,11 +4,12 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { useChat } from '../core/store';
 import { canon } from '../core/store/context';
+import { activeStore } from '../core/networks';
 import i18n from '../core/i18n';
 import { isImageUrl, isAudioUrl, youtubeId, ImageAttachment, AudioAttachment, YouTubeEmbed } from './media';
 
 function openChannel(name: string) {
-  const st = useChat.getState();
+  const st = activeStore().getState();
   const buf = st.buffers[canon(name)];
   if (buf?.isChannel) {
     st.setActive(buf.name);
@@ -34,7 +35,7 @@ function isHexColorToken(s: string): boolean {
 
 function mentionChannels(text: string, keyPrefix: string): ReactNode[] {
   // RFC2811 CHANTYPES (# & + !). Skip CSS hex tokens like #fff. Dots allowed (#Aide.chat).
-  const re = /(^|[\s([{'"])([#&+!][A-Za-z0-9._[\]\\^{}`|-]{1,64})/g;
+  const re = /(^|[\s([{'":;«»])([#&+!][A-Za-z0-9._[\]\\^{}`|-]{1,64})/g;
   const nodes: ReactNode[] = [];
   let last = 0;
   let i = 0;

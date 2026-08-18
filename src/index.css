@@ -695,7 +695,8 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 
 /* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE): SMS-style width. */
-.noticeline, .infoline, .motdline, .warnline, .actuline, .modeline {
+.noticeline, .infoline, .motdline, .warnline, .actuline, .modeline, .noticeline-wrap {
+  align-self: flex-start;
   width: max-content;
   max-width: min(70%, calc(100% - 2.2rem));
   box-sizing: border-box;
