@@ -96,7 +96,7 @@
     "error_sasl": "Pseudo ou mot de passe incorrect.",
     "live": "en direct",
     "typing": "{{who}} écrit",
-    "joinLine": "{{who}} a rejoint {{chan}}",
+    "joinLine": "{{who}} est entré dans {{chan}}",
     "nickAria": "Pseudo",
     "ambient": {
       "0": "coucou tout le monde 👋",
@@ -475,13 +475,13 @@
     "leakGuard": "On a intercepté ta commande d’identification : envoyée telle quelle ici, ton mot de passe aurait été visible par tout le monde dans {{channel}}. Pas d’inquiétude — on l’a transmise à {{service}} en privé, rien n’a été divulgué. La prochaine fois, connecte-toi depuis Réglages › Compte."
   },
   "events": {
-    "joined_one": "a rejoint",
-    "joined_other": "ont rejoint",
+    "joined_one": "est entré",
+    "joined_other": "sont entrés",
     "left_one": "est parti",
     "left_other": "sont partis"
   },
   "system": {
-    "join": "{{nick}} a rejoint le salon",
+    "join": "{{nick}} est entré dans le salon",
     "part": "{{nick}} a quitté le salon",
     "quit": "{{nick}} s'est déconnecté",
     "kick": "{{target}} a été expulsé par {{by}}",
