@@ -1,6 +1,13 @@
 /* Theme: dark (also the shared dark/orbit/orbit-dark rules). Loaded after index.css (see main.tsx) so these override the
    base component styles; only one [data-theme] is ever active at a time. */
 
+[data-theme="dark"] .modeline,
+[data-theme="orbit"] .modeline,
+[data-theme="orbit-dark"] .modeline {
+  background: rgba(217, 119, 6, .22);
+  border-color: rgba(224, 163, 94, .4);
+  border-left-color: #e0a35e;
+}
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .topbar__pill:hover { color: #3fe0a0; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag { background: #3a2a17; color: #e0a35e; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag--topic { background: #16294a; color: #6ea0ff; }

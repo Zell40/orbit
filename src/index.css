@@ -549,6 +549,7 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 .main:has(.main__room-bg[data-rg-pic]) .warnline,
 .main:has(.main__room-bg[data-rg-pic]) .noticeline,
 .main:has(.main__room-bg[data-rg-pic]) .actuline,
+.main:has(.main__room-bg[data-rg-pic]) .modeline,
 .main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert) {
   background: color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter: blur(4px);
@@ -693,9 +694,41 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .sysline--alert__body { flex: 1; }
 
 
-/* channel mode change line (IRCAP-style: "mode : reverse applique [-v reverse]") */
+/* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE): SMS-style width. */
+.noticeline, .infoline, .motdline, .warnline, .actuline, .modeline {
+  width: max-content;
+  max-width: min(70%, calc(100% - 2.2rem));
+  box-sizing: border-box;
+}
+
+.chan-link {
+  display: inline; margin: 0; padding: 0 .18em; border: 0; cursor: pointer;
+  font: inherit; font-weight: 700; border-radius: 4px;
+  color: var(--accent-d, var(--accent));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  text-decoration: none;
+}
+.chan-link:hover { text-decoration: underline; }
+.actuline__txt .chan-link {
+  display: inline;
+  margin: 0;
+  padding: 0 .18em;
+  color: #0369a1 !important;
+  background: color-mix(in srgb, #0284c7 16%, var(--bg)) !important;
+  border: 0;
+}
+.actuline__txt .chan-link::before { content: none; }
+
+/* channel mode change — same callout language as INFO/NOTICE, amber MODE tag */
 .sysline--mode { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; padding: .26rem 1.3rem; }
 .sysline--mode::before { display: none; }
+.modeline {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem;
+  margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
+  background: #fff6eb;
+  border: 1px solid rgba(185, 114, 42, .28);
+  border-left: 3px solid #d97706;
+}
 .modeline__tag { font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: .12rem .45rem; border-radius: 6px; background: #fff0e0; color: #b9722a; }
 .modeline__who { font-weight: 800; }
 .modeline__verb { color: var(--faint); font-size: .84rem; }
@@ -751,11 +784,12 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 
 /* server info notices (rehash warnings, broadcasts) — tagged "Info" callout */
-.infoline { display: flex; align-items: flex-start; gap: .6rem; margin: .4rem 1.3rem; padding: .6rem .8rem; border-radius: 12px;
+.infoline { display: flex; flex-direction: column; align-items: stretch; gap: .35rem; margin: .4rem 1.3rem; padding: .6rem .8rem; border-radius: 12px;
   background: rgba(59,123,255,.08); border: 1px solid rgba(59,123,255,.24); box-shadow: inset 3px 0 0 var(--blue, #3b7bff); }
+.infoline__head { display: flex; align-items: flex-start; gap: .6rem; min-width: 0; }
 .infoline__tag { flex: none; margin-top: .05rem; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   padding: .2rem .55rem; border-radius: 999px; background: #3b7bff; color: #fff; box-shadow: 0 2px 6px -2px rgba(59,123,255,.6); }
-.infoline__txt { font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
+.infoline__txt { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
 
 /* MOTD — same callout language as Info; high-contrast tag (white on deep green) */
 .motdline { display: flex; align-items: flex-start; gap: .6rem; margin: .35rem 1.3rem; padding: .55rem .8rem; border-radius: 12px;
@@ -866,9 +900,6 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
 /* Actu RSS bot — same callout shell as NOTICE/INFO (badge left, no avatar). */
 .actuline {
   display: flex; flex-direction: column; align-items: stretch; gap: .28rem;
-  align-self: flex-start;
-  width: max-content;
-  max-width: min(36rem, calc(100% - 2.2rem));
   margin: .22rem 1.1rem;
   padding: .42rem .7rem;
   border-radius: 8px;
@@ -900,8 +931,8 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
   /* Same surface as the card — kill IRC colour-code / nested “white box” fills. */
   background: transparent !important;
 }
-.actuline__txt *,
-.actuline__txt span {
+.actuline__txt *:not(.chan-link),
+.actuline__txt span:not(.chan-link) {
   color: inherit !important;
   background: transparent !important;
   background-color: transparent !important;
@@ -916,11 +947,22 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
 }
 .actuline__txt a::before { content: "🔗"; font-size: .8em; }
 .actuline__txt a:hover { background: color-mix(in srgb, #0284c7 20%, var(--bg)) !important; text-decoration: underline; }
-.actuline .lpcard {
+.actuline .lpcard,
+.infoline .lpcard,
+.noticeline .lpcard {
   margin-top: .35rem;
-  max-width: min(100%, 22rem);
+  width: 100%;
+  max-width: 100%;
+}
+.actuline .lpcard {
   border-color: color-mix(in srgb, #0284c7 40%, var(--border));
   box-shadow: 0 4px 14px -10px rgba(2,132,199,.35);
+}
+.infoline .lpcard {
+  border-color: color-mix(in srgb, #3b7bff 40%, var(--border));
+}
+.noticeline .lpcard {
+  border-color: color-mix(in srgb, #8b5cf6 40%, var(--border));
 }
 .actuline .lpcard__img { width: 72px; min-width: 72px; height: 72px; }
 
@@ -2209,7 +2251,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .topbar__searchinput, .members__search input, .members__age select, .cjoin__mini { font-size: 16px; }
   .members__asl { padding: 0 .65rem .5rem; }
   .members__cols { padding-left: .65rem; padding-right: .65rem; }
-  .actuline { margin-left: .7rem; margin-right: .7rem; max-width: calc(100% - 1.4rem); }
+  .actuline { margin-left: .7rem; margin-right: .7rem; }
 
   /* Composer: the text field gets its own full-width row; the controls
      (image / format / emoji / send) wrap onto the row below. Fixes the
@@ -2242,7 +2284,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .warnline, .noticeline, .actuline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .warnline, .noticeline, .actuline, .modeline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */

@@ -12,9 +12,12 @@ const PREVIEW_CACHE_MAX = 200; // bound: evict oldest so a long-lived tab can't 
 // The first http(s) URL in a message worth a card — i.e. not one that already
 // renders its own inline embed (image / audio / YouTube).
 export function firstPreviewableUrl(text: string): string | null {
-  const m = text.match(/https?:\/\/[^\s]+/g);
+  const m = text.match(/https?:\/\/[^\s<>"']+/g);
   if (!m) return null;
-  for (const u of m) if (!isImageUrl(u) && !isAudioUrl(u) && !youtubeId(u)) return u;
+  for (const raw of m) {
+    const u = raw.replace(/[),.;:!?\]]+$/g, '');
+    if (u && !isImageUrl(u) && !isAudioUrl(u) && !youtubeId(u)) return u;
+  }
   return null;
 }
 

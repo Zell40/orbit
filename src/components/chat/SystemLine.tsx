@@ -2,11 +2,21 @@ import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, formatIrc, loosenNoticeText } from '@/lib/format';
+import { firstPreviewableUrl, LinkPreview } from '@/lib/link-preview';
+import { stripFormatting } from '@/core/store/text';
+import { getConfig } from '@/core/config';
 import { useTheme } from '@/themes';
 import { useActiveChat } from '@/core/networks';
 import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
+
+function CalloutPreview({ text }: { text: string }) {
+  const enabled = useActiveChat((s) => s.prefs.linkPreviews);
+  if (!enabled || !getConfig().features.linkPreviews) return null;
+  const url = firstPreviewableUrl(stripFormatting(text));
+  return url ? <LinkPreview url={url} /> : null;
+}
 
 // A service NOTICE, rendered as its violet callout, surfacing the IRCv3 tags it
 // may carry: a +draft/channel-context chip inline (jump to the channel it concerns)
@@ -20,7 +30,7 @@ function NoticeLine({ m }: { m: ChatMessage }) {
   const showReply = !!quoted && firstOfRun(msgs, m, (x) => x.replyTo);
   const showCtx = firstOfRun(msgs, m, (x) => x.channelContext);
   const row = (
-    <div className="sysline sysline--mode noticeline">
+    <div className="noticeline">
       <div className="noticeline__head">
         <span className="modeline__tag noticeline__tag">NOTICE</span>
         {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
@@ -29,6 +39,7 @@ function NoticeLine({ m }: { m: ChatMessage }) {
         <span className="noticeline__txt">{formatIrc(loosenNoticeText(m.text), m.self, linkPreviews)}</span>
         {showCtx && <CtxChip chan={m.channelContext!} onJump={() => setActive(m.channelContext!)} />}
       </div>
+      <CalloutPreview text={m.text} />
     </div>
   );
   if (!showReply || !quoted) return row;
@@ -78,10 +89,14 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     );
   }
   if (m.kind === 'info') {
+    const infoText = m.text.replace(/^[*•]+\s*/, '');
     return (
       <div className="infoline">
-        <span className="infoline__tag">Info</span>
-        <span className="infoline__txt">{formatIrc(m.text.replace(/^[*•]+\s*/, ''), false, linkPreviews)}</span>
+        <div className="infoline__head">
+          <span className="infoline__tag">Info</span>
+          <span className="infoline__txt">{formatIrc(infoText, false, linkPreviews)}</span>
+        </div>
+        <CalloutPreview text={infoText} />
       </div>
     );
   }
@@ -108,7 +123,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     const [modes, ...margs] = m.text.split(' ');
     const segs = modes.split(/(?=[+-])/).filter(Boolean);
     return (
-      <div className="sysline sysline--mode">
+      <div className="modeline">
         <span className="modeline__tag">{t('modeline.modeTag')}</span>
         <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
         <span className="modeline__verb">{t('modeline.modeVerb')}</span>

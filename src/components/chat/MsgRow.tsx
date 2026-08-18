@@ -141,7 +141,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   // Actu RSS bot — same callout language as NOTICE/INFO (badge left, no avatar,
   // no nested chat bubble that paints a white rectangle inside the card).
   if (isActu) {
-    const previewUrl = (!m.redacted && getConfig().features.linkPreviews)
+    const previewUrl = (!m.redacted && linkPreviews && getConfig().features.linkPreviews)
       ? firstPreviewableUrl(stripFormatting(m.text))
       : null;
     return (

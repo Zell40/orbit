@@ -3,8 +3,62 @@
 // and OpenGraph cards in ./link-preview; linkify() below stitches them in.
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { useChat } from '../core/store';
+import { canon } from '../core/store/context';
 import i18n from '../core/i18n';
 import { isImageUrl, isAudioUrl, youtubeId, ImageAttachment, AudioAttachment, YouTubeEmbed } from './media';
+
+function openChannel(name: string) {
+  const st = useChat.getState();
+  const buf = st.buffers[canon(name)];
+  if (buf?.isChannel) {
+    st.setActive(buf.name);
+    return;
+  }
+  st.client?.join(name);
+  st.setActive(name);
+}
+
+function ChannelLink({ name }: { name: string }) {
+  return (
+    <button type="button" className="chan-link" title={i18n.t('switcher.join', { chan: name })} onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openChannel(name);
+    }}>{name}</button>
+  );
+}
+
+function isHexColorToken(s: string): boolean {
+  return /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(s);
+}
+
+function mentionChannels(text: string, keyPrefix: string): ReactNode[] {
+  // RFC2811 CHANTYPES (# & + !). Skip CSS hex tokens like #fff. Dots allowed (#Aide.chat).
+  const re = /(^|[\s([{'"])([#&+!][A-Za-z0-9._[\]\\^{}`|-]{1,64})/g;
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let i = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    const lead = m[1];
+    const raw = m[2];
+    const chan = raw.replace(/[._-]+$/g, '');
+    const absStart = m.index;
+    if (absStart > last) nodes.push(text.slice(last, absStart));
+    if (!chan || isHexColorToken(chan)) {
+      nodes.push(m[0]);
+      last = absStart + m[0].length;
+      continue;
+    }
+    if (lead) nodes.push(lead);
+    nodes.push(<ChannelLink key={`${keyPrefix}-ch${i++}`} name={chan} />);
+    const trail = raw.slice(chan.length);
+    if (trail) nodes.push(trail);
+    last = absStart + m[0].length;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes.length ? nodes : [text];
+}
 
 export const fmtTime = (ts: number) =>
   new Date(ts).toLocaleTimeString(i18n.language || 'fr', {
@@ -53,7 +107,7 @@ function linkify(text: string, selfMsg = false, embeds = true): ReactNode {
         const m = p.match(/^(https?:\/\/[^\s]+?)([),.;:!?\]]+)$/);
         if (m) { url = m[1]; trail = m[2]; }
       } else {
-        return <span key={k}>{p}</span>;
+        return <span key={k}>{mentionChannels(p, k)}</span>;
       }
       if (embeds && isImageUrl(url)) return <span key={k}><ImageAttachment url={url} defaultShown={selfMsg} />{trail}</span>;
       if (embeds && isAudioUrl(url)) return <span key={k}><AudioAttachment url={url} />{trail}</span>;
