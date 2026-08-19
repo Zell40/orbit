@@ -12,6 +12,7 @@ import { useAvatarUrl } from '@/platform/avatars';
 import { usePluginRegistry, type MessageInfo } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
+import { isChannelName } from '@/core/store/context';
 import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage, highlightMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
@@ -188,10 +189,12 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
 
   if (isUrlCallout) {
     const showPreviews = linkPreviews && getConfig().features.linkPreviews && textUrls.length > 0;
+    const chanLabel = isChannelName(m.bufferName) ? m.bufferName : (urlLead.startsWith('#') ? urlLead : '');
     return (
       <div data-mid={m.id} className="urlline">
         <div className="urlline__head">
-          <span className="urlline__tag">URL</span>
+          <span className="urlline__tag">{t('modeline.channelUrlTag')}</span>
+          {chanLabel && <span className="urlline__chan">{chanLabel}</span>}
           {m.from && m.kind !== 'url' && <span className="modeline__who" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }}>{m.from}</span>}
           {!showPreviews && <span className="urlline__txt">{formatIrc(m.text, m.self, false)}</span>}
         </div>

@@ -547,9 +547,31 @@
   "modeline": {
     "modeTag": "mode",
     "modeVerb": "set",
+    "promoted": "promoted {{target}} to {{roles}}",
+    "demoted": "removed {{roles}} from {{target}}",
+    "applied": "applied {{change}}",
+    "twoRoles": "{{a}} and {{b}}",
+    "manyRoles": "{{head}} and {{last}}",
     "topicTag": "topic",
     "topicChanged": "changed the topic",
-    "topicRemoved": "removed the topic"
+    "topicRemoved": "removed the topic",
+    "channelUrlTag": "Channel URL",
+    "prefix": {
+      "q": "Founder",
+      "a": "Admin",
+      "o": "Operator",
+      "h": "Moderator",
+      "v": "Voice"
+    },
+    "list": {
+      "b": "ban",
+      "e": "except",
+      "I": "invite"
+    },
+    "param": {
+      "key": "key",
+      "limit": "limit"
+    }
   },
   "banners": {
     "reconnecting": "Reconnecting…",
@@ -734,7 +756,7 @@
       "proprietors": "Owners",
       "op": "Operators",
       "halfop": "Moderators",
-      "voice": "Voiced",
+      "voice": "Voice",
       "member": "Members",
       "privileged": "Privileged"
     },

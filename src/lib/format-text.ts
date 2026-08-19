@@ -18,11 +18,87 @@ export function formatUserModes(modes: string): string {
   return `+${letters.join('')}${named.length ? ` · ${named.join(', ')}` : ''}`;
 }
 
+const PREFIX_MODES = new Set(['q', 'a', 'o', 'h', 'v']);
+const LIST_MODES = new Set(['b', 'e', 'I']);
+const ALWAYS_PARAM = new Set(['k']);
+const SET_PARAM = new Set(['l']);
+const FLAG_LABEL: Record<string, string> = {
+  i: 'invite', m: 'moderated', n: 'noExternal', t: 'topicLock', s: 'secret', p: 'private',
+  c: 'blockColor', C: 'noCtcp', S: 'stripColor', R: 'regOnly', M: 'regModerated',
+  O: 'operOnly', z: 'tlsOnly', N: 'noNickChange', K: 'noKnock', P: 'permanent',
+};
+
+function modeDisplayLabel(letter: string): string {
+  if (PREFIX_MODES.has(letter)) return i18n.t(`modeline.prefix.${letter}`, letter);
+  const flag = FLAG_LABEL[letter];
+  if (flag) return i18n.t(`chanFlags.${flag}.label`, letter);
+  if (LIST_MODES.has(letter)) return i18n.t(`modeline.list.${letter}`, letter);
+  if (letter === 'k') return i18n.t('modeline.param.key', 'key');
+  if (letter === 'l') return i18n.t('modeline.param.limit', 'limit');
+  return letter;
+}
+
+function modeConsumesParam(letter: string, add: boolean): boolean {
+  if (PREFIX_MODES.has(letter) || LIST_MODES.has(letter) || ALWAYS_PARAM.has(letter)) return true;
+  return SET_PARAM.has(letter) && add;
+}
+
+/** One grouped MODE change for the callout (merge same nick, human-readable labels). */
+export interface ModeDisplayGroup {
+  add: boolean;
+  labels: string[];
+  target?: string;
+}
+
+/** Parse a channel MODE string into display groups (+oq nick nick → one row). */
+export function groupModeDisplay(modestring: string, args: string[] = []): ModeDisplayGroup[] {
+  const entries: Array<{ add: boolean; label: string; target?: string }> = [];
+  let add = true;
+  let ai = 0;
+  for (const ch of modestring) {
+    if (ch === '+') { add = true; continue; }
+    if (ch === '-') { add = false; continue; }
+    const param = modeConsumesParam(ch, add) ? (args[ai++] ?? '?') : undefined;
+    entries.push({ add, label: modeDisplayLabel(ch), target: param });
+  }
+  const groups: ModeDisplayGroup[] = [];
+  for (const e of entries) {
+    const last = groups[groups.length - 1];
+    if (last && last.add === e.add && e.target && last.target === e.target) {
+      last.labels.push(e.label);
+    } else {
+      groups.push({ add: e.add, labels: [e.label], target: e.target });
+    }
+  }
+  return groups;
+}
+
+/** Join role labels for a MODE sentence ("Opérateur et Fondateur"). */
+export function joinModeLabels(labels: string[]): string {
+  if (!labels.length) return '';
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return i18n.t('modeline.twoRoles', { a: labels[0], b: labels[1] });
+  return i18n.t('modeline.manyRoles', { head: labels.slice(0, -1).join(', '), last: labels[labels.length - 1] });
+}
+
+/** Natural-language clause for one grouped MODE change. */
+export function formatModeChange(g: ModeDisplayGroup): string {
+  const roles = joinModeLabels(g.labels);
+  if (g.target) {
+    return g.add
+      ? i18n.t('modeline.promoted', { target: g.target, roles })
+      : i18n.t('modeline.demoted', { target: g.target, roles });
+  }
+  return i18n.t('modeline.applied', { change: `${g.add ? '+' : '-'}${g.labels.join(', ')}` });
+}
+
 /** Soften dense service NOTICE text for readable callouts (INFO blocks, sentences). */
 export function loosenNoticeText(text: string): string {
   return text
     // "| INFO | a | INFO | b" → one block per marker
     .replace(/\s*\|\s*(INFO|WARN(?:ING)?|NOTICE|ALERTE|ERROR|ERR|OK)\s*\|\s*/gi, '\n\n$1 · ')
+    // "| Aide au jeu | - … | Aide au jeu | - …" → one block per custom section
+    .replace(/\s*\|\s*([^|]+?)\s*\|\s*-\s*/g, '\n\n$1 · ')
     // New paragraph after sentence end when the next clause starts with a capital / quote
     .replace(/([.!?…])\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"(\[])/g, '$1\n\n')
     .replace(/^\s+/, '')

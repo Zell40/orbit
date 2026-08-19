@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loosenNoticeText, splitActuItems, unwrapActuUrls, actuItemHeadline } from './format-text';
+import { loosenNoticeText, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange } from './format-text';
 
 describe('loosenNoticeText', () => {
   it('splits | INFO | blocks onto separate paragraphs', () => {
@@ -15,6 +15,14 @@ describe('loosenNoticeText', () => {
       "Le pseudo n'est pas enregistré. Rendez-vous sur https://ex.fr/register pour l'enregistrer !",
     )).toBe(
       "Le pseudo n'est pas enregistré.\n\nRendez-vous sur https://ex.fr/register pour l'enregistrer !",
+    );
+  });
+
+  it('splits custom pipe section markers onto separate lines', () => {
+    expect(loosenNoticeText(
+      '| Aide au jeu | - Bonjour | Aide au jeu | - Tape !play',
+    )).toBe(
+      'Aide au jeu · Bonjour\n\nAide au jeu · Tape !play',
     );
   });
 });
@@ -41,5 +49,29 @@ describe('actuItemHeadline', () => {
   it('drops trailing URLs after unwrapping', () => {
     expect(actuItemHeadline('[ACTU de horoscope] : Lisez l’horoscope - <https://www.mon-horoscope-du-jour.com/x>'))
       .toBe('[ACTU de horoscope] : Lisez l’horoscope');
+  });
+});
+
+describe('groupModeDisplay', () => {
+  it('merges prefix modes on the same nick with readable labels', () => {
+    expect(groupModeDisplay('+oq', ['Zell356', 'Zell356'])).toEqual([{
+      add: true,
+      labels: ['Opérateur', 'Fondateur'],
+      target: 'Zell356',
+    }]);
+  });
+
+  it('keeps separate groups when targets differ', () => {
+    expect(groupModeDisplay('+ov', ['bob', 'alice'])).toEqual([
+      { add: true, labels: ['Opérateur'], target: 'bob' },
+      { add: true, labels: ['Voice'], target: 'alice' },
+    ]);
+  });
+
+  it('formats a promotion as a natural sentence', () => {
+    expect(formatModeChange({ add: true, labels: ['Opérateur', 'Fondateur'], target: 'Zell356' }))
+      .toBe('a promu Zell356 Opérateur et Fondateur');
+    expect(formatModeChange({ add: true, labels: ['Voice'], target: 'bob' }))
+      .toBe('a promu bob Voice');
   });
 });

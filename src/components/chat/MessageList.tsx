@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SERVER } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
 import { MsgRow } from './MsgRow';
-import { SystemLine } from './SystemLine';
+import { SystemLine, NoticeGroup } from './SystemLine';
 import { EventGroup } from './EventGroup';
 import { SearchResults } from './SearchResults';
 import { useTheme } from '@/themes';
@@ -208,11 +208,17 @@ export function MessageList() {
   // Consecutive join/part/quit lines are collected here and flushed as one
   // EventGroup when the run ends (a real message, a day break, the divider, …).
   let pending: typeof buffer.messages = [];
+  let pendingNotices: typeof buffer.messages = [];
   const grouping = !mirc && !isConsole; // classic mIRC + the console keep per-line events
   const flush = () => {
     if (!pending.length) return;
     rows.push(<EventGroup key={`eg-${pending[0].id}`} events={pending} />);
     pending = [];
+  };
+  const flushNotices = () => {
+    if (!pendingNotices.length) return;
+    rows.push(<NoticeGroup key={`ng-${pendingNotices[0].id}`} messages={pendingNotices} />);
+    pendingNotices = [];
   };
   // Windowed slice while tailOnly, extended down to keep the unread divider (and a
   // little read context, so hadRead flips) inside the rendered range.
@@ -229,16 +235,26 @@ export function MessageList() {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
     if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
     const day = dayIndex(m.ts);
-    if (day !== lastDay) { flush(); rows.push(<div key={`d-${m.id}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }
+    if (day !== lastDay) { flush(); flushNotices(); rows.push(<div key={`d-${m.id}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {
       flush();
+      flushNotices();
       rows.push(<div key={`unread-${m.id}`} ref={dividerRef} className="unread-divider"><span>{t('messages.newMessages')}</span></div>);
       dividerShown = true; lastFrom = '';
     }
     if (m.ts <= buffer.readTs) hadRead = true;
     // Fold a run of presence events into one grouped line.
     if (grouping && GROUP_KINDS.has(m.kind)) { pending.push(m); lastFrom = ''; continue; }
+    // Fold consecutive NOTICEs from the same sender into one callout.
+    if (grouping && m.kind === 'notice') {
+      const prev = pendingNotices[pendingNotices.length - 1];
+      if (prev && prev.from === m.from) pendingNotices.push(m);
+      else { flushNotices(); pendingNotices.push(m); }
+      lastFrom = '';
+      continue;
+    }
     flush(); // any other line ends the current run
+    flushNotices();
     if (SYSTEM_KINDS.has(m.kind)) {
       rows.push(<SystemLine key={m.id} m={m} />);
       lastFrom = ''; continue;
@@ -249,6 +265,7 @@ export function MessageList() {
     lastFrom = m.from; lastTs = m.ts; lastKind = m.kind;
   }
   flush(); // trailing run
+  flushNotices();
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
       role="log" aria-label={t('a11y.messages')}>

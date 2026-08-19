@@ -547,9 +547,31 @@
   "modeline": {
     "modeTag": "mode",
     "modeVerb": "applique",
+    "promoted": "a promu {{target}} {{roles}}",
+    "demoted": "a retiré à {{target}} {{roles}}",
+    "applied": "a appliqué {{change}}",
+    "twoRoles": "{{a}} et {{b}}",
+    "manyRoles": "{{head}} et {{last}}",
     "topicTag": "sujet",
     "topicChanged": "a changé le sujet",
-    "topicRemoved": "a retiré le sujet"
+    "topicRemoved": "a retiré le sujet",
+    "channelUrlTag": "URL du salon",
+    "prefix": {
+      "q": "Fondateur",
+      "a": "Admin",
+      "o": "Opérateur",
+      "h": "Modérateur",
+      "v": "Voice"
+    },
+    "list": {
+      "b": "bannissement",
+      "e": "exception",
+      "I": "invitation"
+    },
+    "param": {
+      "key": "clé",
+      "limit": "limite"
+    }
   },
   "banners": {
     "reconnecting": "Reconnexion…",
@@ -734,7 +756,7 @@
       "proprietors": "Propriétaires",
       "op": "Opérateurs",
       "halfop": "Modérateurs",
-      "voice": "Voix",
+      "voice": "Voice",
       "member": "Membres",
       "privileged": "Privilégiés"
     },

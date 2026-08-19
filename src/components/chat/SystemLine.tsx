@@ -1,7 +1,8 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, formatIrc, loosenNoticeText } from '@/lib/format';
+import { fmtTime, nickColor, formatIrc, loosenNoticeText, groupModeDisplay, formatModeChange } from '@/lib/format';
+import { isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
@@ -18,30 +19,36 @@ function CalloutPreviews({ text }: { text: string }) {
   return urls.length ? <>{urls.map((url) => <LinkPreview key={url} url={url} />)}</> : null;
 }
 
-// A service NOTICE, rendered as its violet callout, surfacing the IRCv3 tags it
-// may carry: a +draft/channel-context chip inline (jump to the channel it concerns)
-// and, above the row, the +draft/reply parent it answers — the parent resolved by
-// msgid among the buffer's messages, shown once at the head of a reply run.
-function NoticeLine({ m }: { m: ChatMessage }) {
+// Shared NOTICE callout — one bubble, stacked lines when several notices share a sender.
+function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const setActive = useActiveChat((s) => s.setActive);
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
-  const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
-  const showReply = !!quoted && firstOfRun(msgs, m, (x) => x.replyTo);
-  const showCtx = firstOfRun(msgs, m, (x) => x.channelContext);
-  const row = (
+  const head = messages[0];
+  const showCtx = firstOfRun(msgs, head, (x) => x.channelContext);
+  const combined = messages.map((m) => m.text).join('\n');
+  return (
     <div className="noticeline">
       <div className="noticeline__head">
         <span className="modeline__tag noticeline__tag">NOTICE</span>
-        {m.from && <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>}
+        {head.from && <span className="modeline__who" style={{ color: nickColor(head.from) }}>{head.from}</span>}
       </div>
-      <div className="noticeline__body">
-        <span className="noticeline__txt">{formatIrc(loosenNoticeText(m.text), m.self, linkPreviews)}</span>
-        {showCtx && <CtxChip chan={m.channelContext!} onJump={() => setActive(m.channelContext!)} />}
+      <div className={`noticeline__body${messages.length > 1 ? ' noticeline__body--stack' : ''}`}>
+        {messages.map((m) => (
+          <span key={m.id} className="noticeline__txt">{formatIrc(loosenNoticeText(m.text), m.self, linkPreviews)}</span>
+        ))}
+        {showCtx && head.channelContext && <CtxChip chan={head.channelContext} onJump={() => setActive(head.channelContext!)} />}
       </div>
-      <CalloutPreviews text={m.text} />
+      <CalloutPreviews text={combined} />
     </div>
   );
+}
+
+function NoticeLine({ m }: { m: ChatMessage }) {
+  const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
+  const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
+  const showReply = !!quoted && firstOfRun(msgs, m, (x) => x.replyTo);
+  const row = <NoticeCallout messages={[m]} />;
   if (!showReply || !quoted) return row;
   return (
     <div className="noticeline-wrap">
@@ -50,6 +57,22 @@ function NoticeLine({ m }: { m: ChatMessage }) {
     </div>
   );
 }
+
+export const NoticeGroup = memo(function NoticeGroup({ messages }: { messages: ChatMessage[] }) {
+  if (!messages.length) return null;
+  const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
+  const head = messages[0];
+  const quoted = head.replyTo ? msgs?.find((x) => x.id === head.replyTo) : undefined;
+  const showReply = !!quoted && firstOfRun(msgs, head, (x) => x.replyTo);
+  const row = <NoticeCallout messages={messages} />;
+  if (!showReply || !quoted) return row;
+  return (
+    <div className="noticeline-wrap">
+      <ReplyQuote quoted={quoted} onJump={() => jumpToMessage(quoted.id)} />
+      {row}
+    </div>
+  );
+});
 
 // Renders a non-message event (join/part/mode/topic/ban/notice/info/warning/…)
 // as its own status line. The container routes every kind that isn't a
@@ -103,10 +126,12 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   if (m.kind === 'url') {
     const urls = previewableUrls(stripFormatting(m.text));
     const showPreviews = linkPreviews && getConfig().features.linkPreviews && urls.length > 0;
+    const chanLabel = isChannelName(m.bufferName) ? m.bufferName : '';
     return (
       <div className="urlline">
         <div className="urlline__head">
-          <span className="urlline__tag">URL</span>
+          <span className="urlline__tag">{t('modeline.channelUrlTag')}</span>
+          {chanLabel && <span className="urlline__chan">{chanLabel}</span>}
           {!showPreviews && <span className="urlline__txt">{formatIrc(m.text, false, false)}</span>}
         </div>
         {showPreviews ? <CalloutPreviews text={m.text} /> : null}
@@ -134,15 +159,17 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   }
   if (m.kind === 'mode') {
     const [modes, ...margs] = m.text.split(' ');
-    const segs = modes.split(/(?=[+-])/).filter(Boolean);
+    const groups = groupModeDisplay(modes, margs);
     return (
       <div className="modeline">
         <span className="modeline__tag">{t('modeline.modeTag')}</span>
         <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
-        <span className="modeline__verb">{t('modeline.modeVerb')}</span>
-        <span className="modeline__chg">[{segs.map((p, i) => (
-          <span key={i} className={p[0] === '+' ? 'mode-add' : 'mode-rm'}>{p}</span>
-        ))}{margs.length ? ' ' + margs.join(' ') : ''}]</span>
+        <span className="modeline__chg">{groups.map((g, i) => (
+          <span key={i} className={g.add ? 'mode-add' : 'mode-rm'}>
+            {formatModeChange(g)}
+            {i < groups.length - 1 ? ' · ' : ''}
+          </span>
+        ))}</span>
       </div>
     );
   }
