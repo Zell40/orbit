@@ -2,7 +2,7 @@ import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, formatIrc, loosenNoticeText } from '@/lib/format';
-import { firstPreviewableUrl, LinkPreview } from '@/lib/link-preview';
+import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
 import { useTheme } from '@/themes';
@@ -11,11 +11,11 @@ import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
 
-function CalloutPreview({ text }: { text: string }) {
+function CalloutPreviews({ text }: { text: string }) {
   const enabled = useActiveChat((s) => s.prefs.linkPreviews);
   if (!enabled || !getConfig().features.linkPreviews) return null;
-  const url = firstPreviewableUrl(stripFormatting(text));
-  return url ? <LinkPreview url={url} /> : null;
+  const urls = previewableUrls(stripFormatting(text));
+  return urls.length ? <>{urls.map((url) => <LinkPreview key={url} url={url} />)}</> : null;
 }
 
 // A service NOTICE, rendered as its violet callout, surfacing the IRCv3 tags it
@@ -39,7 +39,7 @@ function NoticeLine({ m }: { m: ChatMessage }) {
         <span className="noticeline__txt">{formatIrc(loosenNoticeText(m.text), m.self, linkPreviews)}</span>
         {showCtx && <CtxChip chan={m.channelContext!} onJump={() => setActive(m.channelContext!)} />}
       </div>
-      <CalloutPreview text={m.text} />
+      <CalloutPreviews text={m.text} />
     </div>
   );
   if (!showReply || !quoted) return row;
@@ -96,7 +96,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
           <span className="infoline__tag">Info</span>
           <span className="infoline__txt">{formatIrc(infoText, false, linkPreviews)}</span>
         </div>
-        <CalloutPreview text={infoText} />
+        <CalloutPreviews text={infoText} />
       </div>
     );
   }
@@ -107,7 +107,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
           <span className="urlline__tag">URL</span>
           <span className="urlline__txt">{formatIrc(m.text, false, false)}</span>
         </div>
-        <CalloutPreview text={m.text} />
+        <CalloutPreviews text={m.text} />
       </div>
     );
   }
@@ -156,7 +156,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
           <span className="modeline__verb">{m.text ? t('modeline.topicChanged') : t('modeline.topicRemoved')}</span>
         </div>
         {m.text && <span className="topicline__txt">{formatIrc(m.text, false, linkPreviews)}</span>}
-        {m.text && <CalloutPreview text={m.text} />}
+        {m.text && <CalloutPreviews text={m.text} />}
       </div>
     );
   }

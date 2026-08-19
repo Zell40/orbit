@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, splitActuItems, unwrapActuUrls, actuItemHeadline } from '@/lib/format';
 import { roleForPrefix } from '@/lib/roles';
-import { firstPreviewableUrl, LinkPreview } from '@/lib/link-preview';
+import { firstPreviewableUrl, previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
 import { useTheme } from '@/themes';
@@ -77,6 +77,16 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   // +draft/channel-context: badge it only at the head of a run (when the context
   // first appears or changes), so a stream sharing one context isn't chip-spammed.
   const showCtx = firstOfRun(msgs, m, (x) => x.channelContext);
+  const plainText = stripFormatting(m.text).trim();
+  const textUrls = m.redacted ? [] : previewableUrls(plainText);
+  const urlLead = textUrls.length === 1 ? plainText.replace(textUrls[0], '').trim() : '';
+  const isUrlCallout = !cont
+    && !m.self
+    && !m.redacted
+    && !isActu
+    && (m.kind === 'privmsg' || m.kind === 'notice')
+    && textUrls.length >= 1
+    && (!urlLead || /^#[^\s]+$/.test(urlLead));
 
   // yomIRC: classic single log line — [HH:MM] <nick> text (nick on every line, no grouping/avatars).
   if (mirc) {
@@ -169,6 +179,19 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
             </div>
           );
         })}
+      </div>
+    );
+  }
+
+  if (isUrlCallout) {
+    return (
+      <div data-mid={m.id} className="urlline">
+        <div className="urlline__head">
+          <span className="urlline__tag">URL</span>
+          {m.from && <span className="modeline__who" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }}>{m.from}</span>}
+          <span className="urlline__txt">{formatIrc(m.text, m.self, false)}</span>
+        </div>
+        {textUrls.map((url) => <LinkPreview key={`${m.id}:${url}`} url={url} />)}
       </div>
     );
   }
