@@ -116,7 +116,11 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
         patchWhois(msg.params[1], (w) => ({ ...w, user: msg.params[2], host: msg.params[3], realname: msg.params[5], offline: true }));
         return true;
       case '369': // RPL_ENDOFWHOWAS
-        patchWhois(msg.params[1], (w) => ({ ...w, loading: false }));
+        patchWhois(msg.params[1], (w) => ({
+          ...w,
+          loading: false,
+          notFound: w.notFound || (!w.user && !w.host),
+        }));
         return true;
       case '318': { // RPL_ENDOFWHOIS
         const nk = msg.params[1];

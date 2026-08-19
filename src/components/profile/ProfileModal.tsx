@@ -34,6 +34,7 @@ export function ProfileModal() {
   const active = useActiveChat((s) => s.active);
   const myPrefix = useActiveChat((s) => s.buffers[s.active]?.members[s.nick]?.prefixes || s.buffers[s.active]?.members[s.nick]?.prefix || '');
   const targetMember = useActiveChat((s) => s.buffers[s.active]?.members[s.profileUser]);
+  const isBot = !!(info?.bot || targetMember?.bot);
   const myUmodes = useActiveChat((s) => s.umodes);
   const userActions = usePluginRegistry((s) => s.userActions);
   const [spinning, setSpinning] = useState(false);
@@ -53,6 +54,7 @@ export function ProfileModal() {
 
   if (!nick) return null;
   const isMe = nick === me;
+  const notFound = !!info?.notFound;
   const hue = hashHue(nick);
   const isIgnored = ignored.some((n) => n.toLowerCase() === nick.toLowerCase());
   const isFriend = friends.some((f) => f.toLowerCase() === nick.toLowerCase());
@@ -112,13 +114,29 @@ export function ProfileModal() {
         ...(genderColor ? { ['--gender' as string]: genderColor, boxShadow: `0 0 0 2px color-mix(in srgb, ${genderColor} 35%, transparent), var(--shadow-pop, 0 20px 50px rgba(0,0,0,.35))` } : {}),
       } as CSSProperties} onClick={(e) => e.stopPropagation()}>
         <button className="pm-x" onClick={close} aria-label={t('profile.close')}>✕</button>
+        {notFound ? (
+          <>
+            <div className="pm-cover"><span className="pm-cover__glow" /></div>
+            <div className="pm-hero pm-hero--missing">
+              <div className="pm-avwrap">
+                <span className="pm-avring" />
+                <Avatar nick={nick} size={92} />
+              </div>
+              <div className="pm-id">
+                <div className="pm-name">{nick}</div>
+                <p className="pm-notfound">{t('whois.notFound')}</p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
         <div className="pm-cover" style={genderColor ? { background: `linear-gradient(135deg, color-mix(in srgb, ${genderColor} 55%, transparent), transparent 70%)` } : undefined}>
           <span className="pm-cover__glow" />
         </div>
         <div className="pm-hero">
         <div className="pm-avwrap">
           <span className="pm-avring" style={genderColor ? { boxShadow: `0 0 0 3px ${genderColor}` } : undefined} />
-          <Avatar nick={nick} size={92} account={info?.account} url={info?.meta?.avatar} ring={genderColor} />
+          <Avatar nick={nick} size={92} account={info?.account} url={info?.meta?.avatar} ring={genderColor} bot={isBot} />
           <span className={`pm-presence pm-presence--${statusKey}`} />
           {profile && <span className="pm-gender"><GenderBadge gender={profile.gender} size="md" /></span>}
         </div>
@@ -219,6 +237,8 @@ export function ProfileModal() {
           ))}
           {!info?.loading && rows.length === 0 && <div className="pm-empty">{t('profile.noInfo')}</div>}
         </div>
+          </>
+        )}
       </div>
     </div>
   );

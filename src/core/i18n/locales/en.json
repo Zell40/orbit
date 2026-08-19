@@ -468,7 +468,8 @@
     "dm": "Direct message",
     "online": "online",
     "away": "away",
-    "offline": "offline"
+    "offline": "offline",
+    "notFound": "That nickname does not exist."
   },
   "security": {
     "tag": "Security",

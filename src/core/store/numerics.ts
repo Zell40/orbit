@@ -288,9 +288,19 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         if (w) {
           // yomirc text WHOIS: print the miss to its window and drop the entry.
           if (w.printTo) { sysLine(w.printTo, `${nk} No such nick/channel`, 'info'); clearWhois(nk); return true; }
-          // The user is offline — fall back to WHOWAS for their last-known info.
+          // Not online — try WHOWAS for last-known info; 406/369 will mark notFound if absent.
           if (get().profileUser === nk) { get().client?.whowas(nk); return true; }
           patchWhois(nk, (ww) => ({ ...ww, loading: false }));
+          return true;
+        }
+        break;
+      }
+      case '406': { // ERR_WASNOSUCHNICK — WHOWAS miss (nick never seen / no history)
+        const nk = msg.params[1];
+        const w = get().whois[nk];
+        if (w) {
+          if (w.printTo) { sysLine(w.printTo, `${nk} was never on this network`, 'info'); clearWhois(nk); return true; }
+          patchWhois(nk, (ww) => ({ ...ww, loading: false, notFound: true }));
           return true;
         }
         break;

@@ -71,6 +71,7 @@ export interface WhoisInfo {
   bot?: boolean;          // RPL_WHOISBOT
   actualHost?: string;    // RPL_WHOISACTUALLY / HOST
   offline?: boolean;      // populated from WHOWAS (user is no longer connected)
+  notFound?: boolean;     // WHOIS/WHOWAS found no such nick
   certfp?: string;        // RPL_WHOISCERTFP (276)
   regnick?: boolean;      // RPL_WHOISREGNICK (307)
   special?: string[];     // RPL_WHOISSPECIAL (320) — one entry per line

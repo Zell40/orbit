@@ -80,13 +80,16 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   const plainText = stripFormatting(m.text).trim();
   const textUrls = m.redacted ? [] : previewableUrls(plainText);
   const urlLead = textUrls.length === 1 ? plainText.replace(textUrls[0], '').trim() : '';
+  const urlOnlyLead = plainText.replace(/https?:\/\/[^\s<>"']+/g, '').trim();
   const isUrlCallout = !cont
-    && !m.self
     && !m.redacted
     && !isActu
-    && (m.kind === 'privmsg' || m.kind === 'notice')
-    && textUrls.length >= 1
-    && (!urlLead || /^#[^\s]+$/.test(urlLead));
+    && (m.kind === 'url'
+      || (!m.self
+        && (m.kind === 'privmsg' || m.kind === 'notice')
+        && textUrls.length >= 1
+        && (!urlLead || /^#[^\s]+$/.test(urlLead))
+        && (!urlOnlyLead || /^#[^\s]+$/.test(urlOnlyLead))));
 
   // yomIRC: classic single log line — [HH:MM] <nick> text (nick on every line, no grouping/avatars).
   if (mirc) {
@@ -184,14 +187,15 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   }
 
   if (isUrlCallout) {
+    const showPreviews = linkPreviews && getConfig().features.linkPreviews && textUrls.length > 0;
     return (
       <div data-mid={m.id} className="urlline">
         <div className="urlline__head">
           <span className="urlline__tag">URL</span>
-          {m.from && <span className="modeline__who" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }}>{m.from}</span>}
-          <span className="urlline__txt">{formatIrc(m.text, m.self, false)}</span>
+          {m.from && m.kind !== 'url' && <span className="modeline__who" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }}>{m.from}</span>}
+          {!showPreviews && <span className="urlline__txt">{formatIrc(m.text, m.self, false)}</span>}
         </div>
-        {textUrls.map((url) => <LinkPreview key={`${m.id}:${url}`} url={url} />)}
+        {showPreviews && textUrls.map((url) => <LinkPreview key={`${m.id}:${url}`} url={url} />)}
       </div>
     );
   }

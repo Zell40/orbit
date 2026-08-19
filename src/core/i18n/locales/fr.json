@@ -468,7 +468,8 @@
     "dm": "Message privé",
     "online": "en ligne",
     "away": "absent",
-    "offline": "hors ligne"
+    "offline": "hors ligne",
+    "notFound": "Ce pseudo n'existe pas."
   },
   "security": {
     "tag": "Sécurité",

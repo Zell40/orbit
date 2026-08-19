@@ -101,13 +101,15 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     );
   }
   if (m.kind === 'url') {
+    const urls = previewableUrls(stripFormatting(m.text));
+    const showPreviews = linkPreviews && getConfig().features.linkPreviews && urls.length > 0;
     return (
       <div className="urlline">
         <div className="urlline__head">
           <span className="urlline__tag">URL</span>
-          <span className="urlline__txt">{formatIrc(m.text, false, false)}</span>
+          {!showPreviews && <span className="urlline__txt">{formatIrc(m.text, false, false)}</span>}
         </div>
-        <CalloutPreviews text={m.text} />
+        {showPreviews ? <CalloutPreviews text={m.text} /> : null}
       </div>
     );
   }

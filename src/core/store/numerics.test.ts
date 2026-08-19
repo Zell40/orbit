@@ -11,22 +11,31 @@ const mk = (command: string, params: string[] = []): IrcMessage =>
 function setup(over: Record<string, unknown> = {}) {
   const sys: { name: string; text: string }[] = [];
   const server: string[] = [];
+  let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
   const state = {
-    client: { numerics: new Numerics() },
+    client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
     active: '#x', account: '', channels: [], listLoading: false, away: false,
     buffers: {}, banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
-    prefs: { sound: false }, whois: {},
+    prefs: { sound: false }, whois,
+    profileUser: '',
     ...over,
   };
   const get = () => state as unknown as ChatState;
-  const set = (p: Partial<typeof state>) => Object.assign(state, p);
+  const set = (p: Partial<typeof state>) => {
+    if (p.whois) whois = p.whois as typeof whois;
+    Object.assign(state, p);
+  };
   const helpers = {
     ensureBuffer: () => {},
     patchBuffer: () => {},
     dropBuffer: () => {},
     sysLine: (name: string, text: string) => { sys.push({ name, text }); },
     serverLine: (text: string) => { server.push(text); },
-    patchWhois: () => {},
+    patchWhois: (nick: string, fn: (w: { nick: string; loading: boolean; notFound?: boolean }) => typeof whois[string]) => {
+      const cur = whois[nick] ?? { nick, loading: true };
+      whois = { ...whois, [nick]: fn(cur) };
+      state.whois = whois;
+    },
   } as unknown as StoreHelpers;
   const { handleNumerics } = makeNumerics({
     get, set, helpers,
@@ -81,6 +90,28 @@ describe('store numerics handler', () => {
     expect(handleNumerics(mk('372', ['me', '- \x032coloured\x0f line']))).toBe(true);
     expect(handleNumerics(mk('376', ['me', 'End of MOTD']))).toBe(true);
     expect(server.some((l) => l.includes('coloured') || l.includes('Message of the day'))).toBe(true);
+  });
+
+  it('406 ERR_WASNOSUCHNICK marks an open WHOIS as notFound without a chat line', () => {
+    const { handleNumerics, sys, state } = setup({
+      profileUser: 'ghost',
+      whois: { ghost: { nick: 'ghost', loading: true } },
+    });
+    expect(handleNumerics(mk('406', ['me', 'ghost', 'was never on this network']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(state.whois.ghost).toMatchObject({ loading: false, notFound: true });
+  });
+
+  it('401 ERR_NOSUCHNICK triggers WHOWAS when the profile is open', () => {
+    let whowasNick = '';
+    const { handleNumerics, sys, state } = setup({
+      profileUser: 'bob',
+      whois: { bob: { nick: 'bob', loading: true } },
+    });
+    state.client.whowas = (nk: string) => { whowasNick = nk; };
+    expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
+    expect(whowasNick).toBe('bob');
+    expect(sys).toHaveLength(0);
   });
 
   it('returns false for a non-numeric command', () => {

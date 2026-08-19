@@ -1743,13 +1743,15 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 @keyframes pm-drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(6vw,4vh) scale(1.18); } }
 
 .pm-card {
-  position: relative; z-index: 1; width: min(680px, 96vw); max-height: 90vh; overflow: hidden auto;
+  position: relative; z-index: 1; width: min(680px, 96vw); max-height: 90vh; overflow: hidden;
+  display: flex; flex-direction: column;
   background: var(--bg); border: 1px solid var(--border); border-radius: 26px;
   box-shadow: 0 40px 120px -24px rgba(0,0,0,.7), 0 6px 24px -8px rgba(0,0,0,.5);
   animation: pm-pop .42s cubic-bezier(.16,1,.3,1) both;
 }
 @keyframes pm-pop { from { opacity: 0; transform: translateY(18px) scale(.94); } to { opacity: 1; transform: none; } }
-.pm-card::-webkit-scrollbar { width: 0; }
+
+.pm-cover, .pm-hero, .pm-meta, .pm-stats, .pm-actions, .pm-modrow { flex: none; }
 
 .pm-x {
   position: absolute; top: .85rem; right: .85rem; z-index: 3; width: 34px; height: 34px; border: 0; border-radius: 50%;
@@ -1901,7 +1903,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .pm-btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 10px 24px -8px rgba(20,82,204,.6); }
 .pm-btn--primary:hover { background: var(--accent-d); box-shadow: 0 14px 30px -8px rgba(20,82,204,.75); }
 
-.pm-info { display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .6rem; padding: .6rem 1.2rem 1.3rem; }
+.pm-info {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .6rem; padding: .6rem 1.2rem 1.3rem;
+  flex: 1; min-height: 0; overflow-y: auto; align-content: start;
+}
 .pm-section { grid-column: 1 / -1; }
 .pm-row--wide, .pm-skeleton, .pm-empty { grid-column: 1 / -1; }
 .pm-row { display: flex; align-items: center; gap: .7rem; padding: .55rem .6rem; border-radius: 13px; transition: background .12s; min-width: 0; }
@@ -1914,6 +1919,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .pm-link { color: var(--accent-d); font-weight: 600; text-decoration: none; }
 .pm-link:hover { text-decoration: underline; }
 .pm-empty { padding: 1.4rem; text-align: center; color: var(--faint); font-size: .9rem; }
+.pm-hero--missing { align-items: center; margin-top: 0; padding: 2rem 1.6rem 2.2rem; }
+.pm-notfound { margin: .55rem 0 0; font-size: .95rem; font-weight: 600; color: var(--faint); text-align: center; }
 .pm-skeleton { display: flex; flex-direction: column; gap: .7rem; padding: .8rem .7rem; }
 .pm-skeleton i { height: 38px; border-radius: 11px; background: linear-gradient(90deg, var(--bg-soft), var(--bg-soft-2), var(--bg-soft)); background-size: 200% 100%; animation: pm-shimmer 1.3s ease-in-out infinite; }
 .pm-skeleton i:nth-child(2) { width: 85%; } .pm-skeleton i:nth-child(3) { width: 70%; }
@@ -2393,11 +2400,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .pm-actions { padding: .9rem 1rem .35rem; }
   .pm-modrow { padding: .3rem 1rem; }
 
-  /* Info grid: single column; takes the remaining height. content-fits the
-     full screen, only scrolls internally if a profile is unusually long. */
+  /* Info grid: single column; scrolls internally when the profile is long. */
   .pm-info {
     grid-template-columns: 1fr; padding: .4rem .9rem calc(1.1rem + env(safe-area-inset-bottom));
-    flex: 1; min-height: 0; overflow-y: auto; align-content: start;
   }
 
   /* Close button: smaller, less intrusive */

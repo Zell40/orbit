@@ -88,7 +88,18 @@ describe('makeWhois — yomirc text WHOIS (printTo)', () => {
     expect(whois()['bob'].loading).toBe(false);
   });
 
-  it('clearWhois removes an entry', () => {
+  it('369 ENDOFWHOWAS with no user data marks notFound', () => {
+    const { w, whois } = setup({ ghost: { nick: 'ghost', loading: true } });
+    w.handleWhois(parseLine(':srv 369 me ghost :End of WHOWAS'));
+    expect(whois()['ghost']).toMatchObject({ loading: false, notFound: true });
+  });
+
+  it('369 ENDOFWHOWAS keeps data when WHOWAS returned a user', () => {
+    const { w, whois } = setup({ bob: { nick: 'bob', loading: true } });
+    w.handleWhois(parseLine(':srv 314 me bob u h * :R'));
+    w.handleWhois(parseLine(':srv 369 me bob :End of WHOWAS'));
+    expect(whois()['bob']).toMatchObject({ user: 'u', host: 'h', offline: true, loading: false, notFound: false });
+  });
     const { w, whois } = setup({ bob: { nick: 'bob', loading: false } });
     w.clearWhois('bob');
     expect(whois()['bob']).toBeUndefined();
