@@ -100,6 +100,8 @@ describe('makeWhois — yomirc text WHOIS (printTo)', () => {
     w.handleWhois(parseLine(':srv 369 me bob :End of WHOWAS'));
     expect(whois()['bob']).toMatchObject({ user: 'u', host: 'h', offline: true, loading: false, notFound: false });
   });
+
+  it('clearWhois removes an entry', () => {
     const { w, whois } = setup({ bob: { nick: 'bob', loading: false } });
     w.clearWhois('bob');
     expect(whois()['bob']).toBeUndefined();
