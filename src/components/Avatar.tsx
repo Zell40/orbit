@@ -7,13 +7,14 @@ import { hashHue } from '../lib/format';
 // bubble entirely when there's no real avatar) can pass `url` to skip the lookup.
 // `ring` draws a coloured outline (e.g. EntreNous gender colour from GECOS).
 export function Avatar({
-  nick, size = 40, account, url, ring,
+  nick, size = 40, account, url, ring, bot,
 }: {
   nick: string;
   size?: number;
   account?: string | null;
   url?: string | null;
   ring?: string | null;
+  bot?: boolean;
 }) {
   const n = nick || '?';
   const h = hashHue(n);
@@ -32,16 +33,18 @@ export function Avatar({
   }
   return (
     <span
-      className="avatar group__avatar"
+      className={`avatar group__avatar ${bot ? 'avatar--bot' : ''}`}
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.42,
-        background: `linear-gradient(140deg, hsl(${h}, var(--av-s1,80%), var(--av-l1,62%)), hsl(${(h + 45) % 360}, var(--av-s2,75%), var(--av-l2,50%)))`,
+        fontSize: size * (bot ? 0.5 : 0.42),
+        background: bot
+          ? 'linear-gradient(145deg, #64748b, #334155)'
+          : `linear-gradient(140deg, hsl(${h}, var(--av-s1,80%), var(--av-l1,62%)), hsl(${(h + 45) % 360}, var(--av-s2,75%), var(--av-l2,50%)))`,
         ...ringStyle,
       }}
     >
-      {n[0].toUpperCase()}
+      {bot ? '🤖' : n[0].toUpperCase()}
     </span>
   );
 }

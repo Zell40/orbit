@@ -546,10 +546,12 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 }
 .main:has(.main__room-bg[data-rg-pic]) .motdline,
 .main:has(.main__room-bg[data-rg-pic]) .infoline,
+.main:has(.main__room-bg[data-rg-pic]) .urlline,
 .main:has(.main__room-bg[data-rg-pic]) .warnline,
 .main:has(.main__room-bg[data-rg-pic]) .noticeline,
 .main:has(.main__room-bg[data-rg-pic]) .actuline,
 .main:has(.main__room-bg[data-rg-pic]) .modeline,
+.main:has(.main__room-bg[data-rg-pic]) .topicline,
 .main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert) {
   background: color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter: blur(4px);
@@ -695,7 +697,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 
 /* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE): SMS-style width. */
-.noticeline, .infoline, .motdline, .warnline, .actuline, .modeline, .noticeline-wrap {
+.noticeline, .infoline, .urlline, .motdline, .warnline, .actuline, .modeline, .topicline, .noticeline-wrap {
   align-self: flex-start;
   width: max-content;
   max-width: min(70%, calc(100% - 2.2rem));
@@ -740,7 +742,24 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 /* TOPIC change line — same layout as the mode line, blue "sujet" tag */
 .modeline__tag--topic { background: #e3edff; color: #2a5bb9; }
 
+.topicline {
+  display: flex; flex-direction: column; align-items: stretch; gap: .32rem;
+  margin: .22rem 1.1rem; padding: .5rem .75rem; border-radius: 10px;
+  background: #eef4ff;
+  border: 1px solid rgba(59, 123, 255, .24);
+  border-left: 3px solid #3b7bff;
+}
+.topicline__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; min-width: 0; }
 .topicline__txt { font-size: .84rem; color: var(--ink-2); font-style: italic; overflow-wrap: anywhere; }
+
+.urlline {
+  display: flex; flex-direction: column; align-items: stretch; gap: .35rem; margin: .4rem 1.3rem; padding: .6rem .8rem; border-radius: 12px;
+  background: #eefaf7; border: 1px solid rgba(16, 185, 129, .24); box-shadow: inset 3px 0 0 #10b981;
+}
+.urlline__head { display: flex; align-items: flex-start; gap: .6rem; min-width: 0; }
+.urlline__tag { flex: none; margin-top: .05rem; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: .16rem .48rem; border-radius: 999px; background: #10b981; color: #fff; box-shadow: 0 2px 6px -2px rgba(16,185,129,.55); }
+.urlline__txt { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
 
 /* NOTICE — a prominent violet callout so it can't get lost in the chat flow */
 .noticeline {
@@ -959,7 +978,9 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
 .actuline__item:has(.lpcard) .actuline__txt a { display: none; }
 .actuline .lpcard,
 .infoline .lpcard,
-.noticeline .lpcard {
+.noticeline .lpcard,
+.urlline .lpcard,
+.topicline .lpcard {
   margin-top: .35rem;
   width: 100%;
   max-width: 100%;
@@ -973,6 +994,12 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
 }
 .noticeline .lpcard {
   border-color: color-mix(in srgb, #8b5cf6 40%, var(--border));
+}
+.urlline .lpcard {
+  border-color: color-mix(in srgb, #10b981 36%, var(--border));
+}
+.topicline .lpcard {
+  border-color: color-mix(in srgb, #3b7bff 36%, var(--border));
 }
 .actuline .lpcard__img { width: 72px; min-width: 72px; height: 72px; }
 
@@ -1325,6 +1352,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 .avatar { border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; flex: none; font-family: var(--font); box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
 /* No overflow:hidden — the <img> is already border-radius:50%, and clipping here
    swallowed the presence-dot ::after (which overhangs the corner) on image avatars. */
+.avatar--bot { font-size: 1.05em; }
 .avatar--img { background: var(--bg-soft-2); }
 .avatar--img img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 
@@ -2261,7 +2289,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .topbar__searchinput, .members__search input, .members__age select, .cjoin__mini { font-size: 16px; }
   .members__asl { padding: 0 .65rem .5rem; }
   .members__cols { padding-left: .65rem; padding-right: .65rem; }
-  .actuline { margin-left: .7rem; margin-right: .7rem; }
+  .actuline, .urlline, .topicline { margin-left: .7rem; margin-right: .7rem; }
 
   /* Composer: the text field gets its own full-width row; the controls
      (image / format / emoji / send) wrap onto the row below. Fixes the

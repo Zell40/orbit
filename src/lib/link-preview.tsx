@@ -5,7 +5,12 @@ import { useState, useRef, useEffect } from 'react';
 import { isImageUrl, isAudioUrl, youtubeId } from './media';
 
 interface Preview { url: string; title?: string | null; description?: string | null; image?: string | null; siteName?: string | null }
-const UNFURL_PATHS = ['/accounts/api/unfurl/?url=', '/app/accounts/api/unfurl/?url='];
+const UNFURL_PATHS = [
+  '/accounts/api/unfurl/?url=',
+  '/app/accounts/api/unfurl/?url=',
+  '/unfurl.php?url=',
+  '/app/unfurl.php?url=',
+];
 const previewCache = new Map<string, Promise<Preview | null>>();
 const PREVIEW_CACHE_MAX = 200; // bound: evict oldest so a long-lived tab can't grow forever
 

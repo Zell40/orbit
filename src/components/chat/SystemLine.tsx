@@ -100,6 +100,17 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       </div>
     );
   }
+  if (m.kind === 'url') {
+    return (
+      <div className="urlline">
+        <div className="urlline__head">
+          <span className="urlline__tag">URL</span>
+          <span className="urlline__txt">{formatIrc(m.text, false, false)}</span>
+        </div>
+        <CalloutPreview text={m.text} />
+      </div>
+    );
+  }
   if (m.kind === 'motd') {
     return (
       <div className="motdline">
@@ -138,11 +149,14 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   }
   if (m.kind === 'topic') {
     return (
-      <div className="sysline sysline--mode">
-        <span className="modeline__tag modeline__tag--topic">{t('modeline.topicTag')}</span>
-        <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
-        <span className="modeline__verb">{m.text ? t('modeline.topicChanged') : t('modeline.topicRemoved')}</span>
+      <div className="topicline">
+        <div className="topicline__head">
+          <span className="modeline__tag modeline__tag--topic">{t('modeline.topicTag')}</span>
+          <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
+          <span className="modeline__verb">{m.text ? t('modeline.topicChanged') : t('modeline.topicRemoved')}</span>
+        </div>
         {m.text && <span className="topicline__txt">{formatIrc(m.text, false, linkPreviews)}</span>}
+        {m.text && <CalloutPreview text={m.text} />}
       </div>
     );
   }

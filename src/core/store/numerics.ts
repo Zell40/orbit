@@ -21,7 +21,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422']);
 
 function findSelfMember(buf: ChatState['buffers'][string] | undefined, nick: string): Member | undefined {
   if (!buf) return undefined;
@@ -158,6 +158,15 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const chan = msg.params[1];
         const ts = Number(msg.params[2]) || 0;
         if (isChannelName(chan)) { ensureBuffer(chan); patchBuffer(chan, (b) => ({ ...b, createdAt: ts })); }
+        return true;
+      }
+      case '328': { // RPL_CHANNEL_URL / channel homepage
+        const chan = msg.params[1];
+        const url = msg.params[2] || '';
+        if (isChannelName(chan) && url) {
+          ensureBuffer(chan);
+          sysLine(chan, url, 'url');
+        }
         return true;
       }
       case '321': // RPL_LISTSTART

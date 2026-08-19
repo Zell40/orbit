@@ -70,9 +70,6 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   // fall back to the author's account from the channel member list.
   const memberAccount = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.account);
   const avatarAccount = m.account || memberAccount;
-  // Only registered users with an uploaded picture get a bubble. Without one we
-  // render no bubble at all (not the bright per-nick gradient) and let the text
-  // run full-width — calmer, and no color-shifting blobs down the gutter.
   const avatarUrl = useAvatarUrl(avatarAccount);
   const mirc = useTheme().startsWith('yomirc');
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
@@ -179,13 +176,12 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   return (
     <div data-mid={m.id} className={`group ${cont ? 'group--cont' : ''} ${m.self ? 'group--self' : ''}`}>
       {/* The avatar column is always reserved so every row lines up. It holds the
-          hover timestamp on continuation lines, a real photo when there is one, and
-          otherwise an empty spacer (no bright fallback bubble). */}
+          hover timestamp on continuation lines, and the sender avatar on the first
+          row of a run. When no uploaded photo exists we fall back to the same
+          initial avatar seen in the member list; bots get a dedicated robot avatar. */}
       {cont
         ? <span className="group__avatar group__time-rail">{fmtTime(m.ts)}</span>
-        : avatarUrl
-          ? <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} url={avatarUrl} /></button>
-          : <span className="group__avatar" aria-hidden="true" />}
+        : <button className="group__avbtn" title={t('messages.profileOf', { nick: m.from })} onClick={() => openUser(m.from)}><Avatar nick={m.from} account={avatarAccount} url={avatarUrl} bot={isBot} /></button>}
       <div className="group__body">
         {!cont && (
           <div className="group__head">

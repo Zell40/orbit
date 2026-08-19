@@ -184,7 +184,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
                     onContextMenu={(e) => { e.preventDefault(); setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
                   >
                     <span className="member__asl-nick">
-                      <Avatar nick={m.nick} size={26} account={m.account} ring={genderColor} />
+                      <Avatar nick={m.nick} size={26} account={m.account} ring={genderColor} bot={m.bot} />
                       <span className="member__name">
                         {m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
                         <span className="member__nick" style={genderColor ? { color: genderColor } : undefined}>{m.nick}</span>
@@ -209,7 +209,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
                   onClick={() => { openUser(m.nick); onNavigate?.(); }}
                   onContextMenu={(e) => { e.preventDefault(); setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
                 >
-                  <Avatar nick={m.nick} size={30} account={m.account} ring={genderColor} />
+                  <Avatar nick={m.nick} size={30} account={m.account} ring={genderColor} bot={m.bot} />
                   <span className="member__name">
                     {m.prefix && <span className={`member__prefix role-${g.role.cls}`}>{m.prefix}</span>}
                     <span className="member__nick" style={genderColor ? { color: genderColor } : undefined}>{m.nick}</span>
