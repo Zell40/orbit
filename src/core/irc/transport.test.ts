@@ -73,6 +73,29 @@ describe('Transport — connect + open', () => {
     expect(t.isOpen).toBe(false);
   });
 
+  it('retries the same attempt without subprotocols when the IRCv3 handshake is rejected', () => {
+    const { t, rec } = setup();
+    t.connect('ws://gateway/');
+    expect(last().protocols).toEqual(['text.ircv3.net', 'binary.ircv3.net']);
+    last()._close(); // rejected before OPEN — Kiwi/ZNC gateway
+    expect(FakeWebSocket.instances).toHaveLength(2);
+    expect(last().protocols).toEqual([]);
+    expect(rec.status).not.toContain('closed');
+    last()._open('');
+    expect(rec.open).toBe(1);
+    expect(t.isOpen).toBe(true);
+  });
+
+  it('reconnects with a plain WebSocket after a successful plain open', () => {
+    const { t } = setup();
+    t.connect('ws://gateway/');
+    last()._close();
+    last()._open('');
+    last()._close(); // live drop
+    vi.advanceTimersByTime(1000);
+    expect(last().protocols).toEqual([]);
+  });
+
   it('fires onOpen and reports isOpen once the socket opens', () => {
     const { t, rec } = setup();
     t.connect('ws://x');
@@ -163,7 +186,10 @@ describe('Transport — reconnect', () => {
   it('recovers a handshake that never reaches OPEN (connect timeout)', () => {
     const { t, rec } = setup();
     t.connect('ws://x'); // never _open
-    vi.advanceTimersByTime(12_000); // connectTimeoutMs
+    vi.advanceTimersByTime(12_000); // IRCv3 subprotocols timed out → plain retry
+    expect(FakeWebSocket.instances).toHaveLength(2);
+    expect(rec.status).not.toContain('closed');
+    vi.advanceTimersByTime(12_000); // plain handshake also stuck
     expect(rec.status).toContain('closed');
     expect(rec.reconnecting).toEqual([1]);
   });

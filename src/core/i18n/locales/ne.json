@@ -81,6 +81,17 @@
     "live": "प्रत्यक्ष",
     "typing": "{{who}} लेख्दै",
     "nickAria": "उपनाम",
+    "bouncerToggle": "Bouncer (ZNC) बाट",
+    "bouncerHide": "सीधा जडान",
+    "bouncerHint": "पासवर्ड PASS का रूपमा पठाइन्छ (user/network:password)। बाउन्सरमा पहिले नै खुलेका च्यानल लिन खाली छोड्नुहोस्।",
+    "bouncerUrl": "बाउन्सर WebSocket ठेगाना",
+    "bouncerUrlPlaceholder": "wss://bnc.example.org/webirc/websocket/",
+    "bouncerPass": "बाउन्सर पासवर्ड",
+    "bouncerPassPlaceholder": "user/network:password",
+    "bouncerSasl": "NickServ पासवर्ड (वैकल्पिक)",
+    "bouncerSaslPlaceholder": "SASL — बाउन्सरले नहाले मात्र",
+    "bouncerJoinHint": "च्यानल (वैकल्पिक)",
+    "bouncerJoinPlaceholder": "खाली = बाउन्सरका च्यानल",
     "ambient": {
       "0": "सबैलाई नमस्ते 👋",
       "1": "आज राति कोही छ कि?",
@@ -936,6 +947,8 @@
     "add": "नेटवर्क थप्नुहोस्",
     "name": "नाम (वैकल्पिक)",
     "password": "पासवर्ड (वैकल्पिक)",
+    "bouncer": "Bouncer (ZNC) — पासवर्ड PASS मा",
+    "bouncerPass": "user/network:password",
     "connect": "जडान गर्नुहोस्"
   },
   "recover": {

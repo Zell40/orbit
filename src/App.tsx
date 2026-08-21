@@ -70,11 +70,15 @@ export default function App() {
       const rn = s.buffers[name]?.members[s.nick]?.realname;
       if (rn && /\d/.test(rn) && rn.includes('-')) { realname = rn; break; }
     }
-    return JSON.stringify({ nick: s.nick, account: s.account || '', channels, realname });
+    return JSON.stringify({
+      nick: s.nick, account: s.account || '', channels, realname,
+      url: s.connectUrl || getConfig().server.url,
+      bouncer: s.viaBouncer,
+    });
   });
   useEffect(() => {
     if (!resumeSig) return;
-    saveResume({ url: getConfig().server.url, ...(JSON.parse(resumeSig) as { nick: string; account: string; channels: string[]; realname?: string }) });
+    saveResume(JSON.parse(resumeSig) as { nick: string; account: string; channels: string[]; realname?: string; url: string; bouncer?: boolean });
   }, [resumeSig]);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives

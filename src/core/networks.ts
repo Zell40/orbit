@@ -13,7 +13,7 @@ import { getConfig } from './config';
 export type ChatStore = ReturnType<typeof createChatStore>;
 type ChatState = ReturnType<ChatStore['getState']>;
 
-export interface NetOpts { url: string; nick: string; channels: string[] }
+export interface NetOpts { url: string; nick: string; channels: string[]; bouncer?: boolean }
 
 export interface NetworkEntry {
   id: string;
@@ -138,13 +138,16 @@ export function restoreNetworks(): void {
   let saved: unknown;
   try { saved = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); } catch { return; }
   if (!Array.isArray(saved)) return;
-  for (const n of saved as Array<{ label?: string; url?: string; nick?: string; channels?: string[] }>) {
+  for (const n of saved as Array<{ label?: string; url?: string; nick?: string; channels?: string[]; bouncer?: boolean }>) {
     if (!n || !n.url || !n.nick) continue;
     try {
       const channels = Array.isArray(n.channels) ? n.channels : [];
-      const entry = useNetworks.getState().add(n.label || n.url, { url: n.url, nick: n.nick, channels });
+      const bouncer = n.bouncer === true;
+      const entry = useNetworks.getState().add(n.label || n.url, { url: n.url, nick: n.nick, channels, bouncer });
       const password = sessionStorage.getItem(passKey(n.url, n.nick)) || undefined;
-      entry.store.getState().connect({ url: n.url, nick: n.nick, channels, password });
+      entry.store.getState().connect(bouncer
+        ? { url: n.url, nick: n.nick, channels, serverPassword: password }
+        : { url: n.url, nick: n.nick, channels, password });
     } catch { /* skip a bad entry */ }
   }
 }

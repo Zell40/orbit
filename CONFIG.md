@@ -19,7 +19,8 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 
 | Key | Type | Default | What it does |
 |-----|------|---------|--------------|
-| `server.url` | string | `wss://www.swaygo.fr/irc/` | WebSocket URL of the IRCv3 server (uses the `text/binary.ircv3.net` subprotocols). The server's Origin allowlist must include where the client is served. |
+| `server.url` | string | `wss://www.swaygo.fr/irc/` | WebSocket URL of the IRCv3 server (uses the `text/binary.ircv3.net` subprotocols, with a plain-WebSocket fallback for ZNC/Kiwi gateways). The server's Origin allowlist must include where the client is served. |
+| `server.bouncerUrl` | string | `""` | Default WebSocket URL pre-filled when a visitor chooses “via a bouncer”. Typically the Kiwi `webircgateway` in front of ZNC, e.g. `wss://bnc.example.org/webirc/websocket/`. |
 | `server.guestIdent` | string | `Invit├®` | Ident shown for **guests** (not logged in), e.g. `Foo!Invit├®@ÔÇª`. Folded to ASCII since IRC idents are `[A-Za-z0-9._-]` (so `Invit├®`ÔåÆ`Invite`). Logged-in members use their own nick as the ident. |
 | `startup.channels` | string[] | `["#accueil"]` | Channels auto-joined on connect (first = active). A `?channel=` URL param overrides this. |
 | `branding.name` | string | `Tchatou` | App/network name shown in the UI, the console title, and CTCP VERSION. |
@@ -42,6 +43,7 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 | `features.push` | bool | `true` | Show the Web Push notifications setting (and re-assert the subscription on connect). |
 | `features.imageUpload` | bool | `true` | Enable the composer image button + paste/drag-drop upload. |
 | `features.register` | bool | `true` | Account self-service: shows the "Create account" button, the "Forgot password" link, and their FAQ entries. `false` hides all of them. |
+| `features.bouncer` | bool | `false` | Show “via a bouncer (ZNC)” on the connect screen. The bouncer password is sent as IRC `PASS` (`user/network:password`); optional NickServ SASL is a separate field. Leave channels empty to attach to the bouncer’s existing windows. |
 | `plugins` | string[] | `[]` | Plugin script URLs loaded at startup (operator-controlled). See **[PLUGINS.md](./docs/PLUGINS.md)**. |
 | `builtins` | string[] | `[]` | Built-in **sandboxed** features to enable by name (opt-in). Currently `"dice"` (a ­ƒÄ▓/­ƒ¬Ö footer widget). See **[docs/SANDBOX.md](./docs/SANDBOX.md)**. |
 

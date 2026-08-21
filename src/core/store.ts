@@ -55,6 +55,8 @@ export interface ChatState {
   reconnectIn: number;   // seconds until the next auto-reconnect (0 = not reconnecting)
   everRegistered: boolean; // true after the first successful registration (keeps the chat UI mounted during reconnects)
   autoConnecting: boolean; // a handoff (e.g. the site entry form) is connecting for us; show a splash, not the join form
+  connectUrl: string;      // WebSocket URL of the current/last connect() (network or bouncer)
+  viaBouncer: boolean;     // this session authenticated with PASS (ZNC / KiwiBNC), not NickServ SASL
   historyLoading: Record<string, boolean>; // buffer key → chathistory request in flight
   historyDone: Record<string, boolean>;    // buffer key → no more older history
   loadMoreHistory: (name: string) => void;
@@ -180,6 +182,8 @@ export function createChatStore(ns = '') {
     reconnectIn: 0,
     everRegistered: false,
     autoConnecting: false,
+    connectUrl: '',
+    viaBouncer: false,
     historyLoading: {},
     historyDone: {},
     away: false,
@@ -225,7 +229,7 @@ export function createChatStore(ns = '') {
         const guest = ident(getConfig().server.guestIdent || 'Invité', 'Invite');
         // Authenticated members (SASL password or a passkey) show their own nick as
         // the ident; guests show the configured guest ident.
-        opts.username = (opts.password || opts.passkey) ? ident(opts.nick, guest) : guest;
+        opts.username = (opts.password || opts.passkey || opts.serverPassword) ? ident(opts.nick, guest) : guest;
       }
       // Prefer SASL SCRAM-SHA-256 (the password never goes on the wire) for a real
       // account password — never for a one-time keycard (SCRAM can't verify a token)
@@ -278,7 +282,11 @@ export function createChatStore(ns = '') {
       }
       const client = new IrcClient();
       initNotify();
-      set({ client, nick: opts.nick, status: 'connecting' });
+      set({
+        client, nick: opts.nick, status: 'connecting',
+        connectUrl: opts.url,
+        viaBouncer: !!opts.serverPassword,
+      });
       client.on('status', (st) => {
         set({ status: st, nick: client.nick });
         // Once we leave 'connecting' (registered, or an auth/connection failure),

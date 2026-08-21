@@ -98,6 +98,17 @@
     "typing": "{{who}} écrit",
     "joinLine": "{{who}} est entré dans {{chan}}",
     "nickAria": "Pseudo",
+    "bouncerToggle": "Via un bouncer (ZNC)",
+    "bouncerHide": "Connexion directe",
+    "bouncerHint": "Le mot de passe est envoyé en PASS (user/réseau:motdepasse). Laisse les salons vides pour retrouver ceux déjà ouverts sur le bouncer.",
+    "bouncerUrl": "Adresse WebSocket du bouncer",
+    "bouncerUrlPlaceholder": "wss://bnc.exemple.fr/webirc/websocket/",
+    "bouncerPass": "Mot de passe bouncer",
+    "bouncerPassPlaceholder": "user/réseau:motdepasse",
+    "bouncerSasl": "Mot de passe NickServ (facultatif)",
+    "bouncerSaslPlaceholder": "SASL — seulement si le bouncer ne s’en charge pas",
+    "bouncerJoinHint": "Salons (facultatif)",
+    "bouncerJoinPlaceholder": "vide = ceux du bouncer",
     "ambient": {
       "0": "coucou tout le monde 👋",
       "1": "quelqu’un dans le coin ce soir ?",
@@ -750,6 +761,10 @@
     "what": {
       "q": "C’est quoi {{name}} ?",
       "a": "Un tchat français en direct, bâti sur le protocole ouvert <b>IRCv3</b> et propulsé par <a href=\"{{project}}\" target=\"_blank\" rel=\"noopener\">Orbit</a>, un client web libre."
+    },
+    "bouncer": {
+      "q": "Je peux me connecter avec un bouncer (ZNC) ?",
+      "a": "Oui. Sur l’écran d’accueil, clique <b>« Via un bouncer (ZNC) »</b>. Il faut l’adresse <b>WebSocket</b> du gateway (pas le port IRC classique) et le mot de passe au format <code>user/réseau:motdepasse</code>. Les salons déjà ouverts sur le bouncer réapparaissent tout seuls."
     }
   },
   "members": {
@@ -1019,6 +1034,8 @@
     "add": "Ajouter un réseau",
     "name": "Nom (facultatif)",
     "password": "Mot de passe (facultatif)",
+    "bouncer": "Bouncer (ZNC) — mot de passe envoyé en PASS",
+    "bouncerPass": "user/réseau:motdepasse",
     "connect": "Se connecter"
   },
   "consent": {

@@ -30,6 +30,11 @@ export class Transport {
 
   private wantConnected = false;       // true between connect() and disconnect()
   private reconnectAttempts = 0;
+  // Kiwi/ZNC WebSocket gateways often reject the IRCv3 subprotocols. We try them
+  // first, then immediately retry the same attempt without any subprotocol. Once a
+  // plain socket has opened, later reconnects skip the doomed IRCv3 handshake.
+  private preferPlain = false;
+  private skipProtosThisOpen = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private keepaliveTimer: ReturnType<typeof setInterval> | null = null;
   private connectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -52,6 +57,8 @@ export class Transport {
     this.url = url;
     this.wantConnected = true;
     this.reconnectAttempts = 0;
+    this.preferPlain = false;
+    this.skipProtosThisOpen = false;
     this.hookResume();
     this.openSocket();
   }
@@ -176,9 +183,12 @@ export class Transport {
     this.lowQueue = []; if (this.lowTimer) { clearTimeout(this.lowTimer); this.lowTimer = null; }
     this.hooks.onStatus('connecting');
 
+    const useProtos = !this.preferPlain && !this.skipProtosThisOpen;
     let ws: WebSocket;
     try {
-      ws = new WebSocket(this.url, ['text.ircv3.net', 'binary.ircv3.net']);
+      ws = useProtos
+        ? new WebSocket(this.url, ['text.ircv3.net', 'binary.ircv3.net'])
+        : new WebSocket(this.url);
     } catch {
       // Bad URL / blocked scheme — treat as a failed attempt and back off.
       this.hooks.onStatus('error');
@@ -190,6 +200,7 @@ export class Transport {
 
     // Single, idempotent recovery path shared by close / error / connect-timeout.
     let settled = false;
+    let opened = false;
     const fail = () => {
       if (settled) return;
       settled = true;
@@ -197,6 +208,14 @@ export class Transport {
       this.stopKeepalive();
       this.teardown(ws);
       if (this.ws === ws) this.ws = undefined;
+      // Handshake never reached OPEN with IRCv3 subprotocols → retry this attempt
+      // once as a plain WebSocket (no backoff, no 'closed' flash).
+      if (this.wantConnected && !opened && useProtos) {
+        this.skipProtosThisOpen = true;
+        this.openSocket();
+        return;
+      }
+      this.skipProtosThisOpen = false;
       this.hooks.onStatus('closed');
       this.scheduleReconnect();
     };
@@ -204,6 +223,9 @@ export class Transport {
     ws.onopen = () => {
       this.clearConnectTimer();
       this.subproto = ws.protocol;
+      opened = true;
+      this.skipProtosThisOpen = false;
+      if (!useProtos) this.preferPlain = true;
       this.startKeepalive();
       this.hooks.onOpen(); // the client sends its registration burst
     };
@@ -214,7 +236,11 @@ export class Transport {
       this.feed(text);
     };
     ws.onclose = fail;
-    ws.onerror = () => { this.hooks.onStatus('error'); fail(); };
+    ws.onerror = () => {
+      // Don't flash an error if we're about to retry without IRCv3 subprotocols.
+      if (!(this.wantConnected && !opened && useProtos)) this.hooks.onStatus('error');
+      fail();
+    };
 
     // Captive portals / dead proxies can leave the handshake hanging in
     // CONNECTING forever — onopen/onclose never fire, so nothing recovers.

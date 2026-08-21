@@ -138,7 +138,22 @@ loadConfig().then(async () => {
     // just reconnects under the same nick. No password is ever read from storage.
     const { loadResume } = await import('./core/resume')
     const resume = loadResume()
-    if (resume) {
+    if (resume?.bouncer) {
+      const { loadBouncerPass, bouncerConnectOpts } = await import('./core/bouncer')
+      const pass = loadBouncerPass(resume.url, resume.nick)
+      if (pass.serverPassword) {
+        useChat.setState({ autoConnecting: true })
+        useChat.getState().connect(bouncerConnectOpts({
+          url: resume.url,
+          nick: resume.nick,
+          serverPassword: pass.serverPassword,
+          saslPassword: pass.saslPassword,
+          channels: resume.channels,
+          realname: resume.realname,
+        }))
+        cleanUrl()
+      }
+    } else if (resume) {
       let password: string | undefined
       let resumeNick = resume.nick
       let resumeRealname = resume.realname

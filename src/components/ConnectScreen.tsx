@@ -7,6 +7,8 @@ import { LANGS, setLang } from '../core/i18n';
 import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
 import { formatProfileGecos } from '../lib/profile-gecos';
+import { bouncerConnectOpts, loadBouncerPrefs, saveBouncerSession } from '../core/bouncer';
+import { loadResume } from '../core/resume';
 
 function param(name: string, fallback: string): string {
   return new URLSearchParams(window.location.search).get(name) ?? fallback;
@@ -150,7 +152,7 @@ function LiveFeed({ chan }: { chan: string }) {
 // Aide / FAQ — a polished in-app help overlay reachable from the welcome. `focus`
 // pre-opens one entry (e.g. "register" or "forgot" from the welcome links). The
 // Q&A text lives in the `faq.*` locale keys; answers carry trusted inline markup.
-const FAQ_IDS = ['register', 'forgot', 'free', 'noaccount', 'taken', 'privacy', 'mobile', 'what'];
+const FAQ_IDS = ['register', 'forgot', 'free', 'noaccount', 'taken', 'privacy', 'mobile', 'bouncer', 'what'];
 function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) {
   const { t } = useTranslation();
   const cfg = getConfig();
@@ -166,7 +168,11 @@ function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) 
           <button className="cfaq__close" onClick={onClose} aria-label={t('faq.close')}>✕</button>
         </div>
         <div className="cfaq__body">
-          {(cfg.features.register ? FAQ_IDS : FAQ_IDS.filter((id) => id !== 'register' && id !== 'forgot')).map((id) => (
+          {FAQ_IDS.filter((id) => {
+            if (!cfg.features.register && (id === 'register' || id === 'forgot')) return false;
+            if (id === 'bouncer' && !cfg.features.bouncer) return false;
+            return true;
+          }).map((id) => (
             <div className={`cfaq__item ${open === id ? 'is-open' : ''}`} key={id}>
               <button className="cfaq__q" onClick={() => setOpen(open === id ? '' : id)}>
                 {t(`faq.${id}.q`, vars)}<span className="chev">›</span>
@@ -291,13 +297,24 @@ export function ConnectScreen() {
   const [recover, setRecover] = useState(false);
   const connect = useActiveChat((s) => s.connect);
   const status = useActiveChat((s) => s.status);
-  const [nick, setNick] = useState(param('nick', ''));
+  const bouncerPrefs = loadBouncerPrefs();
+  const lastResume = loadResume();
+  const [nick, setNick] = useState(param('nick', bouncerPrefs?.nick || ''));
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [viaBouncer, setViaBouncer] = useState(
+    param('bouncer', '') === '1' || (!!cfg.features.bouncer && lastResume?.bouncer === true),
+  );
+  const [bouncerUrl, setBouncerUrl] = useState(bouncerPrefs?.url || cfg.server.bouncerUrl || '');
+  const [bouncerPass, setBouncerPass] = useState('');
+  const [bouncerSasl, setBouncerSasl] = useState('');
   // The channel(s) to join — a comma-separated list, e.g. "#rencontre,#taverne"
   // (the first is the active/primary one). Prefilled from the URL ?channel= param
   // or config, but editable on the form so the user picks where they land.
-  const [chanField, setChanField] = useState(param('channel', cfg.startup.channels.join(',')));
+  // A bouncer already holds the channels — leave empty to attach without JOIN.
+  const [chanField, setChanField] = useState(
+    param('channel', viaBouncer ? '' : cfg.startup.channels.join(',')),
+  );
   const parseChannels = (raw: string) =>
     raw.split(',').map((c) => c.trim()).filter(Boolean)
       .map((c) => (c.startsWith('#') || c.startsWith('&') ? c : `#${c}`));
@@ -327,7 +344,9 @@ export function ConnectScreen() {
   }
 
   const connecting = status === 'connecting';
-  const ready = nick.trim().length >= 2;
+  const canBouncer = cfg.features.bouncer;
+  const bouncerReady = bouncerUrl.trim().length > 8 && bouncerPass.trim().length > 0;
+  const ready = nick.trim().length >= 2 && (!viaBouncer || bouncerReady);
   const errors: Record<string, string> = {
     error: t('connect.error_error'),
     closed: t('connect.error_closed'),
@@ -337,11 +356,36 @@ export function ConnectScreen() {
   // Passkey sign-in is offered only when the deployment enables it AND the browser
   // supports WebAuthn; the server must also advertise SASL WEBAUTHN (checked live at
   // CAP time — if it doesn't, the connection just proceeds unauthenticated).
-  const canPasskey = cfg.features.passkeySasl && passkeySupported();
+  const canPasskey = !viaBouncer && cfg.features.passkeySasl && passkeySupported();
+
+  function toggleBouncer() {
+    if (viaBouncer) {
+      setViaBouncer(false);
+      if (!chanField.trim()) setChanField(cfg.startup.channels.join(','));
+    } else {
+      setViaBouncer(true);
+      setChanField('');
+      setShowPw(false);
+    }
+  }
 
   function go(passkey = false) {
     if (!ready) return;
     const channels = parseChannels(chanField);
+    if (viaBouncer) {
+      const url = bouncerUrl.trim();
+      const nk = nick.trim();
+      saveBouncerSession(url, nk, bouncerPass, bouncerSasl.trim() || undefined);
+      connect(bouncerConnectOpts({
+        url,
+        nick: nk,
+        serverPassword: bouncerPass,
+        saslPassword: bouncerSasl.trim() || undefined,
+        channels,
+        realname: realname(),
+      }));
+      return;
+    }
     if (!channels.length) channels.push(...cfg.startup.channels);
     connect({
       url: cfg.server.url,
@@ -393,7 +437,7 @@ export function ConnectScreen() {
           </div>
           <p className="cjoin__hint">{t('connect.nickHint')}</p>
 
-          {intents && (
+          {intents && !viaBouncer && (
             <>
               <div className="cjoin__me">
                 <div className="cjoin__seg" role="group" aria-label={t('connect.sexAria')}>
@@ -425,19 +469,63 @@ export function ConnectScreen() {
           )}
 
           <div className="cjoin__row">
-            <label className="cjoin__chan">{t('connect.joinHint')}
-              <input className="cjoin__chan-in" value={chanField} spellCheck={false} autoComplete="off"
-                list="cjoin-chans" aria-label={t('connect.channelAria')} onChange={(e) => setChanField(e.target.value)} />
+            <label className="cjoin__chan">{viaBouncer ? t('connect.bouncerJoinHint') : t('connect.joinHint')}
+              <input className={`cjoin__chan-in${viaBouncer ? ' cjoin__chan-in--wide' : ''}`} value={chanField} spellCheck={false} autoComplete="off"
+                list="cjoin-chans" aria-label={t('connect.channelAria')} onChange={(e) => setChanField(e.target.value)}
+                placeholder={viaBouncer ? t('connect.bouncerJoinPlaceholder') : undefined} />
               <datalist id="cjoin-chans">
                 {suggestions.map((c) => <option key={c} value={c} />)}
               </datalist>
             </label>
-            <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
-              {showPw ? t('connect.hidePassword') : t('connect.registered')}
-            </button>
+            <span className="cjoin__row-actions">
+              {!viaBouncer && (
+                <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
+                  {showPw ? t('connect.hidePassword') : t('connect.registered')}
+                </button>
+              )}
+              {canBouncer && (
+                <button type="button" className="cjoin__pw-t" onClick={toggleBouncer}>
+                  {viaBouncer ? t('connect.bouncerHide') : t('connect.bouncerToggle')}
+                </button>
+              )}
+            </span>
           </div>
 
-          {showPw && (
+          {viaBouncer && (
+            <div className="cjoin__bnc">
+              <p className="cjoin__bnc-hint">{t('connect.bouncerHint')}</p>
+              <input
+                className="cjoin__pw"
+                name="bouncer-url"
+                value={bouncerUrl}
+                spellCheck={false}
+                autoComplete="off"
+                placeholder={t('connect.bouncerUrlPlaceholder')}
+                aria-label={t('connect.bouncerUrl')}
+                onChange={(e) => setBouncerUrl(e.target.value)}
+              />
+              <input
+                className="cjoin__pw"
+                type="password"
+                name="bouncer-pass"
+                value={bouncerPass}
+                placeholder={t('connect.bouncerPassPlaceholder')}
+                aria-label={t('connect.bouncerPass')}
+                onChange={(e) => setBouncerPass(e.target.value)}
+              />
+              <input
+                className="cjoin__pw"
+                type="password"
+                name="bouncer-sasl"
+                value={bouncerSasl}
+                placeholder={t('connect.bouncerSaslPlaceholder')}
+                aria-label={t('connect.bouncerSasl')}
+                onChange={(e) => setBouncerSasl(e.target.value)}
+              />
+            </div>
+          )}
+
+          {showPw && !viaBouncer && (
             <input
               className="cjoin__pw"
               type="password"

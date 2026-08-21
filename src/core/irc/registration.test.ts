@@ -75,6 +75,22 @@ describe('Registration handshake', () => {
     expect(sent).toContain('PASS :sekret');
   });
 
+  it('does not run SASL when only a bouncer (PASS) password is set', () => {
+    const { reg, sent } = make({ nick: 'bob', serverPassword: 'user/net:pw' });
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    expect(sent).not.toContain('AUTHENTICATE PLAIN');
+    expect(sent).toContain('CAP END');
+  });
+
+  it('can send PASS and still run SASL when both passwords are set', () => {
+    const { reg, sent } = make({ nick: 'bob', serverPassword: 'user/net:pw', password: 'nickserv' });
+    reg.start();
+    expect(sent).toContain('PASS :user/net:pw');
+    sent.length = 0;
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    expect(sent).toContain('AUTHENTICATE PLAIN');
+  });
+
   it('requests the wanted caps then ends when there is no SASL', () => {
     const { reg, sent } = make();
     reg.handle(parseLine('CAP * LS :message-tags server-time'));

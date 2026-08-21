@@ -81,6 +81,17 @@
     "live": "в эфире",
     "typing": "{{who}} печатает",
     "nickAria": "Ник",
+    "bouncerToggle": "Через баунсер (ZNC)",
+    "bouncerHide": "Прямое подключение",
+    "bouncerHint": "Пароль отправляется как PASS (user/сеть:пароль). Оставь каналы пустыми, чтобы подхватить уже открытые на баунсере.",
+    "bouncerUrl": "WebSocket-адрес баунсера",
+    "bouncerUrlPlaceholder": "wss://bnc.example.org/webirc/websocket/",
+    "bouncerPass": "Пароль баунсера",
+    "bouncerPassPlaceholder": "user/сеть:пароль",
+    "bouncerSasl": "Пароль NickServ (необязательно)",
+    "bouncerSaslPlaceholder": "SASL — только если баунсер этим не занимается",
+    "bouncerJoinHint": "Каналы (необязательно)",
+    "bouncerJoinPlaceholder": "пусто = каналы баунсера",
     "ambient": {
       "0": "всем привет 👋",
       "1": "есть кто сегодня вечером?",
@@ -936,6 +947,8 @@
     "add": "Добавить сеть",
     "name": "Название (необязательно)",
     "password": "Пароль (необязательно)",
+    "bouncer": "Баунсер (ZNC) — пароль как PASS",
+    "bouncerPass": "user/сеть:пароль",
     "connect": "Подключиться"
   },
   "recover": {

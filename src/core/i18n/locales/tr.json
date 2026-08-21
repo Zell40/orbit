@@ -81,6 +81,17 @@
     "live": "canlı",
     "typing": "{{who}} yazıyor",
     "nickAria": "Takma ad",
+    "bouncerToggle": "Bouncer (ZNC) üzerinden",
+    "bouncerHide": "Doğrudan bağlantı",
+    "bouncerHint": "Parola PASS olarak gönderilir (user/ağ:parola). Bouncer’da zaten açık olan kanalları almak için kanalları boş bırak.",
+    "bouncerUrl": "Bouncer WebSocket adresi",
+    "bouncerUrlPlaceholder": "wss://bnc.ornek.org/webirc/websocket/",
+    "bouncerPass": "Bouncer parolası",
+    "bouncerPassPlaceholder": "user/ağ:parola",
+    "bouncerSasl": "NickServ parolası (isteğe bağlı)",
+    "bouncerSaslPlaceholder": "SASL — yalnızca bouncer halletmiyorsa",
+    "bouncerJoinHint": "Kanallar (isteğe bağlı)",
+    "bouncerJoinPlaceholder": "boş = bouncer kanalları",
     "ambient": {
       "0": "selam millet 👋",
       "1": "bu gece kimse var mı?",
@@ -936,6 +947,8 @@
     "add": "Ağ ekle",
     "name": "Ad (isteğe bağlı)",
     "password": "Parola (isteğe bağlı)",
+    "bouncer": "Bouncer (ZNC) — parola PASS olarak",
+    "bouncerPass": "user/ağ:parola",
     "connect": "Bağlan"
   },
   "recover": {

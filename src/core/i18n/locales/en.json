@@ -98,6 +98,17 @@
     "typing": "{{who}} is typing",
     "joinLine": "{{who}} joined {{chan}}",
     "nickAria": "Nickname",
+    "bouncerToggle": "Via a bouncer (ZNC)",
+    "bouncerHide": "Direct connection",
+    "bouncerHint": "The password is sent as PASS (user/network:password). Leave channels empty to attach to the ones already open on the bouncer.",
+    "bouncerUrl": "Bouncer WebSocket address",
+    "bouncerUrlPlaceholder": "wss://bnc.example.org/webirc/websocket/",
+    "bouncerPass": "Bouncer password",
+    "bouncerPassPlaceholder": "user/network:password",
+    "bouncerSasl": "NickServ password (optional)",
+    "bouncerSaslPlaceholder": "SASL — only if the bouncer does not handle it",
+    "bouncerJoinHint": "Channels (optional)",
+    "bouncerJoinPlaceholder": "empty = bouncer’s channels",
     "ambient": {
       "0": "hey everyone 👋",
       "1": "anyone around tonight?",
@@ -750,6 +761,10 @@
     "what": {
       "q": "What is {{name}}?",
       "a": "A live chat built on the open <b>IRCv3</b> protocol and powered by <a href=\"{{project}}\" target=\"_blank\" rel=\"noopener\">Orbit</a>, a free web client."
+    },
+    "bouncer": {
+      "q": "Can I connect through a bouncer (ZNC)?",
+      "a": "Yes. On the welcome screen, click <b>“Via a bouncer (ZNC)”</b>. You need the gateway’s <b>WebSocket</b> address (not the classic IRC port) and the password as <code>user/network:password</code>. Channels already open on the bouncer reappear on their own."
     }
   },
   "members": {
@@ -1019,6 +1034,8 @@
     "add": "Add a network",
     "name": "Name (optional)",
     "password": "Password (optional)",
+    "bouncer": "Bouncer (ZNC) — send password as PASS",
+    "bouncerPass": "user/network:password",
     "connect": "Connect"
   },
   "consent": {

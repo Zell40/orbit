@@ -19,6 +19,9 @@ export interface Resume {
   channels: string[];
   /** IRC GECOS, e.g. "40 - Homme - Paris" — restored on USER after reconnect. */
   realname?: string;
+  /** True when this session logged in through a bouncer (PASS). Auto-resume
+   *  needs the bouncer password from sessionStorage — never from localStorage. */
+  bouncer?: boolean;
   ts: number;
 }
 
@@ -40,6 +43,7 @@ export function loadResume(): Resume | null {
     r.account = typeof r.account === 'string' ? r.account : '';
     if (typeof r.realname !== 'string' || !r.realname.trim()) delete r.realname;
     else r.realname = r.realname.trim();
+    r.bouncer = r.bouncer === true;
     return r;
   } catch { return null; }
 }

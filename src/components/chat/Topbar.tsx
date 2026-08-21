@@ -12,8 +12,8 @@ import { useActiveChat } from '@/core/networks';
 
 /** Preferred order for left-cluster topbar plugins (invite → clock). */
 const TOPBAR_LEAD = ['invite', 'orbit-clock'] as const;
-/** Video conference sits after search + notifications. */
-const TOPBAR_AFTER_NOTIFY = ['orbit-conference'] as const;
+/** Video conference + callerid sit after search + notifications. */
+const TOPBAR_AFTER_NOTIFY = ['orbit-conference', 'orbit-callerid'] as const;
 
 function sortByPluginOrder(items: PluginUi[], order: readonly string[]) {
   const rank = (p: string) => {

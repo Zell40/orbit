@@ -49,6 +49,7 @@ function AddNetwork({ onClose }: { onClose: () => void }) {
   const [nick, setNick] = useState('');
   const [chans, setChans] = useState('');
   const [pass, setPass] = useState('');
+  const [bouncer, setBouncer] = useState(false);
 
   function go() {
     const nk = nick.trim();
@@ -57,9 +58,11 @@ function AddNetwork({ onClose }: { onClose: () => void }) {
     if (!name) { try { name = new URL(url).hostname; } catch { name = 'Network'; } }
     const u = url.trim();
     const channels = chans.split(',').map((c) => c.trim()).filter(Boolean);
-    const entry = useNetworks.getState().add(name, { url: u, nick: nk, channels });
+    const entry = useNetworks.getState().add(name, { url: u, nick: nk, channels, bouncer });
     if (pass) sessionStorage.setItem(passKey(u, nk), pass); // survives reload same-tab, not localStorage
-    entry.store.getState().connect({ url: u, nick: nk, channels, password: pass || undefined });
+    entry.store.getState().connect(bouncer
+      ? { url: u, nick: nk, channels, serverPassword: pass || undefined }
+      : { url: u, nick: nk, channels, password: pass || undefined });
     useNetworks.getState().setActive(entry.id);
     onClose();
   }
@@ -75,7 +78,11 @@ function AddNetwork({ onClose }: { onClose: () => void }) {
         <input className="modal__input" placeholder="wss://host/irc/" value={url} onChange={(e) => setUrl(e.target.value)} />
         <input className="modal__input" autoFocus placeholder={t('connect.nickAria')} value={nick} onChange={(e) => setNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && go()} />
         <input className="modal__input" placeholder="#channel, #other" value={chans} onChange={(e) => setChans(e.target.value)} />
-        <input className="modal__input" type="password" placeholder={t('networks.password')} value={pass} onChange={(e) => setPass(e.target.value)} />
+        <input className="modal__input" type="password" placeholder={bouncer ? t('networks.bouncerPass') : t('networks.password')} value={pass} onChange={(e) => setPass(e.target.value)} />
+        <label className="modal__check">
+          <input type="checkbox" checked={bouncer} onChange={(e) => setBouncer(e.target.checked)} />
+          {t('networks.bouncer')}
+        </label>
         <div className="modal__actions">
           <button className="upbtn" onClick={onClose}>{t('profile.cancel')}</button>
           <button className="upbtn upbtn--primary" onClick={go}>{t('networks.connect')}</button>

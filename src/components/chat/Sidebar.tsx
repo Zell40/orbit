@@ -171,6 +171,10 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       <div className="rooms">
         {/* mIRC pins the Status window at the very top of the switchbar */}
         {mirc && hasServer && item(SERVER)}
+        {/* Plugin room rows (e.g. liste blanche MP) — same visual language as Status. */}
+        {sidebarItems.filter((u) => u.slot === 'sidebar_room').map((u) => (
+          <PluginBoundary key={u.id} render={u.render} label="sidebar_room" />
+        ))}
         {showChannels && channels.map(item)}
         {showQueries && queries.length > 0 && <div className="rooms-h">{t('sidebar.privateMessages')}</div>}
         {showQueries && queries.map(item)}

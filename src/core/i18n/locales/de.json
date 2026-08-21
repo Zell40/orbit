@@ -81,6 +81,17 @@
     "live": "live",
     "typing": "{{who}} schreibt",
     "nickAria": "Spitzname",
+    "bouncerToggle": "Über einen Bouncer (ZNC)",
+    "bouncerHide": "Direktverbindung",
+    "bouncerHint": "Das Passwort wird als PASS gesendet (user/netzwerk:passwort). Kanäle leer lassen, um die schon offenen des Bouncers zu übernehmen.",
+    "bouncerUrl": "WebSocket-Adresse des Bouncers",
+    "bouncerUrlPlaceholder": "wss://bnc.example.org/webirc/websocket/",
+    "bouncerPass": "Bouncer-Passwort",
+    "bouncerPassPlaceholder": "user/netzwerk:passwort",
+    "bouncerSasl": "NickServ-Passwort (optional)",
+    "bouncerSaslPlaceholder": "SASL — nur wenn der Bouncer es nicht übernimmt",
+    "bouncerJoinHint": "Kanäle (optional)",
+    "bouncerJoinPlaceholder": "leer = Kanäle des Bouncers",
     "ambient": {
       "0": "hallo zusammen 👋",
       "1": "noch jemand wach heut abend?",
@@ -936,6 +947,8 @@
     "add": "Netzwerk hinzufügen",
     "name": "Name (optional)",
     "password": "Passwort (optional)",
+    "bouncer": "Bouncer (ZNC) — Passwort als PASS",
+    "bouncerPass": "user/netzwerk:passwort",
     "connect": "Verbinden"
   },
   "recover": {

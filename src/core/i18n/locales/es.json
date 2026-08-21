@@ -81,6 +81,17 @@
     "live": "en directo",
     "typing": "{{who}} está escribiendo",
     "nickAria": "Apodo",
+    "bouncerToggle": "Vía un bouncer (ZNC)",
+    "bouncerHide": "Conexión directa",
+    "bouncerHint": "La contraseña se envía como PASS (user/red:contraseña). Deja los canales vacíos para recuperar los ya abiertos en el bouncer.",
+    "bouncerUrl": "Dirección WebSocket del bouncer",
+    "bouncerUrlPlaceholder": "wss://bnc.ejemplo.org/webirc/websocket/",
+    "bouncerPass": "Contraseña del bouncer",
+    "bouncerPassPlaceholder": "user/red:contraseña",
+    "bouncerSasl": "Contraseña NickServ (opcional)",
+    "bouncerSaslPlaceholder": "SASL — solo si el bouncer no se encarga",
+    "bouncerJoinHint": "Canales (opcional)",
+    "bouncerJoinPlaceholder": "vacío = los del bouncer",
     "ambient": {
       "0": "hola a todos 👋",
       "1": "¿hay alguien por aquí esta noche?",
@@ -936,6 +947,8 @@
     "add": "Añadir una red",
     "name": "Nombre (opcional)",
     "password": "Contraseña (opcional)",
+    "bouncer": "Bouncer (ZNC) — contraseña en PASS",
+    "bouncerPass": "user/red:contraseña",
     "connect": "Conectar"
   },
   "recover": {
