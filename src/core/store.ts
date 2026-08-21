@@ -132,8 +132,9 @@ export interface ChatState {
   uploadImage: (file: File) => Promise<void>;
   uploadAudio: (blob: Blob, ext: string) => Promise<void>;
   pushSystem: (buffer: string, text: string) => void;
-  /** Local-only line in a buffer (plugins) — does not send IRC. Default kind: privmsg. */
-  pushLocal: (buffer: string, text: string, from?: string, kind?: MessageKind) => void;
+  /** Local-only line in a buffer (plugins) — does not send IRC. Default kind: privmsg.
+   *  Pass `asSelf=true` to show as the local user's own bubble (e.g. pending +g DM). */
+  pushLocal: (buffer: string, text: string, from?: string, kind?: MessageKind, asSelf?: boolean) => void;
   accountRegister: (account: string, email: string, password: string) => void;
   accountVerify: (code: string) => void;
   accountResend: () => void;
@@ -698,19 +699,21 @@ export function createChatStore(ns = '') {
     // Surface a one-off system line in a buffer (used by UI for local hints).
     pushSystem(buffer, text) { sysLine(buffer || get().active, text, 'system'); },
     // Local-only chat line (e.g. HelpServ welcome plugin) — never hits the wire.
-    pushLocal(buffer, text, from = '', kind: MessageKind = 'privmsg') {
+    // asSelf: render as our own bubble (callerid pending DM when echo never arrives).
+    pushLocal(buffer, text, from = '', kind: MessageKind = 'privmsg', asSelf = false) {
       const target = (buffer || get().active || '').trim();
       const body = (text || '').trim();
       if (!target || !body) return;
       ensureBuffer(target);
+      const self = !!asSelf;
       addMessage(target, {
         id: newId(),
         bufferName: target,
-        from: (from || '').trim(),
+        from: self ? (from.trim() || get().nick) : (from || '').trim(),
         text: body,
         ts: Date.now(),
         kind,
-        self: false,
+        self,
       });
     },
 

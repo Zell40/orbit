@@ -60,7 +60,18 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         return true;
       };
       switch (cmd.toLowerCase()) {
-        case 'me': if (active !== SERVER) client.action(active, arg); break;
+        case 'me': {
+          if (active === SERVER) break;
+          client.action(active, arg);
+          // DMs: always echo locally — callerid (+g) returns 716 without echo-message.
+          if (!client.ircv3.hasCap('echo-message') || !isChannelName(active)) {
+            addMessage(active, {
+              id: newId(), bufferName: active, from: get().nick,
+              text: arg, ts: Date.now(), kind: 'action', self: true,
+            });
+          }
+          break;
+        }
         case 'join': {
           // Multi-channel: /join #a,#b,#c (optionally "#a,#b key1,key2") — join them
           // all in one JOIN, then focus the first real channel, not the comma-list.
@@ -81,8 +92,8 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
           const [t, ...m] = rest; const body = m.join(' ');
           if (!t || !body) break;
           client.privmsg(t, body);
-          // Optimistic echo (masked for services) so the user sees feedback.
-          if (!client.ircv3.hasCap('echo-message')) {
+          // Optimistic echo for DMs even with echo-message (callerid 716 has no echo).
+          if (!client.ircv3.hasCap('echo-message') || !isChannelName(t)) {
             const dest = isChannelName(t) ? t : t;
             addMessage(dest, {
               id: newId(), bufferName: dest, from: get().nick,
@@ -155,8 +166,9 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
     if (reply) { client.privmsgReply(active, body, reply.id, ctx); set({ replyTarget: null }); }
     else client.privmsg(active, body, ctx);
     if (isChannelName(active)) { client.ircv3.sendTyping(active, 'done'); resetTyping(); }
-    // Optimistic echo only if the server won't echo it back to us.
-    if (!client.ircv3.hasCap('echo-message')) {
+    // Optimistic echo: always for DMs so undelivered callerid (+g) messages stay
+    // visible (server sends 716/717 and does not echo). Channels wait for echo-message.
+    if (!client.ircv3.hasCap('echo-message') || !isChannelName(active)) {
       addMessage(active, {
         id: newId(), bufferName: active, from: get().nick,
         text: isService(active) ? maskSecret(text) : body,

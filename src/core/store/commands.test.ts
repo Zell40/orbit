@@ -104,4 +104,12 @@ describe('sendInput — messages + console', () => {
     sendInput('   ');
     expect(client.calls).toHaveLength(0);
   });
+
+  it('a plain DM echoes even when echo-message is on (callerid 716 has no echo)', () => {
+    const { sendInput, client, added } = setup({ active: 'alice' });
+    client.ircv3.hasCap = () => true;
+    sendInput('hello pending');
+    expect(calledWith(client, 'privmsg')).toEqual([['alice', 'hello pending', undefined]]);
+    expect(added.some((a) => a.name === 'alice' && a.m.self && a.m.text === 'hello pending')).toBe(true);
+  });
 });
