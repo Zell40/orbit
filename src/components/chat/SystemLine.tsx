@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, formatIrc, loosenNoticeText, splitNoticeLines, groupModeDisplay, formatModeChange } from '@/lib/format';
+import { fmtTime, nickColor, formatIrc, splitNoticeLines, groupModeDisplay, formatModeChange } from '@/lib/format';
 import { isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
