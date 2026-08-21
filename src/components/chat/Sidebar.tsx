@@ -28,9 +28,9 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
-// App footer bar: account chip (avatar · nick · presence) · nav (Accueil /
-// Salons / Amis) · away toggle + settings — everything that used to live in the
-// left rail and the sidebar footer, in one place like a real app.
+// App footer bar: account chip (avatar · nick · presence) + settings · nav
+// (Accueil / Salons / Amis) · plugin footer items — everything that used to
+// live in the left rail and the sidebar footer, in one place like a real app.
 export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer' }) {
   const { t } = useTranslation();
   const nick = useActiveChat((s) => s.nick);
@@ -42,15 +42,19 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
   const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
   return (
     <footer className="appbar">
-      <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
-        onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setStatusAnchor((a) => (a ? null : r)); }}>
-        <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
-        <span className="appbar__meta">
-          <span className="appbar__name">{nick}</span>
-          <span className="appbar__status">{away ? t('sidebar.away') : t('sidebar.online')}</span>
-        </span>
-      </button>
-      {statusAnchor && <StatusMenu nick={nick} away={away} anchor={statusAnchor} onClose={() => setStatusAnchor(null)} />}
+      <div className="appbar__user">
+        <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
+          onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setStatusAnchor((a) => (a ? null : r)); }}>
+          <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
+          <span className="appbar__meta">
+            <span className="appbar__name">{nick}</span>
+            <span className="appbar__status">{away ? t('sidebar.away') : t('sidebar.online')}</span>
+          </span>
+        </button>
+        {statusAnchor && <StatusMenu nick={nick} away={away} anchor={statusAnchor} onClose={() => setStatusAnchor(null)} />}
+        <button className="appbar__act" onClick={() => setModal('settings')}
+          title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
+      </div>
       <nav className="appbar__nav" aria-label={t('a11y.conversations')}>
         <button className="tab is-active" aria-label={t('nav.home')}>
           <span className="tab__ic"><Icon name="home" /></span>
@@ -61,8 +65,6 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
       </nav>
       <div className="appbar__actions">
         {footerVisible && footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
-        <button className="appbar__act" onClick={() => setModal('settings')}
-          title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
       </div>
     </footer>
   );

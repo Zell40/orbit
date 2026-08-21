@@ -324,7 +324,7 @@ input, textarea { font-family: inherit; }
   /* Docked footer: give the nav its own full-width row so the tabs aren't crushed. */
   .sidebar .appbar { display: flex; flex-wrap: wrap; height: auto; align-items: center; row-gap: .3rem;
     padding: .45rem .4rem calc(.45rem + env(safe-area-inset-bottom, 0)); }
-  .sidebar .appbar__me { order: 1; }
+  .sidebar .appbar__user { order: 1; }
   .sidebar .appbar__actions { order: 2; margin-left: auto; }
   .sidebar .appbar__nav { order: 3; flex: 1 1 100%; }
   .appbar__meta { display: none; }
@@ -351,7 +351,8 @@ input, textarea { font-family: inherit; }
   height: 60px; padding: 0 .6rem;
   background: var(--bg-soft, var(--bg)); border-top: 1px solid var(--border); z-index: 25;
 }
-/* account chip (left) */
+/* account chip + settings (left) */
+.appbar__user { display: flex; align-items: center; gap: .05rem; flex: 0 1 auto; min-width: 0; }
 .appbar__me {
   display: flex; align-items: center; gap: .55rem; flex: 0 1 auto; min-width: 0;
   border: 0; background: transparent; color: inherit; cursor: pointer;
