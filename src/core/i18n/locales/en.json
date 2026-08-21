@@ -98,15 +98,10 @@
     "typing": "{{who}} is typing",
     "joinLine": "{{who}} joined {{chan}}",
     "nickAria": "Nickname",
-    "bouncerToggle": "Via a bouncer (ZNC)",
+    "bouncerToggle": "Sign in via a bouncer",
     "bouncerHide": "Direct connection",
-    "bouncerHint": "The password is sent as PASS (user/network:password). Leave channels empty to attach to the ones already open on the bouncer.",
-    "bouncerUrl": "Bouncer WebSocket address",
-    "bouncerUrlPlaceholder": "wss://bnc.example.org/webirc/websocket/",
     "bouncerPass": "Bouncer password",
-    "bouncerPassPlaceholder": "user/network:password",
-    "bouncerSasl": "NickServ password (optional)",
-    "bouncerSaslPlaceholder": "SASL — only if the bouncer does not handle it",
+    "bouncerPassPlaceholder": "Bouncer password",
     "bouncerJoinHint": "Channels (optional)",
     "bouncerJoinPlaceholder": "empty = bouncer’s channels",
     "ambient": {
@@ -764,7 +759,7 @@
     },
     "bouncer": {
       "q": "Can I connect through a bouncer (ZNC)?",
-      "a": "Yes. On the welcome screen, click <b>“Via a bouncer (ZNC)”</b>. You need the gateway’s <b>WebSocket</b> address (not the classic IRC port) and the password as <code>user/network:password</code>. Channels already open on the bouncer reappear on their own."
+      "a": "Yes. Click <b>“Sign in via a bouncer”</b>, enter your <b>nickname</b> (that’s the username) and your BNC <b>password</b>. Leave channels empty to reattach to the ones already open."
     }
   },
   "members": {

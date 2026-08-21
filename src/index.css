@@ -165,7 +165,13 @@ input, textarea { font-family: inherit; }
 .cjoin__chan-in:focus { box-shadow: 0 0 0 2px var(--accent-soft); }
 .cjoin__chan-in--wide { width: 14rem; max-width: 55vw; }
 .cjoin__bnc { width: 100%; }
-.cjoin__bnc-hint { margin: .85rem 0 0; font-size: .8rem; color: var(--faint); line-height: 1.45; }
+.cjoin__bnc-hint { margin: .85rem 0 .2rem; font-size: .8rem; color: var(--faint); line-height: 1.45; }
+.cjoin__bnc-field { display: block; margin-top: .55rem; }
+.cjoin__bnc-field > span { display: block; font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); margin-bottom: .15rem; }
+.cjoin__bnc-field .cjoin__pw { margin-top: 0; }
+.cjoin__bnc-adv { margin-top: .9rem; color: var(--faint); font-size: .8rem; }
+.cjoin__bnc-adv summary { cursor: pointer; }
+.cjoin__bnc-adv summary:hover { color: var(--accent); }
 .cjoin__pw-t { margin-left: 0; border: 0; background: none; color: var(--faint); font: inherit; font-size: .8rem; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-2); transition: color .15s; }
 .cjoin__row-actions { margin-left: auto; display: flex; gap: .85rem; flex-wrap: wrap; align-items: center; }
 .cjoin__pw-t:hover { color: var(--accent); }

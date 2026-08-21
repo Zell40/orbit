@@ -15,6 +15,8 @@ export interface AppConfig {
     guestIdent?: string;
     /** Default WebSocket URL of a bouncer gateway (ZNC / KiwiBNC via webircgateway). */
     bouncerUrl?: string;
+    /** Default ZNC network name pre-filled on the bouncer form (Kiwi’s « Réseau »). */
+    bouncerNetwork?: string;
   };
   startup: {
     /** Channels auto-joined on connect (the first is the primary/active one). */

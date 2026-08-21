@@ -98,15 +98,10 @@
     "typing": "{{who}} écrit",
     "joinLine": "{{who}} est entré dans {{chan}}",
     "nickAria": "Pseudo",
-    "bouncerToggle": "Via un bouncer (ZNC)",
+    "bouncerToggle": "Accès via un bouncer",
     "bouncerHide": "Connexion directe",
-    "bouncerHint": "Le mot de passe est envoyé en PASS (user/réseau:motdepasse). Laisse les salons vides pour retrouver ceux déjà ouverts sur le bouncer.",
-    "bouncerUrl": "Adresse WebSocket du bouncer",
-    "bouncerUrlPlaceholder": "wss://bnc.exemple.fr/webirc/websocket/",
-    "bouncerPass": "Mot de passe bouncer",
-    "bouncerPassPlaceholder": "user/réseau:motdepasse",
-    "bouncerSasl": "Mot de passe NickServ (facultatif)",
-    "bouncerSaslPlaceholder": "SASL — seulement si le bouncer ne s’en charge pas",
+    "bouncerPass": "Mot de passe du bouncer",
+    "bouncerPassPlaceholder": "Mot de passe du bouncer",
     "bouncerJoinHint": "Salons (facultatif)",
     "bouncerJoinPlaceholder": "vide = ceux du bouncer",
     "ambient": {
@@ -764,7 +759,7 @@
     },
     "bouncer": {
       "q": "Je peux me connecter avec un bouncer (ZNC) ?",
-      "a": "Oui. Sur l’écran d’accueil, clique <b>« Via un bouncer (ZNC) »</b>. Il faut l’adresse <b>WebSocket</b> du gateway (pas le port IRC classique) et le mot de passe au format <code>user/réseau:motdepasse</code>. Les salons déjà ouverts sur le bouncer réapparaissent tout seuls."
+      "a": "Oui. Clique <b>« Accès via un bouncer »</b>, saisis ton <b>pseudo</b> (c’est le nom d’utilisateur) et le <b>mot de passe</b> de ton BNC. Laisse les salons vides pour retrouver ceux déjà ouverts."
     }
   },
   "members": {

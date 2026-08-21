@@ -21,6 +21,7 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 |-----|------|---------|--------------|
 | `server.url` | string | `wss://www.swaygo.fr/irc/` | WebSocket URL of the IRCv3 server (uses the `text/binary.ircv3.net` subprotocols, with a plain-WebSocket fallback for ZNC/Kiwi gateways). The server's Origin allowlist must include where the client is served. |
 | `server.bouncerUrl` | string | `""` | Default WebSocket URL pre-filled when a visitor chooses “via a bouncer”. Typically the Kiwi `webircgateway` in front of ZNC, e.g. `wss://bnc.example.org/webirc/websocket/`. |
+| `server.bouncerNetwork` | string | `""` | Default ZNC network name pre-filled as Kiwi’s « Réseau » field. |
 | `server.guestIdent` | string | `Invit├®` | Ident shown for **guests** (not logged in), e.g. `Foo!Invit├®@ÔÇª`. Folded to ASCII since IRC idents are `[A-Za-z0-9._-]` (so `Invit├®`ÔåÆ`Invite`). Logged-in members use their own nick as the ident. |
 | `startup.channels` | string[] | `["#accueil"]` | Channels auto-joined on connect (first = active). A `?channel=` URL param overrides this. |
 | `branding.name` | string | `Tchatou` | App/network name shown in the UI, the console title, and CTCP VERSION. |

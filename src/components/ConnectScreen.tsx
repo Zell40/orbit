@@ -7,7 +7,7 @@ import { LANGS, setLang } from '../core/i18n';
 import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
 import { formatProfileGecos } from '../lib/profile-gecos';
-import { bouncerConnectOpts, loadBouncerPrefs, saveBouncerSession } from '../core/bouncer';
+import { bouncerConnectOpts, loadBouncerPrefs, saveBouncerSession, zncPass } from '../core/bouncer';
 import { loadResume } from '../core/resume';
 
 function param(name: string, fallback: string): string {
@@ -305,9 +305,7 @@ export function ConnectScreen() {
   const [viaBouncer, setViaBouncer] = useState(
     param('bouncer', '') === '1' || (!!cfg.features.bouncer && lastResume?.bouncer === true),
   );
-  const [bouncerUrl, setBouncerUrl] = useState(bouncerPrefs?.url || cfg.server.bouncerUrl || '');
   const [bouncerPass, setBouncerPass] = useState('');
-  const [bouncerSasl, setBouncerSasl] = useState('');
   // The channel(s) to join — a comma-separated list, e.g. "#rencontre,#taverne"
   // (the first is the active/primary one). Prefilled from the URL ?channel= param
   // or config, but editable on the form so the user picks where they land.
@@ -344,8 +342,8 @@ export function ConnectScreen() {
   }
 
   const connecting = status === 'connecting';
-  const canBouncer = cfg.features.bouncer;
-  const bouncerReady = bouncerUrl.trim().length > 8 && bouncerPass.trim().length > 0;
+  const canBouncer = cfg.features.bouncer && !!(cfg.server.bouncerUrl || '').trim();
+  const bouncerReady = bouncerPass.trim().length > 0;
   const ready = nick.trim().length >= 2 && (!viaBouncer || bouncerReady);
   const errors: Record<string, string> = {
     error: t('connect.error_error'),
@@ -373,14 +371,14 @@ export function ConnectScreen() {
     if (!ready) return;
     const channels = parseChannels(chanField);
     if (viaBouncer) {
-      const url = bouncerUrl.trim();
+      const url = (cfg.server.bouncerUrl || '').trim();
       const nk = nick.trim();
-      saveBouncerSession(url, nk, bouncerPass, bouncerSasl.trim() || undefined);
+      const serverPassword = zncPass(nk, '', bouncerPass);
+      saveBouncerSession(url, nk, serverPassword);
       connect(bouncerConnectOpts({
         url,
         nick: nk,
-        serverPassword: bouncerPass,
-        saslPassword: bouncerSasl.trim() || undefined,
+        serverPassword,
         channels,
         realname: realname(),
       }));
@@ -492,37 +490,17 @@ export function ConnectScreen() {
           </div>
 
           {viaBouncer && (
-            <div className="cjoin__bnc">
-              <p className="cjoin__bnc-hint">{t('connect.bouncerHint')}</p>
-              <input
-                className="cjoin__pw"
-                name="bouncer-url"
-                value={bouncerUrl}
-                spellCheck={false}
-                autoComplete="off"
-                placeholder={t('connect.bouncerUrlPlaceholder')}
-                aria-label={t('connect.bouncerUrl')}
-                onChange={(e) => setBouncerUrl(e.target.value)}
-              />
-              <input
-                className="cjoin__pw"
-                type="password"
-                name="bouncer-pass"
-                value={bouncerPass}
-                placeholder={t('connect.bouncerPassPlaceholder')}
-                aria-label={t('connect.bouncerPass')}
-                onChange={(e) => setBouncerPass(e.target.value)}
-              />
-              <input
-                className="cjoin__pw"
-                type="password"
-                name="bouncer-sasl"
-                value={bouncerSasl}
-                placeholder={t('connect.bouncerSaslPlaceholder')}
-                aria-label={t('connect.bouncerSasl')}
-                onChange={(e) => setBouncerSasl(e.target.value)}
-              />
-            </div>
+            <input
+              className="cjoin__pw"
+              type="password"
+              name="bouncer-pass"
+              value={bouncerPass}
+              autoComplete="current-password"
+              placeholder={t('connect.bouncerPassPlaceholder')}
+              aria-label={t('connect.bouncerPass')}
+              onChange={(e) => setBouncerPass(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && go()}
+            />
           )}
 
           {showPw && !viaBouncer && (

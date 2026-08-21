@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { bouncerConnectOpts, loadBouncerPass, loadBouncerPrefs, saveBouncerSession } from './bouncer';
+import { bouncerConnectOpts, loadBouncerPass, loadBouncerPrefs, saveBouncerSession, zncPass } from './bouncer';
+
+describe('zncPass', () => {
+  it('builds user/network:password like Kiwi’s three fields', () => {
+    expect(zncPass('alice', 'EntreNous', 's3cret')).toBe('alice/EntreNous:s3cret');
+  });
+  it('omits the network when it is empty (ZNC default network)', () => {
+    expect(zncPass('alice', '  ', 's3cret')).toBe('alice:s3cret');
+  });
+});
 
 describe('bouncerConnectOpts', () => {
   it('sends the bouncer secret as PASS, not SASL', () => {
