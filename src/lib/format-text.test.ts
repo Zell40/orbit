@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loosenNoticeText, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange } from './format-text';
+import { loosenNoticeText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange } from './format-text';
 
 describe('loosenNoticeText', () => {
   it('splits | INFO | blocks onto separate paragraphs', () => {
@@ -24,6 +24,26 @@ describe('loosenNoticeText', () => {
     )).toBe(
       'Aide au jeu · Bonjour\n\nAide au jeu · Tape !play',
     );
+  });
+
+  it('puts each bullet list item on its own line', () => {
+    expect(loosenNoticeText(
+      'Modes disponibles : • Facile → 3 catégories. • Moyen → 5 catégories.',
+    )).toBe(
+      'Modes disponibles :\n• Facile → 3 catégories.\n• Moyen → 5 catégories.',
+    );
+  });
+});
+
+describe('splitNoticeLines', () => {
+  it('returns one entry per bullet after coalescing', () => {
+    expect(splitNoticeLines(
+      'Modes disponibles : • Facile 🔒 → 3 catégories, 30 secondes. • Moyen 🔒 → 5 catégories, 40 secondes.',
+    )).toEqual([
+      'Modes disponibles :',
+      '• Facile 🔒 → 3 catégories, 30 secondes.',
+      '• Moyen 🔒 → 5 catégories, 40 secondes.',
+    ]);
   });
 });
 

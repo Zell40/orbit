@@ -29,6 +29,85 @@ function ChannelLink({ name }: { name: string }) {
   );
 }
 
+function openPresentNick(nick: string) {
+  const st = activeStore().getState();
+  st.openUser?.(nick);
+}
+
+function NickLink({ nick, text, mine }: { nick: string; text: string; mine: boolean }) {
+  return (
+    <button
+      type="button"
+      className={'nick-link' + (mine ? ' nick-link--me' : '')}
+      style={{ color: nickColor(nick) }}
+      title={i18n.t('messages.profileOf', { nick })}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openPresentNick(nick);
+      }}
+    >{text}</button>
+  );
+}
+
+const NICK_CHAR = 'A-Za-z0-9\\[\\]\\\\^`{|}_-';
+const NICK_BOUND = `[^${NICK_CHAR}]`;
+
+function presentNicks(): { nick: string; mine: boolean }[] {
+  const st = activeStore().getState();
+  const me = String(st.nick || '');
+  const names = new Set<string>();
+  if (me.length >= 3) names.add(me);
+  const buf = st.buffers?.[st.active];
+  if (buf?.members) {
+    Object.keys(buf.members).forEach((n) => { if (n.length >= 3) names.add(n); });
+  }
+  if (buf && !buf.isChannel && buf.name && buf.name !== '$server' && buf.name.length >= 3) {
+    names.add(buf.name);
+  }
+  return [...names]
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 80)
+    .map((nick) => ({ nick, mine: !!me && nick.toLowerCase() === me.toLowerCase() }));
+}
+
+function mentionNicks(nodes: ReactNode[], keyPrefix: string): ReactNode[] {
+  const present = presentNicks();
+  if (!present.length) return nodes;
+  const byLower = new Map(present.map((p) => [p.nick.toLowerCase(), p]));
+  const alt = present.map((p) => p.nick.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  if (!alt) return nodes;
+  const re = new RegExp(`(^|${NICK_BOUND})(${alt})(?=${NICK_BOUND}|$)`, 'gi');
+  const out: ReactNode[] = [];
+  let k = 0;
+  nodes.forEach((node) => {
+    if (typeof node !== 'string') {
+      out.push(node);
+      return;
+    }
+    let last = 0;
+    let m: RegExpExecArray | null;
+    re.lastIndex = 0;
+    while ((m = re.exec(node))) {
+      const lead = m[1] || '';
+      const raw = m[2];
+      const hit = byLower.get(raw.toLowerCase());
+      const absStart = m.index;
+      if (absStart > last) out.push(node.slice(last, absStart));
+      if (lead) out.push(lead);
+      if (hit) {
+        out.push(<NickLink key={`${keyPrefix}-nk${k++}`} nick={hit.nick} text={raw} mine={hit.mine} />);
+      } else {
+        out.push(raw);
+      }
+      last = absStart + m[0].length;
+      if (m[0].length === 0) re.lastIndex++;
+    }
+    if (last < node.length) out.push(node.slice(last));
+  });
+  return out.length ? out : nodes;
+}
+
 function isHexColorToken(s: string): boolean {
   return /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(s);
 }
@@ -58,7 +137,7 @@ function mentionChannels(text: string, keyPrefix: string): ReactNode[] {
     last = absStart + m[0].length;
   }
   if (last < text.length) nodes.push(text.slice(last));
-  return nodes.length ? nodes : [text];
+  return mentionNicks(nodes.length ? nodes : [text], keyPrefix);
 }
 
 export const fmtTime = (ts: number) =>
@@ -268,5 +347,5 @@ export function formatIrc(text: string, selfMsg: boolean, embeds = true): ReactN
 
 // Pure text formatters live in ./format-text (i18n only, no store/DOM); re-exported
 // here so existing `from '../lib/format'` consumers keep working.
-export { fmtDuration, formatUserModes, groupModeDisplay, joinModeLabels, formatModeChange, loosenNoticeText, splitActuItems, unwrapActuUrls, actuItemHeadline } from './format-text';
+export { fmtDuration, formatUserModes, groupModeDisplay, joinModeLabels, formatModeChange, loosenNoticeText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline } from './format-text';
 export type { ModeDisplayGroup } from './format-text';

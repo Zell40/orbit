@@ -12,6 +12,36 @@ type G = StoreApi<ChatState>['getState'];
 const WHOIS_CAP = 64; // most WHOIS entries anyone actually views at once; bounds server spam
 const QUERY_CAP = 100; // open query (PM) windows; far above real use, caps a server PM flood
 
+/** Join LineWrapper fragments; keep list/notice items on their own line. */
+function joinCoalescedText(prev: string, next: string, kind?: MessageKind): string {
+  if (!prev) return next;
+  if (!next) return prev;
+  const b = next.replace(/^\s+/, '');
+  // Each coalesced NOTICE frame → its own line (Bac, Operateur, …)
+  if (kind === 'notice') {
+    return `${prev.replace(/\s+$/, '')}\n${b}`;
+  }
+  // Bullet / section lines from bots (Petit Bac !jeu liste, …)
+  if (/^[•·▪▸►*]\s/.test(b) || /^[\u{1F300}-\u{1FAFF}]/u.test(b)) {
+    return `${prev.replace(/\s+$/, '')}\n${b}`;
+  }
+  // Bac-style player feedback "Nick: …"
+  if (/^[^\s:]{1,32}:\s/.test(b) && !/^(https?|ftp):/i.test(b)) {
+    return `${prev.replace(/\s+$/, '')}\n${b}`;
+  }
+  if (/^━{3,}/.test(b)) {
+    return `${prev.replace(/\s+$/, '')}\n${b}`;
+  }
+  if (/[:：]\s*$/.test(prev) && b.length > 0) {
+    return `${prev.replace(/\s+$/, '')}\n${b}`;
+  }
+  if (/[.!?…]$/.test(prev.trim()) && /^[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ0-9(\[]/.test(b)) {
+    return `${prev.replace(/\s+$/, '')}\n${b}`;
+  }
+  if (/\s$/.test(prev) || /^\s/.test(next)) return prev + next;
+  return `${prev} ${next}`;
+}
+
 export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
   // Buffers are keyed by the CASEMAPPING-folded name (canon); Buffer.name keeps
   // the original display case so the UI shows "#Taverne" while "#taverne" maps
@@ -108,9 +138,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
           && Math.abs(m.ts - last.ts) <= 2500
         ) {
           const msgs = b.messages.slice();
-          const a = last.text;
-          const c = m.text;
-          const joined = !a ? c : !c ? a : (/\s$/.test(a) || /^\s/.test(c) ? a + c : `${a} ${c}`);
+          const joined = joinCoalescedText(last.text, m.text, m.kind);
           msgs[msgs.length - 1] = { ...last, text: joined, ts: m.ts };
           return { ...b, messages: msgs };
         }

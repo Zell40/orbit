@@ -61,6 +61,11 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   const pinned = useActiveChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
   const isOper = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
   const isBot = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.bot);
+  const memberNicks = useActiveChat((s) => {
+    const mem = s.buffers[s.active]?.members;
+    return (s.nick || '') + '\n' + (mem ? Object.keys(mem).join('\n') : '');
+  });
+  void memberNicks;
   const isActu = /^actu$/i.test(m.from);
   // Channel access symbol (@ ~ & % +) of the sender, so ops/voiced are spottable
   // right in the chat, role-coloured to match the member list.

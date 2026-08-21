@@ -111,3 +111,24 @@ export function KickToast() {
     </div>
   );
 }
+
+/** Centered popup when NickServ sends an important notice (nick change, ghost, etc.). */
+export function NickServAlert() {
+  const { t } = useTranslation();
+  const alert = useActiveChat((s) => s.nickServAlert);
+  const dismiss = useActiveChat((s) => s.dismissNickServAlert);
+  const openStatus = useActiveChat((s) => s.openStatusFromNickServAlert);
+  if (!alert) return null;
+  return (
+    <div className="servalert" role="alertdialog" aria-labelledby="servalert-title" aria-describedby="servalert-desc">
+      <button type="button" className="servalert__x" onClick={dismiss} aria-label={t('modals.closeButton')}>×</button>
+      <div className="servalert__ic" aria-hidden>✉️</div>
+      <h2 id="servalert-title" className="servalert__title">{t('banners.nickServTitle', { from: alert.from })}</h2>
+      <p id="servalert-desc" className="servalert__txt">{alert.text}</p>
+      <div className="servalert__actions">
+        <button type="button" className="servalert__primary" onClick={openStatus}>{t('banners.nickServViewStatus')}</button>
+        <button type="button" className="servalert__secondary" onClick={dismiss}>{t('banners.nickServDismiss')}</button>
+      </div>
+    </div>
+  );
+}

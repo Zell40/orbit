@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeMessaging } from './messaging';
 import { parseLine } from '../irc/parser';
+import { SERVER } from './context';
 import type { ChatMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -10,6 +11,7 @@ function setup(over: Partial<Record<string, unknown>> = {}) {
     active: '#x', isActive: true, ignored: [] as string[],
     reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
     highlightWords: [] as string[], prefs: { sound: false }, pmContext: {} as Record<string, string>,
+    nickServAlert: null as { from: string; text: string; ts: number } | null,
     ...over,
   };
   const added: { name: string; m: ChatMessage }[] = [];
@@ -74,12 +76,28 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     const { on, added } = setup();
     on('@+draft/channel-context=#ops :ChanServ!s@services NOTICE me :bob removed your access to #ops');
     expect(added).toHaveLength(1);
+    expect(added[0].name).toBe('#x');
     expect(added[0].m).toMatchObject({ kind: 'notice', channelContext: '#ops' });
+  });
+
+  it('routes NickServ notices to the status console', () => {
+    const { on, added, state } = setup({ active: '#chan' });
+    on(':NickServ!s@services NOTICE me :GHOST succeeded — nick changed.');
+    expect(added).toHaveLength(1);
+    expect(added[0].name).toBe(SERVER);
+    expect(state.nickServAlert?.text).toContain('GHOST');
+  });
+
+  it('does not popup routine NickServ IDENTIFY acks', () => {
+    const { on, state } = setup();
+    on(':NickServ!s@services NOTICE me :Password accepted — you are now recognized.');
+    expect(state.nickServAlert).toBeNull();
   });
 
   it('leaves channelContext unset on a plain notice', () => {
     const { on, added } = setup();
     on(':ChanServ!s@services NOTICE me :hello');
+    expect(added[0].name).toBe('#x');
     expect(added[0].m.channelContext).toBeUndefined();
   });
 

@@ -99,11 +99,27 @@ export function loosenNoticeText(text: string): string {
     .replace(/\s*\|\s*(INFO|WARN(?:ING)?|NOTICE|ALERTE|ERROR|ERR|OK)\s*\|\s*/gi, '\n\n$1 · ')
     // "| Aide au jeu | - … | Aide au jeu | - …" → one block per custom section
     .replace(/\s*\|\s*([^|]+?)\s*\|\s*-\s*/g, '\n\n$1 · ')
+    // Coalesced list notices ("… manches. • Moyen …") → one bullet per line
+    .replace(/([^\n])\s*[•·▪▸►]\s+/g, '$1\n• ')
+    // Leading/orphan bullets still normalize to "• "
+    .replace(/^[•·▪▸►]\s*/gm, '• ')
+    // Bac / game bot: emoji-led clauses on their own line
+    .replace(/\s+(?=[\u{1F300}-\u{1FAFF}])/gu, '\n')
+    // Player lines "Nick: …" each on their own line when concatenated
+    .replace(/([^\n])\s+([A-Za-z0-9_\[\]\\^{}|`-]{1,32}:\s)/g, '$1\n$2')
+    // Separator bars
+    .replace(/\s*(━{3,})\s*/g, '\n$1\n')
     // New paragraph after sentence end when the next clause starts with a capital / quote
     .replace(/([.!?…])\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"(\[])/g, '$1\n\n')
     .replace(/^\s+/, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/** Split a NOTICE bubble into display lines (one readable block each). */
+export function splitNoticeLines(text: string): string[] {
+  const parts = loosenNoticeText(text).split(/\n+/).map((s) => s.trim()).filter(Boolean);
+  return parts.length ? parts : [String(text || '').trim()].filter(Boolean);
 }
 
 /** One block per `[ACTU …]` marker when an RSS bot concatenates several items. */

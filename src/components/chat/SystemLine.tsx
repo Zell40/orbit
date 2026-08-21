@@ -1,7 +1,7 @@
 import { memo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, formatIrc, loosenNoticeText, groupModeDisplay, formatModeChange } from '@/lib/format';
+import { fmtTime, nickColor, formatIrc, loosenNoticeText, splitNoticeLines, groupModeDisplay, formatModeChange } from '@/lib/format';
 import { isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
@@ -27,15 +27,19 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const head = messages[0];
   const showCtx = firstOfRun(msgs, head, (x) => x.channelContext);
   const combined = messages.map((m) => m.text).join('\n');
+  const lines = messages.flatMap((m) =>
+    splitNoticeLines(m.text).map((text, i) => ({ key: `${m.id}-${i}`, text, self: m.self })),
+  );
+  const stacked = lines.length > 1;
   return (
     <div className="noticeline">
       <div className="noticeline__head">
         <span className="modeline__tag noticeline__tag">NOTICE</span>
         {head.from && <span className="modeline__who" style={{ color: nickColor(head.from) }}>{head.from}</span>}
       </div>
-      <div className={`noticeline__body${messages.length > 1 ? ' noticeline__body--stack' : ''}`}>
-        {messages.map((m) => (
-          <span key={m.id} className="noticeline__txt">{formatIrc(loosenNoticeText(m.text), m.self, linkPreviews)}</span>
+      <div className={`noticeline__body${stacked ? ' noticeline__body--stack' : ''}`}>
+        {lines.map((line) => (
+          <span key={line.key} className="noticeline__txt">{formatIrc(line.text, line.self, linkPreviews)}</span>
         ))}
         {showCtx && head.channelContext && <CtxChip chan={head.channelContext} onJump={() => setActive(head.channelContext!)} />}
       </div>

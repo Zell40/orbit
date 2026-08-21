@@ -33,6 +33,12 @@ export interface KickInfo {
   kind: 'kick' | 'ban' | 'mute' | 'moderated';
 }
 
+export interface ServiceAlert {
+  from: string;
+  text: string;
+  ts: number;
+}
+
 export interface ChatState {
   status: 'idle' | 'connecting' | 'registered' | 'closed' | 'error' | 'sasl-failed';
   nick: string;
@@ -89,6 +95,7 @@ export interface ChatState {
   reportSubject: string; // nick/channel prefilled into the report window
   cban: { channel: string; reason: string } | null; // CBANed-join details for the cban window
   kicked: KickInfo | null; // last time we got kicked — drives the dismissible toast
+  nickServAlert: ServiceAlert | null; // incoming NickServ notice — centered popup
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
 
   connect: (opts: ConnectOptions) => void;
@@ -102,6 +109,8 @@ export interface ChatState {
   setModal: (m: Modal) => void;
   dismissKick: () => void;
   rejoinKicked: () => void;
+  dismissNickServAlert: () => void;
+  openStatusFromNickServAlert: () => void;
   sendInput: (text: string) => void;
   setReplyTarget: (id: string) => void;
   clearReply: () => void;
@@ -198,6 +207,7 @@ export function createChatStore(ns = '') {
     reportSubject: '',
     cban: null,
     kicked: null,
+    nickServAlert: null,
 
     connect(opts) {
       // Retrying after a failed/closed attempt re-enters connect() on the same
@@ -513,6 +523,11 @@ export function createChatStore(ns = '') {
       set({ drafts });
     },
     dismissKick() { set({ kicked: null }); },
+    dismissNickServAlert() { set({ nickServAlert: null }); },
+    openStatusFromNickServAlert() {
+      get().setActive(SERVER);
+      set({ nickServAlert: null });
+    },
     rejoinKicked() {
       const k = get().kicked;
       if (!k) return;

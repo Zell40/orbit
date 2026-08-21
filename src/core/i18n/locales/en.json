@@ -592,7 +592,10 @@
     "guestBody": "You're connected as a guest with the nick “{{nick}}”. Register it via your EntreNous profile to protect it and keep your preferences.",
     "guestCreateProfile": "Create my profile",
     "guestLogin": "I already have an account",
-    "guestLater": "Later"
+    "guestLater": "Later",
+    "nickServTitle": "Message from {{from}}",
+    "nickServViewStatus": "View status",
+    "nickServDismiss": "Close"
   },
   "themes": {
     "light": "Light",

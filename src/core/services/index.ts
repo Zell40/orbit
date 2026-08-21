@@ -8,6 +8,21 @@
 const SERVICE_RE = /^(nick|chan|host|oper|bot|memo|help|sasl|group|stat|game)serv$/i;
 export function isService(name: string): boolean { return SERVICE_RE.test(name); }
 
+export function isNickServ(name: string): boolean {
+  return /^nickserv$/i.test(String(name || '').trim());
+}
+
+/** Routine IDENTIFY acks — log in Status only, no popup. */
+export function shouldPopupNickServ(text: string): boolean {
+  const t = String(text || '').toLowerCase();
+  if (!t.trim()) return false;
+  if (
+    /password accepted|successfully identified|already identified|now recognized|d[eé]j[aà] identifi/i.test(t)
+    || /n['']?est pas enregistr[eé]|isn't registered|not registered/i.test(t)
+  ) return false;
+  return true;
+}
+
 // True when the server flagged this message as coming from a services pseudo-client.
 // Some servers add a vendor `<host>/service` tag to any message from a U-lined server
 // (delivered on the message-tags cap). We accept any such tag, so servers without one
@@ -25,11 +40,12 @@ export type ServiceRoute = 'channel' | 'report' | 'active' | 'query';
 export function routeMessage(o: {
   isChannel: boolean;
   reportService: boolean;
+  nickServParty: boolean;
   serviceParty: boolean;
   isNotice: boolean;
 }): ServiceRoute {
   if (o.isChannel) return 'channel';
-  if (o.reportService) return 'report';
+  if (o.reportService || o.nickServParty) return 'report';
   if (o.isNotice || o.serviceParty) return 'active';
   return 'query';
 }

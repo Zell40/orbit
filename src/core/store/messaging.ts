@@ -10,7 +10,7 @@ import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
-import { isService, maskSecret, routeMessage, hasServiceTag } from '../services';
+import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
@@ -141,10 +141,13 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     if (!self && hasServiceTag(msg.tags) && msg.nick && knownServices.size < KNOWN_SERVICES_CAP) knownServices.add(canon(msg.nick));
     const svcParty = !isChan && !!otherParty &&
       (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
+    const nickServParty = !isChan && isNickServ(self ? chanTarget : (msg.nick || ''));
     // Neither a NOTICE nor any message exchanged with a services pseudo-client is a
     // real conversation, so it must never open or land in a PM query — it shows in
     // the window the user currently has open (falling back to the console).
-    const route = routeMessage({ isChannel: isChan, reportService: toReportSvc, serviceParty: svcParty, isNotice: kind === 'notice' });
+    const route = routeMessage({
+      isChannel: isChan, reportService: toReportSvc, nickServParty, serviceParty: svcParty, isNotice: kind === 'notice',
+    });
     const toActive = route === 'active';
     const bufferName = route === 'channel'
       ? chanTarget
@@ -190,6 +193,9 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       return true;
     }
     addMessage(bufferName, cm);
+    if (nickServParty && !self && shouldPopupNickServ(text)) {
+      set({ nickServAlert: { from: msg.nick || 'NickServ', text: statusTag + text, ts: Date.now() } });
+    }
     // Notifications honour the per-channel level: 'all' alerts on every line,
     // 'mentions' (default) only on your nick / a highlight word, 'mute' never.
     // A mention = your nick OR any of your highlight words; PMs always alert.

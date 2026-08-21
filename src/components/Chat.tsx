@@ -8,7 +8,7 @@ import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { ChannelTopicBanner } from './chat/ChannelTopicBanner';
 import { MemberList } from './chat/MemberList';
-import { ReconnectBanner, KickToast, GuestRegisterPrompt } from './chat/Banners';
+import { ReconnectBanner, KickToast, GuestRegisterPrompt, NickServAlert } from './chat/Banners';
 import { usePluginRegistry } from '../modules/registry';
 import { PluginBoundary } from './PluginBoundary';
 import { FriendsPanel } from './chat/FriendsPanel';
@@ -27,7 +27,7 @@ export function Chat() {
   // Conference sits in the main column under the topbar so chrome stays visible.
   const overlays = ui.filter((u) => u.slot === 'overlay');
   // In-column overlays: conference video + Petit Bac game HUD (under topbar).
-  const mainColumnPlugins = new Set(['orbit-conference', 'orbit-petitbac']);
+  const mainColumnPlugins = new Set(['orbit-conference', 'orbit-petitbac', 'orbit-callerid']);
   const mainBanners = overlays.filter((u) => mainColumnPlugins.has(u.plugin));
   const rootOverlays = overlays.filter((u) => !mainColumnPlugins.has(u.plugin));
   // Stable so the memoized room rows aren't invalidated on every render.
@@ -59,6 +59,7 @@ export function Chat() {
       <Modals />
       <ProfileModal />
       <KickToast />
+      <NickServAlert />
       <GuestRegisterPrompt />
       <ReconnectBanner />
     </div>

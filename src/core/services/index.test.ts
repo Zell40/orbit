@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isService, maskSecret, detectServiceLeak, routeMessage, hasServiceTag } from './index';
+import { isService, isNickServ, maskSecret, detectServiceLeak, routeMessage, hasServiceTag, shouldPopupNickServ } from './index';
 
 describe('isService', () => {
   it('recognises the standard services (case-insensitive)', () => {
@@ -49,20 +49,40 @@ describe('hasServiceTag', () => {
 });
 
 describe('routeMessage', () => {
-  const base = { isChannel: false, reportService: false, serviceParty: false, isNotice: false };
+  const base = { isChannel: false, reportService: false, nickServParty: false, serviceParty: false, isNotice: false };
   it('sends channel targets to the channel', () => {
     expect(routeMessage({ ...base, isChannel: true })).toBe('channel');
   });
   it('sends the report service to the status window', () => {
     expect(routeMessage({ ...base, reportService: true })).toBe('report');
   });
-  it('keeps notices and services traffic in the active window', () => {
+  it('sends NickServ traffic to the status window', () => {
+    expect(routeMessage({ ...base, nickServParty: true })).toBe('report');
+  });
+  it('keeps other notices and services traffic in the active window', () => {
     expect(routeMessage({ ...base, isNotice: true })).toBe('active');
     expect(routeMessage({ ...base, serviceParty: true })).toBe('active');
     expect(routeMessage({ ...base, serviceParty: true, isNotice: false })).toBe('active');
   });
   it('opens a query only for a genuine user PRIVMSG', () => {
     expect(routeMessage(base)).toBe('query');
+  });
+});
+
+describe('shouldPopupNickServ', () => {
+  it('suppresses routine IDENTIFY acks', () => {
+    expect(shouldPopupNickServ('Password accepted — you are now recognized.')).toBe(false);
+  });
+  it('shows important notices like nick changes', () => {
+    expect(shouldPopupNickServ('GHOST succeeded — your nick has been changed.')).toBe(true);
+  });
+});
+
+describe('isNickServ', () => {
+  it('matches NickServ case-insensitively', () => {
+    expect(isNickServ('NickServ')).toBe(true);
+    expect(isNickServ('nickserv')).toBe(true);
+    expect(isNickServ('ChanServ')).toBe(false);
   });
 });
 

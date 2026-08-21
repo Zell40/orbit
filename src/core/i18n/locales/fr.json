@@ -592,7 +592,10 @@
     "guestBody": "Tu es connecté en invité avec le pseudo « {{nick}} ». Enregistre-le via ton profil EntreNous pour le protéger et retrouver tes préférences.",
     "guestCreateProfile": "Créer mon profil",
     "guestLogin": "J’ai déjà un compte",
-    "guestLater": "Plus tard"
+    "guestLater": "Plus tard",
+    "nickServTitle": "Message de {{from}}",
+    "nickServViewStatus": "Voir le statut",
+    "nickServDismiss": "Fermer"
   },
   "themes": {
     "light": "Light",

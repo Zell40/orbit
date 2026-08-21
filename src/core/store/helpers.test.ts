@@ -54,6 +54,18 @@ describe('addMessage notice coalesce', () => {
     );
   });
 
+  it('keeps bullet list notices on separate lines inside the bubble', () => {
+    const { helpers, state, notice } = setup();
+    helpers.addMessage('#Aide.chat', notice('Modes disponibles :', 'n1', 1000));
+    helpers.addMessage('#Aide.chat', notice('• Facile → 3 catégories, 30 secondes.', 'n2', 1100));
+    helpers.addMessage('#Aide.chat', notice('• Moyen → 5 catégories, 40 secondes.', 'n3', 1200));
+    const msgs = state.buffers['#aide.chat'].messages;
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0].text).toBe(
+      'Modes disponibles :\n• Facile → 3 catégories, 30 secondes.\n• Moyen → 5 catégories, 40 secondes.',
+    );
+  });
+
   it('does not merge notices from different nicks or after a gap', () => {
     const { helpers, state, notice } = setup();
     helpers.addMessage('#Aide.chat', notice('first', 'a', 1000));
