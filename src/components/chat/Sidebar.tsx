@@ -43,6 +43,8 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
   return (
     <footer className="appbar">
       <div className="appbar__user">
+        <button className="appbar__act" onClick={() => setModal('settings')}
+          title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
         <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
           onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setStatusAnchor((a) => (a ? null : r)); }}>
           <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
@@ -52,8 +54,6 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
           </span>
         </button>
         {statusAnchor && <StatusMenu nick={nick} away={away} anchor={statusAnchor} onClose={() => setStatusAnchor(null)} />}
-        <button className="appbar__act" onClick={() => setModal('settings')}
-          title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
       </div>
       <nav className="appbar__nav" aria-label={t('a11y.conversations')}>
         <button className="tab is-active" aria-label={t('nav.home')}>
