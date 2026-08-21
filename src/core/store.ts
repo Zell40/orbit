@@ -232,6 +232,11 @@ export function createChatStore(ns = '') {
         // the ident; guests show the configured guest ident.
         opts.username = (opts.password || opts.passkey || opts.serverPassword) ? ident(opts.nick, guest) : guest;
       }
+      // Kiwi BNC speaks HOST so webircgateway uses ZNC, not a random [upstream.N].
+      if (opts.serverPassword && !opts.bouncerHost) {
+        const host = (getConfig().server.bouncerHost || '').trim();
+        if (host) opts.bouncerHost = host;
+      }
       // Prefer SASL SCRAM-SHA-256 (the password never goes on the wire) for a real
       // account password — never for a one-time keycard (SCRAM can't verify a token)
       // or a passkey — when the deployment enables it. Registration falls back to

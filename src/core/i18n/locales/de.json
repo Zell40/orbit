@@ -256,7 +256,8 @@
     "sections": {
       "account": "Konto",
       "appearance": "Darstellung",
-      "notifications": "Benachrichtigungen"
+      "notifications": "Benachrichtigungen",
+      "modes": "Modi & Privatsphäre"
     },
     "account": {
       "login": "Anmelden",
@@ -366,7 +367,12 @@
       "profile": "Spitzname & Avatar",
       "appearance": "Thema & Anzeige",
       "notifications": "Hinweise & Töne",
-      "account": "Anmeldung & Sicherheit"
+      "account": "Anmeldung & Sicherheit",
+      "modes": "Optionale Filter und Schutz"
+    },
+    "modes": {
+      "intro": "Aktiviere optionale Privatsphäre-Modi von installierten Plugins. Einige Modi sind bei Jugendschutz gesperrt.",
+      "empty": "Noch keine optionalen Modi verfügbar."
     }
   },
   "profile": {

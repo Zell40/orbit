@@ -75,6 +75,23 @@ describe('Registration handshake', () => {
     expect(sent).toContain('PASS :sekret');
   });
 
+  it('sends HOST before CAP when a bouncer upstream is set', () => {
+    const { reg, sent } = make({
+      nick: 'bob',
+      serverPassword: 'bob:pw',
+      bouncerHost: 'bnc.entrenous.chat:+8066',
+    });
+    reg.start();
+    expect(sent[0]).toBe('HOST bnc.entrenous.chat:+8066');
+    expect(sent).toEqual([
+      'HOST bnc.entrenous.chat:+8066',
+      'CAP LS 302',
+      'PASS :bob:pw',
+      'NICK bob',
+      'USER guest 0 * :bob',
+    ]);
+  });
+
   it('does not run SASL when only a bouncer (PASS) password is set', () => {
     const { reg, sent } = make({ nick: 'bob', serverPassword: 'user/net:pw' });
     reg.handle(parseLine('CAP * ACK :sasl'));

@@ -273,7 +273,8 @@
     "sections": {
       "account": "Account",
       "appearance": "Appearance",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "modes": "Modes & privacy"
     },
     "account": {
       "login": "Log in",
@@ -389,7 +390,12 @@
       "profile": "Nickname & avatar",
       "appearance": "Theme & display",
       "notifications": "Alerts & sounds",
-      "account": "Login & security"
+      "account": "Login & security",
+      "modes": "Optional filters and protections"
+    },
+    "modes": {
+      "intro": "Enable optional privacy modes provided by installed plugins. Some modes are locked when parental controls apply.",
+      "empty": "No optional modes available yet."
     }
   },
   "profile": {

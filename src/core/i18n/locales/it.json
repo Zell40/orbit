@@ -256,7 +256,8 @@
     "sections": {
       "account": "Account",
       "appearance": "Aspetto",
-      "notifications": "Notifiche"
+      "notifications": "Notifiche",
+      "modes": "Modalità e privacy"
     },
     "account": {
       "login": "Accedi",
@@ -366,7 +367,12 @@
       "profile": "Soprannome e avatar",
       "appearance": "Tema e visualizzazione",
       "notifications": "Avvisi e suoni",
-      "account": "Accesso e sicurezza"
+      "account": "Accesso e sicurezza",
+      "modes": "Filtri e protezioni opzionali"
+    },
+    "modes": {
+      "intro": "Attiva modalità di privacy opzionali dei plugin installati. Alcune modalità sono bloccate con controllo parentale.",
+      "empty": "Nessuna modalità opzionale disponibile."
     }
   },
   "profile": {

@@ -15,6 +15,9 @@ export interface AppConfig {
     guestIdent?: string;
     /** Default WebSocket URL of a bouncer gateway (ZNC / KiwiBNC via webircgateway). */
     bouncerUrl?: string;
+    /** webircgateway HOST target so Orbit hits ZNC, not a random [upstream.N].
+     *  Same shape as Kiwi: `host:+port` (leading `+` = TLS). */
+    bouncerHost?: string;
     /** Default ZNC network name pre-filled on the bouncer form (Kiwi’s « Réseau »). */
     bouncerNetwork?: string;
   };

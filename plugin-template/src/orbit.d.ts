@@ -32,6 +32,7 @@ export interface OrbitPluginApi {
   storage: { get<T>(key: string, fallback?: T): T | undefined; set(key: string, value: unknown): void };
   addUi(slot: 'composer_button', render: () => React.ReactNode): () => void;
   addSettingsSection(opts: { label: string; icon?: string; render: () => React.ReactNode }): () => void;
+  addSettingsMode(opts: { render: () => React.ReactNode }): () => void;
   log(...args: unknown[]): void;
 }
 

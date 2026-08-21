@@ -11,10 +11,12 @@ import { AccountSection } from './sections/AccountSection';
 import { ServerSection } from './sections/ServerSection';
 import { CapabilitiesSection } from './sections/CapabilitiesSection';
 import { AboutSection } from './sections/AboutSection';
+import { ModesSection } from './sections/ModesSection';
 
 // Labels & descriptions are resolved via i18n (SEC_KEY / SEC_DESC).
 const SETTINGS_SECTIONS = [
   { id: 'profil',    icon: '👤' },
+  { id: 'modes',     icon: '🛡️' },
   { id: 'apparence', icon: '🎨' },
   { id: 'notifs',    icon: '🔔' },
   { id: 'compte',    icon: '🔑' },
@@ -26,6 +28,7 @@ type SettingsSection = (typeof SETTINGS_SECTIONS)[number]['id'];
 
 const SEC_KEY: Record<SettingsSection, string> = {
   profil: 'profile.openProfile',
+  modes: 'settings.sections.modes',
   apparence: 'settings.sections.appearance',
   notifs: 'settings.sections.notifications',
   compte: 'settings.sections.account',
@@ -58,6 +61,7 @@ function SecIcon({ id, icon }: { id: SettingsSection; icon: string }) {
 
 const SEC_DESC: Record<SettingsSection, string> = {
   profil: 'settings.sectionDesc.profile',
+  modes: 'settings.sectionDesc.modes',
   apparence: 'settings.sectionDesc.appearance',
   notifs: 'settings.sectionDesc.notifications',
   compte: 'settings.sectionDesc.account',
@@ -139,6 +143,7 @@ export function SettingsModal() {
           </header>
           <div className="settings__content" key={section}>
             {section === 'profil' && <ProfileSection />}
+            {section === 'modes' && <ModesSection />}
             {section === 'apparence' && <AppearanceSection />}
             {section === 'notifs' && <NotificationsSection />}
             {section === 'compte' && <AccountSection />}

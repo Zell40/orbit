@@ -256,7 +256,8 @@
     "sections": {
       "account": "Conta",
       "appearance": "Aparência",
-      "notifications": "Notificações"
+      "notifications": "Notificações",
+      "modes": "Modos e privacidade"
     },
     "account": {
       "login": "Iniciar sessão",
@@ -366,7 +367,12 @@
       "profile": "Alcunha e avatar",
       "appearance": "Tema e visualização",
       "notifications": "Alertas e sons",
-      "account": "Início de sessão e segurança"
+      "account": "Início de sessão e segurança",
+      "modes": "Filtros e proteções opcionais"
+    },
+    "modes": {
+      "intro": "Ative modos de privacidade opcionais dos plugins instalados. Alguns modos ficam bloqueados com controlo parental.",
+      "empty": "Ainda não há modos opcionais."
     }
   },
   "profile": {

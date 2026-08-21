@@ -273,7 +273,8 @@
     "sections": {
       "account": "Compte",
       "appearance": "Apparence",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "modes": "Modes & confidentialité"
     },
     "account": {
       "login": "Se connecter",
@@ -389,7 +390,12 @@
       "profile": "Pseudo & avatar",
       "appearance": "Thème & affichage",
       "notifications": "Alertes & sons",
-      "account": "Connexion & sécurité"
+      "account": "Connexion & sécurité",
+      "modes": "Filtres et protections optionnels"
+    },
+    "modes": {
+      "intro": "Activez des modes de confidentialité proposés par les plugins installés. Certains modes sont verrouillés sous contrôle parental.",
+      "empty": "Aucun mode optionnel pour le moment."
     }
   },
   "profile": {

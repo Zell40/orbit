@@ -256,7 +256,8 @@
     "sections": {
       "account": "Hesap",
       "appearance": "Görünüm",
-      "notifications": "Bildirimler"
+      "notifications": "Bildirimler",
+      "modes": "Modlar ve gizlilik"
     },
     "account": {
       "login": "Giriş yap",
@@ -366,7 +367,12 @@
       "profile": "Takma ad ve avatar",
       "appearance": "Tema ve görünüm",
       "notifications": "Uyarılar ve sesler",
-      "account": "Giriş ve güvenlik"
+      "account": "Giriş ve güvenlik",
+      "modes": "İsteğe bağlı filtreler ve koruma"
+    },
+    "modes": {
+      "intro": "Yüklü eklentilerin isteğe bağlı gizlilik modlarını açın. Bazı modlar ebeveyn denetiminde kilitlenir.",
+      "empty": "Henüz isteğe bağlı mod yok."
     }
   },
   "profile": {

@@ -63,6 +63,7 @@ export function bouncerConnectOpts(o: {
   channels?: string[];
   saslPassword?: string;
   realname?: string;
+  bouncerHost?: string;
 }): ConnectOptions {
   return {
     url: o.url,
@@ -71,5 +72,6 @@ export function bouncerConnectOpts(o: {
     password: o.saslPassword || undefined,
     channels: o.channels ?? [],
     realname: o.realname,
+    bouncerHost: o.bouncerHost,
   };
 }

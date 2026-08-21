@@ -69,6 +69,9 @@ export class Registration {
     const o = this.host.opts();
     this.host.setNick(o.nick);
     const begin = () => {
+      // webircgateway: HOST selects the upstream (ZNC vs ircd). Ignored unless
+      // `[gateway] enabled = true`; swallowed, never forwarded to IRC.
+      if (o.bouncerHost) this.host.send(`HOST ${o.bouncerHost}`);
       this.host.send(`CAP LS 302`);
       if (o.serverPassword) this.host.send(`PASS :${o.serverPassword}`);
       this.host.send(`NICK ${o.nick}`);

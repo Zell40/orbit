@@ -130,6 +130,8 @@ export interface ConnectOptions {
   resolveRealname?: () => Promise<string | undefined>;
   saslAuthzid?: string;    // SASL authzid (defaults to nick); use the NickServ account when nick ≠ account
   serverPassword?: string; // server connection password — sent via PASS (optional)
+  /** webircgateway HOST (e.g. `bnc.example.org:+8066`) — must precede NICK/USER. */
+  bouncerHost?: string;
   channels?: string[];
 }
 
