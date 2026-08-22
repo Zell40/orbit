@@ -112,6 +112,7 @@
     "passkeyHint": "Touch ID, Face ID, Windows Hello ya da bir güvenlik anahtarı — şifresiz.",
     "sexF": "Kadın",
     "sexH": "Erkek",
+    "sexU": "Belirtilmemiş",
     "sexAria": "Cinsiyet",
     "agePlaceholder": "Yaş",
     "ageAria": "Yaşın",

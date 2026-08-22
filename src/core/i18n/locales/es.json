@@ -112,6 +112,7 @@
     "passkeyHint": "Touch ID, Face ID, Windows Hello o una llave de seguridad — sin contraseña.",
     "sexF": "Mujer",
     "sexH": "Hombre",
+    "sexU": "No indicado",
     "sexAria": "Género",
     "agePlaceholder": "Edad",
     "ageAria": "Tu edad",

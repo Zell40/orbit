@@ -138,16 +138,21 @@ input, textarea { font-family: inherit; }
 
 .cjoin__hint { margin: .6rem 0 0 0; font-size: .76rem; color: var(--faint); }
 
-/* meet-people row: segmented toggle (a real discrete choice, fine to be a pill)
-   + underline mini-fields (matching the nick field, not boxed inputs) */
+/* meet-people row: segmented toggle + boxed mini-fields (red/green after check) */
 .cjoin__me { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; margin-top: 1.5rem; }
-.cjoin__seg { display: inline-flex; border-radius: 999px; background: var(--bg-soft-2); padding: 3px; }
-.cjoin__seg button { border: 0; background: none; color: var(--muted); font: inherit; font-size: .82rem; font-weight: 700; padding: .32rem .85rem; border-radius: 999px; cursor: pointer; transition: background .15s, color .15s; }
+.cjoin__seg { display: inline-flex; border-radius: 999px; background: var(--bg-soft-2); padding: 3px; border: 2px solid transparent; transition: border-color .15s; }
+.cjoin__seg.is-ok { border-color: var(--online); }
+.cjoin__seg.is-bad { border-color: var(--danger); }
+.cjoin__seg button { border: 0; background: none; color: var(--muted); font: inherit; font-size: .78rem; font-weight: 700; padding: .32rem .7rem; border-radius: 999px; cursor: pointer; transition: background .15s, color .15s; }
 .cjoin__seg button.is-on { background: var(--bg); color: var(--ink); box-shadow: 0 2px 8px -2px rgba(0,0,0,.18); }
-.cjoin__mini { border: 0; border-bottom: 2px solid var(--border-2); background: none; color: var(--ink); font: inherit; font-size: .92rem; font-weight: 600; padding: .1rem 0; outline: none; width: 3.6rem; transition: border-color .15s; }
-.cjoin__mini--city { width: 7rem; max-width: 32vw; }
+.cjoin__mini { border: 2px solid var(--border-2); border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; font-size: .92rem; font-weight: 600; padding: .28rem .55rem; outline: none; width: 4.2rem; transition: border-color .15s; }
+.cjoin__mini--city { width: 7.4rem; max-width: 32vw; }
 .cjoin__mini::placeholder { color: var(--faint); font-weight: 400; }
 .cjoin__mini:focus { border-color: var(--accent); }
+.cjoin__mini.is-ok { border-color: var(--online); }
+.cjoin__mini.is-bad { border-color: var(--danger); }
+.cjoin__mini.is-ok:focus { border-color: var(--online); }
+.cjoin__mini.is-bad:focus { border-color: var(--danger); }
 
 /* intent — the one moment of real choice, styled as tuned tabs (bottom bar, not a filled button) */
 .cjoin__envie { margin-top: 1.6rem; border: 0; padding: 0; min-inline-size: 0; }

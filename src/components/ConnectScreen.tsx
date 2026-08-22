@@ -3,7 +3,7 @@ import { escapeHtml } from '../lib/escape';
 import { useTranslation } from 'react-i18next';
 
 import { getConfig, pluginListed } from '../core/config';
-import { aslGate } from '../lib/asl-gate';
+import { aslFieldOk, aslGate } from '../lib/asl-gate';
 import { LANGS, setLang } from '../core/i18n';
 import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
@@ -14,6 +14,15 @@ import { loadResume } from '../core/resume';
 
 function param(name: string, fallback: string): string {
   return new URLSearchParams(window.location.search).get(name) ?? fallback;
+}
+
+/** WordPress handoff uses `sexe=H|F|A` (and sometimes `ville`); the join form uses f/h/a. */
+function paramSex(): string {
+  const raw = param('sex', param('sexe', '')).trim().toLowerCase();
+  if (raw === 'f' || raw === 'femme' || raw === 'female') return 'f';
+  if (raw === 'h' || raw === 'm' || raw === 'homme' || raw === 'male') return 'h';
+  if (raw === 'a' || raw === 'x' || raw === 'autre' || raw === 'other') return 'a';
+  return '';
 }
 
 // Ambient chatter for the live-room preview (decorative — aria-hidden, timestamps
@@ -329,10 +338,11 @@ export function ConnectScreen() {
   // WHOIS and on join), and the intent picks which room you land in. The whole
   // block only shows when the deployment configures startup.intents.
   const intents = cfg.startup.intents;
-  const [sex, setSex] = useState(param('sex', ''));
+  const [sex, setSex] = useState(paramSex());
   const [age, setAge] = useState(param('age', ''));
-  const [city, setCity] = useState(param('city', ''));
+  const [city, setCity] = useState(param('city', param('ville', '')));
   const [intent, setIntent] = useState('');
+  const [aslTried, setAslTried] = useState(false);
   const intentChans = (i: 'chat' | 'love' | 'play') =>
     (intents?.[i]?.length ? intents[i]! : cfg.startup.channels);
   function pickIntent(i: 'chat' | 'love' | 'play') {
@@ -340,9 +350,9 @@ export function ConnectScreen() {
     setChanField(intentChans(i).join(','));
   }
   function realname(): string | undefined {
-    // EntreNous GECOS shape shared with the WordPress handoff: "40 - Homme - Paris"
-    if (sex === 'f' || sex === 'h') {
-      return formatProfileGecos(age, sex === 'f' ? 'F' : 'H', city);
+    // EntreNous GECOS: "40 - Homme - Paris". “Non indiqué” is stored as Autre (A).
+    if (sex === 'f' || sex === 'h' || sex === 'a') {
+      return formatProfileGecos(age, sex === 'f' ? 'F' : sex === 'h' ? 'H' : 'A', city);
     }
     return undefined;
   }
@@ -352,14 +362,22 @@ export function ConnectScreen() {
   const bouncerReady = bouncerPass.trim().length > 0;
   const aslOn = pluginListed('orbit-asl');
   const showAsl = aslOn || !!intents;
-  const aslBlock = (!viaBouncer && aslOn) ? aslGate(cfg.asl, { sex, age, city }) : null;
+  const aslFields = { sex, age, city };
+  const aslBlock = (!viaBouncer && aslOn) ? aslGate(cfg.asl, aslFields) : null;
+  const aslOk = aslFieldOk(cfg.asl, aslFields);
   const aslMinAge = aslOn && Number(cfg.asl?.minAge) > 0 ? Number(cfg.asl?.minAge) : 13;
   const aslHint = aslBlock === 'gender' ? t('connect.aslNeedGender')
     : aslBlock === 'age' ? t('connect.aslNeedAge')
       : aslBlock === 'city' ? t('connect.aslNeedCity')
         : aslBlock === 'minAge' ? t('connect.aslMinAge', { n: aslMinAge })
           : '';
-  const ready = nick.trim().length >= 2 && (!viaBouncer || bouncerReady) && !aslBlock;
+  const nickReady = nick.trim().length >= 2 && (!viaBouncer || bouncerReady);
+  function aslMark(ok: boolean, required: boolean): string {
+    if (!aslOn || viaBouncer) return '';
+    if (ok) return ' is-ok';
+    if (required && aslTried) return ' is-bad';
+    return '';
+  }
   const errors: Record<string, string> = {
     error: t('connect.error_error'),
     closed: t('connect.error_closed'),
@@ -383,7 +401,8 @@ export function ConnectScreen() {
   }
 
   function go(passkey = false) {
-    if (!ready || aslBlock) return;
+    if (!nickReady || connecting) return;
+    if (aslBlock) { setAslTried(true); return; }
     const channels = parseChannels(chanField);
     if (viaBouncer) {
       const url = (cfg.server.bouncerUrl || '').trim();
@@ -444,7 +463,7 @@ export function ConnectScreen() {
               aria-label={t('connect.nickAria')}
               onChange={(e) => setNick(e.target.value)}
             />
-            <button type="submit" className="cjoin__send" disabled={connecting || !ready} aria-label={t('connect.enter')}>
+            <button type="submit" className="cjoin__send" disabled={connecting || !nickReady} aria-label={t('connect.enter')}>
               {connecting ? <span className="cjoin__sendspin" /> : <span className="arr">➔</span>}
             </button>
           </div>
@@ -452,21 +471,30 @@ export function ConnectScreen() {
 
           {showAsl && !viaBouncer && (
             <div className="cjoin__me">
-              <div className="cjoin__seg" role="group" aria-label={t('connect.sexAria')}>
+              <div className={`cjoin__seg${aslMark(aslOk.gender, !!cfg.asl?.requireGender)}`} role="group" aria-label={t('connect.sexAria')}
+                aria-invalid={aslTried && !aslOk.gender && !!cfg.asl?.requireGender}>
                 <button type="button" className={sex === 'f' ? 'is-on' : ''} aria-pressed={sex === 'f'}
                   onClick={() => setSex(sex === 'f' ? '' : 'f')}>{t('connect.sexF')}</button>
                 <button type="button" className={sex === 'h' ? 'is-on' : ''} aria-pressed={sex === 'h'}
                   onClick={() => setSex(sex === 'h' ? '' : 'h')}>{t('connect.sexH')}</button>
+                <button type="button" className={sex === 'a' ? 'is-on' : ''} aria-pressed={sex === 'a'}
+                  onClick={() => setSex(sex === 'a' ? '' : 'a')}>{t('connect.sexU')}</button>
               </div>
-              <input className="cjoin__mini" type="number" min={aslMinAge} max={99} inputMode="numeric" value={age}
+              <input className={`cjoin__mini${aslMark(aslOk.age, !!(cfg.asl?.requireAge || (Number(cfg.asl?.minAge) > 0)))}`}
+                type="number" min={aslMinAge} max={99} inputMode="numeric" value={age}
                 placeholder={t('connect.agePlaceholder')} aria-label={t('connect.ageAria')}
+                aria-invalid={aslTried && !aslOk.age && !!(cfg.asl?.requireAge || (Number(cfg.asl?.minAge) > 0))}
                 onChange={(e) => setAge(e.target.value)} />
-              <input className="cjoin__mini cjoin__mini--city" value={city} autoComplete="off" maxLength={24}
+              <input className={`cjoin__mini cjoin__mini--city${aslMark(aslOk.city, !!cfg.asl?.requireCity)}`}
+                value={city} autoComplete="off" maxLength={24}
                 placeholder={t('connect.cityPlaceholder')} aria-label={t('connect.cityAria')}
+                aria-invalid={aslTried && !aslOk.city && !!cfg.asl?.requireCity}
                 onChange={(e) => setCity(e.target.value)} />
             </div>
           )}
-          {aslHint && !viaBouncer && <p className="cjoin__hint">{aslHint}</p>}
+          {aslTried && aslHint && !viaBouncer && (
+            <div className="cjoin__err" role="alert">⚠ {aslHint}</div>
+          )}
 
           {intents && !viaBouncer && (
             <fieldset className="cjoin__envie">
@@ -533,7 +561,7 @@ export function ConnectScreen() {
           )}
 
           {canPasskey && (
-            <button type="button" className="cjoin__passkey" disabled={connecting || !ready}
+            <button type="button" className="cjoin__passkey" disabled={connecting || !nickReady}
               onClick={() => go(true)} title={t('connect.passkeyHint')}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="8" cy="10" r="4" /><path d="M10.85 12.15 19 20.5" /><path d="m18 18-2-2" /><path d="m20 16-2-2" />
