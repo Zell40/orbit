@@ -121,7 +121,9 @@ loadConfig().then(async () => {
     const channels = (params.get('channel') || '')
       .split(',').map((c) => c.trim()).filter(Boolean)
     if (handoff.password && bouncerUrl) {
-      const { bouncerConnectOpts, saveBouncerSession } = await import('./core/bouncer')
+      const { bouncerConnectOpts, saveBouncerSession, markSiteBouncerAttempt } = await import('./core/bouncer')
+      const zncUser = handoff.password.split(':')[0] || ''
+      markSiteBouncerAttempt(zncUser)
       saveBouncerSession(bouncerUrl, nick, handoff.password)
       useChat.setState({ autoConnecting: true })
       useChat.getState().connect(bouncerConnectOpts({

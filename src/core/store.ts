@@ -568,7 +568,9 @@ export function createChatStore(ns = '') {
       set({ profileUser: '', replyTarget: null, search: '' });
       const prev = get().active;
       // Mark the buffer we're leaving as read (advances its read-marker).
-      if (prev && prev !== key) {
+      // Never MARKREAD the fake $server console — the ircd treats it as a nick
+      // and replies 401, which used to land in the channel you just joined.
+      if (prev && prev !== key && prev !== SERVER) {
         const pb = get().buffers[prev];
         if (pb && pb.messages.length) {
           const latest = pb.messages[pb.messages.length - 1].ts;
@@ -585,6 +587,7 @@ export function createChatStore(ns = '') {
       const s = get();
       // Advance the server-side read marker for every buffer with new messages…
       for (const name of s.order) {
+        if (name === SERVER) continue;
         const b = s.buffers[name];
         if (b?.messages.length) {
           const latest = b.messages[b.messages.length - 1].ts;
@@ -608,6 +611,7 @@ export function createChatStore(ns = '') {
     markReadHere() {
       const s = get();
       const key = s.active;
+      if (key === SERVER) return;
       const b = s.buffers[key];
       if (!b || !b.messages.length) return;
       const latest = b.messages[b.messages.length - 1].ts;

@@ -23,6 +23,16 @@ interface NumericsDeps {
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
 const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422']);
 
+function findWhois(table: ChatState['whois'], nick: string): ChatState['whois'][string] | undefined {
+  if (!nick) return undefined;
+  if (table[nick]) return table[nick];
+  const folded = canon(nick);
+  for (const [k, v] of Object.entries(table)) {
+    if (canon(k) === folded) return v;
+  }
+  return undefined;
+}
+
 function findSelfMember(buf: ChatState['buffers'][string] | undefined, nick: string): Member | undefined {
   if (!buf) return undefined;
   if (buf.members[nick]) return buf.members[nick];
@@ -284,17 +294,26 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '733': // RPL_ENDOFMONLIST
         return true;
       case '401': { // ERR_NOSUCHNICK
-        const nk = msg.params[1];
-        const w = get().whois[nk];
+        const nk = msg.params[1] || '';
+        const w = findWhois(get().whois, nk);
         if (w) {
           // yomirc text WHOIS: print the miss to its window and drop the entry.
-          if (w.printTo) { sysLine(w.printTo, `${nk} No such nick/channel`, 'info'); clearWhois(nk); return true; }
+          if (w.printTo) { sysLine(w.printTo, `${w.nick} No such nick/channel`, 'info'); clearWhois(w.nick); return true; }
           // Not online — try WHOWAS for last-known info; 406/369 will mark notFound if absent.
-          if (get().profileUser === nk) { get().client?.whowas(nk); return true; }
-          patchWhois(nk, (ww) => ({ ...ww, loading: false }));
+          if (canon(get().profileUser) === canon(nk) || canon(get().profileUser) === canon(w.nick)) {
+            get().client?.whowas(nk || w.nick);
+            return true;
+          }
+          patchWhois(w.nick, (ww) => ({ ...ww, loading: false }));
           return true;
         }
-        break;
+        // Background 401 (WHOIS/MARKREAD/TAGMSG to an offline nick or the fake
+        // $server console). Don't dump it into whatever channel is focused —
+        // only a query with that nick (e.g. /msg to someone gone) is user-facing.
+        const warn = `⚠️ ${i18n.t('numerics.401', { nick: nk })}`;
+        if (nk && get().buffers[canon(nk)]) sysLine(nk, warn, 'system');
+        else serverLine(nk ? `${nk}: ${i18n.t('numerics.401', { nick: nk })}` : i18n.t('numerics.401'), 'info');
+        return true;
       }
       case '406': { // ERR_WASNOSUCHNICK — WHOWAS miss (nick never seen / no history)
         const nk = msg.params[1];

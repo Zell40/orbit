@@ -318,6 +318,7 @@ export function ConnectScreen() {
     !directPref && (param('bouncer', '') === '1' || (!!cfg.features.bouncer && lastResume?.bouncer === true)),
   );
   const [bouncerPass, setBouncerPass] = useState('');
+  const [bouncerUser, setBouncerUser] = useState(param('znc_user', ''));
   // The channel(s) to join — a comma-separated list, e.g. "#rencontre,#taverne"
   // (the first is the active/primary one). Prefilled from the URL ?channel= param
   // or config, but editable on the form so the user picks where they land.
@@ -397,6 +398,7 @@ export function ConnectScreen() {
       setViaBouncer(true);
       setChanField('');
       setShowPw(false);
+      setBouncerUser((u) => u.trim() || nick.trim());
     }
   }
 
@@ -407,7 +409,8 @@ export function ConnectScreen() {
     if (viaBouncer) {
       const url = (cfg.server.bouncerUrl || '').trim();
       const nk = nick.trim();
-      const serverPassword = zncPass(nk, '', bouncerPass);
+      const zncUser = (bouncerUser.trim() || nk);
+      const serverPassword = zncPass(zncUser, '', bouncerPass);
       saveBouncerSession(url, nk, serverPassword);
       connect(bouncerConnectOpts({
         url,
@@ -534,17 +537,31 @@ export function ConnectScreen() {
           </div>
 
           {viaBouncer && (
-            <input
-              className="cjoin__pw"
-              type="password"
-              name="bouncer-pass"
-              value={bouncerPass}
-              autoComplete="current-password"
-              placeholder={t('connect.bouncerPassPlaceholder')}
-              aria-label={t('connect.bouncerPass')}
-              onChange={(e) => setBouncerPass(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && go()}
-            />
+            <>
+              <input
+                className="cjoin__pw"
+                name="bouncer-user"
+                value={bouncerUser}
+                autoComplete="username"
+                spellCheck={false}
+                autoCapitalize="off"
+                placeholder={t('connect.bouncerUserPlaceholder')}
+                aria-label={t('connect.bouncerUser')}
+                onChange={(e) => setBouncerUser(e.target.value)}
+              />
+              <p className="cjoin__hint">{t('connect.bouncerUserHint')}</p>
+              <input
+                className="cjoin__pw"
+                type="password"
+                name="bouncer-pass"
+                value={bouncerPass}
+                autoComplete="current-password"
+                placeholder={t('connect.bouncerPassPlaceholder')}
+                aria-label={t('connect.bouncerPass')}
+                onChange={(e) => setBouncerPass(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && go()}
+              />
+            </>
           )}
 
           {showPw && !viaBouncer && (

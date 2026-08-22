@@ -120,6 +120,22 @@ describe('store numerics handler', () => {
     expect(sys).toHaveLength(0);
   });
 
+  it('401 without a WHOIS tracker stays off the focused channel', () => {
+    const { handleNumerics, sys, server } = setup({ active: '#x' });
+    expect(handleNumerics(mk('401', ['me', 'Harry', 'No such nick']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(server.some((t) => t.includes('Harry'))).toBe(true);
+  });
+
+  it('401 without a WHOIS tracker prints in an open query with that nick', () => {
+    const { handleNumerics, sys } = setup({
+      active: '#x',
+      buffers: { bob: { name: 'bob' } },
+    });
+    expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
+    expect(sys).toEqual([{ name: 'bob', text: expect.stringContaining('⚠️') }]);
+  });
+
   it('returns false for a non-numeric command', () => {
     const { handleNumerics } = setup();
     expect(handleNumerics(mk('PRIVMSG', ['#x', 'hi']))).toBe(false);

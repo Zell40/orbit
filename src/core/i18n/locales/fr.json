@@ -110,6 +110,9 @@
     "bouncerHide": "Connexion directe",
     "bouncerPass": "Mot de passe du bouncer",
     "bouncerPassPlaceholder": "Mot de passe du bouncer",
+    "bouncerUser": "Utilisateur ZNC",
+    "bouncerUserPlaceholder": "sensible à la casse (zell ≠ Zell)",
+    "bouncerUserHint": "ZNC distingue majuscules et minuscules. Ce n’est pas forcément ton pseudo Anope.",
     "bouncerJoinHint": "Salons (facultatif)",
     "bouncerJoinPlaceholder": "vide = ceux du bouncer",
     "ambient": {
@@ -714,7 +717,7 @@
     "challengeUnreachable": "Impossible de contacter le service de vérification."
   },
   "numerics": {
-    "401": "Aucun utilisateur de ce nom.",
+    "401": "Aucun utilisateur « {{nick}} ».",
     "402": "Ce serveur n’existe pas.",
     "403": "Ce salon n’existe pas.",
     "404": "Impossible d’écrire dans ce salon (banni ou modéré).",

@@ -12,7 +12,8 @@ import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks'
 import { useChat } from './core/store';
 import { getPrefs } from './ui/prefs';
 import { saveResume } from './core/resume';
-import { shouldSkipClosePrompt } from './core/direct-reconnect';
+import { shouldSkipClosePrompt, armLeaveWithoutPrompt } from './core/direct-reconnect';
+import { consumeSiteBouncerAttempt, bouncerAuthFailHref } from './core/bouncer';
 
 export default function App() {
   // The connect-screen-vs-chat decision follows the PRIMARY network: once your
@@ -20,6 +21,8 @@ export default function App() {
   // starts out connecting) must not bounce you back to the full-page join form.
   const status = useChat((s) => s.status);
   const boot = useBootSplash();
+  const everRegistered = useChat((s) => s.everRegistered);
+  const viaBouncer = useChat((s) => s.viaBouncer);
   // Tab title reflects unread across ALL connected networks, not just the active one.
   const unread = useAllNetworksUnread();
 
@@ -29,6 +32,21 @@ export default function App() {
     const name = getConfig().branding.name;
     document.title = unread > 0 ? `(${unread}) ${name}` : name;
   }, [unread]);
+
+  // Site → ZNC handoff failed (user/password, case-sensitive): back to MonIdentité.
+  useEffect(() => {
+    if (everRegistered || !viaBouncer) return;
+    if (status !== 'error' && status !== 'closed') return;
+    const login = (getConfig().branding.loginUrl || '').trim();
+    if (!login) return;
+    const attempt = consumeSiteBouncerAttempt();
+    if (!attempt) return;
+    armLeaveWithoutPrompt();
+    location.assign(bouncerAuthFailHref(login, {
+      nick: useChat.getState().nick,
+      zncUser: attempt.zncUser,
+    }));
+  }, [status, everRegistered, viaBouncer]);
 
   // Guard against an accidental tab close/reload while a session is (or has been)
   // live — the browser shows its native "Leave site?" prompt so you don't lose the

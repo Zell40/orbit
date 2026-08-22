@@ -110,6 +110,9 @@
     "bouncerHide": "Direct connection",
     "bouncerPass": "Bouncer password",
     "bouncerPassPlaceholder": "Bouncer password",
+    "bouncerUser": "ZNC username",
+    "bouncerUserPlaceholder": "case-sensitive (zell ≠ Zell)",
+    "bouncerUserHint": "ZNC usernames are case-sensitive. This may differ from your Anope nick.",
     "bouncerJoinHint": "Channels (optional)",
     "bouncerJoinPlaceholder": "empty = bouncer’s channels",
     "ambient": {
@@ -714,7 +717,7 @@
     "challengeUnreachable": "Could not reach the verification service."
   },
   "numerics": {
-    "401": "No user by that name.",
+    "401": "No user named {{nick}}.",
     "402": "That server does not exist.",
     "403": "That channel does not exist.",
     "404": "Can’t write in this channel (banned or moderated).",

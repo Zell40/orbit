@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { bouncerConnectOpts, loadBouncerPass, loadBouncerPrefs, saveBouncerSession, zncPass } from './bouncer';
+import { bouncerConnectOpts, loadBouncerPass, loadBouncerPrefs, saveBouncerSession, zncPass, bouncerAuthFailHref } from './bouncer';
 
 describe('zncPass', () => {
   it('builds user/network:password like Kiwi’s three fields', () => {
@@ -7,6 +7,19 @@ describe('zncPass', () => {
   });
   it('omits the network when it is empty (ZNC default network)', () => {
     expect(zncPass('alice', '  ', 's3cret')).toBe('alice:s3cret');
+  });
+  it('keeps ZNC username case (zell ≠ Zell)', () => {
+    expect(zncPass('zell', '', 's3cret')).toBe('zell:s3cret');
+    expect(zncPass('Zell', '', 's3cret')).toBe('Zell:s3cret');
+  });
+});
+
+describe('bouncerAuthFailHref', () => {
+  it('sends the user back to MonIdentité with the attempted ZNC user', () => {
+    expect(bouncerAuthFailHref('https://www.reseau-entrenous.fr/mon-entrenous/identite/', {
+      nick: 'Zell',
+      zncUser: 'Zell',
+    })).toBe('https://www.reseau-entrenous.fr/mon-entrenous/identite/?erreur=znc_auth&znc_user=Zell&nick=Zell');
   });
 });
 

@@ -75,3 +75,36 @@ export function bouncerConnectOpts(o: {
     bouncerHost: o.bouncerHost,
   };
 }
+
+const SITE_ATTEMPT = 'orbit-site-bouncer';
+const SITE_USER = 'orbit-znc-user';
+
+/** Remember that this tab came from MonIdentité with a ZNC PASS (for bounce-back). */
+export function markSiteBouncerAttempt(zncUser: string): void {
+  try {
+    sessionStorage.setItem(SITE_ATTEMPT, '1');
+    const u = zncUser.trim();
+    if (u) sessionStorage.setItem(SITE_USER, u);
+    else sessionStorage.removeItem(SITE_USER);
+  } catch { /* storage blocked */ }
+}
+
+/** Consume the site-bouncer flag. Null if this connect didn't come from WordPress. */
+export function consumeSiteBouncerAttempt(): { zncUser: string } | null {
+  try {
+    if (sessionStorage.getItem(SITE_ATTEMPT) !== '1') return null;
+    sessionStorage.removeItem(SITE_ATTEMPT);
+    return { zncUser: sessionStorage.getItem(SITE_USER) || '' };
+  } catch { return null; }
+}
+
+/** WordPress login URL after ZNC rejected user/password. */
+export function bouncerAuthFailHref(loginUrl: string, opts: { nick?: string; zncUser?: string }): string {
+  const u = new URL(loginUrl, 'https://placeholder.invalid');
+  u.searchParams.set('erreur', 'znc_auth');
+  const zncUser = (opts.zncUser || '').trim();
+  if (zncUser) u.searchParams.set('znc_user', zncUser);
+  const nick = (opts.nick || '').trim();
+  if (nick) u.searchParams.set('nick', nick);
+  return u.toString();
+}
