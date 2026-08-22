@@ -1,18 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { pluginListed } from '../core/config';
 import { useChat } from '../core/store';
 import {
-  BOOT_IMAGES_MS, BOOT_MAX_MS, BOOT_MIN_MS,
-  bootPhase, bootProgress, getExpectedBootChannels, roomFrac, roomsReady,
+  BOOT_MAX_MS, BOOT_MIN_MS,
+  bootPhase, bootProgress, getExpectedBootChannels, readSidebarChannelLabels,
+  roomFrac, roomsListed, roomsReady,
   type BootPhase,
 } from '../lib/boot-ready';
 import { pluginLoadStats, whenPluginsLoaded } from '../modules/loader';
-import { bus } from '../modules/bus';
-
-function imagesAlreadyReady(): boolean {
-  try { return !!(window as unknown as { __orbitRoomImagesReady?: boolean }).__orbitRoomImagesReady; }
-  catch { return false; }
-}
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -20,6 +14,11 @@ function sleep(ms: number): Promise<void> {
 
 function twoFrames(): Promise<void> {
   return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+}
+
+function roomsOnScreen(expected: string[]): boolean {
+  return roomsReady(useChat.getState().buffers, expected)
+    && roomsListed(expected, readSidebarChannelLabels());
 }
 
 export function useBootSplash() {
@@ -33,7 +32,6 @@ export function useBootSplash() {
   const [progress, setProgress] = useState(8);
   const [phase, setPhase] = useState<BootPhase>('connecting');
   const connectStarted = useRef<number>(Date.now());
-  const waitImages = pluginListed('orbit-room-gallery');
 
   const failed = status === 'error' || status === 'closed' || status === 'sasl-failed';
   const inApp = status === 'registered' || everRegistered;
@@ -54,28 +52,24 @@ export function useBootSplash() {
       const pluginFrac = stats.total ? stats.settled / stats.total : 1;
       const expected = getExpectedBootChannels();
       const rf = roomFrac(st.buffers, expected);
-      const imgs = !waitImages || imagesAlreadyReady();
-      const p = bootProgress({
+      const listed = roomsListed(expected, readSidebarChannelLabels());
+      const roomsDone = roomsReady(st.buffers, expected) && listed;
+      setProgress((cur) => Math.max(cur, bootProgress({
         status: st.status,
         pluginFrac,
-        roomFrac: rf,
-        imagesReady: imgs,
-        waitImages,
+        roomFrac: roomsDone ? 1 : rf * 0.85,
         connectingForMs: Date.now() - connectStarted.current,
-      });
-      setProgress((cur) => Math.max(cur, p));
+      })));
       setPhase(bootPhase({
         status: st.status,
         pluginsDone: pluginFrac >= 1,
-        roomsDone: roomsReady(st.buffers, expected),
-        imagesReady: imgs,
-        waitImages,
+        roomsDone,
       }));
     };
     tick();
     const iv = window.setInterval(tick, 80);
     return () => { stop = true; clearInterval(iv); };
-  }, [showSplash, revealed, waitImages, status, buffers]);
+  }, [showSplash, revealed, status, buffers]);
 
   useEffect(() => {
     if (revealed || failed || status !== 'registered') return;
@@ -89,24 +83,8 @@ export function useBootSplash() {
 
       const until = t0 + BOOT_MAX_MS;
       while (!stop && Date.now() < until) {
-        if (roomsReady(useChat.getState().buffers, expected)) break;
+        if (roomsOnScreen(expected)) break;
         await sleep(50);
-      }
-      // Bouncer / empty JOIN list: first channel often arrives before the rest.
-      if (!expected.length && roomsReady(useChat.getState().buffers, expected)) {
-        const quiet = Math.min(450, until - Date.now());
-        if (quiet > 0) await sleep(quiet);
-      }
-      if (stop) return;
-
-      if (waitImages && !imagesAlreadyReady()) {
-        await new Promise<void>((resolve) => {
-          const left = Math.max(0, Math.min(BOOT_IMAGES_MS, until - Date.now()));
-          if (!left) { resolve(); return; }
-          let unsub = () => {};
-          const t = window.setTimeout(() => { unsub(); resolve(); }, left);
-          unsub = bus.once('room-images-ready', () => { clearTimeout(t); resolve(); });
-        });
       }
       if (stop) return;
 
@@ -116,13 +94,14 @@ export function useBootSplash() {
       if (stop) return;
 
       setProgress(100);
+      setPhase('almost');
       setFading(true);
       await sleep(280);
       if (!stop) setRevealed(true);
     })();
 
     return () => { stop = true; };
-  }, [status, revealed, failed, waitImages]);
+  }, [status, revealed, failed]);
 
   return { showSplash, fading, progress, phase, inApp };
 }

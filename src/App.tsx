@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { ConnectScreen } from './components/ConnectScreen';
 import { Chat } from './components/Chat';
 import { BootSplash } from './components/BootSplash';
+import { AppUpdateBanner } from './components/AppUpdateBanner';
 import { useBootSplash } from './ui/useBootSplash';
 import { refreshPush } from './platform/push';
 import { getConfig } from './core/config';
@@ -139,6 +140,7 @@ export default function App() {
       {boot.showSplash && (
         <BootSplash progress={boot.progress} phase={boot.phase} fading={boot.fading} />
       )}
+      <AppUpdateBanner />
     </>
   );
 }

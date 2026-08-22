@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bootPhase, bootProgress, roomFrac, roomsReady } from './boot-ready';
+import { bootPhase, bootProgress, roomFrac, roomsListed, roomsReady } from './boot-ready';
 
 const empty = {};
 const one = { '#taverne': { name: '#Taverne', isChannel: true, joined: true } };
@@ -18,6 +18,15 @@ describe('roomsReady', () => {
   });
 });
 
+describe('roomsListed', () => {
+  it('matches sidebar labels with or without a leading #', () => {
+    expect(roomsListed(['#EntreNous.chat'], ['EntreNous.chat'])).toBe(true);
+    expect(roomsListed(['#taverne', '#rencontre'], ['Taverne'])).toBe(false);
+    expect(roomsListed([], [])).toBe(false);
+    expect(roomsListed([], ['Taverne'])).toBe(true);
+  });
+});
+
 describe('roomFrac', () => {
   it('counts joined expected channels', () => {
     expect(roomFrac(one, ['#taverne', '#rencontre'])).toBe(0.5);
@@ -27,16 +36,16 @@ describe('roomFrac', () => {
 describe('bootProgress / bootPhase', () => {
   it('crawls while connecting, then fills with plugins and rooms', () => {
     expect(bootProgress({
-      status: 'connecting', pluginFrac: 0, roomFrac: 0, imagesReady: false,
-      waitImages: true, connectingForMs: 0,
+      status: 'connecting', pluginFrac: 0, roomFrac: 0, connectingForMs: 0,
     })).toBe(8);
     expect(bootPhase({
       status: 'registered', pluginsDone: false, roomsDone: false,
-      imagesReady: false, waitImages: true,
     })).toBe('plugins');
     expect(bootPhase({
+      status: 'registered', pluginsDone: true, roomsDone: false,
+    })).toBe('rooms');
+    expect(bootPhase({
       status: 'registered', pluginsDone: true, roomsDone: true,
-      imagesReady: true, waitImages: true,
     })).toBe('almost');
   });
 });

@@ -19,6 +19,10 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+self.addEventListener('message', (e) => {
+  if (e.data === 'SKIP_WAITING' || (e.data && e.data.type === 'SKIP_WAITING')) self.skipWaiting();
+});
+
 // ── Web Push (draft/webpush) ────────────────────────────────────────────────
 // The browser decrypts the payload (RFC 8291) and hands us exactly one IRC
 // message line. We turn PMs / channel highlights into native notifications.

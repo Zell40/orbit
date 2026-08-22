@@ -620,6 +620,9 @@
     "bouncerGameBody": "{{game}} has no visual board on a bouncer connection. You can still play with channel commands. For the interface, reconnect without the bouncer.",
     "bouncerGameReconnect": "Reconnect without bouncer",
     "bouncerGameLater": "Stay here",
+    "appUpdateTitle": "New chat version",
+    "appUpdateBody": "Reload to apply it — that avoids bugs from a stale cache.",
+    "appUpdateReload": "Reload",
     "nickServTitle": "Message from {{from}}",
     "nickServViewStatus": "View status",
     "nickServDismiss": "Close"

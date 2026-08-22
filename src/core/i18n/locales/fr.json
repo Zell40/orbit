@@ -620,6 +620,9 @@
     "bouncerGameBody": "{{game}} n’a pas d’affichage visuel sur une connexion bouncer. Tu peux quand même jouer avec les commandes du salon. Pour l’interface, reconnecte-toi sans passer par le bouncer.",
     "bouncerGameReconnect": "Se reconnecter sans bouncer",
     "bouncerGameLater": "Rester ici",
+    "appUpdateTitle": "Nouvelle version du tchat",
+    "appUpdateBody": "Recharge pour l’appliquer — ça évite les bugs d’un ancien cache.",
+    "appUpdateReload": "Recharger",
     "nickServTitle": "Message de {{from}}",
     "nickServViewStatus": "Voir le statut",
     "nickServDismiss": "Fermer"
