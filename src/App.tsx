@@ -18,7 +18,6 @@ export default function App() {
   // first connection is up you're "in the app", and adding another network (which
   // starts out connecting) must not bounce you back to the full-page join form.
   const status = useChat((s) => s.status);
-  const everRegistered = useChat((s) => s.everRegistered);
   const boot = useBootSplash();
   // Tab title reflects unread across ALL connected networks, not just the active one.
   const unread = useAllNetworksUnread();
