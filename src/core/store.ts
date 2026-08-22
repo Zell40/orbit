@@ -14,6 +14,7 @@ import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
+import { setExpectedBootChannels } from '../lib/boot-ready';
 
 
 
@@ -288,6 +289,7 @@ export function createChatStore(ns = '') {
       }
       const client = new IrcClient();
       initNotify();
+      setExpectedBootChannels(opts.channels);
       set({
         client, nick: opts.nick, status: 'connecting',
         connectUrl: opts.url,
