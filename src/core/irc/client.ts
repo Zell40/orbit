@@ -95,7 +95,9 @@ export class IrcClient {
 
   connect(opts: ConnectOptions): void {
     this.opts = opts;
-    this.transport.connect(opts.url);
+    this.transport.connect(opts.url, {
+      plain: !!(opts.serverPassword || opts.bouncerHost),
+    });
   }
 
   disconnect(reason = 'Au revoir'): void {

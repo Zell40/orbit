@@ -73,6 +73,14 @@ describe('Transport — connect + open', () => {
     expect(t.isOpen).toBe(false);
   });
 
+  it('opens a Kiwi /webirc/ gateway without IRCv3 subprotocols', () => {
+    const { t } = setup();
+    t.connect('wss://bnc.example/webirc/websocket/');
+    expect(last().protocols).toEqual([]);
+    last()._open('');
+    expect(t.isOpen).toBe(true);
+  });
+
   it('retries the same attempt without subprotocols when the IRCv3 handshake is rejected', () => {
     const { t, rec } = setup();
     t.connect('ws://gateway/');

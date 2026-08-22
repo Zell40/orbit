@@ -8,6 +8,12 @@
 // moves bytes and calls back through TransportHooks, so the socket, timers and
 // queues stay private and this is testable on its own.
 
+/** Kiwi/webircgateway path — raw IRC over WS, no IRCv3 subprotocols. */
+export function isWebircGateway(url: string): boolean {
+  try { return /\/webirc\//i.test(new URL(url).pathname); }
+  catch { return /\/webirc\//i.test(url); }
+}
+
 export interface TransportHooks {
   /** Socket reached OPEN — the client should send its registration burst. */
   onOpen(): void;
@@ -53,11 +59,14 @@ export class Transport {
   /** True when the socket is open and writable. */
   get isOpen(): boolean { return this.ws?.readyState === WebSocket.OPEN; }
 
-  connect(url: string): void {
+  connect(url: string, opts?: { plain?: boolean }): void {
     this.url = url;
     this.wantConnected = true;
     this.reconnectAttempts = 0;
-    this.preferPlain = false;
+    // Kiwi webircgateway (golang.org/x/net/websocket) returns HTTP 400 if the
+    // client offers more than one Sec-WebSocket-Protocol — Firefox sends both
+    // IRCv3 names. Skip them on /webirc/ (and when the caller asks for plain).
+    this.preferPlain = !!opts?.plain || isWebircGateway(url);
     this.skipProtosThisOpen = false;
     this.hookResume();
     this.openSocket();

@@ -163,7 +163,7 @@ function FaqOverlay({ focus, onClose }: { focus: string; onClose: () => void }) 
     <div className="cfaq-scrim" onClick={onClose}>
       <div className="cfaq" role="dialog" aria-label={t('faq.aria')} onClick={(e) => e.stopPropagation()}>
         <div className="cfaq__head">
-          <span className="ic"><img src={cfg.branding.icon} alt="" width={18} height={18} style={{ borderRadius: 4 }} /></span>
+          <span className="ic"><img src={cfg.branding.icon} alt="" /></span>
           <h2>{t('faq.title')}</h2>
           <button className="cfaq__close" onClick={onClose} aria-label={t('faq.close')}>✕</button>
         </div>
