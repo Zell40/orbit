@@ -16,4 +16,10 @@ describe('firstPreviewableUrl', () => {
   it('skips image URLs that already get an inline embed', () => {
     expect(firstPreviewableUrl('https://cdn.example.com/pic.jpg')).toBeNull();
   });
+
+  it('strips zero-width characters glued into the URL', () => {
+    expect(firstPreviewableUrl('https://www.europe-echecs.com/art/\u200bfinale.html')).toBe(
+      'https://www.europe-echecs.com/art/finale.html',
+    );
+  });
 });

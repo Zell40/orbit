@@ -6,10 +6,10 @@ import { isImageUrl, isAudioUrl, youtubeId } from './media';
 
 interface Preview { url: string; title?: string | null; description?: string | null; image?: string | null; siteName?: string | null }
 const UNFURL_PATHS = [
-  '/accounts/api/unfurl/?url=',
   '/app/accounts/api/unfurl/?url=',
-  '/unfurl.php?url=',
   '/app/unfurl.php?url=',
+  '/accounts/api/unfurl/?url=',
+  '/unfurl.php?url=',
 ];
 const previewCache = new Map<string, Promise<Preview | null>>();
 const PREVIEW_CACHE_MAX = 200; // bound: evict oldest so a long-lived tab can't grow forever
@@ -27,7 +27,7 @@ export function previewableUrls(text: string): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const raw of m) {
-    const u = raw.replace(/[),.;:!?\]]+$/g, '');
+    const u = raw.replace(/[\u200b-\u200d\ufeff]/g, '').replace(/[),.;:!?\]]+$/g, '');
     if (!u || isImageUrl(u) || isAudioUrl(u) || youtubeId(u) || seen.has(u)) continue;
     seen.add(u);
     out.push(u);
@@ -39,20 +39,25 @@ function fetchPreview(url: string): Promise<Preview | null> {
   let p = previewCache.get(url);
   if (!p) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000); // don't hang on a slow unfurl endpoint
+    const timer = setTimeout(() => ctrl.abort(), 12000);
     p = (async () => {
-      try {
-        for (const prefix of UNFURL_PATHS) {
+      for (const prefix of UNFURL_PATHS) {
+        try {
           const r = await fetch(prefix + encodeURIComponent(url), { signal: ctrl.signal });
           if (!r.ok) continue;
+          const ct = r.headers.get('content-type') || '';
+          if (!ct.includes('json')) continue;
           const d = await r.json() as Preview | null;
-          return (d && (d.title || d.description || d.image)) ? d : null;
+          if (d && (d.title || d.description || d.image)) return d;
+        } catch {
+          if (ctrl.signal.aborted) break;
         }
-      } catch { /* aborted or network */ }
+      }
       return null;
     })().finally(() => clearTimeout(timer));
     if (previewCache.size >= PREVIEW_CACHE_MAX) previewCache.delete(previewCache.keys().next().value!);
     previewCache.set(url, p);
+    void p.then((d) => { if (!d) previewCache.delete(url); });
   }
   return p;
 }
@@ -67,23 +72,30 @@ export function LinkPreview({ url }: { url: string }) {
     const el = ref.current;
     if (!el) return;
     let cancelled = false;
+    let started = false;
     const run = () => {
+      if (started || cancelled) return;
+      started = true;
       fetchPreview(url).then((d) => { if (!cancelled) setData(d); });
     };
+    const root = el.closest('.messages');
     const io = new IntersectionObserver((entries) => {
       if (entries.some((e) => e.isIntersecting)) {
         io.disconnect();
         run();
       }
-    }, { rootMargin: '160px', threshold: 0 });
+    }, { root: root instanceof Element ? root : null, rootMargin: '240px', threshold: 0 });
     io.observe(el);
-    return () => { cancelled = true; io.disconnect(); };
+    // Split chess layout (overflow:hidden on .main) can make a visible row look
+    // non-intersecting to the viewport observer — still unfurl after a beat.
+    const kick = window.setTimeout(run, 350);
+    return () => { cancelled = true; io.disconnect(); window.clearTimeout(kick); };
   }, [url]);
   return (
     <div className="lp-anchor" ref={ref}>
       {data && (
         <a className="lpcard" href={data.url || url} target="_blank" rel="noopener noreferrer">
-          {data.image && <img className="lpcard__img" src={data.image} alt="" loading="lazy" decoding="async" width={92} height={92} />}
+          {data.image && <img className="lpcard__img" src={data.image} alt="" loading="lazy" decoding="async" width={92} height={92} referrerPolicy="no-referrer" />}
           <span className="lpcard__body">
             {data.siteName && <span className="lpcard__site">{data.siteName}</span>}
             {data.title && <span className="lpcard__title">{data.title}</span>}
