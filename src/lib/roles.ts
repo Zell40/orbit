@@ -13,3 +13,12 @@ export const ROLES: Record<string, { key: string; cls: string }> = {
 
 // An unknown/custom prefix still reads as a privileged role rather than nothing.
 export const roleForPrefix = (prefix: string) => ROLES[prefix] ?? { key: 'privileged', cls: 'op' };
+
+// Channel prefix mode letters (+q/+a/+o/+h/+v) → the same colour classes as the nicklist.
+export const MODE_LETTER_ROLE: Record<string, { key: string; cls: string }> = {
+  q: { key: 'owner', cls: 'owner' },
+  a: { key: 'admin', cls: 'admin' },
+  o: { key: 'op', cls: 'op' },
+  h: { key: 'halfop', cls: 'halfop' },
+  v: { key: 'voice', cls: 'voice' },
+};

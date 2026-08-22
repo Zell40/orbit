@@ -1,13 +1,14 @@
-import { memo, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import { memo, Fragment, type ReactNode } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, formatIrc, splitNoticeLines, groupModeDisplay, formatModeChange } from '@/lib/format';
+import { fmtTime, nickColor, formatIrc, splitNoticeLines, groupModeDisplay, formatModeChange, isNickModeGroup, type ModeDisplayGroup } from '@/lib/format';
 import { isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
 import { useTheme } from '@/themes';
 import { useActiveChat } from '@/core/networks';
+import { MODE_LETTER_ROLE } from '@/lib/roles';
 import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
@@ -60,6 +61,57 @@ function NoticeLine({ m }: { m: ChatMessage }) {
       {row}
     </div>
   );
+}
+
+function ModeNick({ nick }: { nick: string }) {
+  const { t } = useTranslation();
+  const openUser = useActiveChat((s) => s.openUser);
+  const me = useActiveChat((s) => s.nick);
+  const mine = nick.toLowerCase() === me.toLowerCase();
+  return (
+    <button
+      type="button"
+      className={'nick-link' + (mine ? ' nick-link--me' : '')}
+      style={{ color: nickColor(nick) }}
+      title={t('messages.profileOf', { nick })}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); openUser(nick); }}
+    >{nick}</button>
+  );
+}
+
+function joinRoleNodes(nodes: ReactNode[], andWord: string): ReactNode {
+  if (nodes.length <= 1) return nodes[0] ?? null;
+  if (nodes.length === 2) return <>{nodes[0]} {andWord} {nodes[1]}</>;
+  return (
+    <>
+      {nodes.slice(0, -1).map((n, i) => <Fragment key={i}>{n}, </Fragment>)}
+      {andWord} {nodes[nodes.length - 1]}
+    </>
+  );
+}
+
+function ModeRoles({ letters, labels }: { letters: string[]; labels: string[] }) {
+  const { t } = useTranslation();
+  const nodes = labels.map((label, i) => {
+    const cls = MODE_LETTER_ROLE[letters[i]]?.cls;
+    return <span key={i} className={cls ? `modeline__role role-${cls}` : 'modeline__role'}>{label}</span>;
+  });
+  return <span className="modeline__roles">{joinRoleNodes(nodes, t('modeline.and'))}</span>;
+}
+
+function ModeClause({ g }: { g: ModeDisplayGroup }) {
+  if (isNickModeGroup(g) && g.target) {
+    return (
+      <Trans
+        i18nKey={g.add ? 'modeline.promotedRich' : 'modeline.demotedRich'}
+        components={{
+          nick: <ModeNick nick={g.target} />,
+          roles: <ModeRoles letters={g.letters} labels={g.labels} />,
+        }}
+      />
+    );
+  }
+  return <span className={g.add ? 'mode-add' : 'mode-rm'}>{formatModeChange(g)}</span>;
 }
 
 export const NoticeGroup = memo(function NoticeGroup({ messages }: { messages: ChatMessage[] }) {
@@ -167,12 +219,12 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     return (
       <div className="modeline">
         <span className="modeline__tag">{t('modeline.modeTag')}</span>
-        <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
-        <span className="modeline__chg">{groups.map((g, i) => (
-          <span key={i} className={g.add ? 'mode-add' : 'mode-rm'}>
-            {formatModeChange(g)}
+        <ModeNick nick={m.from} />
+        <span className="modeline__body">{groups.map((g, i) => (
+          <Fragment key={i}>
+            <ModeClause g={g} />
             {i < groups.length - 1 ? ' · ' : ''}
-          </span>
+          </Fragment>
         ))}</span>
       </div>
     );

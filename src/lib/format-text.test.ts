@@ -77,21 +77,22 @@ describe('groupModeDisplay', () => {
     expect(groupModeDisplay('+oq', ['Zell356', 'Zell356'])).toEqual([{
       add: true,
       labels: ['Opérateur', 'Fondateur'],
+      letters: ['o', 'q'],
       target: 'Zell356',
     }]);
   });
 
   it('keeps separate groups when targets differ', () => {
     expect(groupModeDisplay('+ov', ['bob', 'alice'])).toEqual([
-      { add: true, labels: ['Opérateur'], target: 'bob' },
-      { add: true, labels: ['Voice'], target: 'alice' },
+      { add: true, labels: ['Opérateur'], letters: ['o'], target: 'bob' },
+      { add: true, labels: ['Voice'], letters: ['v'], target: 'alice' },
     ]);
   });
 
   it('formats a promotion as a natural sentence', () => {
-    expect(formatModeChange({ add: true, labels: ['Opérateur', 'Fondateur'], target: 'Zell356' }))
+    expect(formatModeChange({ add: true, labels: ['Opérateur', 'Fondateur'], letters: ['o', 'q'], target: 'Zell356' }))
       .toBe('a promu Zell356 Opérateur et Fondateur');
-    expect(formatModeChange({ add: true, labels: ['Voice'], target: 'bob' }))
+    expect(formatModeChange({ add: true, labels: ['Voice'], letters: ['v'], target: 'bob' }))
       .toBe('a promu bob Voice');
   });
 });

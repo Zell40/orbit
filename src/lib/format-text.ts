@@ -47,30 +47,37 @@ function modeConsumesParam(letter: string, add: boolean): boolean {
 export interface ModeDisplayGroup {
   add: boolean;
   labels: string[];
+  letters: string[];
   target?: string;
 }
 
 /** Parse a channel MODE string into display groups (+oq nick nick → one row). */
 export function groupModeDisplay(modestring: string, args: string[] = []): ModeDisplayGroup[] {
-  const entries: Array<{ add: boolean; label: string; target?: string }> = [];
+  const entries: Array<{ add: boolean; label: string; letter: string; target?: string }> = [];
   let add = true;
   let ai = 0;
   for (const ch of modestring) {
     if (ch === '+') { add = true; continue; }
     if (ch === '-') { add = false; continue; }
     const param = modeConsumesParam(ch, add) ? (args[ai++] ?? '?') : undefined;
-    entries.push({ add, label: modeDisplayLabel(ch), target: param });
+    entries.push({ add, label: modeDisplayLabel(ch), letter: ch, target: param });
   }
   const groups: ModeDisplayGroup[] = [];
   for (const e of entries) {
     const last = groups[groups.length - 1];
     if (last && last.add === e.add && e.target && last.target === e.target) {
       last.labels.push(e.label);
+      last.letters.push(e.letter);
     } else {
-      groups.push({ add: e.add, labels: [e.label], target: e.target });
+      groups.push({ add: e.add, labels: [e.label], letters: [e.letter], target: e.target });
     }
   }
   return groups;
+}
+
+/** True when the grouped change is a nick prefix (+q/+a/+o/+h/+v). */
+export function isNickModeGroup(g: ModeDisplayGroup): boolean {
+  return !!g.target && g.letters.length > 0 && g.letters.every((l) => PREFIX_MODES.has(l));
 }
 
 /** Join role labels for a MODE sentence ("Opérateur et Fondateur"). */
