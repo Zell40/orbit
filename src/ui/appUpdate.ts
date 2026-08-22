@@ -1,6 +1,7 @@
 // Registers the service worker (installable PWA, offline shell, web push).
-// A waiting worker means a new deploy is cached: we toast so the user can
-// reload (skipWaiting) instead of staying on a stale bundle.
+// A waiting worker means a new deploy is available. We toast so the user can
+// reload. Navigate is network-first, so a normal refresh loads the new build
+// without skipWaiting (which would claim the page and kill the IRC websocket).
 const UPDATE_EVT = 'orbit-app-update';
 
 function announceUpdate() {
@@ -13,10 +14,17 @@ export function onAppUpdate(fn: () => void): () => void {
 }
 
 export function applyAppUpdate(): void {
-  void navigator.serviceWorker?.getRegistration().then((reg) => {
-    reg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
-    location.reload();
-  });
+  void (async () => {
+    try {
+      const { armLeaveWithoutPrompt } = await import('../core/direct-reconnect');
+      armLeaveWithoutPrompt();
+      const { useNetworks } = await import('../core/networks');
+      for (const n of useNetworks.getState().networks) {
+        try { n.store.getState().client?.disconnect('Mise à jour'); } catch { /* ignore */ }
+      }
+    } catch { /* ignore */ }
+    window.setTimeout(() => location.reload(), 200);
+  })();
 }
 
 export function registerAppUpdates(): void {
