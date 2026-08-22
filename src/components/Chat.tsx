@@ -8,7 +8,7 @@ import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { ChannelTopicBanner } from './chat/ChannelTopicBanner';
 import { MemberList } from './chat/MemberList';
-import { ReconnectBanner, KickToast, GuestRegisterPrompt, NickServAlert } from './chat/Banners';
+import { ReconnectBanner, KickToast, GuestRegisterPrompt, NickServAlert, BouncerVisualBanner } from './chat/Banners';
 import { usePluginRegistry } from '../modules/registry';
 import { PluginBoundary } from './PluginBoundary';
 import { FriendsPanel } from './chat/FriendsPanel';
@@ -23,13 +23,22 @@ export function Chat() {
   // renders it by default, so the shell collapses to just the app.
   const ui = usePluginRegistry((s) => s.ui);
   const navbar = ui.filter((u) => u.slot === 'navbar');
+  const viaBouncer = useActiveChat((s) => s.viaBouncer);
+  const channelName = useActiveChat((s) => s.buffers[s.active]?.name || s.active);
+  const visualGames = usePluginRegistry((s) => s.visualGames);
+  const hideVisual = viaBouncer && visualGames.some((g) => {
+    try { return g.inChannel(channelName); } catch { return false; }
+  });
+  const visualPlugins = new Set(visualGames.map((g) => g.plugin));
   // Persistent, root-level home for plugin popovers/panels (see UiSlot 'overlay').
   // Conference sits in the main column under the topbar so chrome stays visible.
   const overlays = ui.filter((u) => u.slot === 'overlay');
   // In-column overlays: conference video + Petit Bac game HUD (under topbar).
   const mainColumnPlugins = new Set(['orbit-conference', 'orbit-petitbac', 'orbit-callerid']);
-  const mainBanners = overlays.filter((u) => mainColumnPlugins.has(u.plugin));
-  const rootOverlays = overlays.filter((u) => !mainColumnPlugins.has(u.plugin));
+  const mainBanners = overlays.filter((u) => mainColumnPlugins.has(u.plugin)
+    && !(hideVisual && visualPlugins.has(u.plugin)));
+  const rootOverlays = overlays.filter((u) => !mainColumnPlugins.has(u.plugin)
+    && !(hideVisual && visualPlugins.has(u.plugin)));
   // Stable so the memoized room rows aren't invalidated on every render.
   const closeNav = useCallback(() => setNavOpen(false), []);
   // PMs / server console have no member list — drop the empty side column.
@@ -46,6 +55,7 @@ export function Chat() {
         {/* Gallery plugin paints --rg-pic here for a soft room backdrop. */}
         <div className="main__room-bg" aria-hidden="true" />
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
+        <BouncerVisualBanner />
         {/* Conference: always under topbar (desktop + mobile), topic stays compact below. */}
         {mainBanners.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
         <ChannelTopicBanner />

@@ -10,6 +10,7 @@ import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks'
 import { useChat } from './core/store';
 import { getPrefs } from './ui/prefs';
 import { saveResume } from './core/resume';
+import { shouldSkipClosePrompt } from './core/direct-reconnect';
 
 // Shown while a site handoff connects, so visitors who already chose a pseudo
 // never see the join form. A failure clears autoConnecting and falls back to it.
@@ -46,6 +47,7 @@ export default function App() {
   // it never nags on the connect screen; opt out via the "confirmClose" preference.
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (shouldSkipClosePrompt()) return;
       if (!getPrefs().confirmClose) return;
       const live = useNetworks.getState().networks.some((n) => {
         const s = n.store.getState();

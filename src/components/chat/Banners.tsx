@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
-import { useActiveChat } from '@/core/networks';
+import { activeStore, useActiveChat } from '@/core/networks';
+import { matchingVisualGames, usePluginRegistry } from '@/modules/registry';
+import { saveDirectReconnect, siteLoginHref, armLeaveWithoutPrompt } from '@/core/direct-reconnect';
+import { clearResume } from '@/core/resume';
 
 export function ReconnectBanner() {
   const { t } = useTranslation();
@@ -129,6 +132,77 @@ export function NickServAlert() {
       <div className="servalert__actions">
         <button type="button" className="servalert__primary" onClick={openStatus}>{t('banners.nickServViewStatus')}</button>
         <button type="button" className="servalert__secondary" onClick={dismiss}>{t('banners.nickServDismiss')}</button>
+      </div>
+    </div>
+  );
+}
+
+const BOUNCER_GAME_DISMISS = 'orbit-bouncer-game-dismiss:';
+
+/** In-channel notice: TAGMSG game HUDs don't work through ZNC. */
+export function BouncerVisualBanner() {
+  const { t } = useTranslation();
+  const viaBouncer = useActiveChat((s) => s.viaBouncer);
+  const status = useActiveChat((s) => s.status);
+  const active = useActiveChat((s) => s.active);
+  const nick = useActiveChat((s) => s.nick);
+  const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
+  const channelName = useActiveChat((s) => s.buffers[s.active]?.name || s.active);
+  const games = usePluginRegistry((s) => s.visualGames);
+  const [dismissed, setDismissed] = useState(false);
+
+  const matched = viaBouncer && isChannel ? matchingVisualGames(games, channelName) : [];
+  const labels = [...new Set(matched.map((g) => g.label))];
+  const game = labels.join(' · ');
+
+  useEffect(() => {
+    if (!active) { setDismissed(false); return; }
+    try { setDismissed(sessionStorage.getItem(BOUNCER_GAME_DISMISS + active) === '1'); }
+    catch { setDismissed(false); }
+  }, [active]);
+
+  if (!viaBouncer || status !== 'registered' || !matched.length || dismissed) return null;
+
+  const dismiss = () => {
+    try { sessionStorage.setItem(BOUNCER_GAME_DISMISS + active, '1'); } catch { /* ignore */ }
+    setDismissed(true);
+  };
+
+  const reconnectDirect = () => {
+    const s = activeStore().getState();
+    const channels = s.order
+      .filter((k) => s.buffers[k]?.isChannel && s.buffers[k]?.joined)
+      .map((k) => s.buffers[k].name);
+    if (active && !channels.some((c) => c.toLowerCase() === active.toLowerCase())) {
+      channels.unshift(s.buffers[active]?.name || active);
+    }
+    const chans = channels.length ? channels : [active];
+    clearResume();
+    const loginUrl = (getConfig().branding.loginUrl || '').trim();
+    if (loginUrl) {
+      armLeaveWithoutPrompt();
+      s.client?.disconnect();
+      location.assign(siteLoginHref(loginUrl, { nick, channels: chans }));
+      return;
+    }
+    saveDirectReconnect(nick, chans);
+    s.client?.disconnect();
+    location.reload();
+  };
+
+  return (
+    <div className="bouncer-game" role="status">
+      <div className="bouncer-game__txt">
+        <strong className="bouncer-game__title">{t('banners.bouncerGameTitle')}</strong>
+        <p className="bouncer-game__body">{t('banners.bouncerGameBody', { game: game || '…' })}</p>
+      </div>
+      <div className="bouncer-game__actions">
+        <button type="button" className="bouncer-game__go" onClick={reconnectDirect}>
+          {t('banners.bouncerGameReconnect')}
+        </button>
+        <button type="button" className="bouncer-game__later" onClick={dismiss}>
+          {t('banners.bouncerGameLater')}
+        </button>
       </div>
     </div>
   );

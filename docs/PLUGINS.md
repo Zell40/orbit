@@ -111,6 +111,7 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `orbit.on/once/off/emit` | event bus (see events below) |
 | `orbit.state.active()` | active buffer name |
 | `orbit.state.nick()` / `account()` | your nick / logged-in account |
+| `orbit.state.viaBouncer()` | true when this session connected through a bouncer (ZNC) |
 | `orbit.state.buffers()` | open buffer names |
 | `orbit.state.get()` | full store snapshot (read-only) |
 | `orbit.server.hasCap(cap)` | is an IRCv3 capability negotiated? — gate cap-dependent features so you never 421 a leaner server |
@@ -130,6 +131,8 @@ bound to the app's React) — runtime template markup, no build step. Prefer
 | `orbit.addSettingsMode({render})` | add a block in Settings → Modes (shared hub for privacy modes / plugins) |
 | `orbit.addMessageDecorator(m => …)` | inline UI after every message's text; `m` = `{id, nick, text, raw, kind, ts, mine}` (`text` is formatting-stripped, `raw` keeps mIRC codes) |
 | `orbit.addMessageAction(m => …)` | a button in every message's hover action toolbar (next to reply/react); same `m` |
+| `orbit.addShortcut(combo, run)` | global keyboard shortcut, e.g. `"mod+shift+k"` |
+| `orbit.requireVisualDisplay({label, inChannel})` | TAGMSG visual game: hide the HUD on a bouncer session and show a reconnect-without-bouncer notice in matching channels |
 | `orbit.h / orbit.html` | render helpers |
 | `log(…)` | namespaced console logger |
 

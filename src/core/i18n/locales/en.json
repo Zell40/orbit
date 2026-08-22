@@ -605,6 +605,10 @@
     "guestCreateProfile": "Create my profile",
     "guestLogin": "I already have an account",
     "guestLater": "Later",
+    "bouncerGameTitle": "Game display unavailable via the bouncer",
+    "bouncerGameBody": "{{game}} has no visual board on a bouncer connection. You can still play with channel commands. For the interface, reconnect without the bouncer.",
+    "bouncerGameReconnect": "Reconnect without bouncer",
+    "bouncerGameLater": "Stay here",
     "nickServTitle": "Message from {{from}}",
     "nickServViewStatus": "View status",
     "nickServDismiss": "Close"

@@ -25,7 +25,7 @@ const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomi
 // Plugin API contract version. Bumped on any change to the surface below so
 // plugins can feature-detect (e.g. `if (Orbit.apiVersion >= 6) orbit.server.hasCap(…)`).
 // Still experimental.
-const API_VERSION = 8;
+const API_VERSION = 9;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -58,6 +58,8 @@ export interface OrbitPluginApi {
     active: () => string;
     nick: () => string;
     account: () => string;
+    /** True when this session connected through a bouncer (ZNC PASS). */
+    viaBouncer: () => boolean;
     buffers: () => string[];
     get: () => ReturnType<typeof useChat.getState>;
   };
@@ -129,6 +131,9 @@ export interface OrbitPluginApi {
   /** Register a global keyboard shortcut, e.g. "mod+shift+k" (mod = Cmd/Ctrl).
    *  Runs in the chat view; built-in shortcuts take priority. */
   addShortcut: (combo: string, run: (e: KeyboardEvent) => void) => () => void;
+  /** Declare a TAGMSG visual game: Orbit hides the HUD on a bouncer session and
+   *  shows a reconnect-without-bouncer notice in matching channels. */
+  requireVisualDisplay: (opts: { label: string; inChannel: (channel: string) => boolean }) => () => void;
   /** Open a modal dialog: `render` fills the body, the core supplies the backdrop,
    *  title bar and close button. Returns a function that closes it. */
   modal: (render: () => ReactNode, opts?: { title?: string; wide?: boolean }) => () => void;
@@ -148,6 +153,7 @@ function makeApi(name: string): OrbitPluginApi {
       active: () => activeStore().getState().active,
       nick: () => activeStore().getState().nick,
       account: () => activeStore().getState().account,
+      viaBouncer: () => !!activeStore().getState().viaBouncer,
       buffers: () => Object.keys(activeStore().getState().buffers),
       // Redact the live IrcClient: it carries opts.password (plaintext SASL /
       // server password). Plugins read state through this projection and act
@@ -208,6 +214,8 @@ function makeApi(name: string): OrbitPluginApi {
     addCommand: (cmd, spec) => usePluginRegistry.getState().addCommand(name, cmd, spec.run, spec.help),
     notify: (title, body) => pluginNotify(title, body),
     addShortcut: (combo, run) => usePluginRegistry.getState().addShortcut(name, combo, run),
+    requireVisualDisplay: (opts) =>
+      usePluginRegistry.getState().addVisualDisplay(name, opts.label, opts.inChannel),
     modal: (render, opts) => usePluginRegistry.getState().openModal({ plugin: name, render, title: opts?.title, wide: opts?.wide }),
   };
 }

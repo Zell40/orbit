@@ -8,6 +8,7 @@ import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
 import { formatProfileGecos } from '../lib/profile-gecos';
 import { bouncerConnectOpts, loadBouncerPrefs, saveBouncerSession, zncPass } from '../core/bouncer';
+import { peekDirectReconnect, clearDirectReconnect } from '../core/direct-reconnect';
 import { loadResume } from '../core/resume';
 
 function param(name: string, fallback: string): string {
@@ -299,11 +300,12 @@ export function ConnectScreen() {
   const status = useActiveChat((s) => s.status);
   const bouncerPrefs = loadBouncerPrefs();
   const lastResume = loadResume();
-  const [nick, setNick] = useState(param('nick', bouncerPrefs?.nick || ''));
+  const directPref = peekDirectReconnect();
+  const [nick, setNick] = useState(param('nick', directPref?.nick || bouncerPrefs?.nick || ''));
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [viaBouncer, setViaBouncer] = useState(
-    param('bouncer', '') === '1' || (!!cfg.features.bouncer && lastResume?.bouncer === true),
+    !directPref && (param('bouncer', '') === '1' || (!!cfg.features.bouncer && lastResume?.bouncer === true)),
   );
   const [bouncerPass, setBouncerPass] = useState('');
   // The channel(s) to join — a comma-separated list, e.g. "#rencontre,#taverne"
@@ -311,8 +313,11 @@ export function ConnectScreen() {
   // or config, but editable on the form so the user picks where they land.
   // A bouncer already holds the channels — leave empty to attach without JOIN.
   const [chanField, setChanField] = useState(
-    param('channel', viaBouncer ? '' : cfg.startup.channels.join(',')),
+    param('channel', directPref?.channels.length
+      ? directPref.channels.join(',')
+      : (viaBouncer ? '' : cfg.startup.channels.join(','))),
   );
+  useEffect(() => { if (directPref) clearDirectReconnect(); }, []);
   const parseChannels = (raw: string) =>
     raw.split(',').map((c) => c.trim()).filter(Boolean)
       .map((c) => (c.startsWith('#') || c.startsWith('&') ? c : `#${c}`));

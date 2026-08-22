@@ -92,6 +92,14 @@ export interface PluginShortcut {
   run: (e: KeyboardEvent) => void;
 }
 
+/** A TAGMSG / visual-board game: the HUD does not work through a ZNC bouncer. */
+export interface VisualDisplayGame {
+  id: string;
+  plugin: string;
+  label: string;
+  inChannel: (channel: string) => boolean;
+}
+
 // A plugin-opened modal dialog. `render` fills the body; the core supplies the
 // backdrop, title bar and close button. Only one is shown at a time.
 export interface PluginModalSpec {
@@ -126,6 +134,7 @@ interface RegistryState {
   messageFilters: PluginFilter[];
   commands: PluginCommand[];
   shortcuts: PluginShortcut[];
+  visualGames: VisualDisplayGame[];
   modal: PluginModalSpec | null;
   addUi: (slot: UiSlot, plugin: string, render: () => ReactNode, meta?: PluginUi['meta']) => () => void;
   addDecorator: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
@@ -134,6 +143,7 @@ interface RegistryState {
   addMessageFilter: (plugin: string, fn: (m: FilterableMessage) => boolean) => () => void;
   addCommand: (plugin: string, name: string, run: PluginCommand['run'], help?: string) => () => void;
   addShortcut: (plugin: string, combo: string, run: PluginShortcut['run']) => () => void;
+  addVisualDisplay: (plugin: string, label: string, inChannel: (channel: string) => boolean) => () => void;
   openModal: (spec: PluginModalSpec) => () => void;
   closeModal: () => void;
 }
@@ -146,6 +156,7 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
   messageFilters: [],
   commands: [],
   shortcuts: [],
+  visualGames: [],
   modal: null,
   addUi: (slot, plugin, render, meta) => {
     const id = `${plugin}:${slot}:${Math.random().toString(36).slice(2, 8)}`;
@@ -183,9 +194,23 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
     set((s) => ({ shortcuts: [...s.shortcuts, { id, plugin, combo, run }] }));
     return () => set((s) => ({ shortcuts: s.shortcuts.filter((k) => k.id !== id) }));
   },
+  addVisualDisplay: (plugin, label, inChannel) => {
+    const id = `${plugin}:viz:${Math.random().toString(36).slice(2, 8)}`;
+    const name = (label || plugin).trim() || plugin;
+    set((s) => ({ visualGames: [...s.visualGames, { id, plugin, label: name, inChannel }] }));
+    return () => set((s) => ({ visualGames: s.visualGames.filter((g) => g.id !== id) }));
+  },
   openModal: (spec) => {
     set({ modal: spec });
     return () => set((s) => (s.modal === spec ? { modal: null } : {}));
   },
   closeModal: () => set({ modal: null }),
 }));
+
+export function matchingVisualGames(games: VisualDisplayGame[], channel: string): VisualDisplayGame[] {
+  const ch = (channel || '').trim();
+  if (!ch) return [];
+  return games.filter((g) => {
+    try { return !!g.inChannel(ch); } catch { return false; }
+  });
+}

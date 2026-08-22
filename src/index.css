@@ -2129,6 +2129,29 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 }
 .guestprompt__later:hover { color: var(--muted); text-decoration: underline; }
 
+/* Bouncer session: TAGMSG game HUD is unavailable in this channel */
+.bouncer-game {
+  margin: .55rem .75rem 0;
+  padding: .85rem 1rem;
+  display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: flex-start;
+  background: var(--bg-soft); color: var(--ink);
+  border: 1px solid var(--border); border-radius: 12px;
+}
+.bouncer-game__txt { flex: 1 1 16rem; min-width: 0; }
+.bouncer-game__title { display: block; font-size: .92rem; font-weight: 800; letter-spacing: -.01em; }
+.bouncer-game__body { margin: .35rem 0 0; font-size: .85rem; line-height: 1.4; color: var(--muted); }
+.bouncer-game__actions { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+.bouncer-game__go {
+  min-height: 38px; padding: .45rem .9rem; border-radius: 10px; border: 0; cursor: pointer;
+  background: var(--accent); color: #fff; font: inherit; font-weight: 700; font-size: .85rem;
+}
+.bouncer-game__go:hover { filter: brightness(1.05); }
+.bouncer-game__later {
+  border: 0; background: none; color: var(--faint); font: inherit; font-size: .8rem;
+  font-weight: 600; cursor: pointer; padding: .25rem .4rem;
+}
+.bouncer-game__later:hover { color: var(--muted); text-decoration: underline; }
+
 /* NickServ (and similar) service alert — centered, readable popup */
 .servalert {
   position: fixed; z-index: 160; left: 50%; top: 50%; transform: translate(-50%, -50%);

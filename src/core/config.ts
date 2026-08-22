@@ -41,6 +41,10 @@ export interface AppConfig {
     projectUrl: string; // the Orbit project/source page (shown in Settings → À propos)
     /** Public WordPress (or site) registration URL — guest prompt CTA. */
     registerUrl?: string;
+    /** Site chat-login page. The bouncer “reconnect without bouncer” CTA sends
+     *  members here (`?direct=1&channel=…`) so they only click Connect. Empty =
+     *  Orbit’s own join form. */
+    loginUrl?: string;
     links?: { label: string; url: string }[]; // extra links shown in Settings → About (rules, donate, …)
     accent?: string;    // optional accent colour override (the --accent CSS token)
   };
