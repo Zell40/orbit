@@ -174,6 +174,18 @@ export interface AppConfig {
     /** Hide tagged conference IRC lines in Orbit (Join banner instead). */
     hideInviteForOrbit?: boolean;
   };
+  /** Optional ASL (age / gender / city) gate on the connect screen (orbit-asl).
+   *  Only applied when `orbit-asl` is listed in `plugins`. */
+  asl?: {
+    /** Block connect when age is empty. */
+    requireAge?: boolean;
+    /** Block connect when gender is not chosen. */
+    requireGender?: boolean;
+    /** Block connect when city is empty. */
+    requireCity?: boolean;
+    /** Block connect when age is below this number (also requires a filled age). */
+    minAge?: number;
+  };
   securityGroups?: string[];
 }
 
@@ -236,6 +248,15 @@ export async function loadConfig(): Promise<AppConfig> {
 }
 
 export function getConfig(): AppConfig { return cfg; }
+
+/** True when an operator-listed plugin URL contains `needle` (e.g. `orbit-asl`). */
+export function pluginListed(needle: string, config = getConfig()): boolean {
+  const n = needle.toLowerCase();
+  return (config.plugins ?? []).some((p) => {
+    const url = typeof p === 'string' ? p : p.url;
+    return (url || '').toLowerCase().includes(n);
+  });
+}
 
 // Plugin console logging is off in production so a visitor's DevTools stays clean.
 // Enabled in dev builds, or opt in on a live site with localStorage['orbit-debug']='1'.

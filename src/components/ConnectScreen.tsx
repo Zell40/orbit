@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { escapeHtml } from '../lib/escape';
 import { useTranslation } from 'react-i18next';
 
-import { getConfig } from '../core/config';
+import { getConfig, pluginListed } from '../core/config';
+import { aslGate } from '../lib/asl-gate';
 import { LANGS, setLang } from '../core/i18n';
 import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
@@ -349,7 +350,16 @@ export function ConnectScreen() {
   const connecting = status === 'connecting';
   const canBouncer = cfg.features.bouncer && !!(cfg.server.bouncerUrl || '').trim();
   const bouncerReady = bouncerPass.trim().length > 0;
-  const ready = nick.trim().length >= 2 && (!viaBouncer || bouncerReady);
+  const aslOn = pluginListed('orbit-asl');
+  const showAsl = aslOn || !!intents;
+  const aslBlock = (!viaBouncer && aslOn) ? aslGate(cfg.asl, { sex, age, city }) : null;
+  const aslMinAge = aslOn && Number(cfg.asl?.minAge) > 0 ? Number(cfg.asl?.minAge) : 13;
+  const aslHint = aslBlock === 'gender' ? t('connect.aslNeedGender')
+    : aslBlock === 'age' ? t('connect.aslNeedAge')
+      : aslBlock === 'city' ? t('connect.aslNeedCity')
+        : aslBlock === 'minAge' ? t('connect.aslMinAge', { n: aslMinAge })
+          : '';
+  const ready = nick.trim().length >= 2 && (!viaBouncer || bouncerReady) && !aslBlock;
   const errors: Record<string, string> = {
     error: t('connect.error_error'),
     closed: t('connect.error_closed'),
@@ -373,7 +383,7 @@ export function ConnectScreen() {
   }
 
   function go(passkey = false) {
-    if (!ready) return;
+    if (!ready || aslBlock) return;
     const channels = parseChannels(chanField);
     if (viaBouncer) {
       const url = (cfg.server.bouncerUrl || '').trim();
@@ -440,35 +450,36 @@ export function ConnectScreen() {
           </div>
           <p className="cjoin__hint">{t('connect.nickHint')}</p>
 
-          {intents && !viaBouncer && (
-            <>
-              <div className="cjoin__me">
-                <div className="cjoin__seg" role="group" aria-label={t('connect.sexAria')}>
-                  <button type="button" className={sex === 'f' ? 'is-on' : ''} aria-pressed={sex === 'f'}
-                    onClick={() => setSex(sex === 'f' ? '' : 'f')}>{t('connect.sexF')}</button>
-                  <button type="button" className={sex === 'h' ? 'is-on' : ''} aria-pressed={sex === 'h'}
-                    onClick={() => setSex(sex === 'h' ? '' : 'h')}>{t('connect.sexH')}</button>
-                </div>
-                <input className="cjoin__mini" type="number" min={13} max={99} inputMode="numeric" value={age}
-                  placeholder={t('connect.agePlaceholder')} aria-label={t('connect.ageAria')}
-                  onChange={(e) => setAge(e.target.value)} />
-                <input className="cjoin__mini cjoin__mini--city" value={city} autoComplete="off" maxLength={24}
-                  placeholder={t('connect.cityPlaceholder')} aria-label={t('connect.cityAria')}
-                  onChange={(e) => setCity(e.target.value)} />
+          {showAsl && !viaBouncer && (
+            <div className="cjoin__me">
+              <div className="cjoin__seg" role="group" aria-label={t('connect.sexAria')}>
+                <button type="button" className={sex === 'f' ? 'is-on' : ''} aria-pressed={sex === 'f'}
+                  onClick={() => setSex(sex === 'f' ? '' : 'f')}>{t('connect.sexF')}</button>
+                <button type="button" className={sex === 'h' ? 'is-on' : ''} aria-pressed={sex === 'h'}
+                  onClick={() => setSex(sex === 'h' ? '' : 'h')}>{t('connect.sexH')}</button>
               </div>
+              <input className="cjoin__mini" type="number" min={aslMinAge} max={99} inputMode="numeric" value={age}
+                placeholder={t('connect.agePlaceholder')} aria-label={t('connect.ageAria')}
+                onChange={(e) => setAge(e.target.value)} />
+              <input className="cjoin__mini cjoin__mini--city" value={city} autoComplete="off" maxLength={24}
+                placeholder={t('connect.cityPlaceholder')} aria-label={t('connect.cityAria')}
+                onChange={(e) => setCity(e.target.value)} />
+            </div>
+          )}
+          {aslHint && !viaBouncer && <p className="cjoin__hint">{aslHint}</p>}
 
-              <fieldset className="cjoin__envie">
-                <legend className="cjoin__envie-lab">{t('connect.wantLabel')}</legend>
-                <div className="cjoin__intents">
-                  {intents.chat && <button type="button" className={intent === 'chat' ? 'is-on' : ''} aria-pressed={intent === 'chat'}
-                    onClick={() => pickIntent('chat')}>💬 {t('connect.wantChat')}</button>}
-                  {intents.love && <button type="button" className={intent === 'love' ? 'is-on' : ''} aria-pressed={intent === 'love'}
-                    onClick={() => pickIntent('love')}>💞 {t('connect.wantLove')}</button>}
-                  {intents.play && <button type="button" className={intent === 'play' ? 'is-on' : ''} aria-pressed={intent === 'play'}
-                    onClick={() => pickIntent('play')}>🎮 {t('connect.wantPlay')}</button>}
-                </div>
-              </fieldset>
-            </>
+          {intents && !viaBouncer && (
+            <fieldset className="cjoin__envie">
+              <legend className="cjoin__envie-lab">{t('connect.wantLabel')}</legend>
+              <div className="cjoin__intents">
+                {intents.chat && <button type="button" className={intent === 'chat' ? 'is-on' : ''} aria-pressed={intent === 'chat'}
+                  onClick={() => pickIntent('chat')}>💬 {t('connect.wantChat')}</button>}
+                {intents.love && <button type="button" className={intent === 'love' ? 'is-on' : ''} aria-pressed={intent === 'love'}
+                  onClick={() => pickIntent('love')}>💞 {t('connect.wantLove')}</button>}
+                {intents.play && <button type="button" className={intent === 'play' ? 'is-on' : ''} aria-pressed={intent === 'play'}
+                  onClick={() => pickIntent('play')}>🎮 {t('connect.wantPlay')}</button>}
+              </div>
+            </fieldset>
           )}
 
           <div className="cjoin__row">
