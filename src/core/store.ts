@@ -278,7 +278,8 @@ export function createChatStore(ns = '') {
         };
       }
       // WordPress profile = source of truth: resolve âge/genre/ville before USER.
-      if (!opts.resolveRealname) {
+      // Bouncer sessions already have GECOS on the attached nick — don't delay PASS.
+      if (!opts.resolveRealname && !opts.serverPassword) {
         opts.resolveRealname = async () => {
           const acct = (opts.saslAuthzid || get().account || '').trim()
             || ((opts.password || opts.passkey || opts.keycard) ? opts.nick.trim() : '');

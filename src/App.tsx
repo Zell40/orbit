@@ -136,7 +136,7 @@ export default function App() {
   return (
     <>
       <div className="aurora" />
-      {boot.inApp ? <Chat /> : boot.showSplash ? null : <ConnectScreen />}
+      {boot.inApp ? <Chat /> : <ConnectScreen />}
       {boot.showSplash && (
         <BootSplash progress={boot.progress} phase={boot.phase} fading={boot.fading} />
       )}

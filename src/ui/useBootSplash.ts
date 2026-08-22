@@ -25,6 +25,7 @@ export function useBootSplash() {
   const status = useChat((s) => s.status);
   const everRegistered = useChat((s) => s.everRegistered);
   const autoConnecting = useChat((s) => s.autoConnecting);
+  const viaBouncer = useChat((s) => s.viaBouncer);
   const buffers = useChat((s) => s.buffers);
 
   const [revealed, setRevealed] = useState(false);
@@ -81,9 +82,9 @@ export function useBootSplash() {
       await whenPluginsLoaded();
       if (stop) return;
 
-      const until = t0 + BOOT_MAX_MS;
+      const until = t0 + (viaBouncer ? BOOT_MIN_MS + 400 : BOOT_MAX_MS);
       while (!stop && Date.now() < until) {
-        if (roomsOnScreen(expected)) break;
+        if (viaBouncer || roomsOnScreen(expected)) break;
         await sleep(50);
       }
       if (stop) return;
@@ -101,7 +102,7 @@ export function useBootSplash() {
     })();
 
     return () => { stop = true; };
-  }, [status, revealed, failed]);
+  }, [status, revealed, failed, viaBouncer]);
 
   return { showSplash, fading, progress, phase, inApp };
 }
