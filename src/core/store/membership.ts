@@ -46,6 +46,8 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
         const joinReal = msg.params[2] || undefined;
         patchBuffer(ch, (b) => ({ ...b, members: { ...b.members, [msg.nick]: { nick: msg.nick, user: msg.user || undefined, host: msg.host || undefined, prefix: '', account: joinAcct, realname: joinReal } } }));
         if (msg.nick === me && joinReal) get().client?.setRealname(joinReal);
+        // ZNC attach: no SASL 900 — our own extended-join carries the NickServ account.
+        if (msg.nick === me && joinAcct) set({ account: joinAcct });
         if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg));
         return true;
       }

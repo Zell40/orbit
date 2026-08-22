@@ -56,6 +56,12 @@ describe('membership handler', () => {
     expect(m).toMatchObject({ nick: 'bob', user: 'u', host: 'h', account: 'acct', realname: 'Bob Real' });
   });
 
+  it('our own extended-join fills the session account (ZNC attach, no SASL 900)', () => {
+    const { on, state } = setup();
+    on(':me!u@h JOIN #x Harry :[12/H/Benquet]');
+    expect(state.account).toBe('Harry');
+  });
+
   it('PART removes the member', () => {
     const { on, state, seed } = setup();
     seed('#x', ['bob', 'amy']);

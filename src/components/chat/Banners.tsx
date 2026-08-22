@@ -21,6 +21,7 @@ export function GuestRegisterPrompt() {
   const { t } = useTranslation();
   const status = useActiveChat((s) => s.status);
   const account = useActiveChat((s) => s.account);
+  const viaBouncer = useActiveChat((s) => s.viaBouncer);
   const nick = useActiveChat((s) => s.nick);
   const setModal = useActiveChat((s) => s.setModal);
   const [ready, setReady] = useState(false);
@@ -31,12 +32,12 @@ export function GuestRegisterPrompt() {
   // Wait a beat after IRC registration so a SASL/handoff login can fill `account`
   // before we flash the guest prompt.
   useEffect(() => {
-    if (status !== 'registered' || account) { setReady(false); return; }
+    if (status !== 'registered' || account || viaBouncer) { setReady(false); return; }
     const id = window.setTimeout(() => setReady(true), 1600);
     return () => clearTimeout(id);
-  }, [status, account]);
+  }, [status, account, viaBouncer]);
 
-  if (!ready || dismissed || account || status !== 'registered') return null;
+  if (!ready || dismissed || account || viaBouncer || status !== 'registered') return null;
 
   const registerUrl = getConfig().branding.registerUrl
     || 'https://www.reseau-entrenous.fr/register/';

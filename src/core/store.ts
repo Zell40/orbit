@@ -312,6 +312,8 @@ export function createChatStore(ns = '') {
           // Status title can show them mIRC-style, even if the ircd didn't
           // volunteer an initial MODE line.
           client.queryUserModes();
+          // Bouncer sessions skip SASL: learn the already-identified NickServ account.
+          if (!get().account) client.whois(client.nick);
           // Watch our friends via MONITOR (server pushes 730/731 on presence change).
           const fr = get().friends;
           if (fr.length) client.ircv3.monitor('+', fr.join(','));

@@ -4,18 +4,22 @@ import { parseLine } from '../irc/parser';
 import type { WhoisInfo } from '../irc/types';
 import type { ChatState } from '../store';
 
-function setup(initial: Record<string, WhoisInfo> = {}) {
+function setup(initial: Record<string, WhoisInfo> = {}, nick = 'me') {
   let whois: Record<string, WhoisInfo> = { ...initial };
+  let account = '';
   const lines: [string, string][] = [];
-  const get = () => ({ whois }) as unknown as ChatState;
-  const set = (partial: Partial<ChatState>) => { if (partial.whois) whois = partial.whois; };
-  const patchWhois = (nick: string, fn: (w: WhoisInfo) => WhoisInfo) => {
-    const cur = whois[nick] ?? { nick, loading: true };
-    whois = { ...whois, [nick]: fn(cur) };
+  const get = () => ({ whois, nick, account }) as unknown as ChatState;
+  const set = (partial: Partial<ChatState>) => {
+    if (partial.whois) whois = partial.whois;
+    if (typeof partial.account === 'string') account = partial.account;
+  };
+  const patchWhois = (nickName: string, fn: (w: WhoisInfo) => WhoisInfo) => {
+    const cur = whois[nickName] ?? { nick: nickName, loading: true };
+    whois = { ...whois, [nickName]: fn(cur) };
   };
   const sysLine = (name: string, text: string) => { lines.push([name, text]); };
   const w = makeWhois({ get, set, patchWhois, sysLine } as Parameters<typeof makeWhois>[0]);
-  return { w, whois: () => whois, lines };
+  return { w, whois: () => whois, account: () => account, lines };
 }
 
 describe('makeWhois — building the WhoisInfo', () => {
@@ -31,6 +35,12 @@ describe('makeWhois — building the WhoisInfo', () => {
       user: 'user', host: 'host.name', realname: 'Real Name',
       server: 'irc.example.net', account: 'bobacct', oper: true, loading: false,
     });
+  });
+
+  it('330 on ourselves fills the session account (ZNC attach has no SASL 900)', () => {
+    const { w, account } = setup({}, 'Harry');
+    w.handleWhois(parseLine(':srv 330 Harry Harry Harry :is logged in as'));
+    expect(account()).toBe('Harry');
   });
 
   it('accumulates + de-dupes channels across multiple 319 lines', () => {

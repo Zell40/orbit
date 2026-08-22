@@ -8,6 +8,7 @@
 // (no-such-nick) fallback. RPL_AWAY (301) intentionally stays in the dispatcher —
 // it also drives the "user is away" query notice.
 import { fmtDuration, formatUserModes } from '@/lib/format-text';
+import { canon } from './context';
 import type { IrcMessage, WhoisInfo } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -87,9 +88,14 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
         });
         return true;
       }
-      case '330': // RPL_WHOISACCOUNT: <me> <nick> <account> :is logged in as
-        patchWhois(msg.params[1], (w) => ({ ...w, account: msg.params[2] }));
+      case '330': { // RPL_WHOISACCOUNT: <me> <nick> <account> :is logged in as
+        const who = msg.params[1];
+        const acct = msg.params[2];
+        patchWhois(who, (w) => ({ ...w, account: acct }));
+        // Bouncer attach never gets SASL 900; WHOIS of ourselves fills the session account.
+        if (acct && who && get().nick && canon(who) === canon(get().nick)) set({ account: acct });
         return true;
+      }
       case '335': // RPL_WHOISBOT
         patchWhois(msg.params[1], (w) => ({ ...w, bot: true }));
         return true;

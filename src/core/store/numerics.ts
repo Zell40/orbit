@@ -119,6 +119,7 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
           });
         }
         if (realname && who === get().nick) get().client?.setRealname(realname);
+        if (account && who === get().nick && !get().account) set({ account });
         if (profileCache && (realname || account)) {
           const prev = profileCache.get(canon(who)) || {};
           profileCache.set(canon(who), {
