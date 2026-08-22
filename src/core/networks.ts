@@ -143,11 +143,10 @@ export function restoreNetworks(): void {
     try {
       const channels = Array.isArray(n.channels) ? n.channels : [];
       const bouncer = n.bouncer === true;
+      if (bouncer) continue; // never auto-reconnect a bouncer (ZNC connection flood)
       const entry = useNetworks.getState().add(n.label || n.url, { url: n.url, nick: n.nick, channels, bouncer });
       const password = sessionStorage.getItem(passKey(n.url, n.nick)) || undefined;
-      entry.store.getState().connect(bouncer
-        ? { url: n.url, nick: n.nick, channels, serverPassword: password }
-        : { url: n.url, nick: n.nick, channels, password });
+      entry.store.getState().connect({ url: n.url, nick: n.nick, channels, password });
     } catch { /* skip a bad entry */ }
   }
 }

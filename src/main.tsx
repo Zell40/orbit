@@ -139,20 +139,9 @@ loadConfig().then(async () => {
     const { loadResume } = await import('./core/resume')
     const resume = loadResume()
     if (resume?.bouncer) {
-      const { loadBouncerPass, bouncerConnectOpts } = await import('./core/bouncer')
-      const pass = loadBouncerPass(resume.url, resume.nick)
-      if (pass.serverPassword) {
-        useChat.setState({ autoConnecting: true })
-        useChat.getState().connect(bouncerConnectOpts({
-          url: resume.url,
-          nick: resume.nick,
-          serverPassword: pass.serverPassword,
-          saslPassword: pass.saslPassword,
-          channels: resume.channels,
-          realname: resume.realname,
-        }))
-        cleanUrl()
-      }
+      // Never auto-connect a bouncer session: ZNC treats rapid reconnects
+      // (reload, failed handshake retry) as connection flood. The join form
+      // keeps the nick and the bouncer toggle; the user clicks Connect.
     } else if (resume) {
       let password: string | undefined
       let resumeNick = resume.nick

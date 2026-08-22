@@ -19,8 +19,8 @@ export interface Resume {
   channels: string[];
   /** IRC GECOS, e.g. "40 - Homme - Paris" — restored on USER after reconnect. */
   realname?: string;
-  /** True when this session logged in through a bouncer (PASS). Auto-resume
-   *  needs the bouncer password from sessionStorage — never from localStorage. */
+  /** True when this session logged in through a bouncer (PASS). Prefills the
+   *  join-form toggle only — bouncer sessions are never auto-resumed (ZNC flood). */
   bouncer?: boolean;
   ts: number;
 }

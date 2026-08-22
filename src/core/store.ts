@@ -299,6 +299,12 @@ export function createChatStore(ns = '') {
         // a handoff is no longer in flight: drop the splash so failures fall back
         // to the join form (with the nick/channel still prefilled from the URL).
         if (st !== 'connecting') set({ autoConnecting: false });
+        // Bouncer: a failed first handshake must not retry — ZNC connection-floods
+        // and the join form would keep opening sockets in the background.
+        if ((st === 'closed' || st === 'error') && opts.serverPassword && !get().everRegistered) {
+          client.disconnect();
+          set({ reconnectIn: 0 });
+        }
         if (st === 'registered') {
           const wasReconnect = get().everRegistered;
           set({ reconnectIn: 0, serverError: '', everRegistered: true, friendsOnline: {} });
