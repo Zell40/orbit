@@ -19,6 +19,8 @@ export interface Handoff {
   account?: string;
   /** IRC GECOS / realname, e.g. "40 - Homme - Paris" (EntreNous MonIdentité). */
   realname?: string;
+  /** Site asked for a ZNC / KiwiBNC connect (PASS), not SASL keycard. */
+  bouncer?: boolean;
 }
 
 // Read and immediately clear the marker. Returns null when there is no fresh
@@ -34,13 +36,14 @@ export function takeHandoff(): Handoff | null {
   if (!raw) return null;
   try {
     const o = JSON.parse(raw) as {
-      password?: unknown; account?: unknown; realname?: unknown; t?: unknown;
+      password?: unknown; account?: unknown; realname?: unknown; t?: unknown; bouncer?: unknown;
     };
     if (typeof o.t !== 'number' || Date.now() - o.t > MAX_AGE_MS) return null;
     const password = typeof o.password === 'string' && o.password ? o.password : undefined;
     const account = typeof o.account === 'string' && o.account ? o.account : undefined;
     const realname = typeof o.realname === 'string' && o.realname.trim() ? o.realname.trim() : undefined;
-    return { password, account, realname };
+    const bouncer = o.bouncer === true;
+    return { password, account, realname, bouncer };
   } catch {
     return null;
   }

@@ -116,7 +116,24 @@ loadConfig().then(async () => {
   // After an auto-connect, drop the entry params from the address bar so a later
   // reload/reopen is param-less and resumes cleanly (the branch below).
   const cleanUrl = () => { try { history.replaceState(null, '', window.location.pathname) } catch { /* ignore */ } }
-  if (handoff && nick) {
+  if (handoff && nick && handoff.bouncer) {
+    const bouncerUrl = (cfg.server.bouncerUrl || '').trim()
+    const channels = (params.get('channel') || '')
+      .split(',').map((c) => c.trim()).filter(Boolean)
+    if (handoff.password && bouncerUrl) {
+      const { bouncerConnectOpts, saveBouncerSession } = await import('./core/bouncer')
+      saveBouncerSession(bouncerUrl, nick, handoff.password)
+      useChat.setState({ autoConnecting: true })
+      useChat.getState().connect(bouncerConnectOpts({
+        url: bouncerUrl,
+        nick,
+        serverPassword: handoff.password,
+        channels,
+        realname: handoff.realname,
+      }))
+      cleanUrl()
+    }
+  } else if (handoff && nick) {
     const channels = (params.get('channel') || cfg.startup.channels.join(','))
       .split(',').map((c) => c.trim()).filter(Boolean)
     useChat.setState({ autoConnecting: true })
