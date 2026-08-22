@@ -810,6 +810,7 @@
     "typingMany": "{{n}} personnes écrivent",
     "consolePlaceholder": "Commande IRC — ex : /list, /whois pseudo, /join #salon",
     "placeholder": "Envoyer un message dans {{chan}}",
+    "placeholderShort": "Envoyer un message",
     "dropImage": "Dépose ton image ici…",
     "color": "Couleur {{i}}",
     "clearFormat": "Effacer le format",

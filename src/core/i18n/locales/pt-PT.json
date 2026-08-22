@@ -717,6 +717,7 @@
     "typingMany": "{{n}} pessoas estão a escrever",
     "consolePlaceholder": "Comando IRC — ex.: /list, /whois alcunha, /join #canal",
     "placeholder": "Enviar uma mensagem em {{chan}}",
+    "placeholderShort": "Enviar uma mensagem",
     "dropImage": "Larga aqui a tua imagem…",
     "color": "Cor {{i}}",
     "clearFormat": "Limpar formatação",

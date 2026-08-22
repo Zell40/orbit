@@ -2417,6 +2417,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .composer { padding: .3rem .5rem calc(.55rem + env(safe-area-inset-bottom)); }
   .composer__box { flex-wrap: wrap; gap: .25rem; padding: .4rem .45rem; }
   .composer__rich, .composer textarea { flex: 1 0 100%; order: -1; min-width: 0; max-height: 32vh; padding: .4rem .4rem .2rem; }
+  .composer__rich.is-empty { overflow: hidden; }
   .composer__send { margin-left: auto; }
   /* The device keyboard has its own emoji key on mobile — drop our picker. */
   .composer__emoji { display: none; }

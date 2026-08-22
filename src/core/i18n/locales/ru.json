@@ -717,6 +717,7 @@
     "typingMany": "{{n}} человек печатают",
     "consolePlaceholder": "Команда IRC — напр.: /list, /whois ник, /join #канал",
     "placeholder": "Отправить сообщение в {{chan}}",
+    "placeholderShort": "Отправить сообщение",
     "dropImage": "Перетащите изображение сюда…",
     "color": "Цвет {{i}}",
     "clearFormat": "Очистить форматирование",

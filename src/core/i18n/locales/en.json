@@ -810,6 +810,7 @@
     "typingMany": "{{n}} people are typing",
     "consolePlaceholder": "IRC command — e.g. /list, /whois nick, /join #channel",
     "placeholder": "Send a message in {{chan}}",
+    "placeholderShort": "Send a message",
     "dropImage": "Drop your image here…",
     "color": "Color {{i}}",
     "clearFormat": "Clear formatting",

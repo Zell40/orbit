@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER } from '@/core/store';
 import { MIRC_PALETTE } from '@/lib/format';
@@ -56,6 +56,10 @@ export function Composer() {
   // survives re-renders; idx bookkeeping is unit-tested in composer/history.ts.
   const history = useRef(createSentHistory()).current;
   const isConsole = active === SERVER;
+  const narrow = useSyncExternalStore(
+    (cb) => { const m = matchMedia('(max-width: 880px)'); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb); },
+    () => matchMedia('(max-width: 880px)').matches,
+  );
 
   const canUpload = getConfig().features.imageUpload;
   const { recording, recSecs, canRecord, startRec, stopRec, cancelRec } = useVoiceRecorder({
@@ -296,7 +300,9 @@ export function Composer() {
 
   const placeholder = isConsole
     ? t('composer.consolePlaceholder')
-    : t('composer.placeholder', { chan: active || '…' });
+    : narrow
+      ? t('composer.placeholderShort')
+      : t('composer.placeholder', { chan: active || '…' });
 
   return (
     <div className={`composer ${isConsole ? 'composer--console' : ''}`}>

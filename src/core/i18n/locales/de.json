@@ -717,6 +717,7 @@
     "typingMany": "{{n}} Personen schreiben",
     "consolePlaceholder": "IRC-Befehl — z. B. /list, /whois nick, /join #kanal",
     "placeholder": "Nachricht senden in {{chan}}",
+    "placeholderShort": "Nachricht senden",
     "dropImage": "Lege dein Bild hier ab…",
     "color": "Farbe {{i}}",
     "clearFormat": "Formatierung löschen",
