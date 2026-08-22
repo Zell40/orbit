@@ -33,7 +33,14 @@ export function loadPlugins(): void {
     el.dataset.orbitPlugin = url;
     if (integrity) el.integrity = integrity;
     if (crossorigin) el.crossOrigin = crossorigin;
-    el.onerror = () => console.error('[plugins] failed to load', url);
+    el.onerror = () => {
+      console.error('[plugins] failed to load', url);
+      if (pluginDebug()) {
+        void fetch(url, { method: 'HEAD', cache: 'no-store' })
+          .then((r) => console.error('[plugins]', url, '→ HTTP', r.status))
+          .catch((e) => console.error('[plugins]', url, '→', e));
+      }
+    };
     document.head.appendChild(el);
   }
 

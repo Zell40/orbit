@@ -79,12 +79,12 @@ describe('Registration handshake', () => {
     const { reg, sent } = make({
       nick: 'bob',
       serverPassword: 'bob:pw',
-      bouncerHost: 'bnc.entrenous.chat:+8066',
+      bouncerHost: 'bnc.reseau-entrenous.fr:+8066',
     });
     reg.start();
-    expect(sent[0]).toBe('HOST bnc.entrenous.chat:+8066');
+    expect(sent[0]).toBe('HOST bnc.reseau-entrenous.fr:+8066');
     expect(sent).toEqual([
-      'HOST bnc.entrenous.chat:+8066',
+      'HOST bnc.reseau-entrenous.fr:+8066',
       'CAP LS 302',
       'PASS :bob:pw',
       'NICK bob',
