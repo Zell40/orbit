@@ -91,8 +91,8 @@ describe('groupModeDisplay', () => {
 
   it('formats a promotion as a natural sentence', () => {
     expect(formatModeChange({ add: true, labels: ['Opérateur', 'Fondateur'], letters: ['o', 'q'], target: 'Zell356' }))
-      .toBe('a promu Zell356 Opérateur et Fondateur');
+      .toBe('a promu Zell356 Opérateur et Fondateur du salon');
     expect(formatModeChange({ add: true, labels: ['Voice'], letters: ['v'], target: 'bob' }))
-      .toBe('a promu bob Voice');
+      .toBe('a promu bob Voice du salon');
   });
 });

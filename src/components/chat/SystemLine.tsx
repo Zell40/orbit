@@ -64,19 +64,7 @@ function NoticeLine({ m }: { m: ChatMessage }) {
 }
 
 function ModeNick({ nick }: { nick: string }) {
-  const { t } = useTranslation();
-  const openUser = useActiveChat((s) => s.openUser);
-  const me = useActiveChat((s) => s.nick);
-  const mine = nick.toLowerCase() === me.toLowerCase();
-  return (
-    <button
-      type="button"
-      className={'nick-link' + (mine ? ' nick-link--me' : '')}
-      style={{ color: nickColor(nick) }}
-      title={t('messages.profileOf', { nick })}
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); openUser(nick); }}
-    >{nick}</button>
-  );
+  return <span className="modeline__who" style={{ color: nickColor(nick) }}>{nick}</span>;
 }
 
 function joinRoleNodes(nodes: ReactNode[], andWord: string): ReactNode {
