@@ -178,6 +178,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
         channelContext: chanCtx,
         buffers: echoOpts.buffers,
         order: echoOpts.order,
+        noticeInbox: s.prefs.noticeInbox !== false,
       });
     }
     // One we send shows the recipient; one we receive shows the sender.

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER, NOTICES } from '@/core/store';
+import { SERVER, isNoticeBuffer, noticeBufferNick } from '@/core/store';
 import { avatarBg } from '@/lib/format';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
@@ -69,8 +69,9 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const plugAfterNotify = sortByPluginOrder(plug.filter((u) => afterNotifyNames.has(u.plugin)), TOPBAR_AFTER_NOTIFY);
   const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin));
   const isServer = bname === SERVER;
-  const isNotices = bname === NOTICES;
-  const label = isServer ? 'Status' : isNotices ? t('sidebar.notices') : bname.replace(/^#/, '');
+  const isNotices = isNoticeBuffer(bname);
+  const noticeNick = noticeBufferNick(bname);
+  const label = isServer ? 'Status' : isNotices ? (noticeNick || t('sidebar.notices')) : bname.replace(/^#/, '');
   const statusTitle = `Status: ${myNick || '…'}${myUmodes ? ` [+${myUmodes}]` : ''}${serverName ? ` on ${serverName}` : ''}`;
   if (searching || search) {
     return (
@@ -89,7 +90,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {menuBtn}
       {isServer
         ? <span className="term-lights"><i /><i /><i /></span>
-        : <span className="topbar__av" style={isNotices ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{isChannel ? '#' : isNotices ? '!' : label[0]?.toUpperCase()}</span>}
+        : <span className="topbar__av" style={isNotices && !noticeNick ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{isChannel ? '#' : isNotices && !noticeNick ? '!' : label[0]?.toUpperCase()}</span>}
       <div className="topbar__meta">
         <span className="topbar__title">
           {isServer ? statusTitle : label}

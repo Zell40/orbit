@@ -17,6 +17,8 @@ export interface Prefs {
   topicSetterFull: boolean;
   /** Show the Status (server console) buffer in the room list. Off by default. */
   showStatus: boolean;
+  /** Off-channel NOTICEs in a Notices sidebar block (one buffer per sender). Off = current window. */
+  noticeInbox: boolean;
 }
 
 const KEY = 'orbit-prefs';
@@ -28,7 +30,7 @@ function defaults(): Prefs {
   return {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
-    bubbleMessages: true, topicSetterFull: false, showStatus: false,
+    bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: true,
   };
 }
 

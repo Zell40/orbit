@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NOTICES } from './context';
+import { NOTICES, noticeBufferName } from './context';
 import { nickInMembers, resolveNoticeDest, noticeIsChannelEcho } from './notices';
 
 const chan = (members: string[], joined = true) => ({
@@ -46,15 +46,15 @@ describe('resolveNoticeDest', () => {
     })).toBe('#baccalaureat.chat');
   });
 
-  it('uses Notices when no joined channel is shared with the sender', () => {
+  it('opens a per-sender Notices buffer when no joined channel is shared with the sender', () => {
     expect(dest({
       sender: 'Bac',
       buffers: { '#entrenous.chat': chan(['Jessie']) },
       order: ['#entrenous.chat'],
-    })).toBe(NOTICES);
+    })).toBe(noticeBufferName('Bac'));
   });
 
-  it('uses Notices when the sender is in several channels and the active one is not one of them', () => {
+  it('opens a per-sender Notices buffer when the sender is in several channels and the active one is not one of them', () => {
     expect(dest({
       sender: 'Bac',
       active: '#entrenous.chat',
@@ -64,7 +64,7 @@ describe('resolveNoticeDest', () => {
         '#aide.chat': chan(['Bac']),
       },
       order: ['#entrenous.chat', '#baccalaureat.chat', '#aide.chat'],
-    })).toBe(NOTICES);
+    })).toBe(noticeBufferName('Bac'));
   });
 
   it('prefers +draft/channel-context when we share that channel with the sender', () => {
@@ -85,6 +85,23 @@ describe('resolveNoticeDest', () => {
       sender: 'Bac',
       buffers: { '#baccalaureat.chat': chan(['Bac'], false) },
       order: ['#baccalaureat.chat'],
+    })).toBe(noticeBufferName('Bac'));
+  });
+
+  it('lands in the current window when the Notices pane is disabled', () => {
+    expect(dest({
+      sender: 'Operateur',
+      active: '#entrenous.chat',
+      noticeInbox: false,
+      buffers: { '#entrenous.chat': chan(['Jessie']) },
+      order: ['#entrenous.chat'],
+    })).toBe('#entrenous.chat');
+  });
+
+  it('falls back to the combined Notices log when the sender nick is empty', () => {
+    expect(dest({
+      sender: '',
+      active: '#entrenous.chat',
     })).toBe(NOTICES);
   });
 });

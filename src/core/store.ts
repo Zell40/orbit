@@ -7,7 +7,7 @@ import type { Buffer, ConnectOptions, WhoisInfo, MessageKind } from './irc/types
 import { getConfig } from './config';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer } from './store/context';
-export { SERVER, NOTICES } from './store/context';
+export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName } from './store/context';
 import { makeHelpers } from './store/helpers';
 import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';

@@ -1,8 +1,8 @@
-import { memo, Fragment, type ReactNode } from 'react';
+import { memo, Fragment, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, formatIrc, splitNoticeLines, groupModeDisplay, formatModeChange, isNickModeGroup, type ModeDisplayGroup } from '@/lib/format';
-import { isChannelName } from '@/core/store/context';
+import { isChannelName, isNoticeBuffer } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
@@ -22,9 +22,11 @@ function CalloutPreviews({ text }: { text: string }) {
 
 // Shared NOTICE callout — one bubble, stacked lines when several notices share a sender.
 function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
+  const { t } = useTranslation();
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const setActive = useActiveChat((s) => s.setActive);
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
+  const inNoticeLog = useActiveChat((s) => isNoticeBuffer(s.active));
   const head = messages[0];
   const showCtx = firstOfRun(msgs, head, (x) => x.channelContext);
   const combined = messages.map((m) => m.text).join('\n');
@@ -32,19 +34,39 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
     splitNoticeLines(m.text).map((text, i) => ({ key: `${m.id}-${i}`, text, self: m.self })),
   );
   const stacked = lines.length > 1;
+  const previewUrls = linkPreviews && getConfig().features.linkPreviews
+    ? previewableUrls(stripFormatting(combined)) : [];
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const clipRef = useRef<HTMLDivElement>(null);
+  const canClamp = !inNoticeLog;
+  useLayoutEffect(() => {
+    if (!canClamp) { setOverflows(false); return; }
+    const el = clipRef.current;
+    if (!el) return;
+    if (expanded) { setOverflows(true); return; }
+    setOverflows(el.scrollHeight > el.clientHeight + 1 || previewUrls.length > 0);
+  }, [canClamp, combined, expanded, lines.length, previewUrls.length]);
+  const clamped = canClamp && !expanded;
+  const showToggle = canClamp && (overflows || previewUrls.length > 0);
   return (
     <div className="noticeline">
       <div className="noticeline__head">
         <span className="modeline__tag noticeline__tag">NOTICE</span>
         {head.from && <span className="modeline__who" style={{ color: nickColor(head.from) }}>{head.from}</span>}
       </div>
-      <div className={`noticeline__body${stacked ? ' noticeline__body--stack' : ''}`}>
+      <div ref={clipRef} className={`noticeline__body${stacked ? ' noticeline__body--stack' : ''}${clamped ? ' is-clamped' : ''}`}>
         {lines.map((line) => (
           <span key={line.key} className="noticeline__txt">{formatIrc(line.text, line.self, linkPreviews)}</span>
         ))}
         {showCtx && head.channelContext && <CtxChip chan={head.channelContext} onJump={() => setActive(head.channelContext!)} />}
       </div>
-      <CalloutPreviews text={combined} />
+      {!clamped && previewUrls.length > 0 && <CalloutPreviews text={combined} />}
+      {showToggle && (
+        <button type="button" className="noticeline__more" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? t('messages.seeLess') : t('messages.seeMore')}
+        </button>
+      )}
     </div>
   );
 }

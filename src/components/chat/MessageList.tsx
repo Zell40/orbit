@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER, NOTICES } from '@/core/store';
+import { SERVER, isNoticeBuffer } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
 import { MsgRow } from './MsgRow';
 import { SystemLine, NoticeGroup } from './SystemLine';
@@ -181,7 +181,7 @@ export function MessageList() {
       if (dist < 140) markReadHere(); // count read across a wider band
       // channels and private messages both have server-side history (not the console);
       // only once the in-memory buffer is fully shown (not just the tail).
-      if (!effTailOnly && el.scrollTop < 60 && buffer && buffer.name !== SERVER && buffer.name !== NOTICES && !histLoading && !histDone) loadMore(active);
+      if (!effTailOnly && el.scrollTop < 60 && buffer && buffer.name !== SERVER && !isNoticeBuffer(buffer.name) && !histLoading && !histDone) loadMore(active);
       // Once you're clearly scrolled up, offer a jump straight back to the newest
       // line — so a fast channel can't strand you.
       setShowJump(dist > 120);

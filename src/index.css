@@ -841,6 +841,19 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   overflow-wrap: anywhere; line-height: 1.55;
   white-space: pre-wrap;
 }
+.noticeline__body.is-clamped {
+  max-height: 3.1em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(#000 50%, transparent);
+  mask-image: linear-gradient(#000 50%, transparent);
+}
+.noticeline__more {
+  align-self: flex-start;
+  margin: 0; padding: 0; border: 0; background: none;
+  color: #7c3aed; font: inherit; font-size: .78rem; font-weight: 800;
+  cursor: pointer;
+}
+.noticeline__more:hover { text-decoration: underline; }
 .noticeline .ctx-chip { margin-top: 0; align-self: center; }
 /* When a service notice answers a +draft/reply, stack the quoted parent above it. */
 .noticeline-wrap { display: flex; flex-direction: column; }

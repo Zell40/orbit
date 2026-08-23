@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeMessaging } from './messaging';
 import { parseLine } from '../irc/parser';
-import { SERVER, NOTICES } from './context';
+import { SERVER, noticeBufferName } from './context';
 import type { ChatMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -78,7 +78,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     const { on, added } = setup();
     on('@+draft/channel-context=#ops :ChanServ!s@services NOTICE me :bob removed your access to #ops');
     expect(added).toHaveLength(1);
-    expect(added[0].name).toBe(NOTICES);
+    expect(added[0].name).toBe(noticeBufferName('ChanServ'));
     expect(added[0].m).toMatchObject({ kind: 'notice', channelContext: '#ops' });
   });
 
@@ -102,10 +102,16 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(state.nickServAlert).toBeNull();
   });
 
-  it('leaves channelContext unset on a plain notice and stores it in Notices', () => {
+  it('dumps an orphan notice into the active window when the Notices pane is off', () => {
+    const { on, added } = setup({ active: '#x', prefs: { sound: false, noticeInbox: false } });
+    on(':Operateur!o@h NOTICE me :INFO rules');
+    expect(added[0].name).toBe('#x');
+  });
+
+  it('opens a per-sender Notices buffer for an orphan notice', () => {
     const { on, added } = setup();
     on(':ChanServ!s@services NOTICE me :hello');
-    expect(added[0].name).toBe(NOTICES);
+    expect(added[0].name).toBe(noticeBufferName('ChanServ'));
     expect(added[0].m.channelContext).toBeUndefined();
   });
 

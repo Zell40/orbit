@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER, NOTICES } from '@/core/store';
+import { SERVER, isNoticeBuffer } from '@/core/store';
 import { MIRC_PALETTE } from '@/lib/format';
 import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '@/lib/editor';
 import { getConfig } from '@/core/config';
@@ -56,7 +56,7 @@ export function Composer() {
   // survives re-renders; idx bookkeeping is unit-tested in composer/history.ts.
   const history = useRef(createSentHistory()).current;
   const isConsole = active === SERVER;
-  const isNotices = active === NOTICES;
+  const isNotices = isNoticeBuffer(active);
   const readOnlyLog = isConsole || isNotices;
   const narrow = useSyncExternalStore(
     (cb) => { const m = matchMedia('(max-width: 880px)'); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb); },
@@ -94,7 +94,7 @@ export function Composer() {
     const st = activeStore().getState();
     const members = Array.from(new Set([
       ...Object.keys(st.buffers[active]?.members ?? {}),
-      ...st.order.filter((n) => st.buffers[n] && !st.buffers[n].isChannel && n !== SERVER && n !== NOTICES),
+      ...st.order.filter((n) => st.buffers[n] && !st.buffers[n].isChannel && n !== SERVER && !isNoticeBuffer(n)),
     ]));
     const channels = Array.from(new Set([
       ...st.order.filter((n) => st.buffers[n]?.isChannel),

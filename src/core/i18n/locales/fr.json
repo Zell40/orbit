@@ -166,6 +166,8 @@
     "copyText": "Copier le texte",
     "info": "Info",
     "notice": "NOTICE",
+    "seeMore": "Voir plus",
+    "seeLess": "Réduire",
     "guest": "Invité",
     "poweredBy": "Propulsé par Orbit",
     "deleted": "message supprimé",
@@ -363,6 +365,8 @@
       "bubblesHint": "Affiche les messages comme une messagerie moderne (recommandé).",
       "showStatus": "Afficher la page Status",
       "showStatusHint": "Montre la console serveur (Status) dans la liste des conversations. Masquée par défaut.",
+      "noticeInbox": "Bloc Notices hors salon",
+      "noticeInboxHint": "Les notices reçues hors salon apparaissent sous Messages privés, une entrée par expéditeur. Désactivé : elles s’affichent dans la fenêtre en cours.",
       "topicFull": "Auteur du topic en masque complet",
       "topicFullHint": "Affiche nick!user@host au lieu du seul pseudo (défaut : pseudo)."
     },

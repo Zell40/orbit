@@ -3,7 +3,7 @@
 // bot on #baccalaureat from dumping notices into whatever window is currently
 // open (#entrenous, a DM, …). Bots like Bac also PRIVMSG the same lines to the
 // channel — those copies must not be re-inserted as NOTICE.
-import { canon, isChannelName, NOTICES } from './context';
+import { canon, isChannelName, NOTICES, SERVER, noticeBufferName } from './context';
 
 type NoticeBuf = {
   isChannel: boolean;
@@ -71,9 +71,15 @@ export function resolveNoticeDest(opts: {
   channelContext?: string;
   buffers: Record<string, NoticeBuf | undefined>;
   order: string[];
+  /** When false, orphan notices land in the focused window instead of the Notices pane. */
+  noticeInbox?: boolean;
 }): string {
   const sender = opts.sender || '';
-  if (!sender) return NOTICES;
+  const orphan = () => {
+    if (opts.noticeInbox === false) return opts.active || SERVER;
+    return sender ? noticeBufferName(sender) : NOTICES;
+  };
+  if (!sender) return orphan();
   const shared = sharedChannelsWith(sender, opts.buffers || {}, opts.order || []);
   const ctx = opts.channelContext && isChannelName(opts.channelContext)
     ? canon(opts.channelContext) : '';
@@ -81,5 +87,5 @@ export function resolveNoticeDest(opts: {
   const activeKey = opts.active ? canon(opts.active) : '';
   if (activeKey && shared.includes(activeKey)) return activeKey;
   if (shared.length === 1) return shared[0];
-  return NOTICES;
+  return orphan();
 }

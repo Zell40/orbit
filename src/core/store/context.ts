@@ -6,10 +6,24 @@ import { casefold } from '../irc/casemap';
 import type { ChatMessage, IrcMessage } from '../irc/types';
 
 export const SERVER = '$server'; // pseudo-buffer key for the server/network console
-export const NOTICES = '$notices'; // orphan NOTICEs that cannot land in a shared channel
+export const NOTICES = '$notices'; // leftover combined log (legacy) + empty-sender fallback
+export const NOTICE_PREFIX = '$notice:'; // per-sender off-channel NOTICE inbox
+
+export function noticeBufferName(nick: string): string {
+  return NOTICE_PREFIX + nick;
+}
+
+export function isNoticeBuffer(name: string): boolean {
+  return name === NOTICES || name.startsWith(NOTICE_PREFIX);
+}
+
+export function noticeBufferNick(name: string): string {
+  if (name === NOTICES) return '';
+  return name.startsWith(NOTICE_PREFIX) ? name.slice(NOTICE_PREFIX.length) : '';
+}
 
 export function isPseudoBuffer(name: string): boolean {
-  return name === SERVER || name === NOTICES;
+  return name === SERVER || isNoticeBuffer(name);
 }
 
 let localId = 0; // globally-unique local id source (shared across networks is fine)
