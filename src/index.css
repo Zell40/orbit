@@ -606,7 +606,7 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 /* Topic and its setter share one row, spread across the header: the topic grows to
    fill, the setter sits at the right edge (where dead space used to be). */
 .topbar__sub { display: flex; align-items: baseline; gap: 1.2rem; min-width: 0; }
-.topbar__title { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: .5rem; }
+.topbar__title { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: .5rem; min-width: 0; max-width: 100%; overflow: hidden; }
 .topbar__modes { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .72rem; font-weight: 700; color: var(--muted); background: var(--bg-soft); border: 1px solid var(--border); padding: .08rem .4rem; border-radius: 6px; letter-spacing: 0; }
 .topbar__topic { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar__topic--muted { color: var(--faint); }
@@ -2484,7 +2484,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
      notify/pin toggles, member count, and a "⋮" overflow for the rest. */
   .topbar { gap: .5rem; }
   .topbar__av { display: grid; width: 36px; height: 36px; font-size: 1rem; border-radius: 11px; }
-  .topbar__title { font-size: 1rem; }
+  .topbar__meta { overflow: hidden; }
+  .topbar__title { font-size: .86rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .topbar__pill { cursor: pointer; min-width: 0; padding: .38rem .6rem; }
   .topbar .topbar__hide-mobile { display: none; }   /* search / manage / leave / plugins collapse into ⋮ */
   .topbar .topbar__more { display: inline-flex; }
