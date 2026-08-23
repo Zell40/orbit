@@ -139,6 +139,8 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     on(':Bac!bot@host NOTICE me :• Une lettre est tirée au sort.');
     expect(added).toHaveLength(0);
   });
+
+  it('keeps a channel-targeted NOTICE on that channel', () => {
     const { on, added } = setup({ active: '#entrenous.chat' });
     on(':Bac!bot@host NOTICE #baccalaureat.chat :go');
     expect(added[0].name).toBe('#baccalaureat.chat');
