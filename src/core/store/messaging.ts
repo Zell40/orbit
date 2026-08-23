@@ -12,6 +12,7 @@ import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
+import { resolveNoticeDest } from './notices';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -143,23 +144,31 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
     const nickServParty = !isChan && isNickServ(self ? chanTarget : (msg.nick || ''));
     // Neither a NOTICE nor any message exchanged with a services pseudo-client is a
-    // real conversation, so it must never open or land in a PM query — it shows in
-    // the window the user currently has open (falling back to the console).
+    // real conversation, so it must never open a PM query. Incoming notices land in
+    // a channel we share with the sender, or in the Notices buffer — never in a
+    // random window just because it happens to be open.
     const route = routeMessage({
       isChannel: isChan, reportService: toReportSvc, nickServParty, serviceParty: svcParty, isNotice: kind === 'notice',
     });
     const toActive = route === 'active';
-    const bufferName = route === 'channel'
+    const chanCtx = !isChan ? msg.tags['+draft/channel-context'] : undefined;
+    let bufferName = route === 'channel'
       ? chanTarget
       : route === 'report'
         ? SERVER
         : route === 'active'
           ? (get().active || SERVER)
           : (self ? chanTarget : msg.nick);
-    // +draft/channel-context: which channel this out-of-channel line relates to —
-    // a DM opened from a channel, or a service notice about one. Not on a channel
-    // target (there the context is the channel itself).
-    const chanCtx = !isChan ? msg.tags['+draft/channel-context'] : undefined;
+    if (kind === 'notice' && !self && !isChan && route === 'active') {
+      const s = get();
+      bufferName = resolveNoticeDest({
+        sender: msg.nick || '',
+        active: s.active || '',
+        channelContext: chanCtx,
+        buffers: s.buffers || {},
+        order: s.order || [],
+      });
+    }
     // One we send shows the recipient; one we receive shows the sender.
     const noticeText = toActive && self ? `→ ${chanTarget} : ${text}` : statusTag + text;
     const cm: ChatMessage = {

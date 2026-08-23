@@ -6,8 +6,8 @@ import { getPrefs, savePrefs, applyPrefs, type Prefs } from '../ui/prefs';
 import type { Buffer, ConnectOptions, WhoisInfo, MessageKind } from './irc/types';
 import { getConfig } from './config';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
-import { SERVER, canon, isChannelName, resetBatches, newId } from './store/context';
-export { SERVER } from './store/context';
+import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer } from './store/context';
+export { SERVER, NOTICES } from './store/context';
 import { makeHelpers } from './store/helpers';
 import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';
@@ -453,7 +453,7 @@ export function createChatStore(ns = '') {
       if (!client || !buf || !client.ircv3.hasCap('draft/chathistory')) return;
       // A channel we've parted is no longer a valid CHATHISTORY target — the server
       // would answer FAIL INVALID_TARGET, so don't ask.
-      if (isChannelName(buf.name) && !buf.joined) return;
+      if (isPseudoBuffer(key) || (isChannelName(buf.name) && !buf.joined)) return;
       // anchor on the oldest real message currently shown
       const oldest = buf.messages.find((m) => m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice');
       if (!oldest) return;
@@ -570,7 +570,7 @@ export function createChatStore(ns = '') {
       // Mark the buffer we're leaving as read (advances its read-marker).
       // Never MARKREAD the fake $server console — the ircd treats it as a nick
       // and replies 401, which used to land in the channel you just joined.
-      if (prev && prev !== key && prev !== SERVER) {
+      if (prev && prev !== key && !isPseudoBuffer(prev)) {
         const pb = get().buffers[prev];
         if (pb && pb.messages.length) {
           const latest = pb.messages[pb.messages.length - 1].ts;
@@ -587,7 +587,7 @@ export function createChatStore(ns = '') {
       const s = get();
       // Advance the server-side read marker for every buffer with new messages…
       for (const name of s.order) {
-        if (name === SERVER) continue;
+        if (isPseudoBuffer(name)) continue;
         const b = s.buffers[name];
         if (b?.messages.length) {
           const latest = b.messages[b.messages.length - 1].ts;
@@ -611,7 +611,7 @@ export function createChatStore(ns = '') {
     markReadHere() {
       const s = get();
       const key = s.active;
-      if (key === SERVER) return;
+      if (isPseudoBuffer(key)) return;
       const b = s.buffers[key];
       if (!b || !b.messages.length) return;
       const latest = b.messages[b.messages.length - 1].ts;

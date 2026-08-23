@@ -1,6 +1,6 @@
 import { memo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER } from '@/core/store';
+import { SERVER, NOTICES } from '@/core/store';
 import { isChannelName } from '@/core/store/context';
 import { avatarBg } from '@/lib/format';
 import { switchWithTransition } from '@/lib/viewTransition';
@@ -83,25 +83,27 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
   const serverName = useActiveChat((s) => s.serverName);
   if (!b) return null;
   const isServer = name === SERVER;
-  const label = isServer ? 'Status' : b.name.replace(/^#/, '');
-  const glyph = isServer ? (mirc ? '●' : '✦') : label[0]?.toUpperCase() ?? '?';
+  const isNotices = name === NOTICES;
+  const label = isServer ? 'Status' : isNotices ? t('sidebar.notices') : b.name.replace(/^#/, '');
+  const glyph = isServer ? (mirc ? '●' : '✦') : isNotices ? '!' : label[0]?.toUpperCase() ?? '?';
   // A channel's topic is the row's subtitle; mark topic-less channels so the
   // minimal (yomirc) skin can hide the repetitive "Public channel" fallback.
   const channelTopic = b.isChannel ? stripFormatting(b.topic || '').trim() : '';
-  const genericSub = !isServer && !channelTopic; // no real subtitle (topicless channel or a DM)
+  const genericSub = !isServer && !isNotices && !channelTopic; // no real subtitle (topicless channel or a DM)
   return (
-    <div className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`}
+    <div className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${isNotices ? 'room--notices' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`}
       role="button" tabIndex={0}
       onClick={() => { switchWithTransition(() => setActive(name)); onNavigate(); }}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchWithTransition(() => setActive(name)); onNavigate(); } }}>
-      <span className="room__av" data-server={isServer || undefined}
-        style={isServer ? undefined : { background: avatarBg(name) }}>
+      <span className="room__av" data-server={isServer || undefined} data-notices={isNotices || undefined}
+        style={isServer || isNotices ? undefined : { background: avatarBg(name) }}>
         {b.isChannel ? <span className="room__hash">#</span> : glyph}
       </span>
       <span className="room__body">
         <span className="room__name">{label}</span>
         <span className={`room__sub${genericSub ? ' room__sub--generic' : ''}`}>{
           isServer ? (serverName || t('sidebar.system'))
+            : isNotices ? t('sidebar.noticesSub')
             : b.isChannel ? (channelTopic || t('sidebar.publicRoom'))
               : t('sidebar.privateMessage')
         }</span>
@@ -136,15 +138,19 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
 
   const match = (n: string) => n.toLowerCase().includes(q.trim().toLowerCase());
   const channels = order.filter((n) => isChannelName(n) && match(n));
-  const queries = order.filter((n) => n !== SERVER && !isChannelName(n) && match(n));
+  const queries = order.filter((n) => n !== SERVER && n !== NOTICES && !isChannelName(n) && match(n));
   // Status (server console): always in yomIRC; otherwise only when the user opts in.
   const hasServer = order.includes(SERVER) && (mirc || (showStatus && filter === 'all' && match('status')));
+  const noticesQ = q.trim().toLowerCase();
+  const hasNotices = order.includes(NOTICES) && (filter !== 'rooms') && (
+    !noticesQ || 'notices'.includes(noticesQ) || t('sidebar.notices').toLowerCase().includes(noticesQ)
+  );
   const showChannels = filter !== 'people';
   const showQueries = filter !== 'rooms';
 
   const item = (name: string) => <RoomRow key={name} name={name} mirc={mirc} onNavigate={onNavigate} />;
 
-  const totalShown = (showChannels ? channels.length : 0) + (showQueries ? queries.length : 0) + (hasServer ? 1 : 0);
+  const totalShown = (showChannels ? channels.length : 0) + (showQueries ? queries.length : 0) + (hasServer ? 1 : 0) + (hasNotices ? 1 : 0);
 
   return (
     <aside className="sidebar" aria-label={t('a11y.conversations')}>
@@ -178,8 +184,9 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
           <PluginBoundary key={u.id} render={u.render} label="sidebar_room" />
         ))}
         {showChannels && channels.map(item)}
-        {showQueries && queries.length > 0 && <div className="rooms-h">{t('sidebar.privateMessages')}</div>}
+        {showQueries && (queries.length > 0 || hasNotices) && <div className="rooms-h">{t('sidebar.privateMessages')}</div>}
         {showQueries && queries.map(item)}
+        {hasNotices && item(NOTICES)}
         {!mirc && hasServer && item(SERVER)}
         {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
         {/* Fill the space under a short list with a way to find more rooms. */}

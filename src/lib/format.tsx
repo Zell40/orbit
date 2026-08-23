@@ -62,7 +62,7 @@ function presentNicks(): { nick: string; mine: boolean }[] {
   if (buf?.members) {
     Object.keys(buf.members).forEach((n) => { if (n.length >= 3) names.add(n); });
   }
-  if (buf && !buf.isChannel && buf.name && buf.name !== '$server' && buf.name.length >= 3) {
+  if (buf && !buf.isChannel && buf.name && buf.name !== '$server' && buf.name !== '$notices' && buf.name.length >= 3) {
     names.add(buf.name);
   }
   return [...names]

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER } from '@/core/store';
+import { SERVER, NOTICES } from '@/core/store';
 import { MIRC_PALETTE } from '@/lib/format';
 import { serialize, ircToHtml, caretIndex, selectRange, caretAtEdge, caretToEnd } from '@/lib/editor';
 import { getConfig } from '@/core/config';
@@ -56,6 +56,8 @@ export function Composer() {
   // survives re-renders; idx bookkeeping is unit-tested in composer/history.ts.
   const history = useRef(createSentHistory()).current;
   const isConsole = active === SERVER;
+  const isNotices = active === NOTICES;
+  const readOnlyLog = isConsole || isNotices;
   const narrow = useSyncExternalStore(
     (cb) => { const m = matchMedia('(max-width: 880px)'); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb); },
     () => matchMedia('(max-width: 880px)').matches,
@@ -63,7 +65,7 @@ export function Composer() {
 
   const canUpload = getConfig().features.imageUpload;
   const { recording, recSecs, canRecord, startRec, stopRec, cancelRec } = useVoiceRecorder({
-    enabled: canUpload && !isConsole, active, onRecorded: uploadAudio,
+    enabled: canUpload && !readOnlyLog, active, onRecorded: uploadAudio,
   });
 
   // Light up the toolbar to match the formatting at the caret (like Slack/iMessage).
@@ -92,7 +94,7 @@ export function Composer() {
     const st = activeStore().getState();
     const members = Array.from(new Set([
       ...Object.keys(st.buffers[active]?.members ?? {}),
-      ...st.order.filter((n) => st.buffers[n] && !st.buffers[n].isChannel && n !== SERVER),
+      ...st.order.filter((n) => st.buffers[n] && !st.buffers[n].isChannel && n !== SERVER && n !== NOTICES),
     ]));
     const channels = Array.from(new Set([
       ...st.order.filter((n) => st.buffers[n]?.isChannel),
@@ -127,7 +129,7 @@ export function Composer() {
   function changed() {
     const root = ed.current; if (!root) return;
     reflect();
-    if ((root.textContent || '').trim() && !isConsole) notifyTyping();
+    if ((root.textContent || '').trim() && !readOnlyLog) notifyTyping();
     history.reset(); // typing exits history-recall mode
     syncFmt();
     refreshAc();
@@ -287,7 +289,7 @@ export function Composer() {
   }
 
   function uploadFrom(dt: DataTransfer | null | undefined): boolean {
-    if (!dt || isConsole || !canUpload) return false;
+    if (!dt || readOnlyLog || !canUpload) return false;
     // A pasted/copied image (screenshot, "copy image") usually arrives in items
     // via getAsFile(), NOT in .files — so check both, else paste silently no-ops.
     let img: File | null = Array.from(dt.files || []).find((f) => f.type.startsWith('image/')) ?? null;
@@ -298,14 +300,16 @@ export function Composer() {
     return false;
   }
 
-  const placeholder = isConsole
+  const placeholder = isNotices
+    ? t('composer.noticesPlaceholder')
+    : isConsole
     ? t('composer.consolePlaceholder')
     : narrow
       ? t('composer.placeholderShort')
       : t('composer.placeholder', { chan: active || '…' });
 
   return (
-    <div className={`composer ${isConsole ? 'composer--console' : ''}`}>
+    <div className={`composer ${readOnlyLog ? 'composer--console' : ''}`}>
       <TypingIndicator />
       <ReplyBar />
       {picker && (
@@ -331,8 +335,8 @@ export function Composer() {
       )}
       <input ref={fileRef} type="file" accept="image/*" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadImage(f); e.target.value = ''; }} />
-      <div className={`composer__box ${isConsole ? 'composer__box--console' : ''} ${dragOver ? 'is-drop' : ''}`}
-        onDragOver={(e) => { if (!isConsole) { e.preventDefault(); setDragOver(true); } }}
+      <div className={`composer__box ${readOnlyLog ? 'composer__box--console' : ''} ${dragOver ? 'is-drop' : ''}`}
+        onDragOver={(e) => { if (!readOnlyLog) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { setDragOver(false); if (uploadFrom(e.dataTransfer)) e.preventDefault(); }}>
         {ac && ac.cands.length > 0 && (
@@ -367,7 +371,7 @@ export function Composer() {
             <button className="composer__rec-btn composer__rec-send" onClick={stopRec} aria-label={t('composer.send')} title={t('composer.send')}>➤</button>
           </div>
         )}
-        {canUpload && !isConsole && (
+        {canUpload && !readOnlyLog && (
           <button className="composer__add" title={t('composer.sendImage')} aria-label={t('composer.sendImage')} onClick={() => fileRef.current?.click()}>
             <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
               stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -389,12 +393,12 @@ export function Composer() {
         )}
         <div
           ref={ed}
-          className={`composer__rich ${isConsole ? 'composer__rich--console' : ''} ${empty ? 'is-empty' : ''}`}
+          className={`composer__rich ${readOnlyLog ? 'composer__rich--console' : ''} ${empty ? 'is-empty' : ''}`}
           contentEditable
           suppressContentEditableWarning
           role="textbox"
           aria-multiline="true"
-          spellCheck={!isConsole}
+          spellCheck={!readOnlyLog}
           data-ph={dragOver ? t('composer.dropImage') : placeholder}
           onInput={changed}
           onPaste={(e) => {
@@ -433,7 +437,7 @@ export function Composer() {
             }
           }}
         />
-        {!isConsole && (
+        {!readOnlyLog && (
           <div className="composer__fmt">
             <button className={`composer__fmtbtn ${fmt.b ? 'is-on' : ''}`} title={t('composer.bold')} aria-label={t('composer.bold')} aria-pressed={fmt.b}
               onMouseDown={(e) => e.preventDefault()} onClick={() => exec('bold')}><b>G</b></button>
@@ -445,9 +449,9 @@ export function Composer() {
               onMouseDown={(e) => e.preventDefault()} onClick={() => setColors((c) => !c)}>🎨</button>
           </div>
         )}
-        {!isConsole && pluginButtons.map((b) => <PluginBoundary key={b.id} render={b.render} label="composer_button" />)}
-        {!isConsole && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
-        <button className="composer__send" disabled={blank} onClick={submit} aria-label={t('composer.send')}>{isConsole ? '⏎' : '➤'}</button>
+        {!readOnlyLog && pluginButtons.map((b) => <PluginBoundary key={b.id} render={b.render} label="composer_button" />)}
+        {!readOnlyLog && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
+        <button className="composer__send" disabled={blank} onClick={submit} aria-label={t('composer.send')}>{readOnlyLog ? '⏎' : '➤'}</button>
       </div>
     </div>
   );

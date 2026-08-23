@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeMessaging } from './messaging';
 import { parseLine } from '../irc/parser';
-import { SERVER } from './context';
+import { SERVER, NOTICES } from './context';
 import type { ChatMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -12,6 +12,8 @@ function setup(over: Partial<Record<string, unknown>> = {}) {
     reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
     highlightWords: [] as string[], prefs: { sound: false }, pmContext: {} as Record<string, string>,
     nickServAlert: null as { from: string; text: string; ts: number } | null,
+    buffers: {} as Record<string, { isChannel: boolean; joined: boolean; members: Record<string, { nick: string }> }>,
+    order: [] as string[],
     ...over,
   };
   const added: { name: string; m: ChatMessage }[] = [];
@@ -76,7 +78,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     const { on, added } = setup();
     on('@+draft/channel-context=#ops :ChanServ!s@services NOTICE me :bob removed your access to #ops');
     expect(added).toHaveLength(1);
-    expect(added[0].name).toBe('#x');
+    expect(added[0].name).toBe(NOTICES);
     expect(added[0].m).toMatchObject({ kind: 'notice', channelContext: '#ops' });
   });
 
@@ -100,11 +102,31 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(state.nickServAlert).toBeNull();
   });
 
-  it('leaves channelContext unset on a plain notice', () => {
+  it('leaves channelContext unset on a plain notice and stores it in Notices', () => {
     const { on, added } = setup();
     on(':ChanServ!s@services NOTICE me :hello');
-    expect(added[0].name).toBe('#x');
+    expect(added[0].name).toBe(NOTICES);
     expect(added[0].m.channelContext).toBeUndefined();
+  });
+
+  it('shows a bot notice in the shared channel, not the unrelated active window', () => {
+    const { on, added } = setup({
+      active: '#entrenous.chat',
+      order: ['#entrenous.chat', '#baccalaureat.chat'],
+      buffers: {
+        '#entrenous.chat': { isChannel: true, joined: true, members: { Jessie: { nick: 'Jessie' } } },
+        '#baccalaureat.chat': { isChannel: true, joined: true, members: { Bac: { nick: 'Bac' }, Jessie: { nick: 'Jessie' } } },
+      },
+    });
+    on(':Bac!bot@host NOTICE me :Une partie est en cours !');
+    expect(added[0].name).toBe('#baccalaureat.chat');
+    expect(added[0].m).toMatchObject({ kind: 'notice', from: 'Bac' });
+  });
+
+  it('keeps a channel-targeted NOTICE on that channel', () => {
+    const { on, added } = setup({ active: '#entrenous.chat' });
+    on(':Bac!bot@host NOTICE #baccalaureat.chat :go');
+    expect(added[0].name).toBe('#baccalaureat.chat');
   });
 
   it('returns false for a non-message command', () => {

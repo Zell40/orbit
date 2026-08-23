@@ -6,6 +6,11 @@ import { casefold } from '../irc/casemap';
 import type { ChatMessage, IrcMessage } from '../irc/types';
 
 export const SERVER = '$server'; // pseudo-buffer key for the server/network console
+export const NOTICES = '$notices'; // orphan NOTICEs that cannot land in a shared channel
+
+export function isPseudoBuffer(name: string): boolean {
+  return name === SERVER || name === NOTICES;
+}
 
 let localId = 0; // globally-unique local id source (shared across networks is fine)
 export const newId = () => `local-${Date.now()}-${localId++}`;

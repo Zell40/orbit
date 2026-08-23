@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER } from '@/core/store';
+import { SERVER, NOTICES } from '@/core/store';
 import { avatarBg } from '@/lib/format';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
@@ -69,7 +69,8 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const plugAfterNotify = sortByPluginOrder(plug.filter((u) => afterNotifyNames.has(u.plugin)), TOPBAR_AFTER_NOTIFY);
   const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin));
   const isServer = bname === SERVER;
-  const label = isServer ? 'Status' : bname.replace(/^#/, '');
+  const isNotices = bname === NOTICES;
+  const label = isServer ? 'Status' : isNotices ? t('sidebar.notices') : bname.replace(/^#/, '');
   const statusTitle = `Status: ${myNick || '…'}${myUmodes ? ` [+${myUmodes}]` : ''}${serverName ? ` on ${serverName}` : ''}`;
   if (searching || search) {
     return (
@@ -84,11 +85,11 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
     );
   }
   return (
-    <div className={`topbar ${isServer ? 'topbar--console' : ''} ${isChannel ? 'topbar--channel' : ''}`}>
+    <div className={`topbar ${isServer ? 'topbar--console' : ''} ${isNotices ? 'topbar--notices' : ''} ${isChannel ? 'topbar--channel' : ''}`}>
       {menuBtn}
       {isServer
         ? <span className="term-lights"><i /><i /><i /></span>
-        : <span className="topbar__av" style={{ background: avatarBg(bname) }}>{isChannel ? '#' : label[0]?.toUpperCase()}</span>}
+        : <span className="topbar__av" style={isNotices ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{isChannel ? '#' : isNotices ? '!' : label[0]?.toUpperCase()}</span>}
       <div className="topbar__meta">
         <span className="topbar__title">
           {isServer ? statusTitle : label}
@@ -101,7 +102,12 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
             <span className="topbar__topic topbar__topic--muted">{t('topbar.serverTerminal')}</span>
           </div>
         )}
-        {!isServer && !isChannel && (
+        {isNotices && (
+          <div className="topbar__sub">
+            <span className="topbar__topic topbar__topic--muted">{t('sidebar.noticesSub')}</span>
+          </div>
+        )}
+        {!isServer && !isNotices && !isChannel && (
           <div className="topbar__sub">
             <span className="topbar__topic topbar__topic--muted">{t('sidebar.privateMessage')}</span>
           </div>
@@ -117,7 +123,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {isChannel && <PinMenu />}
       {isChannel && amOp && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
-      {!isServer && !isChannel && bname && (
+      {!isServer && !isNotices && !isChannel && bname && (
         <button className="topbar__search" title={t('topbar.userInfo', { nick: label })}
           aria-label={t('topbar.userInfo', { nick: label })} onClick={() => openUser(bname)}>
           <Icon name="user" size={19} />
@@ -128,7 +134,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}><Icon name="close" size={18} /></button>
       )}
-      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} amOp={amOp} onSearch={() => setSearching(true)} />}
+      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} isNotices={isNotices} amOp={amOp} onSearch={() => setSearching(true)} />}
     </div>
   );
 }

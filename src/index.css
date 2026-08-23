@@ -499,6 +499,7 @@ input, textarea { font-family: inherit; }
   color: #fff; font-weight: 800; font-size: .9rem; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
 }
 .room__av[data-server] { background: #dfe4ea; color: var(--muted); }
+.room__av[data-notices] { background: color-mix(in srgb, #7c3aed 18%, var(--bg, #fff)); color: #6d28d9; }
 .room__hash { font-size: 1.25rem; font-weight: 700; line-height: 1; }
 .room__body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
 .room__name { font-size: .96rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -599,6 +600,7 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
 }
 .topbar__av[data-server] { background: #dfe4ea; color: var(--muted); }
+.topbar__av[data-notices] { background: color-mix(in srgb, #7c3aed 18%, var(--bg, #fff)); color: #6d28d9; }
 .topbar__meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
 /* Topic and its setter share one row, spread across the header: the topic grows to
    fill, the setter sits at the right edge (where dead space used to be). */

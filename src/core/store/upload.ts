@@ -8,7 +8,7 @@
 // verbatim between the two).
 import i18n from '../i18n';
 import { fetchTimeout } from '@/lib/net';
-import { SERVER, newId } from './context';
+import { isPseudoBuffer } from './context';
 import type { IrcClient } from '../irc/client';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -86,7 +86,7 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
 
   async function uploadImage(file: File): Promise<void> {
     const { client, active } = get();
-    if (!client || !active || active === SERVER) return;
+    if (!client || !active || isPseudoBuffer(active)) return;
     if (!file.type.startsWith('image/')) { sysLine(active, `⚠️ ${i18n.t('system.onlyImages')}`, 'system'); return; }
     if (file.size > MAX_BYTES) { sysLine(active, `⚠️ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
     sysLine(active, `📤 ${i18n.t('system.sendingImage', { name: file.name })}`, 'system');
@@ -99,7 +99,7 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
 
   async function uploadAudio(blob: Blob, ext: string): Promise<void> {
     const { client, active } = get();
-    if (!client || !active || active === SERVER) return;
+    if (!client || !active || isPseudoBuffer(active)) return;
     if (blob.size > MAX_BYTES) { sysLine(active, `⚠️ ${i18n.t('system.imageTooLarge')}`, 'system'); return; }
     sysLine(active, `📤 ${i18n.t('system.sendingVoice')}`, 'system');
     try {

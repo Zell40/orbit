@@ -59,7 +59,7 @@ describe('routeMessage', () => {
   it('sends NickServ traffic to the status window', () => {
     expect(routeMessage({ ...base, nickServParty: true })).toBe('report');
   });
-  it('keeps other notices and services traffic in the active window', () => {
+  it('does not treat notices as a query to open', () => {
     expect(routeMessage({ ...base, isNotice: true })).toBe('active');
     expect(routeMessage({ ...base, serviceParty: true })).toBe('active');
     expect(routeMessage({ ...base, serviceParty: true, isNotice: false })).toBe('active');

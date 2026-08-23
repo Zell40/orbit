@@ -42,7 +42,7 @@ export function buildSwitcherResults(query: string, d: SwitcherData, limit = 40)
   const buffers: SwitcherItem[] = [];
   const openNames = new Set<string>();
   for (const name of d.order) {
-    if (name === SERVER) continue;
+    if (name === SERVER || name === '$notices') continue;
     const b = d.buffers[name];
     if (!b) continue;
     openNames.add(name.toLowerCase());

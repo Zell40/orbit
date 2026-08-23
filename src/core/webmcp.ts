@@ -3,7 +3,7 @@
 // where document.modelContext is absent. Gated by features.webmcp.
 import { activeStore } from './networks';
 import { getConfig } from './config';
-import { SERVER } from './store';
+import { SERVER, NOTICES } from './store';
 import { stripFormatting } from './store/text';
 
 interface ModelContext {
@@ -33,7 +33,7 @@ export function initWebMcp(): void {
         const s = state();
         return JSON.stringify(Object.values(s.buffers).map((b) => ({
           name: b.name,
-          kind: b.name === SERVER ? 'console' : b.isChannel ? 'channel' : 'dm',
+          kind: b.name === SERVER ? 'console' : b.name === NOTICES ? 'notices' : b.isChannel ? 'channel' : 'dm',
           active: b.name === s.active,
           unread: b.unread,
         })));
@@ -77,7 +77,7 @@ export function initWebMcp(): void {
       execute: (a) => {
         const s = state();
         const target = (a.conversation as string) || s.active;
-        if (!target || target === SERVER) return 'No channel or user to send to.';
+        if (!target || target === SERVER || target === NOTICES) return 'No channel or user to send to.';
         s.client?.privmsg(target, String(a.text ?? ''));
         return `Sent to ${target}.`;
       },

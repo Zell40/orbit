@@ -2,7 +2,7 @@
 // (they close over set/get + the network's closedChannels); the store destructures
 // the returned object so its call sites are unchanged.
 import type { StoreApi } from 'zustand';
-import { canon, isChannelName, newId, SERVER } from './context';
+import { canon, isChannelName, newId, SERVER, isPseudoBuffer } from './context';
 import type { Buffer, ChatMessage, Member, MessageKind, WhoisInfo, IrcMessage } from '../irc/types';
 import type { ChatState } from '../store';
 
@@ -55,8 +55,8 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     // Bound auto-opened query windows: a hostile server can PRIVMSG from endless
     // distinct nicks, each spawning a persistent window. Over the cap, evict the
     // oldest inactive query (channels and the active buffer are never touched).
-    if (!isChannelName(name)) {
-      const queries = order.filter((k) => buffers[k] && !buffers[k].isChannel);
+    if (!isChannelName(name) && !isPseudoBuffer(name)) {
+      const queries = order.filter((k) => buffers[k] && !buffers[k].isChannel && !isPseudoBuffer(k));
       if (queries.length >= QUERY_CAP) {
         const victim = queries.find((k) => k !== s.active);
         if (victim) {

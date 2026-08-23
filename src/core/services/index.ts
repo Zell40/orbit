@@ -40,9 +40,10 @@ export function hasServiceTag(tags: Record<string, string>): boolean {
 }
 
 // Where a one-to-one PRIVMSG/NOTICE belongs. Neither a NOTICE nor anything to/from
-// a services pseudo-client is a real conversation, so it surfaces in whatever
-// window is already open ('active') rather than spawning a private query. A
-// channel target goes to the channel; the report service to the status window.
+// a services pseudo-client is a real conversation, so it must never spawn a
+// private query. Channel targets stay on the channel; NickServ / the report
+// service go to Status. Incoming notices are then re-homed (shared channel or
+// the Notices buffer) in the messaging handler.
 export type ServiceRoute = 'channel' | 'report' | 'active' | 'query';
 export function routeMessage(o: {
   isChannel: boolean;

@@ -9,7 +9,7 @@ import { getTheme } from '@/themes';
 import { usePluginRegistry } from '@/modules/registry';
 import { isService, maskSecret, detectServiceLeak } from '../services';
 import { stripFormatting, tidyOutgoing } from './text';
-import { SERVER, newId, canon, isChannelName } from './context';
+import { SERVER, newId, canon, isChannelName, NOTICES } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -45,6 +45,8 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
       client.send(raw);
       return;
     }
+    // Notices is a log, not a nick — never PRIVMSG $notices.
+    if (active === NOTICES && !cmdline.startsWith('/')) return;
 
     if (cmdline.startsWith('/')) {
       const [cmd, ...rest] = cmdline.slice(1).split(' ');
@@ -61,7 +63,7 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
       };
       switch (cmd.toLowerCase()) {
         case 'me': {
-          if (active === SERVER) break;
+          if (active === SERVER || active === NOTICES) break;
           client.action(active, arg);
           // DMs: always echo locally — callerid (+g) returns 716 without echo-message.
           if (!client.ircv3.hasCap('echo-message') || !isChannelName(active)) {

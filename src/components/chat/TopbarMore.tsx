@@ -9,8 +9,8 @@ import { PluginBoundary } from '../PluginBoundary';
 // can't hold every button, so search / manage / leave collapse in here; the notify
 // and pin buttons stay inline because their glyph carries state (mute, pin count).
 // Plugins may add `topbar_more_item` rows (e.g. conference on mobile).
-export function TopbarMore({ bname, isChannel, amOp, onSearch }:
-  { bname: string; isChannel: boolean; amOp: boolean; onSearch: () => void }) {
+export function TopbarMore({ bname, isChannel, isNotices, amOp, onSearch }:
+  { bname: string; isChannel: boolean; isNotices?: boolean; amOp: boolean; onSearch: () => void }) {
   const { t } = useTranslation();
   const setModal = useActiveChat((s) => s.setModal);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
@@ -50,7 +50,7 @@ export function TopbarMore({ bname, isChannel, amOp, onSearch }:
               <PluginBoundary render={u.render} label="topbar_more_item" />
             </div>
           ))}
-          {!isChannel && (
+          {!isChannel && !isNotices && (
             <button className="nmenu__item" role="menuitem" onClick={() => run(() => openUser(bname))}>
               <span className="nmenu__ic" aria-hidden><Icon name="user" size={18} /></span>
               <span className="nmenu__txt"><b>{t('topbar.userInfo', { nick: bname })}</b></span>
