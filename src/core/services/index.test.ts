@@ -73,6 +73,16 @@ describe('shouldPopupNickServ', () => {
   it('suppresses routine IDENTIFY acks', () => {
     expect(shouldPopupNickServ('Password accepted — you are now recognized.')).toBe(false);
   });
+  it('suppresses Anope "nick not registered" (straight and curly apostrophes)', () => {
+    expect(shouldPopupNickServ("Ce pseudo n'est pas enregistré.")).toBe(false);
+    expect(shouldPopupNickServ('Ce pseudo n’est pas enregistré.')).toBe(false);
+    expect(shouldPopupNickServ("This nickname isn't registered.")).toBe(false);
+  });
+  it('suppresses register-URL / REGISTER fragments (LineWrapper splits)', () => {
+    expect(shouldPopupNickServ('https://www.reseau-entrenous.fr/register pour l\'enregistrer immédiatement!')).toBe(false);
+    expect(shouldPopupNickServ('REGISTER password email')).toBe(false);
+    expect(shouldPopupNickServ('/msg NickServ REGISTER motdepasse email')).toBe(false);
+  });
   it('shows important notices like nick changes', () => {
     expect(shouldPopupNickServ('GHOST succeeded — your nick has been changed.')).toBe(true);
   });

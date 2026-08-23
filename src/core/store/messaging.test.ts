@@ -94,6 +94,12 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(state.nickServAlert).toBeNull();
   });
 
+  it('does not popup Anope guest-register notices', () => {
+    const { on, state } = setup();
+    on(':NickServ!s@services NOTICE me :https://www.reseau-entrenous.fr/register pour l\'enregistrer immédiatement!');
+    expect(state.nickServAlert).toBeNull();
+  });
+
   it('leaves channelContext unset on a plain notice', () => {
     const { on, added } = setup();
     on(':ChanServ!s@services NOTICE me :hello');

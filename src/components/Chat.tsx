@@ -8,7 +8,7 @@ import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { ChannelTopicBanner } from './chat/ChannelTopicBanner';
 import { MemberList } from './chat/MemberList';
-import { ReconnectBanner, KickToast, GuestRegisterPrompt, NickServAlert, BouncerVisualBanner } from './chat/Banners';
+import { ReconnectBanner, KickToast, NickServAlert, BouncerVisualBanner } from './chat/Banners';
 import { usePluginRegistry } from '../modules/registry';
 import { PluginBoundary } from './PluginBoundary';
 import { FriendsPanel } from './chat/FriendsPanel';
@@ -70,7 +70,6 @@ export function Chat() {
       <ProfileModal />
       <KickToast />
       <NickServAlert />
-      <GuestRegisterPrompt />
       <ReconnectBanner />
     </div>
       {rootOverlays.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}

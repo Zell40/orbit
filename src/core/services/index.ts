@@ -12,13 +12,20 @@ export function isNickServ(name: string): boolean {
   return /^nickserv$/i.test(String(name || '').trim());
 }
 
-/** Routine IDENTIFY acks — log in Status only, no popup. */
+/** Routine IDENTIFY acks and guest-register CTAs — log in Status only, no popup.
+ *  Anope LineWraps "isn't registered" + "/ns REGISTER …" / a register URL.
+ *  The EntreNous `orbit-anope` plugin owns that CTA (anope:unregistered). */
 export function shouldPopupNickServ(text: string): boolean {
   const t = String(text || '').toLowerCase();
   if (!t.trim()) return false;
+  const apos = `[''\u2018\u2019]`;
   if (
     /password accepted|successfully identified|already identified|now recognized|d[eé]j[aà] identifi/i.test(t)
-    || /n['']?est pas enregistr[eé]|isn't registered|not registered/i.test(t)
+    || new RegExp(`n${apos}?est pas enregistr[eé]|isn${apos}?t registered|not registered`, 'i').test(t)
+    || new RegExp(`pour l${apos}?enregistr|to register (it|this|your)|enregistr(er|ez)-?le`, 'i').test(t)
+    || /\/msg\s+nickserv\s+register|\/ns\s+register/i.test(t)
+    || /reseau-entrenous\.fr\/register/i.test(t)
+    || /^\s*register\b/i.test(t)
   ) return false;
   return true;
 }
