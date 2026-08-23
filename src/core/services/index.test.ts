@@ -83,17 +83,11 @@ describe('shouldPopupNickServ', () => {
     expect(shouldPopupNickServ('REGISTER password email')).toBe(false);
     expect(shouldPopupNickServ('/msg NickServ REGISTER motdepasse email')).toBe(false);
   });
-  it('shows important notices like nick changes', () => {
-    expect(shouldPopupNickServ('GHOST succeeded — your nick has been changed.')).toBe(true);
-  });
-  it('suppresses Anope enforce countdown (orbit-anope identify popup)', () => {
+  it('never opens Orbit’s generic NickServ dialog (orbit-anope owns CTAs)', () => {
+    expect(shouldPopupNickServ('GHOST succeeded — your nick has been changed.')).toBe(false);
     expect(shouldPopupNickServ('Votre pseudo sera changé dans 1 minute si vous ne vous identifiez pas.')).toBe(false);
-    expect(shouldPopupNickServ('Your nickname will be changed in 20 seconds if you do not identify.')).toBe(false);
-    expect(shouldPopupNickServ('This nickname is registered and protected. If it is your nick, type /msg NickServ IDENTIFY password.')).toBe(false);
-  });
-  it('suppresses IDENTIFY password failures (orbit-anope form error)', () => {
+    expect(shouldPopupNickServ('Votre pseudo est maintenant changé en ENuser|1776')).toBe(false);
     expect(shouldPopupNickServ('Password incorrect.')).toBe(false);
-    expect(shouldPopupNickServ('Mot de passe incorrect.')).toBe(false);
   });
 });
 

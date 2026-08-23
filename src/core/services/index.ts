@@ -12,26 +12,11 @@ export function isNickServ(name: string): boolean {
   return /^nickserv$/i.test(String(name || '').trim());
 }
 
-/** Routine IDENTIFY acks, guest-register CTAs, and nick-enforce identify —
- *  log in Status only, no popup. Anope LineWraps "isn't registered" +
- *  "/ns REGISTER …" / a register URL. The EntreNous `orbit-anope` plugin
- *  owns those CTAs (`anope:unregistered`, `anope:enforce`). */
-export function shouldPopupNickServ(text: string): boolean {
-  const t = String(text || '').toLowerCase();
-  if (!t.trim()) return false;
-  const apos = `[''\u2018\u2019]`;
-  if (
-    /password accepted|successfully identified|already identified|now recognized|d[eé]j[aà] identifi/i.test(t)
-    || new RegExp(`n${apos}?est pas enregistr[eé]|isn${apos}?t registered|not registered`, 'i').test(t)
-    || new RegExp(`pour l${apos}?enregistr|to register (it|this|your)|enregistr(er|ez)-?le`, 'i').test(t)
-    || /\/msg\s+nickserv\s+register|\/ns\s+register/i.test(t)
-    || /reseau-entrenous\.fr\/register/i.test(t)
-    || /^\s*register\b/i.test(t)
-    || /sera chang[eé].*identifi|will be changed.*identif|si vous ne (vous )?identifiez|if you do not identify|if you don[''\u2018\u2019]?t identify/i.test(t)
-    || /enregistr[eé] et prot[eé]g[eé]|registered and protected/i.test(t)
-    || /invalid password|wrong password|password incorrect|authentication failed|mot de passe (invalide|incorrect)|identifi\w+\s+refus/i.test(t)
-  ) return false;
-  return true;
+/** EntreNous `orbit-anope` owns every NickServ CTA (guest register, IDENTIFY
+ *  enforce, forced nick change, …). Notices still land in Status; Orbit never
+ *  opens the generic NickServ dialog. */
+export function shouldPopupNickServ(_text: string): boolean {
+  return false;
 }
 
 // True when the server flagged this message as coming from a services pseudo-client.

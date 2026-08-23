@@ -87,7 +87,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     on(':NickServ!s@services NOTICE me :GHOST succeeded — nick changed.');
     expect(added).toHaveLength(1);
     expect(added[0].name).toBe(SERVER);
-    expect(state.nickServAlert?.text).toContain('GHOST');
+    expect(state.nickServAlert).toBeNull();
   });
 
   it('does not popup routine NickServ IDENTIFY acks', () => {
