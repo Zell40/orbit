@@ -12,8 +12,25 @@ import { bouncerConnectOpts, loadBouncerPrefs, saveBouncerSession, zncPass } fro
 import { peekDirectReconnect, clearDirectReconnect } from '../core/direct-reconnect';
 import { loadResume } from '../core/resume';
 
+/** Merge ?query and a hash that was accidentally created by an unencoded `#` in `channel=#salon`. */
+function queryBag(): URLSearchParams {
+  const p = new URLSearchParams(window.location.search);
+  const raw = window.location.hash.replace(/^#/, '');
+  if (!raw.includes('&') && !raw.includes('=')) return p;
+  const amp = raw.indexOf('&');
+  const head = amp === -1 ? raw : raw.slice(0, amp);
+  const rest = amp === -1 ? '' : raw.slice(amp + 1);
+  if (head && !head.includes('=') && !p.get('channel')) {
+    p.set('channel', head.startsWith('#') ? head : `#${head}`);
+  }
+  new URLSearchParams(rest).forEach((v, k) => {
+    if (!p.get(k)) p.set(k, v);
+  });
+  return p;
+}
+
 function param(name: string, fallback: string): string {
-  return new URLSearchParams(window.location.search).get(name) ?? fallback;
+  return queryBag().get(name) ?? fallback;
 }
 
 /** WordPress handoff uses `sexe=H|F|A` (and sometimes `ville`); the join form uses f/h/a. */
@@ -373,6 +390,14 @@ export function ConnectScreen() {
         : aslBlock === 'minAge' ? t('connect.aslMinAge', { n: aslMinAge })
           : '';
   const nickReady = nick.trim().length >= 2 && (!viaBouncer || bouncerReady);
+  const wantAuto = param('autoconnect', param('autoconnect', '')) === '1';
+  const autoOnce = useRef(false);
+  useEffect(() => {
+    if (autoOnce.current || !wantAuto || viaBouncer || connecting) return;
+    if (!nickReady || aslBlock) return;
+    autoOnce.current = true;
+    go();
+  });
   function aslMark(ok: boolean, required: boolean): string {
     if (!aslOn || viaBouncer) return '';
     if (ok) return ' is-ok';
