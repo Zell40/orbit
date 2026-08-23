@@ -430,6 +430,9 @@ export function ConnectScreen() {
       passkey: passkey || undefined,
       channels,
     });
+    // Drop ?nick=&channel=&age=… so Jitsi external_api.js (which JSON.parse()s
+    // the parent query string) does not treat a nick like "zerfrf" as JSON.
+    try { history.replaceState(null, '', window.location.pathname); } catch { /* ignore */ }
   }
 
   return (
