@@ -7,6 +7,7 @@ import {
   type BootPhase,
 } from '../lib/boot-ready';
 import { pluginLoadStats, whenPluginsLoaded } from '../modules/loader';
+import { bus } from '../modules/bus';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -98,7 +99,10 @@ export function useBootSplash() {
       setPhase('almost');
       setFading(true);
       await sleep(280);
-      if (!stop) setRevealed(true);
+      if (!stop) {
+        setRevealed(true);
+        bus.emit('boot:ready');
+      }
     })();
 
     return () => { stop = true; };

@@ -102,7 +102,7 @@ input, textarea { font-family: inherit; }
 @keyframes cj-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
 /* Boot splash: covers the shell until IRC + plugins + first rooms are ready. */
-.splash { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .85rem; background: var(--bg-soft); color: var(--ink); transition: opacity .28s ease; }
+.splash { position: fixed; inset: 0; z-index: 180; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .85rem; background: var(--bg-soft); color: var(--ink); transition: opacity .28s ease; }
 .splash.is-out { opacity: 0; pointer-events: none; }
 .splash__mark { width: 44px; height: 44px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
 .splash__mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
