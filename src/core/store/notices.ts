@@ -2,7 +2,6 @@
 // sender when that's unambiguous, otherwise the Notices sidebar buffer. Stops a
 // bot on #baccalaureat from dumping notices into whatever window is currently
 // open (#entrenous, a DM, …).
-import type { Buffer } from '../irc/types';
 import { canon, isChannelName, NOTICES } from './context';
 
 export function nickInMembers(members: Record<string, unknown> | undefined, nick: string): boolean {
@@ -19,7 +18,7 @@ export function resolveNoticeDest(opts: {
   sender: string;
   active: string;
   channelContext?: string;
-  buffers: Record<string, Pick<Buffer, 'isChannel' | 'joined' | 'members'> | undefined>;
+  buffers: Record<string, { isChannel: boolean; joined: boolean; members: Record<string, unknown> } | undefined>;
   order: string[];
 }): string {
   const sender = opts.sender || '';

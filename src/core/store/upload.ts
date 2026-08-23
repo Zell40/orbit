@@ -8,7 +8,7 @@
 // verbatim between the two).
 import i18n from '../i18n';
 import { fetchTimeout } from '@/lib/net';
-import { isPseudoBuffer } from './context';
+import { isPseudoBuffer, newId } from './context';
 import type { IrcClient } from '../irc/client';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
