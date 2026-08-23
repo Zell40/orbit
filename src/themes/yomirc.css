@@ -15,6 +15,13 @@
 [data-theme="yomirc-dark"] .noticeline { border-left-color: #c46fce; }
 [data-theme="yomirc-dark"] .noticeline__tag { background: #b15dbd !important; }
 [data-theme="yomirc-dark"] .noticeline__txt { color: #ee9ff2; }
+[data-theme^="yomirc"] .errorline { font-family: var(--mono); background: transparent; border-radius: 0; border-left-width: 2px; margin: 0; padding: .05rem .6rem; }
+[data-theme="yomirc"] .errorline { border-left-color: #d32f2f; }
+[data-theme="yomirc"] .errorline__icon,
+[data-theme="yomirc"] .errorline__txt { color: #d32f2f; }
+[data-theme="yomirc-dark"] .errorline { border-left-color: #ef9a9a; }
+[data-theme="yomirc-dark"] .errorline__icon,
+[data-theme="yomirc-dark"] .errorline__txt { color: #ef9a9a; }
 /* No Windows-98 chrome. The colour is the mIRC 16-colour TEXT on a clean canvas;
    everything else is flat and quiet. Blue is gone entirely; the one accent is the
    classic IRC/terminal green. Bevel tokens are transparent so the old 3D vanishes. */

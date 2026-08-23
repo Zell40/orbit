@@ -259,6 +259,19 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   if (['join', 'part', 'quit', 'nick', 'system'].includes(m.kind)) {
     const isCmd = m.text.startsWith('»');
     const isAlert = m.text.startsWith('\x01ALERT\x01');
+    const warnPrefix = m.kind === 'system' ? m.text.match(/^⚠\uFE0F?\s*/) : null;
+    if (warnPrefix) {
+      return (
+        <div className="errorline" role="alert">
+          <svg className="errorline__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span className="errorline__txt">{m.text.slice(warnPrefix[0].length)}</span>
+        </div>
+      );
+    }
     if (isAlert) {
       const body = m.text.slice(8);
       return (
