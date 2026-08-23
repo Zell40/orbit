@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { NOTICES } from './context';
-import { nickInMembers, resolveNoticeDest } from './notices';
+import { nickInMembers, resolveNoticeDest, noticeIsChannelEcho } from './notices';
 
 const chan = (members: string[], joined = true) => ({
   isChannel: true as const,
@@ -86,5 +86,37 @@ describe('resolveNoticeDest', () => {
       buffers: { '#baccalaureat.chat': chan(['Bac'], false) },
       order: ['#baccalaureat.chat'],
     })).toBe(NOTICES);
+  });
+});
+
+describe('noticeIsChannelEcho', () => {
+  it('detects a PRIVMSG copy of the same line in a shared channel', () => {
+    expect(noticeIsChannelEcho({
+      sender: 'Bac',
+      text: '• Une lettre est tirée au sort.',
+      ts: 1000,
+      order: ['#baccalaureat.chat'],
+      buffers: {
+        '#baccalaureat.chat': {
+          ...chan(['Bac']),
+          messages: [{ kind: 'privmsg', from: 'Bac', text: '• Une lettre est tirée au sort.', ts: 1000 }],
+        },
+      },
+    })).toBe(true);
+  });
+
+  it('ignores a personal notice that was not also said in the channel', () => {
+    expect(noticeIsChannelEcho({
+      sender: 'Bac',
+      text: '🧮 Manche : 2',
+      ts: 1000,
+      order: ['#baccalaureat.chat'],
+      buffers: {
+        '#baccalaureat.chat': {
+          ...chan(['Bac']),
+          messages: [{ kind: 'privmsg', from: 'Bac', text: '📢 Nouvelle partie', ts: 1000 }],
+        },
+      },
+    })).toBe(false);
   });
 });

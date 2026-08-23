@@ -12,7 +12,7 @@ import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
-import { resolveNoticeDest } from './notices';
+import { resolveNoticeDest, noticeIsChannelEcho } from './notices';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -161,12 +161,23 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
           : (self ? chanTarget : msg.nick);
     if (kind === 'notice' && !self && !isChan && route === 'active') {
       const s = get();
-      bufferName = resolveNoticeDest({
+      const echoOpts = {
         sender: msg.nick || '',
-        active: s.active || '',
-        channelContext: chanCtx,
+        text,
+        ts: tsOf(msg),
         buffers: s.buffers || {},
         order: s.order || [],
+      };
+      // Bac (and similar bots) PRIVMSG the channel AND NOTICE the player the same
+      // lines. Don't paste the NOTICE copy into the salon — that splits one intro
+      // into privmsg + notice bubbles.
+      if (noticeIsChannelEcho(echoOpts)) return true;
+      bufferName = resolveNoticeDest({
+        sender: echoOpts.sender,
+        active: s.active || '',
+        channelContext: chanCtx,
+        buffers: echoOpts.buffers,
+        order: echoOpts.order,
       });
     }
     // One we send shows the recipient; one we receive shows the sender.

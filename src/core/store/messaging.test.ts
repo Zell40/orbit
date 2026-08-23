@@ -12,7 +12,7 @@ function setup(over: Partial<Record<string, unknown>> = {}) {
     reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
     highlightWords: [] as string[], prefs: { sound: false }, pmContext: {} as Record<string, string>,
     nickServAlert: null as { from: string; text: string; ts: number } | null,
-    buffers: {} as Record<string, { isChannel: boolean; joined: boolean; members: Record<string, { nick: string }> }>,
+    buffers: {} as Record<string, { isChannel: boolean; joined: boolean; members: Record<string, { nick: string }>; messages?: Array<{ kind: string; from: string; text: string; ts: number }> }>,
     order: [] as string[],
     ...over,
   };
@@ -123,7 +123,22 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(added[0].m).toMatchObject({ kind: 'notice', from: 'Bac' });
   });
 
-  it('keeps a channel-targeted NOTICE on that channel', () => {
+  it('drops a user NOTICE that copies a recent channel PRIVMSG from the same nick', () => {
+    const { on, added } = setup({
+      active: '#baccalaureat.chat',
+      order: ['#baccalaureat.chat'],
+      buffers: {
+        '#baccalaureat.chat': {
+          isChannel: true,
+          joined: true,
+          members: { Bac: { nick: 'Bac' } },
+          messages: [{ kind: 'privmsg', from: 'Bac', text: '• Une lettre est tirée au sort.', ts: 1000 }],
+        },
+      },
+    });
+    on(':Bac!bot@host NOTICE me :• Une lettre est tirée au sort.');
+    expect(added).toHaveLength(0);
+  });
     const { on, added } = setup({ active: '#entrenous.chat' });
     on(':Bac!bot@host NOTICE #baccalaureat.chat :go');
     expect(added[0].name).toBe('#baccalaureat.chat');
