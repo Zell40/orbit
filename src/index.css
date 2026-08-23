@@ -842,10 +842,10 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   white-space: pre-wrap;
 }
 .noticeline__body.is-clamped {
-  max-height: 3.1em;
+  max-height: 9.6em; /* ~5–6 lines of notice text, enough to read INFO + URL */
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(#000 50%, transparent);
-  mask-image: linear-gradient(#000 50%, transparent);
+  -webkit-mask-image: linear-gradient(#000 78%, transparent);
+  mask-image: linear-gradient(#000 78%, transparent);
 }
 .noticeline__more {
   align-self: flex-start;

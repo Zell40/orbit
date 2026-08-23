@@ -2,7 +2,7 @@ import { memo, Fragment, useLayoutEffect, useRef, useState, type ReactNode } fro
 import { Trans, useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, formatIrc, splitNoticeLines, groupModeDisplay, formatModeChange, isNickModeGroup, type ModeDisplayGroup } from '@/lib/format';
-import { isChannelName, isNoticeBuffer } from '@/core/store/context';
+import { isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
@@ -26,7 +26,7 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const setActive = useActiveChat((s) => s.setActive);
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
-  const inNoticeLog = useActiveChat((s) => isNoticeBuffer(s.active));
+  const inChannel = useActiveChat((s) => isChannelName(s.active));
   const head = messages[0];
   const showCtx = firstOfRun(msgs, head, (x) => x.channelContext);
   const combined = messages.map((m) => m.text).join('\n');
@@ -39,7 +39,8 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const clipRef = useRef<HTMLDivElement>(null);
-  const canClamp = !inNoticeLog;
+  // Fold only in channels — Status / Notices / PMs keep the full callout.
+  const canClamp = inChannel;
   useLayoutEffect(() => {
     if (!canClamp) { setOverflows(false); return; }
     const el = clipRef.current;
