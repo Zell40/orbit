@@ -1076,6 +1076,15 @@ html[data-bubbles="off"] .group .line { background: transparent; border: 0; padd
   margin-top: .35rem;
   width: 100%;
   max-width: 100%;
+  /* Darker than the callout so the preview reads as its own bubble. */
+  background: color-mix(in srgb, var(--ink) 10%, var(--bg-soft-2, #eceff3));
+}
+.actuline .lpcard:hover,
+.infoline .lpcard:hover,
+.noticeline .lpcard:hover,
+.urlline .lpcard:hover,
+.topicline .lpcard:hover {
+  background: color-mix(in srgb, var(--ink) 14%, var(--bg-soft-2, #eceff3));
 }
 .actuline .lpcard {
   border-color: color-mix(in srgb, #0284c7 40%, var(--border));
