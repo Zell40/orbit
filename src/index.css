@@ -446,6 +446,7 @@ input, textarea { font-family: inherit; }
 .statusmenu__set { flex: none; background: var(--accent-soft); color: var(--accent); border: 0; border-radius: 8px;
   padding: .4rem .7rem; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
 .statusmenu__set:hover { filter: brightness(1.08); }
+.statusmenu__set:disabled { opacity: .45; cursor: default; filter: none; }
 /* desktop only: the bar spans the window bottom; the in-drawer copy is hidden.
    Scoped to min-width so it never overrides the mobile rule that shows it. */
 @media (min-width: 881px) { .sidebar .appbar { display: none; } }

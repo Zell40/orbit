@@ -4,6 +4,7 @@ import { useActiveChat } from '@/core/networks';
 import { Avatar } from '@/components/Avatar';
 import { Modal } from '@/components/modals/Modal';
 import { clearResume } from '@/core/resume';
+import { ChangeNickField } from '../ChangeNickField';
 
 export function ProfileSection() {
   const { t } = useTranslation();
@@ -25,6 +26,8 @@ export function ProfileSection() {
           </div>
         </div>
       </div>
+
+      {!account && <ChangeNickField hint={t('settings.account.nickHint')} />}
 
       <button className="set-leave" onClick={() => setLeaving(true)}>{t('settings.account.leaveChat')}</button>
 

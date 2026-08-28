@@ -3,14 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '@/core/networks';
 
 // Presence menu opened by clicking your own avatar in the footer (Slack/Discord
-// style): pick Available or Away. Away reveals an editable reason with a default
-// so you can set an AWAY message in one place; Enter or "Set" applies it.
+// style): pick Available or Away. Away reveals an editable reason; guests can
+// also rename from here. Enter or the action button applies.
 export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away: boolean; anchor: DOMRect; onClose: () => void }) {
   const { t } = useTranslation();
   const setAway = useActiveChat((s) => s.setAway);
   const openUser = useActiveChat((s) => s.openUser);
-  const [editing, setEditing] = useState(false);
+  const client = useActiveChat((s) => s.client);
+  const account = useActiveChat((s) => s.account);
+  const [editing, setEditing] = useState<'away' | 'nick' | null>(null);
   const [reason, setReason] = useState(t('sidebar.awayDefault'));
+  const [newNick, setNewNick] = useState(nick);
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ left: anchor.left, top: anchor.top });
 
@@ -37,6 +40,11 @@ export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away
 
   const setAvailable = () => { setAway(''); onClose(); };
   const confirmAway = () => { setAway(reason.trim() || t('sidebar.awayDefault')); onClose(); };
+  const applyNick = () => {
+    const n = newNick.trim();
+    if (n && n !== nick) client?.setNick(n);
+    onClose();
+  };
 
   return (
     <div className="statusmenu" ref={ref} style={{ left: pos.left, top: pos.top }} role="menu">
@@ -45,12 +53,12 @@ export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away
         <span className="statusmenu__lbl">{t('sidebar.online')}</span>
         {!away && <span className="statusmenu__check" aria-hidden>✓</span>}
       </button>
-      <button className={`statusmenu__opt ${away ? 'is-on' : ''}`} role="menuitemradio" aria-checked={away} onClick={() => setEditing(true)}>
+      <button className={`statusmenu__opt ${away ? 'is-on' : ''}`} role="menuitemradio" aria-checked={away} onClick={() => setEditing('away')}>
         <span className="statusmenu__dot statusmenu__dot--away" aria-hidden />
         <span className="statusmenu__lbl">{t('sidebar.away')}</span>
         {away && <span className="statusmenu__check" aria-hidden>✓</span>}
       </button>
-      {editing && (
+      {editing === 'away' && (
         <div className="statusmenu__reason">
           <input className="statusmenu__input" value={reason} maxLength={200} autoFocus
             placeholder={t('sidebar.awayReason')} aria-label={t('sidebar.awayReason')}
@@ -60,6 +68,24 @@ export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away
         </div>
       )}
       <div className="statusmenu__sep" />
+      {!account && (
+        <>
+          <button className="statusmenu__opt statusmenu__opt--link" role="menuitem" onClick={() => setEditing('nick')}>
+            {t('sidebar.changeNick')}
+          </button>
+          {editing === 'nick' && (
+            <div className="statusmenu__reason">
+              <input className="statusmenu__input" value={newNick} maxLength={client?.server.nicklen ?? 30} autoFocus
+                aria-label={t('sidebar.changeNick')}
+                onChange={(e) => setNewNick(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') applyNick(); }} />
+              <button className="statusmenu__set" onClick={applyNick} disabled={!newNick.trim() || newNick.trim() === nick}>
+                {t('settings.account.changeBtn')}
+              </button>
+            </div>
+          )}
+        </>
+      )}
       <button className="statusmenu__opt statusmenu__opt--link" role="menuitem" onClick={() => { openUser(nick); onClose(); }}>
         {t('sidebar.viewProfile')}
       </button>
