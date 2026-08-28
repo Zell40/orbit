@@ -5,6 +5,7 @@ import { initNotify } from '../platform/notify';
 import { getPrefs, savePrefs, applyPrefs, type Prefs } from '../ui/prefs';
 import type { Buffer, ConnectOptions, WhoisInfo, MessageKind } from './irc/types';
 import { getConfig } from './config';
+import { resolveConnectUsername } from './irc/ident';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName } from './store/context';
@@ -220,19 +221,9 @@ export function createChatStore(ns = '') {
       // store; tear down the previous client first so it can't keep reconnecting
       // in the background and process every inbound line a second time.
       get().client?.disconnect();
-      // Ident (the "user" in nick!user@host): logged-in members authenticate over
-      // SASL (a password is present) and show their own nick; guests show the
-      // configured guest ident. IRC idents are ASCII-only, so accents are folded.
-      if (!opts.username) {
-        // IRC idents are ASCII [A-Za-z0-9._-]; fold accents (Invité->Invite), cap 10.
-        const ident = (v: string, fb: string) =>
-          (v || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^A-Za-z0-9._-]/g, '').slice(0, 10) || fb;
-        const guest = ident(getConfig().server.guestIdent || 'Invité', 'Invite');
-        // Authenticated members (SASL password or a passkey) show their own nick as
-        // the ident; guests show the configured guest ident.
-        opts.username = (opts.password || opts.passkey || opts.serverPassword) ? ident(opts.nick, guest) : guest;
-      }
+      // Ident (the "user" in nick!user@host): logged-in members show their nick;
+      // guests show guestIdent, or the nick when server.guestIdentFromNick is on.
+      if (!opts.username) opts.username = resolveConnectUsername(opts, getConfig().server);
       // Kiwi BNC speaks HOST so webircgateway uses ZNC, not a random [upstream.N].
       if (opts.serverPassword && !opts.bouncerHost) {
         const host = (getConfig().server.bouncerHost || '').trim();

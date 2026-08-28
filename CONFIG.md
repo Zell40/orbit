@@ -22,7 +22,8 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 | `server.url` | string | `wss://www.swaygo.fr/irc/` | WebSocket URL of the IRCv3 server (uses the `text/binary.ircv3.net` subprotocols, with a plain-WebSocket fallback for ZNC/Kiwi gateways). The server's Origin allowlist must include where the client is served. |
 | `server.bouncerUrl` | string | `""` | Default WebSocket URL pre-filled when a visitor chooses “via a bouncer”. Typically the Kiwi `webircgateway` in front of ZNC, e.g. `wss://bnc.example.org/webirc/websocket/`. |
 | `server.bouncerNetwork` | string | `""` | Default ZNC network name pre-filled as Kiwi’s « Réseau » field. |
-| `server.guestIdent` | string | `Invit├®` | Ident shown for **guests** (not logged in), e.g. `Foo!Invit├®@ÔÇª`. Folded to ASCII since IRC idents are `[A-Za-z0-9._-]` (so `Invit├®`ÔåÆ`Invite`). Logged-in members use their own nick as the ident. |
+| `server.guestIdent` | string | `Invité` | Ident shown for **guests** (not logged in), e.g. `Foo!Invite@…`. Folded to ASCII since IRC idents are `[A-Za-z0-9._-]` (so `Invité`→`Invite`). Logged-in members use their own nick as the ident. Ignored when `guestIdentFromNick` is true. |
+| `server.guestIdentFromNick` | bool | `false` | When `true`, guests connecting from Orbit’s join form use their **nick** as ident (`Ada!Ada@host`) instead of `guestIdent` (`Ada!ENuser@host`). |
 | `startup.channels` | string[] | `["#accueil"]` | Channels auto-joined on connect (first = active). A `?channel=` URL param overrides this. |
 | `branding.name` | string | `Tchatou` | App/network name shown in the UI, the console title, and CTCP VERSION. |
 | `branding.icon` | string | tchatou favicon URL | Logo on the connect screen + default network icon. |

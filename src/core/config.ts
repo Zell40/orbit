@@ -13,6 +13,10 @@ export interface AppConfig {
     /** Ident for guests (not logged in). Logged-in members use their own nick.
      *  IRC idents are ASCII, so accents are folded (e.g. "Invité" → "Invite"). */
     guestIdent?: string;
+    /** When true, guests from the original join form use their nick as ident
+     *  (`Ada!Ada@host`) instead of `guestIdent` (`Ada!ENuser@host`). Logged-in
+     *  members always use their nick. */
+    guestIdentFromNick?: boolean;
     /** Default WebSocket URL of a bouncer gateway (ZNC / KiwiBNC via webircgateway). */
     bouncerUrl?: string;
     /** webircgateway HOST target so Orbit hits ZNC, not a random [upstream.N].
@@ -200,7 +204,7 @@ export type PluginEntry =
   | { url: string; integrity?: string; crossorigin?: string; sandbox?: boolean; permissions?: string[] };
 
 const DEFAULT_CONFIG: AppConfig = {
-  server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité' },
+  server: { url: 'wss://www.swaygo.fr/irc/', guestIdent: 'Invité', guestIdentFromNick: false },
   startup: { channels: ['#accueil'], suggestions: ['#accueil', '#taverne', '#musique', '#devs', '#orbit'] },
   branding: {
     name: 'Orbit',
