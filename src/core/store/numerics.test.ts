@@ -14,7 +14,7 @@ function setup(over: Record<string, unknown> = {}) {
   let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
   const state = {
     client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
-    active: '#x', account: '', channels: [], listLoading: false, away: false,
+    active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
     buffers: {}, banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
     prefs: { sound: false }, whois,
     profileUser: '',
