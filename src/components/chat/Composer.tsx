@@ -13,7 +13,8 @@ import { ReplyBar } from './composer/ReplyBar';
 import { useVoiceRecorder } from './composer/useVoiceRecorder';
 import { completeToken, type CompletionKind } from './composer/complete';
 import { createSentHistory } from './composer/history';
-import { uploadTtlChoices, resolveUploadTtlHours } from '@/core/store/upload';
+import { ImageSendPreview } from './composer/ImageSendPreview';
+import { resolveUploadTtlHours } from '@/core/store/upload';
 
 type AcState = { start: number; cands: string[]; idx: number; kind: CompletionKind };
 
@@ -42,7 +43,7 @@ export function Composer() {
   const setPref = useActiveChat((s) => s.setPref);
   const uploadTtlHours = useActiveChat((s) => s.prefs.uploadTtlHours);
 
-  const [picker, setPicker] = useState(false);
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [colors, setColors] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [empty, setEmpty] = useState(true);   // truly empty → show the placeholder hint
@@ -67,7 +68,6 @@ export function Composer() {
   );
 
   const canUpload = getConfig().features.imageUpload;
-  const ttlChoices = canUpload ? uploadTtlChoices() : [];
   const ttlHours = resolveUploadTtlHours(uploadTtlHours);
   const { recording, recSecs, canRecord, startRec, stopRec, cancelRec } = useVoiceRecorder({
     enabled: canUpload && !readOnlyLog, active, onRecorded: uploadAudio,
@@ -164,6 +164,7 @@ export function Composer() {
     reflect();
     cyc.current = null;
     setAc(null);
+    setPendingImage(null);
     prevActive.current = active;
   }, [active, setDraft]);
 
@@ -179,6 +180,12 @@ export function Composer() {
   }
 
   function submit() {
+    if (pendingImage) {
+      const f = pendingImage;
+      setPendingImage(null);
+      void uploadImage(f);
+      return;
+    }
     const root = ed.current; if (!root) return;
     const out = serialize(root);
     if (!out.trim()) return;
@@ -301,7 +308,7 @@ export function Composer() {
     if (!img) for (const it of Array.from(dt.items || [])) {
       if (it.kind === 'file' && it.type.startsWith('image/')) { img = it.getAsFile(); if (img) break; }
     }
-    if (img) { void uploadImage(img); return true; }
+    if (img) { setPendingImage(img); return true; }
     return false;
   }
 
@@ -317,6 +324,15 @@ export function Composer() {
     <div className={`composer ${readOnlyLog ? 'composer--console' : ''}`}>
       <TypingIndicator />
       <ReplyBar />
+      {pendingImage && (
+        <ImageSendPreview
+          file={pendingImage}
+          ttlHours={ttlHours}
+          onTtl={(h) => setPref('uploadTtlHours', h)}
+          onSend={submit}
+          onCancel={() => setPendingImage(null)}
+        />
+      )}
       {picker && (
         <>
           <div className="emoji-backdrop" onClick={() => setPicker(false)} />
@@ -339,7 +355,7 @@ export function Composer() {
         </>
       )}
       <input ref={fileRef} type="file" accept="image/*" hidden
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadImage(f); e.target.value = ''; }} />
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) setPendingImage(f); e.target.value = ''; }} />
       <div className={`composer__box ${readOnlyLog ? 'composer__box--console' : ''} ${dragOver ? 'is-drop' : ''}`}
         onDragOver={(e) => { if (!readOnlyLog) { e.preventDefault(); setDragOver(true); } }}
         onDragLeave={() => setDragOver(false)}
@@ -385,21 +401,6 @@ export function Composer() {
               <path d="M21 15.5 16 10.5 5.5 21" />
             </svg>
           </button>
-        )}
-        {canUpload && !readOnlyLog && ttlChoices.length > 1 && (
-          <select
-            className="composer__ttl"
-            value={ttlHours}
-            title={t('composer.uploadTtl')}
-            aria-label={t('composer.uploadTtl')}
-            onChange={(e) => setPref('uploadTtlHours', Number(e.target.value))}
-          >
-            {ttlChoices.map((h) => (
-              <option key={h} value={h}>
-                {h % 24 === 0 && h >= 24 ? t('composer.uploadTtlDays', { n: h / 24 }) : t('composer.uploadTtlHours', { n: h })}
-              </option>
-            ))}
-          </select>
         )}
         {canRecord && (
           <button className="composer__add composer__mic" title={t('composer.recordVoice')} aria-label={t('composer.recordVoice')} onClick={startRec}>
@@ -471,7 +472,7 @@ export function Composer() {
         )}
         {!readOnlyLog && pluginButtons.map((b) => <PluginBoundary key={b.id} render={b.render} label="composer_button" />)}
         {!readOnlyLog && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
-        <button className="composer__send" disabled={blank} onClick={submit} aria-label={t('composer.send')}>{readOnlyLog ? '⏎' : '➤'}</button>
+        <button className="composer__send" disabled={blank && !pendingImage} onClick={submit} aria-label={t('composer.send')}>{readOnlyLog ? '⏎' : '➤'}</button>
       </div>
     </div>
   );
