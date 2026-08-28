@@ -101,6 +101,13 @@ export interface AppConfig {
     webmcp: boolean;        // expose the chat as WebMCP tools for AI agents (browsers that support document.modelContext); no-op elsewhere
     bouncer: boolean;       // offer "via a bouncer (ZNC)" on the connect screen — PASS login, optional SASL
   };
+  /** Composer /upload retention. Server `filehost-upload.php` must match. */
+  filehost?: {
+    /** Default hours before a shared image/voice file is deleted (default 24). */
+    retentionHours?: number;
+    /** Durations the user may pick at send time (hours). Empty = no picker. */
+    retentionChoices?: number[];
+  };
   /**
    * Operator-listed plugin scripts loaded at startup. Each entry is a URL, or an
    * object adding Subresource Integrity (recommended for off-origin plugins):
@@ -219,6 +226,7 @@ const DEFAULT_CONFIG: AppConfig = {
   report: { service: 'ReportServ', target: '#staff' },
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
   features: { push: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false, passkeySasl: false, saslScram: false, saslOauthBearer: false, webmcp: true, bouncer: false },
+  filehost: { retentionHours: 24, retentionChoices: [1, 6, 24, 72] },
   plugins: [],
   builtins: [],
 };

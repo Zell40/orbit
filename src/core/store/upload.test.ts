@@ -51,6 +51,8 @@ describe('upload', () => {
     expect(String(action![1][1])).toContain('https://h/files/x.png');
     const posted = String(fetchMock.mock.calls[0]?.[0] ?? '');
     expect(posted).toMatch(/\/upload\?token=tok123$/);
+    const body = fetchMock.mock.calls[0]?.[1]?.body as FormData;
+    expect(body.get('ttl_hours')).toBe('24');
   });
 
   it('POSTs to /app/upload when the SPA path is under /app', async () => {

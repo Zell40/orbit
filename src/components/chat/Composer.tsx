@@ -13,6 +13,7 @@ import { ReplyBar } from './composer/ReplyBar';
 import { useVoiceRecorder } from './composer/useVoiceRecorder';
 import { completeToken, type CompletionKind } from './composer/complete';
 import { createSentHistory } from './composer/history';
+import { uploadTtlChoices, resolveUploadTtlHours } from '@/core/store/upload';
 
 type AcState = { start: number; cands: string[]; idx: number; kind: CompletionKind };
 
@@ -38,6 +39,8 @@ export function Composer() {
   const uploadImage = useActiveChat((s) => s.uploadImage);
   const uploadAudio = useActiveChat((s) => s.uploadAudio);
   const setDraft = useActiveChat((s) => s.setDraft);
+  const setPref = useActiveChat((s) => s.setPref);
+  const uploadTtlHours = useActiveChat((s) => s.prefs.uploadTtlHours);
 
   const [picker, setPicker] = useState(false);
   const [colors, setColors] = useState(false);
@@ -64,6 +67,8 @@ export function Composer() {
   );
 
   const canUpload = getConfig().features.imageUpload;
+  const ttlChoices = canUpload ? uploadTtlChoices() : [];
+  const ttlHours = resolveUploadTtlHours(uploadTtlHours);
   const { recording, recSecs, canRecord, startRec, stopRec, cancelRec } = useVoiceRecorder({
     enabled: canUpload && !readOnlyLog, active, onRecorded: uploadAudio,
   });
@@ -380,6 +385,21 @@ export function Composer() {
               <path d="M21 15.5 16 10.5 5.5 21" />
             </svg>
           </button>
+        )}
+        {canUpload && !readOnlyLog && ttlChoices.length > 1 && (
+          <select
+            className="composer__ttl"
+            value={ttlHours}
+            title={t('composer.uploadTtl')}
+            aria-label={t('composer.uploadTtl')}
+            onChange={(e) => setPref('uploadTtlHours', Number(e.target.value))}
+          >
+            {ttlChoices.map((h) => (
+              <option key={h} value={h}>
+                {h % 24 === 0 && h >= 24 ? t('composer.uploadTtlDays', { n: h / 24 }) : t('composer.uploadTtlHours', { n: h })}
+              </option>
+            ))}
+          </select>
         )}
         {canRecord && (
           <button className="composer__add composer__mic" title={t('composer.recordVoice')} aria-label={t('composer.recordVoice')} onClick={startRec}>

@@ -1232,6 +1232,14 @@ html[data-actions="off"] .msg-actions { display: none; }
 .composer__add { display: inline-flex; align-items: center; justify-content: center; }
 .composer__add:hover, .composer__emoji:hover { background: var(--bg-soft-2); }
 .composer__add:hover { color: var(--accent-d); }
+.composer__ttl {
+  flex: none; align-self: center; max-width: 4.6rem;
+  height: 32px; padding: 0 .3rem 0 .4rem; margin: 0;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg-soft); color: var(--muted);
+  font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer;
+}
+.composer__ttl:hover, .composer__ttl:focus { color: var(--ink); border-color: var(--accent); outline: none; }
 .composer__mic:hover { color: #e0577a; }
 .composer__icon { display: block; }
 
@@ -2091,6 +2099,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 }
 .composer--console .composer__box:focus-within { border-color: var(--term-accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .composer--console .composer__add { display: none; }                /* no attach button in the terminal */
+.composer--console .composer__ttl { display: none; }
 .composer--console .composer__box::before {
   content: "❯"; align-self: center; color: var(--term-accent); font-weight: 800; font-size: 1.05rem; padding: 0 .1rem 0 .55rem;
 }

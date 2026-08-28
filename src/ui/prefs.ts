@@ -19,6 +19,8 @@ export interface Prefs {
   showStatus: boolean;
   /** Off-channel NOTICEs in a Notices sidebar block (one buffer per sender). Off = current window. */
   noticeInbox: boolean;
+  /** Hours to keep a shared image/voice file (clamped to filehost.retentionChoices). */
+  uploadTtlHours: number;
 }
 
 const KEY = 'orbit-prefs';
@@ -31,6 +33,7 @@ function defaults(): Prefs {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: true,
+    uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };
 }
 

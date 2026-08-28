@@ -8,6 +8,7 @@
 // verbatim between the two).
 import i18n from '../i18n';
 import { fetchTimeout } from '@/lib/net';
+import { getConfig } from '../config';
 import { isPseudoBuffer, newId } from './context';
 import type { IrcClient } from '../irc/client';
 import type { StoreApi } from 'zustand';
@@ -21,6 +22,26 @@ interface UploadDeps {
 }
 
 const MAX_BYTES = 16 * 1024 * 1024;
+const TTL_MAX_HOURS = 168;
+
+export function uploadTtlChoices(): number[] {
+  const cfg = getConfig().filehost;
+  const raw = cfg?.retentionChoices;
+  const def = cfg?.retentionHours ?? 24;
+  const list = Array.isArray(raw) ? raw : [1, 6, 24, 72];
+  const clean = [...new Set(list.map((n) => Math.round(Number(n)))
+    .filter((n) => n >= 1 && n <= TTL_MAX_HOURS))].sort((a, b) => a - b);
+  if (def >= 1 && def <= TTL_MAX_HOURS && !clean.includes(def)) clean.push(def);
+  return clean.sort((a, b) => a - b);
+}
+
+export function resolveUploadTtlHours(pref?: number): number {
+  const choices = uploadTtlChoices();
+  const def = getConfig().filehost?.retentionHours ?? 24;
+  const fallback = choices.includes(def) ? def : (choices[choices.length - 1] ?? 24);
+  if (pref != null && choices.includes(pref)) return pref;
+  return fallback;
+}
 
 /** Same-origin upload URL. SPA is under /app/ on EntreNous — prefer /app/upload
  *  so an Alias DocumentRoot still hits filehost-upload.php; fall back to /upload. */
@@ -42,6 +63,7 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     });
     const fd = new FormData();
     fd.append('file', file);
+    fd.append('ttl_hours', String(resolveUploadTtlHours(get().prefs?.uploadTtlHours)));
     let res = await fetchTimeout(uploadUrl(token), { method: 'POST', body: fd }, 30000);
     // Legacy deployments that only rewrite bare /upload (DocumentRoot = web root).
     if (res.status === 404 && uploadUrl(token).startsWith('/app/')) {

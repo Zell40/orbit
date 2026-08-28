@@ -24,6 +24,8 @@ Merge rules: objects merge key-by-key; **arrays and scalars replace** wholesale
 | `server.bouncerNetwork` | string | `""` | Default ZNC network name pre-filled as Kiwi’s « Réseau » field. |
 | `server.guestIdent` | string | `Invité` | Ident shown for **guests** (not logged in), e.g. `Foo!Invite@…`. Folded to ASCII since IRC idents are `[A-Za-z0-9._-]` (so `Invité`→`Invite`). Logged-in members use their own nick as the ident. Ignored when `guestIdentFromNick` is true. |
 | `server.guestIdentFromNick` | bool | `false` | When `true`, guests connecting from Orbit’s join form use their **nick** as ident (`Ada!Ada@host`) instead of `guestIdent` (`Ada!ENuser@host`). |
+| `filehost.retentionHours` | number | `24` | Default hours a shared image/voice file is kept before the server purge deletes it. |
+| `filehost.retentionChoices` | number[] | `[1, 6, 24, 72]` | Durations (hours) the composer picker offers. Empty array = no picker (always `retentionHours`). |
 | `startup.channels` | string[] | `["#accueil"]` | Channels auto-joined on connect (first = active). A `?channel=` URL param overrides this. |
 | `branding.name` | string | `Tchatou` | App/network name shown in the UI, the console title, and CTCP VERSION. |
 | `branding.icon` | string | tchatou favicon URL | Logo on the connect screen + default network icon. |
