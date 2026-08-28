@@ -91,7 +91,7 @@ export function mountSandboxed(spec: SandboxSpec): void {
   let removeUi: () => void = () => {};
   let currentPort: MessagePort | null = null;   // the live guest port (rebuilt each handshake)
   const hooks: Record<string, () => void> = {};  // command/shortcut disposers, keyed by guest hook id
-  const KNOWN_SLOTS = ['composer_button', 'settings_section', 'topbar_item', 'sidebar_item', 'footer_item', 'nav_item'];
+  const KNOWN_SLOTS = ['composer_button', 'settings_section', 'topbar_item', 'sidebar_item', 'footer_item', 'nav_item', 'user_badge'];
   const hasModifier = (combo: string) => /\b(mod|ctrl|control|meta|cmd|super|alt|option)\b/i.test(combo);
   const impl: Record<string, (args: unknown[]) => unknown> = {
     log: (a) => log(...a),

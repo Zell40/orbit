@@ -13,14 +13,16 @@ function NetTab({ net, active }: { net: NetworkEntry; active: boolean }) {
   const isPrimary = useNetworks((s) => s.networks[0]?.id === net.id);
   const status = useStore(net.store, (s) => s.status);
   const serverName = useStore(net.store, (s) => s.serverName);
+  const ircNetwork = useStore(net.store, (s) => s.ircNetwork);
   // The active network's badge is never shown (below), so skip the whole-buffer
   // unread scan for it — that's the network taking the most message traffic.
   const unread = useStore(net.store, (s) => (active ? 0 : Object.values(s.buffers).reduce((a, b) => a + (b.unread || 0), 0)));
+  const shown = ircNetwork || net.label || serverName;
   return (
     <span className={`nettab ${active ? 'is-on' : ''}`}>
-      <button className="nettab__main" onClick={() => setActive(net.id)} title={serverName || net.label}>
+      <button className="nettab__main" onClick={() => setActive(net.id)} title={shown || serverName || net.label}>
         <span className={`nettab__dot nettab__dot--${status === 'registered' ? 'on' : 'off'}`} />
-        <span className="nettab__label">{net.label || serverName}</span>
+        <span className="nettab__label">{shown}</span>
         {!active && unread > 0 && <span className="nettab__badge">{unread > 99 ? '99+' : unread}</span>}
       </button>
       {!isPrimary && <button className="nettab__x" onClick={() => remove(net.id)} title="✕" aria-label="remove">✕</button>}

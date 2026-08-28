@@ -11,7 +11,8 @@ import type { ReactNode } from 'react';
 // 'overlay' renders at the app root, always mounted and free of any transformed
 // or hidden ancestor — the home for a plugin's own fixed popover/panel, so its
 // launcher button can live (and move) anywhere without unmounting the panel.
-export type UiSlot = 'composer_button' | 'settings_section' | 'settings_mode' | 'topbar_item' | 'topbar_more_item' | 'sidebar_item' | 'sidebar_room' | 'footer_item' | 'nav_item' | 'navbar' | 'overlay';
+// 'user_badge' sits to the right of the nick in the app footer (guest/status chips).
+export type UiSlot = 'composer_button' | 'settings_section' | 'settings_mode' | 'topbar_item' | 'topbar_more_item' | 'sidebar_item' | 'sidebar_room' | 'footer_item' | 'nav_item' | 'navbar' | 'overlay' | 'user_badge';
 
 export interface PluginUi {
   id: string;

@@ -385,6 +385,7 @@ input, textarea { font-family: inherit; }
   background: #2ec27e; box-shadow: 0 0 0 2.5px var(--bg-soft, var(--bg)); transition: background .15s;
 }
 .appbar__me.is-away .appbar__av::after { background: #e8a13a; }
+.appbar__chip { display: flex; align-items: center; gap: .15rem; min-width: 0; }
 .appbar__meta { display: flex; flex-direction: column; min-width: 0; text-align: left; line-height: 1.15; }
 .appbar__name { font-weight: 700; font-size: .85rem; color: var(--ink); max-width: 12ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .appbar__status { font-size: .7rem; color: var(--muted); }
@@ -2150,7 +2151,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .guestprompt {
   position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 135;
   display: flex; flex-direction: column; align-items: center; text-align: center;
-  width: min(400px, calc(100vw - 1.5rem));
+  width: min(440px, calc(100vw - 1.5rem));
   padding: 1.35rem 1.25rem 1.1rem;
   background: var(--bg); color: var(--ink);
   border: 1px solid var(--border); border-radius: 18px;
@@ -2193,6 +2194,22 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; padding: .25rem .5rem;
 }
 .guestprompt__later:hover { color: var(--muted); text-decoration: underline; }
+.guestprompt__more {
+  margin-top: .55rem; border: 0; background: none; color: var(--accent);
+  font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; padding: .2rem .4rem;
+}
+.guestprompt__more:hover { text-decoration: underline; }
+.guestprompt__extra {
+  margin-top: .7rem; width: 100%; text-align: left;
+  font-size: .86rem; line-height: 1.45; color: var(--muted);
+}
+.guestprompt__extra p { margin: 0 0 .45rem; }
+.guestprompt__extra h3 {
+  margin: .15rem 0 .35rem; font-size: .82rem; font-weight: 800;
+  letter-spacing: .01em; color: var(--ink);
+}
+.guestprompt__extra ul { margin: 0; padding: 0 0 0 1.1rem; }
+.guestprompt__extra li { margin: 0 0 .28rem; }
 
 /* Bouncer session: TAGMSG game HUD is unavailable in this channel */
 .bouncer-game {

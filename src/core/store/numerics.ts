@@ -207,6 +207,11 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '004': // RPL_MYINFO: <me> <servername> … — the ircd's own hostname
         set({ serverName: msg.params[1] || get().serverName });
         return true;
+      case '005': { // RPL_ISUPPORT — NETWORK token is the public network name
+        const net = get().client?.server.network;
+        if (net) set({ ircNetwork: net });
+        return true;
+      }
       case '331': { // RPL_NOTOPIC
         const ch = msg.params[1];
         if (isChannelName(ch)) { ensureBuffer(ch); patchBuffer(ch, (b) => ({ ...b, topic: '' })); }

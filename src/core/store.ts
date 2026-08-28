@@ -53,6 +53,7 @@ export interface ChatState {
   account: string; // NickServ account we're logged in as ('' = guest)
   umodes: string;  // our own active user-mode letters, e.g. "iwx" (global, per-user)
   serverName: string;    // the ircd's own hostname (RPL_MYINFO / 004), for the Status title
+  ircNetwork: string;    // ISUPPORT NETWORK (e.g. EntreNous.chat)
   serverError: string;   // last ERROR reason from the server (for the connect screen)
   reconnectIn: number;   // seconds until the next auto-reconnect (0 = not reconnecting)
   everRegistered: boolean; // true after the first successful registration (keeps the chat UI mounted during reconnects)
@@ -181,6 +182,7 @@ export function createChatStore(ns = '') {
     account: '',
     umodes: '',
     serverName: '',
+    ircNetwork: '',
     serverError: '',
     reconnectIn: 0,
     everRegistered: false,
@@ -324,7 +326,10 @@ export function createChatStore(ns = '') {
           }
           // network icon from the server's draft/ICON ISUPPORT token (else branding favicon)
           const icon = client.server.isupport['draft/ICON'] || client.server.isupport['ICON'];
-          if (icon) set({ networkIcon: icon });
+          const patch: { networkIcon?: string; ircNetwork?: string } = {};
+          if (icon) patch.networkIcon = icon;
+          if (client.server.network) patch.ircNetwork = client.server.network;
+          if (Object.keys(patch).length) set(patch);
         }
       });
       client.on('reconnecting', (secs) => {

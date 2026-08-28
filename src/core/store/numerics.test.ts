@@ -54,6 +54,15 @@ describe('store numerics handler', () => {
     expect(state.account).toBe('bob');
   });
 
+  it('005 RPL_ISUPPORT stores NETWORK as ircNetwork', () => {
+    const { handleNumerics, state } = setup({
+      client: { server: { network: 'EntreNous.chat' } },
+      ircNetwork: '',
+    });
+    expect(handleNumerics(mk('005', ['me', 'NETWORK=EntreNous.chat', 'are supported']))).toBe(true);
+    expect(state.ircNetwork).toBe('EntreNous.chat');
+  });
+
   it('354 WHOX for ourselves fills the session account', () => {
     const { handleNumerics, state } = setup({ nick: 'Harry' });
     handleNumerics(mk('354', ['me', '152', '#x', 'Harry', 'H', 'Harry', '[12/H/Benquet]']));

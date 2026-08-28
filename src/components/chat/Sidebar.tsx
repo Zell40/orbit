@@ -45,14 +45,19 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
       <div className="appbar__user">
         <button className="appbar__act" onClick={() => setModal('settings')}
           title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
-        <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
-          onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setStatusAnchor((a) => (a ? null : r)); }}>
-          <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
-          <span className="appbar__meta">
-            <span className="appbar__name">{nick}</span>
-            <span className="appbar__status">{away ? t('sidebar.away') : t('sidebar.online')}</span>
-          </span>
-        </button>
+        <div className="appbar__chip">
+          <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
+            onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setStatusAnchor((a) => (a ? null : r)); }}>
+            <span className="appbar__av"><Avatar nick={nick} size={30} account={myAccount} /></span>
+            <span className="appbar__meta">
+              <span className="appbar__name">{nick}</span>
+              <span className="appbar__status">{away ? t('sidebar.away') : t('sidebar.online')}</span>
+            </span>
+          </button>
+          {footerVisible && footerItems.filter((u) => u.slot === 'user_badge').map((u) => (
+            <PluginBoundary key={u.id} render={u.render} label="user_badge" />
+          ))}
+        </div>
         {statusAnchor && <StatusMenu nick={nick} away={away} anchor={statusAnchor} onClose={() => setStatusAnchor(null)} />}
       </div>
       <nav className="appbar__nav" aria-label={t('a11y.conversations')}>
