@@ -44,6 +44,7 @@ export function Composer() {
   const uploadTtlHours = useActiveChat((s) => s.prefs.uploadTtlHours);
 
   const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [picker, setPicker] = useState(false);
   const [colors, setColors] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [empty, setEmpty] = useState(true);   // truly empty → show the placeholder hint
