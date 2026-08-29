@@ -145,6 +145,22 @@ describe('store numerics handler', () => {
     expect(sys).toEqual([{ name: 'bob', text: expect.stringContaining('⚠️') }]);
   });
 
+  it('401 for a $notice: inbox is swallowed (local buffer, not a nick)', () => {
+    const { handleNumerics, sys, server } = setup({
+      buffers: { '$notice:gardian': { name: '$notice:gardian' } },
+    });
+    expect(handleNumerics(mk('401', ['me', '$notice:gardian', 'No such nick']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(server).toHaveLength(0);
+  });
+
+  it('451 ERR_NOTREGISTERED is swallowed (handshake race)', () => {
+    const { handleNumerics, sys, server } = setup({ active: '$server', status: 'connecting' });
+    expect(handleNumerics(mk('451', ['*', 'WHOIS', 'You have not registered']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(server).toHaveLength(0);
+  });
+
   it('returns false for a non-numeric command', () => {
     const { handleNumerics } = setup();
     expect(handleNumerics(mk('PRIVMSG', ['#x', 'hi']))).toBe(false);

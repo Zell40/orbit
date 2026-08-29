@@ -497,7 +497,7 @@ export function Composer() {
         })()}
         {!readOnlyLog && pluginButtons.map((b) => <PluginBoundary key={b.id} render={b.render} label="composer_button" />)}
         {!readOnlyLog && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
-        <button className="composer__send" disabled={blank && !pendingImage} onClick={submit} aria-label={t('composer.send')}>
+        <button className="composer__send" disabled={blank && !pendingImage} onClick={submit} aria-label={t('composer.send')} title={t('composer.send')}>
           {readOnlyLog ? '⏎' : <><span className="composer__send-txt">{t('composer.sendLong')}</span>➤</>}
         </button>
       </div>

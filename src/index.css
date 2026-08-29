@@ -2538,14 +2538,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   }
   .composer__rich.is-empty { overflow: hidden; }
   .composer__fmt-toggle { display: inline-flex; align-items: center; justify-content: center; }
-  .composer__send {
-    width: auto; min-width: 38px; padding: 0 .7rem; margin-left: 0;
-    font-size: .9rem;
-  }
-  .composer__send-txt {
-    display: inline; font-size: .72rem; font-weight: 800; letter-spacing: .01em;
-    max-width: 7.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
+  /* Send stays the compact 38×38 icon (➤) — the long label overflows a phone row. */
   /* The device keyboard has its own emoji key on mobile — drop our picker. */
   .composer__emoji { display: none; }
 

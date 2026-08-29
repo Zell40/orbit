@@ -121,6 +121,16 @@ describe('Ircv3 cap-gated commands', () => {
     expect(sent).toEqual(['MARKREAD #x timestamp=2020-01-01T00:00:00Z']);
   });
 
+  it('skips MARKREAD, METADATA and TAGMSG to local $ buffers', () => {
+    const { ircv3, sent, cap } = make();
+    cap('CAP * ACK :draft/read-marker draft/metadata-2 message-tags');
+    ircv3.markRead('$notice:gardian', '2020-01-01T00:00:00Z');
+    ircv3.fetchMetadata('$server');
+    ircv3.sendTyping('$notice:gardian', 'active');
+    ircv3.react('$notice:gardian', 'abc', '\u{1F600}');
+    expect(sent).toHaveLength(0);
+  });
+
   it('skips typing and reactions without message-tags', () => {
     const { ircv3, sent } = make();
     ircv3.sendTyping('#x', 'active');

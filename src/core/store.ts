@@ -385,7 +385,7 @@ export function createChatStore(ns = '') {
     },
 
     openQuery(nick, fromChannel) {
-      if (!nick || isChannelName(nick)) return;
+      if (!nick || isChannelName(nick) || isPseudoBuffer(nick)) return;
       ensureBuffer(nick);
       // Record the channel this DM was started from (+draft/channel-context).
       if (fromChannel && isChannelName(fromChannel)) {
@@ -396,7 +396,7 @@ export function createChatStore(ns = '') {
     },
 
     openUser(nick) {
-      if (!nick) return;
+      if (!nick || isPseudoBuffer(nick)) return;
       const s = get();
       set({ profileUser: nick, whois: { ...s.whois, [nick]: { nick, loading: true } } });
       s.client?.whois(nick);
@@ -406,7 +406,7 @@ export function createChatStore(ns = '') {
     // Classic-mIRC WHOIS: collect the reply but print it to the window it was run
     // from (printTo) as text lines instead of opening the panel. No profileUser set.
     whoisText(nick) {
-      if (!nick) return;
+      if (!nick || isPseudoBuffer(nick)) return;
       const s = get();
       set({ whois: { ...s.whois, [nick]: { nick, loading: true, printTo: s.active } } });
       s.client?.whois(nick);
@@ -414,7 +414,7 @@ export function createChatStore(ns = '') {
 
     // Re-query WITHOUT clearing the displayed data (no flash) — channels dedup via Set.
     refreshUser(nick) {
-      if (!nick) return;
+      if (!nick || isPseudoBuffer(nick)) return;
       const s = get();
       const cur = s.whois[nick];
       if (!cur) { s.openUser(nick); return; }

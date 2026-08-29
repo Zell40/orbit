@@ -176,7 +176,7 @@ export class Ircv3 {
   // names the keys explicitly, so it works regardless of what we're subscribed to
   // (SUB only streams FUTURE changes); the reply fills the card in.
   fetchMetadata(target: string): void {
-    if (!this.acked.has('draft/metadata-2') || !target) return;
+    if (!this.acked.has('draft/metadata-2') || !target || target.startsWith('$')) return;
     this.tx.send(`METADATA ${target} GET avatar bio pronouns timezone url`);
   }
   // MONITOR (online-notify): + add, - remove, L list, C clear.
@@ -186,7 +186,7 @@ export class Ircv3 {
   }
   // Reaction rides on TAGMSG (message-tags); without the cap the server rejects it.
   react(target: string, msgid: string, emoji: string): void {
-    if (!this.acked.has('message-tags')) return;
+    if (!this.acked.has('message-tags') || target.startsWith('$')) return;
     this.tx.send(`@+draft/reply=${msgid};+draft/react=${emoji} TAGMSG ${target}`);
   }
   redact(target: string, msgid: string, reason = ''): void {
@@ -194,11 +194,11 @@ export class Ircv3 {
     this.tx.send(`REDACT ${target} ${msgid}${reason ? ` :${reason}` : ''}`);
   }
   markRead(target: string, ts: string): void {
-    if (!this.acked.has('draft/read-marker')) return; // MARKREAD is unknown without the cap
+    if (!this.acked.has('draft/read-marker') || target.startsWith('$')) return;
     this.tx.send(`MARKREAD ${target} timestamp=${ts}`);
   }
   sendTyping(target: string, state: 'active' | 'done'): void {
-    if (!this.acked.has('message-tags')) return; // +typing rides on TAGMSG
+    if (!this.acked.has('message-tags') || target.startsWith('$')) return;
     this.tx.send(`@+typing=${state} TAGMSG ${target}`);
   }
   // draft/account-registration: create + confirm a network account. Gated at

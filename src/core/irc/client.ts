@@ -276,8 +276,14 @@ export class IrcClient {
     this.send(`MODE ${channel} ${add ? '+' : '-'}${mode}${param ? ` ${param}` : ''}`);
   }
   list(): void { this.send('LIST'); }
-  whois(nick: string): void { this.send(`WHOIS ${nick} ${nick}`); }
-  whowas(nick: string): void { this.send(`WHOWAS ${nick}`); }
+  whois(nick: string): void {
+    if (!nick || nick.startsWith('$')) return; // local buffers ($server, $notice:…)
+    this.send(`WHOIS ${nick} ${nick}`);
+  }
+  whowas(nick: string): void {
+    if (!nick || nick.startsWith('$')) return;
+    this.send(`WHOWAS ${nick}`);
+  }
   invite(nick: string, channel: string): void { this.send(`INVITE ${nick} ${channel}`); }
   names(channel: string): void { this.send(`NAMES ${channel}`); }
   // Remember the away message so draft/pre-away can re-apply it during the next

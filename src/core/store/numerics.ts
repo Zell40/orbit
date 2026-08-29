@@ -2,7 +2,7 @@ import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
-import { SERVER, canon, isChannelName } from './context';
+import { SERVER, canon, isChannelName, isPseudoBuffer } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -21,7 +21,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451']);
 
 function findWhois(table: ChatState['whois'], nick: string): ChatState['whois'][string] | undefined {
   if (!nick) return undefined;
@@ -315,11 +315,15 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         // Background 401 (WHOIS/MARKREAD/TAGMSG to an offline nick or the fake
         // $server console). Don't dump it into whatever channel is focused —
         // only a query with that nick (e.g. /msg to someone gone) is user-facing.
+        // Notice inboxes (`$notice:Nick`) are local buffers — never treat them as nicks.
+        if (isPseudoBuffer(nk)) return true;
         const warn = `⚠️ ${i18n.t('numerics.401', { nick: nk })}`;
         if (nk && get().buffers[canon(nk)]) sysLine(nk, warn, 'system');
         else serverLine(nk ? `${nk}: ${i18n.t('numerics.401', { nick: nk })}` : i18n.t('numerics.401'), 'info');
         return true;
       }
+      case '451': // ERR_NOTREGISTERED — command sent before 001 (plugin/handshake race)
+        return true;
       case '406': { // ERR_WASNOSUCHNICK — WHOWAS miss (nick never seen / no history)
         const nk = msg.params[1];
         const w = get().whois[nk];
