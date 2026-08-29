@@ -46,6 +46,7 @@ export function Composer() {
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [picker, setPicker] = useState(false);
   const [colors, setColors] = useState(false);
+  const [fmtMenu, setFmtMenu] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [empty, setEmpty] = useState(true);   // truly empty → show the placeholder hint
   const [blank, setBlank] = useState(true);   // whitespace-only → keep the send button disabled
@@ -166,6 +167,7 @@ export function Composer() {
     cyc.current = null;
     setAc(null);
     setPendingImage(null);
+    setFmtMenu(false);
     prevActive.current = active;
   }, [active, setDraft]);
 
@@ -459,21 +461,45 @@ export function Composer() {
             }
           }}
         />
-        {!readOnlyLog && (
-          <div className="composer__fmt">
-            <button className={`composer__fmtbtn ${fmt.b ? 'is-on' : ''}`} title={t('composer.bold')} aria-label={t('composer.bold')} aria-pressed={fmt.b}
-              onMouseDown={(e) => e.preventDefault()} onClick={() => exec('bold')}><b>G</b></button>
-            <button className={`composer__fmtbtn ${fmt.i ? 'is-on' : ''}`} title={t('composer.italic')} aria-label={t('composer.italic')} aria-pressed={fmt.i}
-              onMouseDown={(e) => e.preventDefault()} onClick={() => exec('italic')}><i>I</i></button>
-            <button className={`composer__fmtbtn ${fmt.u ? 'is-on' : ''}`} title={t('composer.underline')} aria-label={t('composer.underline')} aria-pressed={fmt.u}
-              onMouseDown={(e) => e.preventDefault()} onClick={() => exec('underline')}><u>S</u></button>
-            <button className={`composer__fmtbtn composer__fmtbtn--color ${colors ? 'is-on' : ''}`} title={t('composer.colorBtn')} aria-label={t('composer.colorBtn')}
-              onMouseDown={(e) => e.preventDefault()} onClick={() => setColors((c) => !c)}>🎨</button>
-          </div>
-        )}
+        {!readOnlyLog && (() => {
+          const fmtBtns = (
+            <>
+              <button className={`composer__fmtbtn ${fmt.b ? 'is-on' : ''}`} title={t('composer.bold')} aria-label={t('composer.bold')} aria-pressed={fmt.b}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => exec('bold')}><b>G</b></button>
+              <button className={`composer__fmtbtn ${fmt.i ? 'is-on' : ''}`} title={t('composer.italic')} aria-label={t('composer.italic')} aria-pressed={fmt.i}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => exec('italic')}><i>I</i></button>
+              <button className={`composer__fmtbtn ${fmt.u ? 'is-on' : ''}`} title={t('composer.underline')} aria-label={t('composer.underline')} aria-pressed={fmt.u}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => exec('underline')}><u>S</u></button>
+              <button className={`composer__fmtbtn composer__fmtbtn--color ${colors ? 'is-on' : ''}`} title={t('composer.colorBtn')} aria-label={t('composer.colorBtn')}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => setColors((c) => !c)}>🎨</button>
+            </>
+          );
+          const fmtOn = fmt.b || fmt.i || fmt.u || colors || fmtMenu;
+          if (narrow) {
+            return (
+              <>
+                <button type="button" className={`composer__fmt-toggle ${fmtOn ? 'is-on' : ''}`}
+                  title={t('composer.format')} aria-label={t('composer.format')} aria-expanded={fmtMenu}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { setFmtMenu((v) => !v); setColors(false); }}>
+                  <b>A</b>
+                </button>
+                {fmtMenu && (
+                  <>
+                    <div className="emoji-backdrop" onClick={() => { setFmtMenu(false); setColors(false); }} />
+                    <div className="composer__fmt composer__fmt--pop">{fmtBtns}</div>
+                  </>
+                )}
+              </>
+            );
+          }
+          return <div className="composer__fmt">{fmtBtns}</div>;
+        })()}
         {!readOnlyLog && pluginButtons.map((b) => <PluginBoundary key={b.id} render={b.render} label="composer_button" />)}
         {!readOnlyLog && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
-        <button className="composer__send" disabled={blank && !pendingImage} onClick={submit} aria-label={t('composer.send')}>{readOnlyLog ? '⏎' : '➤'}</button>
+        <button className="composer__send" disabled={blank && !pendingImage} onClick={submit} aria-label={t('composer.send')}>
+          {readOnlyLog ? '⏎' : <><span className="composer__send-txt">{t('composer.sendLong')}</span>➤</>}
+        </button>
       </div>
     </div>
   );

@@ -1303,8 +1303,10 @@ html[data-actions="off"] .msg-actions { display: none; }
 .composer__rich--console { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92rem; }
 .composer__send {
   flex: none; width: 38px; height: 38px; border: 0; border-radius: 10px; color: #fff; font-size: 1rem; background: var(--accent);
+  display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
   box-shadow: 0 6px 16px -6px rgba(20,82,204,.6); transition: background .14s, transform .12s, opacity .15s;
 }
+.composer__send-txt { display: none; }
 .composer__send:hover:not(:disabled) { background: var(--accent-d); transform: translateY(-1px); }
 .composer__send:disabled { opacity: .4; box-shadow: none; }
 
@@ -1852,7 +1854,19 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .composer__fmtbtn.is-on { background: var(--accent-soft); color: var(--accent-d); box-shadow: inset 0 0 0 1px var(--accent-ring, rgba(20,82,204,.3)); }
 .composer__fmtbtn--color { font-size: .95rem; }
 .composer__fmtbtn--color.is-on { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-ring, rgba(20,82,204,.3)); }
-.color-pop { position: absolute; bottom: 4.6rem; right: 1.5rem; z-index: 41; width: 200px;
+.composer__fmt-toggle {
+  display: none;
+  flex: none; width: 36px; height: 36px; border: 0; border-radius: 9px;
+  background: transparent; color: var(--muted); font: inherit; font-size: 1rem; cursor: pointer;
+}
+.composer__fmt-toggle:hover, .composer__fmt-toggle.is-on { background: var(--accent-soft); color: var(--accent-d); }
+.composer__fmt--pop {
+  position: absolute; bottom: calc(100% + .4rem); right: .45rem; z-index: 41;
+  margin: 0; padding: .3rem; border-right: 0;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow-pop, 0 10px 28px -12px rgba(15, 23, 42, .35));
+}
+.color-pop { position: absolute; bottom: 4.6rem; right: 1.5rem; z-index: 42; width: 200px;
   display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; padding: .55rem;
   background: var(--bg); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-pop); animation: rise .15s ease both; }
 .color-pop button { width: 100%; aspect-ratio: 1; border: 1px solid rgba(0,0,0,.18); border-radius: 6px; cursor: pointer; padding: 0;
@@ -2514,14 +2528,24 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .members__cols { padding-left: .65rem; padding-right: .65rem; }
   .actuline, .urlline, .topicline { margin-left: .7rem; margin-right: .7rem; }
 
-  /* Composer: the text field gets its own full-width row; the controls
-     (image / format / emoji / send) wrap onto the row below. Fixes the
-     placeholder being squished into a tall 5-line column. */
+  /* Composer: keep a single row (image / mic / text / format / send). The
+     field still grows vertically when the user types several lines. */
   .composer { padding: .3rem .5rem calc(.55rem + env(safe-area-inset-bottom)); }
-  .composer__box { flex-wrap: wrap; gap: .25rem; padding: .4rem .45rem; }
-  .composer__rich, .composer textarea { flex: 1 0 100%; order: -1; min-width: 0; max-height: 32vh; padding: .4rem .4rem .2rem; }
+  .composer__box { flex-wrap: nowrap; gap: .2rem; padding: .35rem .4rem; }
+  .composer__rich, .composer textarea {
+    flex: 1 1 auto; order: 0; min-width: 0; max-height: 32vh;
+    padding: .45rem .3rem; font-size: 16px;
+  }
   .composer__rich.is-empty { overflow: hidden; }
-  .composer__send { margin-left: auto; }
+  .composer__fmt-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .composer__send {
+    width: auto; min-width: 38px; padding: 0 .7rem; margin-left: 0;
+    font-size: .9rem;
+  }
+  .composer__send-txt {
+    display: inline; font-size: .72rem; font-weight: 800; letter-spacing: .01em;
+    max-width: 7.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   /* The device keyboard has its own emoji key on mobile — drop our picker. */
   .composer__emoji { display: none; }
 
