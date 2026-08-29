@@ -72,6 +72,11 @@ function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatStat
 // info → the server console), so nothing is ever dumped unlabelled.
 export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, profileCache }: NumericsDeps) {
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine, serverLine, patchWhois } = helpers;
+  // LIST: keep the previous catalogue on screen while a refresh is in flight
+  // (wiping it on 321 made Explore look empty/stuck). Live-append only when
+  // there was nothing to show yet.
+  let listAcc: { name: string; users: number; topic: string }[] | null = null;
+  let listLive = false;
 
   function handleNumerics(msg: IrcMessage): boolean {
     switch (msg.command) {
@@ -180,20 +185,30 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         }
         return true;
       }
-      case '321': // RPL_LISTSTART
-        set({ channels: [], listLoading: true });
+      case '321': { // RPL_LISTSTART
+        listAcc = [];
+        listLive = get().channels.length === 0;
+        set({ listLoading: true, ...(listLive ? { channels: [] } : {}) });
         return true;
+      }
       case '322': { // RPL_LIST: <me> <channel> <#users> :<topic>
         const name = msg.params[1];
         if (isChannelName(name)) {
           const entry = { name, users: Number(msg.params[2]) || 0, topic: (msg.params[3] || '').replace(/^\[\+[^\]]*\]\s*/, '') };
-          const cur = get().channels;
-          if (cur.length < 50000) set({ channels: [...cur, entry] }); // covers the largest real networks; caps a hostile stream
+          if (listAcc) {
+            if (listAcc.length < 50000) listAcc.push(entry);
+            if (listLive) set({ channels: listAcc.slice() });
+          } else {
+            const cur = get().channels;
+            if (cur.length < 50000) set({ channels: [...cur, entry] });
+          }
         }
         return true;
       }
       case '323': // RPL_LISTEND
-        set({ listLoading: false });
+        set({ channels: listAcc ?? get().channels, listLoading: false });
+        listAcc = null;
+        listLive = false;
         return true;
       case '900': // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
         set({ account: msg.params[2] || '' });

@@ -135,7 +135,6 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   // RoomRow reads its own buffer; channel-vs-DM is derived from the name.
   const order = useActiveChat((s) => s.order);
   const setModal = useActiveChat((s) => s.setModal);
-  const refreshChannels = useActiveChat((s) => s.refreshChannels);
   const showStatus = useActiveChat((s) => s.prefs.showStatus);
   const sidebarItems = usePluginRegistry((s) => s.ui);
   const [q, setQ] = useState('');
@@ -168,7 +167,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         <h2 className="side-title">{t('nav.home')}</h2>
         <button className="side-compose" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => setModal('join')}>✎</button>
         {/* mIRC toolbar: a channels-list button (the vertical Explore CTA is hidden in the switchbar). */}
-        {mirc && <button className="side-compose side-explore" title={t('nav.explore')} aria-label={t('nav.explore')} onClick={() => { refreshChannels(); setModal('explore'); }}>☰</button>}
+        {mirc && <button className="side-compose side-explore" title={t('nav.explore')} aria-label={t('nav.explore')} onClick={() => setModal('explore')}>☰</button>}
       </div>
 
       {getConfig().features.multiNetwork && <NetworkTabs />}
@@ -200,7 +199,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
         {/* Fill the space under a short list with a way to find more rooms. */}
         {showChannels && !q && (
-          <button className="room-discover" onClick={() => { refreshChannels(); setModal('explore'); }}>
+          <button className="room-discover" onClick={() => setModal('explore')}>
             <span>{t('nav.explore')}</span>
             <span className="room-discover__arrow" aria-hidden>→</span>
           </button>

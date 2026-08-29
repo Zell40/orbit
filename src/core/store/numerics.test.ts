@@ -92,6 +92,19 @@ describe('store numerics handler', () => {
     expect(state.listLoading).toBe(false);
   });
 
+  it('321 keeps an existing catalogue visible until 323', () => {
+    const prev = [{ name: '#old', users: 2, topic: 'x' }];
+    const { handleNumerics, state } = setup({ channels: prev });
+    handleNumerics(mk('321', ['me']));
+    expect(state.listLoading).toBe(true);
+    expect(state.channels).toEqual(prev);
+    handleNumerics(mk('322', ['me', '#new', '4', 'hi']));
+    expect(state.channels).toEqual(prev);
+    handleNumerics(mk('323', ['me']));
+    expect(state.channels).toEqual([{ name: '#new', users: 4, topic: 'hi' }]);
+    expect(state.listLoading).toBe(false);
+  });
+
   it('305 RPL_UNAWAY clears away and announces it', () => {
     const { handleNumerics, state, server } = setup({ away: true });
     expect(handleNumerics(mk('305', ['me']))).toBe(true);

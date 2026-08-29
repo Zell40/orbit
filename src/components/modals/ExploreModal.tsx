@@ -16,7 +16,9 @@ export function ExploreModal() {
   const [q, setQ] = useState('');
   const [sort, setSort] = useState<'pop' | 'az'>('pop');
 
-  useEffect(() => { refresh(); }, [refresh]);
+  // Keep a previous catalogue on screen. LIST is slow; only fetch when empty
+  // (first open). The refresh button still calls refresh() on demand.
+  useEffect(() => { if (!channels.length) refresh(); }, [refresh, channels.length]);
 
   const needle = q.trim().toLowerCase();
   const filtered = channels.filter((c) => !needle || c.name.toLowerCase().includes(needle) || c.topic.toLowerCase().includes(needle));

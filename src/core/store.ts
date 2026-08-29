@@ -705,7 +705,7 @@ export function createChatStore(ns = '') {
       sysLine(SERVER, i18n.t('system.reportFiled', { target: t }), 'system');
     },
     refreshChannels() {
-      set({ channels: [], listLoading: true });
+      set({ listLoading: true });
       get().client?.list();
     },
 
