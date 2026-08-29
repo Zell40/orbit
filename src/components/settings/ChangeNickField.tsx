@@ -8,6 +8,7 @@ export function ChangeNickField({ hint }: { hint: string }) {
   const { t } = useTranslation();
   const client = useActiveChat((s) => s.client);
   const nick = useActiveChat((s) => s.nick);
+  const nickError = useActiveChat((s) => s.nickError);
   const [newNick, setNewNick] = useState(nick);
   const [prevNick, setPrevNick] = useState(nick);
   if (nick !== prevNick) { setPrevNick(nick); setNewNick(nick); }
@@ -27,6 +28,7 @@ export function ChangeNickField({ hint }: { hint: string }) {
               onChange={(e) => setNewNick(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && applyNick()} />
             <button className="upbtn" onClick={applyNick} disabled={!newNick.trim() || newNick.trim() === nick}>{t('settings.account.changeBtn')}</button>
           </div>
+          {nickError && <div className="sfield__err" role="alert">{nickError.text}</div>}
           <div className="srow__hint" style={{ marginTop: '.3rem' }}>{hint}</div>
         </div>
       </div>

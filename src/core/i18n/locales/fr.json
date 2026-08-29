@@ -734,7 +734,7 @@
     "417": "Message trop long.",
     "421": "Commande inconnue.",
     "432": "Pseudo invalide.",
-    "433": "Ce pseudo est déjà utilisé.",
+    "433": "Le pseudo « {{nick}} » est déjà utilisé.",
     "441": "Cet utilisateur n’est pas sur le salon.",
     "442": "Tu n’es pas sur ce salon.",
     "443": "Cet utilisateur est déjà sur le salon.",

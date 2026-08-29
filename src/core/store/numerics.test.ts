@@ -48,6 +48,13 @@ function setup(over: Record<string, unknown> = {}) {
 }
 
 describe('store numerics handler', () => {
+  it('433 ERR_NICKNAMEINUSE sets nickError and a Status line', () => {
+    const { handleNumerics, state, sys } = setup({ nickError: null });
+    expect(handleNumerics(mk('433', ['me', 'Harry', 'Nickname is already in use']))).toBe(true);
+    expect(state.nickError).toMatchObject({ nick: 'Harry', code: '433' });
+    expect(sys.some((l) => l.text.includes('⚠️'))).toBe(true);
+  });
+
   it('900 RPL_LOGGEDIN sets the account', () => {
     const { handleNumerics, state } = setup();
     expect(handleNumerics(mk('900', ['me', 'nick!u@h', 'bob']))).toBe(true);

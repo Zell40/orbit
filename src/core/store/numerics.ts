@@ -21,7 +21,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433']);
 
 function findWhois(table: ChatState['whois'], nick: string): ChatState['whois'][string] | undefined {
   if (!nick) return undefined;
@@ -387,6 +387,16 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '422': // ERR_NOMOTD
         serverLine(msg.params[1] || 'No MOTD', 'motd');
         return true;
+      case '432': // ERR_ERRONEUSNICKNAME
+      case '433': { // ERR_NICKNAMEINUSE — post-handshake NICK (settings / status menu)
+        const wanted = msg.params[1] || '';
+        const serverText = msg.params.length > 2 ? msg.params[msg.params.length - 1] : '';
+        const text = (i18n.t(`numerics.${msg.command}`, { nick: wanted }) as string) || serverText;
+        set({ nickError: { nick: wanted, code: msg.command, text } });
+        sysLine(SERVER, `⚠️ ${text}`, 'system');
+        if (get().prefs.sound) blip();
+        return true;
+      }
     }
 
     // Every remaining numeric is recognised (see irc/numerics.ts) and routed:

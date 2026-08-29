@@ -101,6 +101,7 @@ export interface ChatState {
   cban: { channel: string; reason: string } | null; // CBANed-join details for the cban window
   kicked: KickInfo | null; // last time we got kicked — drives the dismissible toast
   nickServAlert: ServiceAlert | null; // incoming NickServ notice — centered popup
+  nickError: { nick: string; code: string; text: string } | null; // 432/433 after a NICK attempt
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
 
   connect: (opts: ConnectOptions) => void;
@@ -217,6 +218,7 @@ export function createChatStore(ns = '') {
     cban: null,
     kicked: null,
     nickServAlert: null,
+    nickError: null,
 
     connect(opts) {
       // Retrying after a failed/closed attempt re-enters connect() on the same

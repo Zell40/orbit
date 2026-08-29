@@ -734,7 +734,7 @@
     "417": "Message too long.",
     "421": "Unknown command.",
     "432": "Invalid nickname.",
-    "433": "That nickname is already in use.",
+    "433": "The nickname “{{nick}}” is already in use.",
     "441": "That user is not in the channel.",
     "442": "You’re not in this channel.",
     "443": "That user is already in the channel.",

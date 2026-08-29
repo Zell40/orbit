@@ -109,7 +109,7 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
       }
       case 'NICK': {
         const nn = msg.params[0];
-        if (msg.nick === me) set({ nick: nn });
+        if (msg.nick === me) set({ nick: nn, nickError: null });
         const s = get();
         for (const name of s.order) {
           const b = s.buffers[name];

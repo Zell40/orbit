@@ -440,6 +440,8 @@ input, textarea { font-family: inherit; }
 .statusmenu__opt--link { color: var(--muted); font-size: .82rem; }
 .statusmenu__sep { height: 1px; background: var(--border); margin: .25rem .3rem; }
 .statusmenu__reason { display: flex; gap: .35rem; padding: .15rem .3rem .35rem; }
+.statusmenu__reason-col { display: flex; flex-direction: column; }
+.statusmenu__err { margin: 0 .35rem .4rem; font-size: .75rem; font-weight: 650; color: var(--danger, #dc2626); line-height: 1.3; }
 .statusmenu__input { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
   padding: .4rem .55rem; font: inherit; font-size: .85rem; color: var(--ink); }
 .statusmenu__input:focus { outline: none; border-color: var(--accent); }
@@ -1598,6 +1600,7 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .srow__txt { flex: 1; min-width: 0; }
 .srow__label { font-size: .94rem; font-weight: 700; color: var(--ink); }
 .srow__hint { font-size: .78rem; color: var(--muted); margin-top: .12rem; line-height: 1.35; }
+.sfield__err { margin-top: .15rem; font-size: .82rem; font-weight: 650; color: var(--danger, #dc2626); line-height: 1.35; }
 .srow__ctrl { flex: none; display: flex; align-items: center; gap: .4rem; }
 
 /* stacked field (text inputs) */

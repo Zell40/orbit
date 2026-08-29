@@ -115,6 +115,17 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
       case '320': // RPL_WHOISSPECIAL: free-form extra whois line
         patchWhois(msg.params[1], (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), msg.params[2]] }));
         return true;
+      case '344': // RPL_WHOISCOUNTRY (InspIRCd / Unreal geo)
+      case '345': { // RPL_WHOISASN
+        const who = msg.params[1];
+        if (!who) return false;
+        const extra = msg.params.length > 2 ? msg.params[msg.params.length - 1] : '';
+        const inflight = get().whois[who]
+          || Object.values(get().whois).find((w) => canon(w.nick) === canon(who));
+        if (!inflight) return false;
+        patchWhois(inflight.nick, (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), extra] }));
+        return true;
+      }
       case '379': // RPL_WHOISMODES: <me> <nick> :is using modes <modes>
         patchWhois(msg.params[1], (w) => ({ ...w, modes: (msg.params[2] || '').replace(/^.*modes\s*/i, '') }));
         return true;

@@ -11,9 +11,11 @@ export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away
   const openUser = useActiveChat((s) => s.openUser);
   const client = useActiveChat((s) => s.client);
   const account = useActiveChat((s) => s.account);
+  const nickError = useActiveChat((s) => s.nickError);
   const [editing, setEditing] = useState<'away' | 'nick' | null>(null);
   const [reason, setReason] = useState(t('sidebar.awayDefault'));
   const [newNick, setNewNick] = useState(nick);
+  const pendingNick = useRef('');
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ left: anchor.left, top: anchor.top });
 
@@ -28,7 +30,11 @@ export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away
     if (left < 8) left = 8;
     if (top < 8) top = anchor.bottom + 8;
     setPos({ left, top });
-  }, [anchor, editing]);
+  }, [anchor, editing, nickError]);
+
+  useEffect(() => {
+    if (pendingNick.current && nick === pendingNick.current) onClose();
+  }, [nick, onClose]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.statusmenu, .appbar__me')) onClose(); };
@@ -42,8 +48,10 @@ export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away
   const confirmAway = () => { setAway(reason.trim() || t('sidebar.awayDefault')); onClose(); };
   const applyNick = () => {
     const n = newNick.trim();
-    if (n && n !== nick) client?.setNick(n);
-    onClose();
+    if (n && n !== nick) {
+      pendingNick.current = n;
+      client?.setNick(n);
+    }
   };
 
   return (
@@ -74,14 +82,17 @@ export function StatusMenu({ nick, away, anchor, onClose }: { nick: string; away
             {t('sidebar.changeNick')}
           </button>
           {editing === 'nick' && (
-            <div className="statusmenu__reason">
-              <input className="statusmenu__input" value={newNick} maxLength={client?.server.nicklen ?? 30} autoFocus
-                aria-label={t('sidebar.changeNick')}
-                onChange={(e) => setNewNick(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') applyNick(); }} />
-              <button className="statusmenu__set" onClick={applyNick} disabled={!newNick.trim() || newNick.trim() === nick}>
-                {t('settings.account.changeBtn')}
-              </button>
+            <div className="statusmenu__reason-col">
+              <div className="statusmenu__reason">
+                <input className="statusmenu__input" value={newNick} maxLength={client?.server.nicklen ?? 30} autoFocus
+                  aria-label={t('sidebar.changeNick')}
+                  onChange={(e) => setNewNick(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') applyNick(); }} />
+                <button className="statusmenu__set" onClick={applyNick} disabled={!newNick.trim() || newNick.trim() === nick}>
+                  {t('settings.account.changeBtn')}
+                </button>
+              </div>
+              {nickError && <div className="statusmenu__err" role="alert">{nickError.text}</div>}
             </div>
           )}
         </>

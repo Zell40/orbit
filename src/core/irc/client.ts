@@ -131,9 +131,11 @@ export class IrcClient {
       case 'CAP':          // CAP negotiation
       case 'AUTHENTICATE': // SASL
       case '903': case '904': case '905': case '906': case '907': // SASL result
-      case '433': case '432': // nick in use / erroneous
-        this.registration.handle(msg); // consumed by the handshake, not forwarded
-        return;
+      case '433': case '432': // nick in use / erroneous — handshake retries while
+        // unregistered; once connected, forward so the UI can show the failure.
+        this.registration.handle(msg);
+        if (!this.registered) return;
+        break;
       case '005': this.server.applyISupport(msg); break; // RPL_ISUPPORT
       case '004': this.server.applyMyInfo(msg); break;   // RPL_MYINFO
       case '002': this.server.applyYourHost(msg); break; // RPL_YOURHOST (version fallback)
