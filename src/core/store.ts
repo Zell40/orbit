@@ -16,6 +16,7 @@ import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
 import { setExpectedBootChannels } from '../lib/boot-ready';
+import { closeMobileNav } from '../lib/mobile-nav';
 
 
 
@@ -584,6 +585,9 @@ export function createChatStore(ns = '') {
       }
       patchBuffer(key, (b) => ({ ...b, unread: 0, highlight: false }));
       set({ active: key });
+      // Phone: hide the left drawer so the conversation is on screen (Explore /
+      // gallery join never went through a sidebar row, so they used to leave it open).
+      closeMobileNav();
     },
     markAllRead() {
       const s = get();

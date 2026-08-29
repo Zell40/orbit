@@ -13,6 +13,7 @@ import { usePluginRegistry } from '../modules/registry';
 import { PluginBoundary } from './PluginBoundary';
 import { FriendsPanel } from './chat/FriendsPanel';
 import { useActiveChat } from '@/core/networks';
+import { bindMobileNavClose } from '@/lib/mobile-nav';
 
 export function Chat() {
   const { t } = useTranslation();
@@ -41,6 +42,7 @@ export function Chat() {
     && !(hideVisual && visualPlugins.has(u.plugin)));
   // Stable so the memoized room rows aren't invalidated on every render.
   const closeNav = useCallback(() => setNavOpen(false), []);
+  useEffect(() => bindMobileNavClose(closeNav), [closeNav]);
   // PMs / server console have no member list — drop the empty side column.
   useEffect(() => {
     if (!isChannel) setMembersOpen(false);
