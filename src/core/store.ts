@@ -289,6 +289,10 @@ export function createChatStore(ns = '') {
         connectUrl: opts.url,
         viaBouncer: !!opts.serverPassword,
       });
+      // Land on the first requested salon. The ircd auto-joins #EntreNous.chat
+      // on connect; without this, that JOIN would steal the active buffer.
+      const landOn = (opts.channels ?? []).map((c) => c.trim()).find(Boolean);
+      if (landOn) get().setActive(landOn);
       client.on('status', (st) => {
         set({ status: st, nick: client.nick });
         // Once we leave 'connecting' (registered, or an auth/connection failure),

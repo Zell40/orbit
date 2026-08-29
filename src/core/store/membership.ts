@@ -8,6 +8,7 @@ import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import { hostmask } from './text';
 import { SERVER, canon, isChannelName, inQuietBatch } from './context';
+import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import type { IrcMessage } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -34,7 +35,14 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
         ensureBuffer(ch);
         if (msg.nick === me) {
           patchBuffer(ch, (b) => ({ ...b, joined: true }));
-          if (!isChannelName(get().active) || get().active === '') get().setActive(ch);
+          const want = (getExpectedBootChannels()[0] || '').trim();
+          if (want) {
+            // First URL/startup channel is the one to display. Ignore the
+            // network autojoin (#EntreNous.chat) so it doesn't steal focus.
+            if (normChan(ch) === normChan(want)) get().setActive(ch);
+          } else if (!isChannelName(get().active) || get().active === '') {
+            get().setActive(ch);
+          }
           // Pull full history (messages + JOIN/PART/KICK/MODE/TOPIC events via event-playback)
           // from m_ircv3_chathistory — the +H auto-replay only carries messages. Deduped by id.
           const cl = get().client;

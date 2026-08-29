@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { makeMembership } from './membership';
 import { parseLine } from '../irc/parser';
+import { setExpectedBootChannels } from '../../lib/boot-ready';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
 
@@ -47,6 +48,8 @@ function setup() {
   const on = (line: string) => handleMembership(parseLine(line), state.nick);
   return { on, state, lines, closedChannels, seed, k };
 }
+
+afterEach(() => setExpectedBootChannels([]));
 
 describe('membership handler', () => {
   it('JOIN adds the member (with extended-join account/realname)', () => {
@@ -125,5 +128,14 @@ describe('membership handler', () => {
   it('returns false for a non-membership command', () => {
     const { on } = setup();
     expect(on(':bob!u@h PRIVMSG #x :hi')).toBe(false);
+  });
+
+  it('lands on the first requested salon, not the network autojoin', () => {
+    const { on, state } = setup();
+    setExpectedBootChannels(['#Baccalaureat.chat', '#EntreNous.chat']);
+    on(':me!u@h JOIN #EntreNous.chat');
+    expect(state.active).toBe('');
+    on(':me!u@h JOIN #Baccalaureat.chat');
+    expect(state.active).toBe('#Baccalaureat.chat');
   });
 });
