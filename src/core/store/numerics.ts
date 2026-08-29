@@ -388,12 +388,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         serverLine(msg.params[1] || 'No MOTD', 'motd');
         return true;
       case '432': // ERR_ERRONEUSNICKNAME
-      case '433': { // ERR_NICKNAMEINUSE — post-handshake NICK (settings / status menu)
+      case '433': { // ERR_NICKNAMEINUSE — post-handshake NICK (/nick, settings, status menu)
         const wanted = msg.params[1] || '';
         const serverText = msg.params.length > 2 ? msg.params[msg.params.length - 1] : '';
         const text = (i18n.t(`numerics.${msg.command}`, { nick: wanted }) as string) || serverText;
         set({ nickError: { nick: wanted, code: msg.command, text } });
-        sysLine(SERVER, `⚠️ ${text}`, 'system');
+        sysLine(get().active || SERVER, `⚠️ ${text}`, 'system');
         if (get().prefs.sound) blip();
         return true;
       }
