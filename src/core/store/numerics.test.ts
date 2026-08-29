@@ -17,7 +17,7 @@ function setup(over: Record<string, unknown> = {}) {
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
     buffers: {}, banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
     prefs: { sound: false }, whois,
-    profileUser: '',
+    profileUser: '', nickError: null as { nick: string; code: string; text: string } | null,
     ...over,
   };
   const get = () => state as unknown as ChatState;
