@@ -2,7 +2,7 @@ import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
-import { SERVER, canon, isChannelName, isPseudoBuffer } from './context';
+import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -331,13 +331,19 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         // $server console). Don't dump it into whatever channel is focused —
         // only a query with that nick (e.g. /msg to someone gone) is user-facing.
         // Notice inboxes (`$notice:Nick`) are local buffers — never treat them as nicks.
-        if (isPseudoBuffer(nk)) return true;
+        // ZNC module nicks (*status, *sasl) are phantoms — MARKREAD/WHOIS 401 is noise.
+        if (isPseudoBuffer(nk) || isBouncerServiceNick(nk)) return true;
         const warn = `⚠️ ${i18n.t('numerics.401', { nick: nk })}`;
         if (nk && get().buffers[canon(nk)]) sysLine(nk, warn, 'system');
         else serverLine(nk ? `${nk}: ${i18n.t('numerics.401', { nick: nk })}` : i18n.t('numerics.401'), 'info');
         return true;
       }
       case '451': // ERR_NOTREGISTERED — command sent before 001 (plugin/handshake race)
+        return true;
+      case '502': // ERR_USERSDONTMATCH — "Can't change mode for other users"
+        // Orbit queries `MODE <nick>` after 001; via ZNC the local nick often
+        // differs from the ircd nick, so this lands in the focused salon as
+        // the untranslated key `numerics.502`. Swallow it — not user-facing.
         return true;
       case '406': { // ERR_WASNOSUCHNICK — WHOWAS miss (nick never seen / no history)
         const nk = msg.params[1];
@@ -423,9 +429,11 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       const serverText = msg.params.length > 1 ? msg.params[msg.params.length - 1] : '';
       if (numerics?.isError(code)) {
         const ctx = msg.params[1];
-        const dest = ctx && isChannelName(ctx) && get().buffers[canon(ctx)] ? ctx
-          : isChannelName(get().active) ? get().active : SERVER;
-        sysLine(dest, `⚠️ ${i18n.t(`numerics.${code}`, '') || serverText}`, 'system');
+        // Only pin an error on a channel when the numeric names that channel.
+        // Otherwise it used to dump into whatever salon was focused (502 via ZNC).
+        const dest = ctx && isChannelName(ctx) && get().buffers[canon(ctx)] ? ctx : SERVER;
+        const text = i18n.t(`numerics.${code}`, { defaultValue: '' }) || serverText || code;
+        sysLine(dest, `⚠️ ${text}`, 'system');
         if (get().prefs.sound) blip();
         return true;
       }

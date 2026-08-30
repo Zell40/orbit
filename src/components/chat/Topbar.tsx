@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SERVER, isNoticeBuffer, noticeBufferNick } from '@/core/store';
+import { SERVER, isNoticeBuffer, noticeBufferNick, isBouncerServiceNick } from '@/core/store';
 import { avatarBg } from '@/lib/format';
 import { NotifyMenu } from './NotifyMenu';
 import { PinMenu } from './PinMenu';
@@ -124,7 +124,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {isChannel && <PinMenu />}
       {isChannel && amOp && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
-      {!isServer && !isNotices && !isChannel && bname && (
+      {!isServer && !isNotices && !isChannel && bname && !isBouncerServiceNick(bname) && (
         <button className="topbar__search" title={t('topbar.userInfo', { nick: label })}
           aria-label={t('topbar.userInfo', { nick: label })} onClick={() => openUser(bname)}>
           <Icon name="user" size={19} />

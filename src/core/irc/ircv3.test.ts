@@ -131,6 +131,16 @@ describe('Ircv3 cap-gated commands', () => {
     expect(sent).toHaveLength(0);
   });
 
+  it('skips MARKREAD, METADATA and TAGMSG to ZNC module nicks', () => {
+    const { ircv3, sent, cap } = make();
+    cap('CAP * ACK :draft/read-marker draft/metadata-2 message-tags');
+    ircv3.markRead('*status', '2020-01-01T00:00:00Z');
+    ircv3.fetchMetadata('*status');
+    ircv3.sendTyping('*status', 'active');
+    ircv3.react('*status', 'abc', '\u{1F600}');
+    expect(sent).toHaveLength(0);
+  });
+
   it('skips typing and reactions without message-tags', () => {
     const { ircv3, sent } = make();
     ircv3.sendTyping('#x', 'active');

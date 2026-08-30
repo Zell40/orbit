@@ -7,8 +7,8 @@ import type { Buffer, ConnectOptions, WhoisInfo, MessageKind } from './irc/types
 import { getConfig } from './config';
 import { resolveConnectUsername } from './irc/ident';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
-import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer } from './store/context';
-export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName } from './store/context';
+import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick } from './store/context';
+export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { makeHelpers } from './store/helpers';
 import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';
@@ -313,8 +313,10 @@ export function createChatStore(ns = '') {
           set({ reconnectIn: 0, serverError: '', everRegistered: true, friendsOnline: {} });
           // Ask the server for our current user modes (RPL_UMODEIS/221) so the
           // Status title can show them mIRC-style, even if the ircd didn't
-          // volunteer an initial MODE line.
-          client.queryUserModes();
+          // volunteer an initial MODE line. Skip via bouncer: ZNC's local nick
+          // often differs from the ircd nick (`Harry` vs `Harry[bnc]`) and MODE
+          // then comes back as 502 ERR_USERSDONTMATCH in the focused channel.
+          if (!get().viaBouncer) client.queryUserModes();
           // Bouncer sessions skip SASL: learn the already-identified NickServ account.
           if (!get().account) client.whois(client.nick);
           // Watch our friends via MONITOR (server pushes 730/731 on presence change).
@@ -403,7 +405,7 @@ export function createChatStore(ns = '') {
     },
 
     openUser(nick) {
-      if (!nick || isPseudoBuffer(nick)) return;
+      if (!nick || isPseudoBuffer(nick) || isBouncerServiceNick(nick)) return;
       const s = get();
       set({ profileUser: nick, whois: { ...s.whois, [nick]: { nick, loading: true } } });
       s.client?.whois(nick);
@@ -413,7 +415,7 @@ export function createChatStore(ns = '') {
     // Classic-mIRC WHOIS: collect the reply but print it to the window it was run
     // from (printTo) as text lines instead of opening the panel. No profileUser set.
     whoisText(nick) {
-      if (!nick || isPseudoBuffer(nick)) return;
+      if (!nick || isPseudoBuffer(nick) || isBouncerServiceNick(nick)) return;
       const s = get();
       set({ whois: { ...s.whois, [nick]: { nick, loading: true, printTo: s.active } } });
       s.client?.whois(nick);
@@ -421,7 +423,7 @@ export function createChatStore(ns = '') {
 
     // Re-query WITHOUT clearing the displayed data (no flash) — channels dedup via Set.
     refreshUser(nick) {
-      if (!nick || isPseudoBuffer(nick)) return;
+      if (!nick || isPseudoBuffer(nick) || isBouncerServiceNick(nick)) return;
       const s = get();
       const cur = s.whois[nick];
       if (!cur) { s.openUser(nick); return; }
@@ -456,7 +458,7 @@ export function createChatStore(ns = '') {
       if (!client || !buf || !client.ircv3.hasCap('draft/chathistory')) return;
       // A channel we've parted is no longer a valid CHATHISTORY target — the server
       // would answer FAIL INVALID_TARGET, so don't ask.
-      if (isPseudoBuffer(key) || (isChannelName(buf.name) && !buf.joined)) return;
+      if (isPseudoBuffer(key) || isBouncerServiceNick(key) || (isChannelName(buf.name) && !buf.joined)) return;
       // anchor on the oldest real message currently shown
       const oldest = buf.messages.find((m) => m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice');
       if (!oldest) return;
@@ -573,7 +575,7 @@ export function createChatStore(ns = '') {
       // Mark the buffer we're leaving as read (advances its read-marker).
       // Never MARKREAD the fake $server console — the ircd treats it as a nick
       // and replies 401, which used to land in the channel you just joined.
-      if (prev && prev !== key && !isPseudoBuffer(prev)) {
+      if (prev && prev !== key && !isPseudoBuffer(prev) && !isBouncerServiceNick(prev)) {
         const pb = get().buffers[prev];
         if (pb && pb.messages.length) {
           const latest = pb.messages[pb.messages.length - 1].ts;
@@ -593,7 +595,7 @@ export function createChatStore(ns = '') {
       const s = get();
       // Advance the server-side read marker for every buffer with new messages…
       for (const name of s.order) {
-        if (isPseudoBuffer(name)) continue;
+        if (isPseudoBuffer(name) || isBouncerServiceNick(name)) continue;
         const b = s.buffers[name];
         if (b?.messages.length) {
           const latest = b.messages[b.messages.length - 1].ts;
@@ -617,7 +619,7 @@ export function createChatStore(ns = '') {
     markReadHere() {
       const s = get();
       const key = s.active;
-      if (isPseudoBuffer(key)) return;
+      if (isPseudoBuffer(key) || isBouncerServiceNick(key)) return;
       const b = s.buffers[key];
       if (!b || !b.messages.length) return;
       const latest = b.messages[b.messages.length - 1].ts;

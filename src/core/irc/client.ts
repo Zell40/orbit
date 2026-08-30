@@ -279,11 +279,12 @@ export class IrcClient {
   }
   list(): void { this.send('LIST'); }
   whois(nick: string): void {
-    if (!nick || nick.startsWith('$')) return; // local buffers ($server, $notice:…)
+    // Local buffers ($server, $notice:…) and ZNC module nicks (*status, *sasl).
+    if (!nick || nick.startsWith('$') || nick.startsWith('*')) return;
     this.send(`WHOIS ${nick} ${nick}`);
   }
   whowas(nick: string): void {
-    if (!nick || nick.startsWith('$')) return;
+    if (!nick || nick.startsWith('$') || nick.startsWith('*')) return;
     this.send(`WHOWAS ${nick}`);
   }
   invite(nick: string, channel: string): void { this.send(`INVITE ${nick} ${channel}`); }

@@ -23,6 +23,11 @@ export interface Ircv3Transport {
   isupport(): Record<string, string>;
 }
 
+/** Local Orbit buffers ($…) and ZNC module nicks (*status) are not ircd users. */
+function skipIrcdTarget(target: string): boolean {
+  return !target || target.startsWith('$') || target.startsWith('*');
+}
+
 // What the client should do in response to a CAP line. The negotiation *logic*
 // lives here (pure + testable); the client performs the actual I/O so the
 // registration/SASL ordering stays in one place.
@@ -159,11 +164,13 @@ export class Ircv3 {
 
   // draft/chathistory — load up to `limit` messages older than the given ISO time.
   chathistoryBefore(target: string, beforeIso: string, limit: number): void {
+    if (skipIrcdTarget(target)) return;
     this.tx.send(`CHATHISTORY BEFORE ${target} timestamp=${beforeIso} ${limit}`);
   }
   // draft/chathistory — most recent `limit` items (messages + events w/ event-playback).
   // Low priority: prefetched on join for every channel, must not block typing.
   chathistoryLatest(target: string, limit: number): void {
+    if (skipIrcdTarget(target)) return;
     this.tx.lowSend(`CHATHISTORY LATEST ${target} * ${limit}`);
   }
   // draft/metadata-2 — subscribe to the account-profile keys the network publishes
@@ -176,7 +183,7 @@ export class Ircv3 {
   // names the keys explicitly, so it works regardless of what we're subscribed to
   // (SUB only streams FUTURE changes); the reply fills the card in.
   fetchMetadata(target: string): void {
-    if (!this.acked.has('draft/metadata-2') || !target || target.startsWith('$')) return;
+    if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return;
     this.tx.send(`METADATA ${target} GET avatar bio pronouns timezone url`);
   }
   // MONITOR (online-notify): + add, - remove, L list, C clear.
@@ -186,7 +193,7 @@ export class Ircv3 {
   }
   // Reaction rides on TAGMSG (message-tags); without the cap the server rejects it.
   react(target: string, msgid: string, emoji: string): void {
-    if (!this.acked.has('message-tags') || target.startsWith('$')) return;
+    if (!this.acked.has('message-tags') || skipIrcdTarget(target)) return;
     this.tx.send(`@+draft/reply=${msgid};+draft/react=${emoji} TAGMSG ${target}`);
   }
   redact(target: string, msgid: string, reason = ''): void {
@@ -194,11 +201,11 @@ export class Ircv3 {
     this.tx.send(`REDACT ${target} ${msgid}${reason ? ` :${reason}` : ''}`);
   }
   markRead(target: string, ts: string): void {
-    if (!this.acked.has('draft/read-marker') || target.startsWith('$')) return;
+    if (!this.acked.has('draft/read-marker') || skipIrcdTarget(target)) return;
     this.tx.send(`MARKREAD ${target} timestamp=${ts}`);
   }
   sendTyping(target: string, state: 'active' | 'done'): void {
-    if (!this.acked.has('message-tags') || target.startsWith('$')) return;
+    if (!this.acked.has('message-tags') || skipIrcdTarget(target)) return;
     this.tx.send(`@+typing=${state} TAGMSG ${target}`);
   }
   // draft/account-registration: create + confirm a network account. Gated at

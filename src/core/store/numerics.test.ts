@@ -174,6 +174,36 @@ describe('store numerics handler', () => {
     expect(server).toHaveLength(0);
   });
 
+  it('401 for ZNC *status is swallowed even with an open query', () => {
+    const { handleNumerics, sys, server } = setup({
+      active: '*status',
+      buffers: { '*status': { name: '*status' } },
+    });
+    expect(handleNumerics(mk('401', ['me', '*status', 'No such nick']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(server).toHaveLength(0);
+  });
+
+  it('502 ERR_USERSDONTMATCH is swallowed (ZNC nick vs MODE self)', () => {
+    const { handleNumerics, sys, server } = setup({
+      active: '#x',
+      buffers: { '#x': { name: '#x' } },
+    });
+    expect(handleNumerics(mk('502', ['Harry[bnc]', "Can't change mode for other users"]))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(server).toHaveLength(0);
+  });
+
+  it('generic error numeric without a channel target stays on the server console', () => {
+    const { handleNumerics, sys } = setup({
+      active: '#x',
+      buffers: { '#x': { name: '#x' } },
+    });
+    expect(handleNumerics(mk('481', ['me', "Permission Denied"]))).toBe(true);
+    expect(sys.some((l) => l.name === '#x')).toBe(false);
+    expect(sys.some((l) => l.name === '$server' && l.text.includes('⚠️'))).toBe(true);
+  });
+
   it('451 ERR_NOTREGISTERED is swallowed (handshake race)', () => {
     const { handleNumerics, sys, server } = setup({ active: '$server', status: 'connecting' });
     expect(handleNumerics(mk('451', ['*', 'WHOIS', 'You have not registered']))).toBe(true);

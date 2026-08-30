@@ -26,6 +26,11 @@ export function isPseudoBuffer(name: string): boolean {
   return name === SERVER || isNoticeBuffer(name);
 }
 
+/** ZNC (and similar) module nicks: *status, *sasl, *cert. Not real ircd users. */
+export function isBouncerServiceNick(name: string): boolean {
+  return !!name && name.startsWith('*');
+}
+
 let localId = 0; // globally-unique local id source (shared across networks is fine)
 export const newId = () => `local-${Date.now()}-${localId++}`;
 

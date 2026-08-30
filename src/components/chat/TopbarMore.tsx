@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../Icon';
+import { isBouncerServiceNick } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
@@ -50,7 +51,7 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, onSearch }:
               <PluginBoundary render={u.render} label="topbar_more_item" />
             </div>
           ))}
-          {!isChannel && !isNotices && (
+          {!isChannel && !isNotices && !isBouncerServiceNick(bname) && (
             <button className="nmenu__item" role="menuitem" onClick={() => run(() => openUser(bname))}>
               <span className="nmenu__ic" aria-hidden><Icon name="user" size={18} /></span>
               <span className="nmenu__txt"><b>{t('topbar.userInfo', { nick: bname })}</b></span>
