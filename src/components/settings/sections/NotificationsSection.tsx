@@ -33,6 +33,7 @@ function AnalyticsRow() {
 function PushRow() {
   const { t } = useTranslation();
   const client = useActiveChat((s) => s.client);
+  const account = useActiveChat((s) => s.account);
   const supported = isPushSupported();
   const [on, setOn] = useState(pushEnabledPref());
   const [busy, setBusy] = useState(false);
@@ -43,18 +44,24 @@ function PushRow() {
     if (!client || busy) return;
     setBusy(true); setErr('');
     if (on) {
-      await disablePush(client);
+      await disablePush(client, account);
       setOn(false);
     } else {
-      const r = await enablePush(client);
+      const r = await enablePush(client, account);
       if (r.ok) setOn(true);
-      else setErr(r.reason === 'denied' ? t('settings.notifications.pushDenied') : r.reason === 'no-vapid' ? t('settings.notifications.pushUnavailable') : t('settings.notifications.pushFailed'));
+      else setErr(
+        r.reason === 'denied' ? t('settings.notifications.pushDenied')
+        : r.reason === 'no-vapid' ? t('settings.notifications.pushUnavailable')
+        : r.reason === 'no-account' ? t('settings.notifications.pushNeedAccount')
+        : t('settings.notifications.pushFailed'),
+      );
     }
     setBusy(false);
   }
 
   const hint = !supported ? t('settings.notifications.pushUnsupported')
     : !hasVapid ? t('settings.notifications.pushUnavailable')
+    : !account ? t('settings.notifications.pushNeedAccount')
     : err ? err
     : on ? t('settings.notifications.pushActive')
     : t('settings.notifications.pushHint');
@@ -68,7 +75,7 @@ function PushRow() {
       </div>
       {supported && hasVapid
         ? <button className={`switch ${on ? 'is-on' : ''} ${busy ? 'is-busy' : ''}`} role="switch" aria-checked={on}
-            aria-label={t('settings.notifications.pushLabel')} disabled={busy} onClick={toggle}><span className="switch__dot" /></button>
+            aria-label={t('settings.notifications.pushLabel')} disabled={busy || !account} onClick={toggle}><span className="switch__dot" /></button>
         : <span className="srow__hint">—</span>}
     </div>
   );
@@ -107,7 +114,12 @@ export function NotificationsSection() {
           <span className="srow__ic" aria-hidden>🔔</span>
           <div className="srow__txt">
             <div className="srow__label">{t('settings.notifications.browserLabel')}</div>
-            <div className="srow__hint">{notif === 'granted' ? t('settings.notifications.browserGranted') : notif === 'denied' ? t('settings.notifications.browserDenied') : t('settings.notifications.browserDefault')}</div>
+            <div className="srow__hint">{
+              notif === 'granted'
+                ? (pushEnabledPref() ? t('settings.notifications.browserSuperseded') : t('settings.notifications.browserGranted'))
+                : notif === 'denied' ? t('settings.notifications.browserDenied')
+                : t('settings.notifications.browserDefault')
+            }</div>
           </div>
           <div className="srow__ctrl">
             {notif === 'granted' ? <span className="sbadge-ok">✓ {t('settings.notifications.enabled')}</span>

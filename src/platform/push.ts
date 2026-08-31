@@ -61,15 +61,17 @@ async function getOrCreateSubscription(vapid: string): Promise<PushSubscription 
   });
 }
 
-function registerWithServer(client: IrcClient, sub: PushSubscription): void {
+function registerWithServer(client: IrcClient, sub: PushSubscription, account: string): void {
+  if (!account) return;
   const p256dh = bytesToUrlB64(sub.getKey('p256dh'));
   const auth = bytesToUrlB64(sub.getKey('auth'));
   if (!p256dh || !auth) return;
-  client.ircv3.webpushRegister(sub.endpoint, `p256dh=${p256dh};auth=${auth}`);
+  client.ircv3.webpushRegister(sub.endpoint, `p256dh=${p256dh};auth=${auth}`, account);
 }
 
 // Turn push on: ask permission, subscribe, hand the endpoint to the ircd.
-export async function enablePush(client: IrcClient): Promise<{ ok: boolean; reason?: string }> {
+export async function enablePush(client: IrcClient, account: string): Promise<{ ok: boolean; reason?: string }> {
+  if (!account) return { ok: false, reason: 'no-account' };
   if (!isPushSupported()) return { ok: false, reason: 'unsupported' };
   if (!client.server.vapid) return { ok: false, reason: 'no-vapid' };
   const perm = await Notification.requestPermission();
@@ -77,7 +79,7 @@ export async function enablePush(client: IrcClient): Promise<{ ok: boolean; reas
   try {
     const sub = await getOrCreateSubscription(client.server.vapid);
     if (!sub) return { ok: false, reason: 'no-subscription' };
-    registerWithServer(client, sub);
+    registerWithServer(client, sub, account);
     setPref(true);
     return { ok: true };
   } catch {
@@ -86,25 +88,26 @@ export async function enablePush(client: IrcClient): Promise<{ ok: boolean; reas
 }
 
 // Turn push off: tell the ircd to drop it, then unsubscribe in the browser.
-export async function disablePush(client: IrcClient): Promise<void> {
+export async function disablePush(client: IrcClient, account: string): Promise<void> {
   setPref(false);
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub) {
-      client.ircv3.webpushUnregister(sub.endpoint);
+      client.ircv3.webpushUnregister(sub.endpoint, account);
       await sub.unsubscribe();
     }
   } catch { /* ignore */ }
 }
 
 // Re-assert the subscription after (re)connect so it survives server expiry and
-// reconnects. Cheap no-op if push was never enabled or isn't permitted.
-export async function refreshPush(client: IrcClient): Promise<void> {
-  if (!isPushSupported() || !pushEnabledPref() || !client.server.vapid) return;
+// reconnects. Cheap no-op if push was never enabled, isn't permitted, or the
+// session has no NickServ account (WEBPUSH REGISTER would FAIL FORBIDDEN).
+export async function refreshPush(client: IrcClient, account: string): Promise<void> {
+  if (!account || !isPushSupported() || !pushEnabledPref() || !client.server.vapid) return;
   if (Notification.permission !== 'granted') return;
   try {
     const sub = await getOrCreateSubscription(client.server.vapid);
-    if (sub) registerWithServer(client, sub);
+    if (sub) registerWithServer(client, sub, account);
   } catch { /* ignore */ }
 }

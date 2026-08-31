@@ -220,12 +220,12 @@ export class Ircv3 {
   // draft/webpush: register/remove a Web Push subscription. Gated on the VAPID
   // ISUPPORT key (where the server advertises its Web Push public key) so a server
   // without Web Push never sees a 421. <keys> is "p256dh=<b64url>;auth=<b64url>".
-  webpushRegister(endpoint: string, keys: string): void {
-    if (this.tx.isupport()['VAPID'] === undefined) return;
+  webpushRegister(endpoint: string, keys: string, account: string): void {
+    if (!account || this.tx.isupport()['VAPID'] === undefined) return;
     this.tx.send(`WEBPUSH REGISTER ${endpoint} ${keys}`);
   }
-  webpushUnregister(endpoint: string): void {
-    if (this.tx.isupport()['VAPID'] === undefined) return;
+  webpushUnregister(endpoint: string, account: string): void {
+    if (!account || this.tx.isupport()['VAPID'] === undefined) return;
     this.tx.send(`WEBPUSH UNREGISTER ${endpoint}`);
   }
 }

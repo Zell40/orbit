@@ -20,6 +20,7 @@ export default function App() {
   // first connection is up you're "in the app", and adding another network (which
   // starts out connecting) must not bounce you back to the full-page join form.
   const status = useChat((s) => s.status);
+  const account = useChat((s) => s.account);
   const boot = useBootSplash();
   const everRegistered = useChat((s) => s.everRegistered);
   const viaBouncer = useChat((s) => s.viaBouncer);
@@ -93,10 +94,10 @@ export default function App() {
   // Re-assert the Web Push subscription on every (re)connect so it survives
   // server-side expiry and reconnects (cheap no-op if push isn't enabled).
   useEffect(() => {
-    if (status !== 'registered') return;
+    if (status !== 'registered' || !account) return;
     const client = useChat.getState().client;
-    if (client && getConfig().features.push) void refreshPush(client);
-  }, [status]);
+    if (client && getConfig().features.push) void refreshPush(client, account);
+  }, [status, account]);
 
   // Global keyboard shortcuts (chat view only). See the Shortcuts help sheet (?).
   useEffect(() => {

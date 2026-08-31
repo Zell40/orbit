@@ -57,8 +57,9 @@ async function brand() {
 self.addEventListener('push', (e) => {
   e.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    // App open & actively in front → the in-app notifier handles it; don't double up.
-    if (wins.some((w) => w.focused && w.visibilityState === 'visible')) return;
+    // App already on screen (PWA/mobile often has focused=false even then) → the
+    // in-chat highlighter/blip is enough. Don't stack an OS banner on top.
+    if (wins.some((w) => w.visibilityState === 'visible')) return;
 
     let line = '';
     try { line = e.data ? e.data.text() : ''; } catch { line = ''; }

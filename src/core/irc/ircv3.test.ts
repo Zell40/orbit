@@ -164,13 +164,15 @@ describe('Ircv3 cap-gated commands', () => {
     expect(on.sent).toEqual(['MONITOR + bob']); // per spec: "MONITOR + <nicklist>"
   });
 
-  it('only sends WEBPUSH when ISUPPORT advertises VAPID', () => {
+  it('only sends WEBPUSH when ISUPPORT advertises VAPID and the session has an account', () => {
     const off = make();
-    off.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b');
-    off.ircv3.webpushUnregister('https://push/x');
+    off.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b', 'bob');
+    off.ircv3.webpushUnregister('https://push/x', 'bob');
     expect(off.sent).toHaveLength(0);
     const on = make({ VAPID: 'BKey' });
-    on.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b');
+    on.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b', '');
+    expect(on.sent).toHaveLength(0);
+    on.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b', 'bob');
     expect(on.sent).toEqual(['WEBPUSH REGISTER https://push/x p256dh=a;auth=b']);
   });
 

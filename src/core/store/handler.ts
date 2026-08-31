@@ -228,6 +228,10 @@ export function makeHandler(ctx: HandlerCtx) {
         // METADATA (SUB/GET/SYNC) is likewise an automatic client request — its
         // failures (unsupported subcommand, a key we can't read) are benign.
         if (msg.command === 'FAIL' && cmd === 'METADATA') break;
+        // MARKREAD / WEBPUSH are automatic and keyed to the NickServ account.
+        // Guests (and the window before 900) get FAIL INTERNAL_ERROR / FORBIDDEN
+        // — don't dump those into the channel the user is looking at.
+        if (msg.command === 'FAIL' && (cmd === 'MARKREAD' || cmd === 'WEBPUSH')) break;
         // Otherwise surface it where the user is looking: FAIL/WARN as a ⚠ line,
         // NOTE as an info callout. Label with the command + code when present.
         const tag = cmd && cmd !== '*' ? `${cmd}${code && code !== '*' ? ` (${code})` : ''} — ` : '';
