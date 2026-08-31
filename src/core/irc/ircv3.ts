@@ -200,8 +200,10 @@ export class Ircv3 {
     if (!this.acked.has('draft/message-redaction')) return;
     this.tx.send(`REDACT ${target} ${msgid}${reason ? ` :${reason}` : ''}`);
   }
-  markRead(target: string, ts: string): void {
-    if (!this.acked.has('draft/read-marker') || skipIrcdTarget(target)) return;
+  markRead(target: string, ts: string, account: string): void {
+    // Read markers are keyed to the NickServ account (obby#205). Guests and
+    // pre-SASL sessions have account === '' — sending MARKREAD then gets FAIL.
+    if (!account || !this.acked.has('draft/read-marker') || skipIrcdTarget(target)) return;
     this.tx.send(`MARKREAD ${target} timestamp=${ts}`);
   }
   sendTyping(target: string, state: 'active' | 'done'): void {

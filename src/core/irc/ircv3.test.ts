@@ -114,17 +114,24 @@ describe('Ircv3 capability negotiation', () => {
 describe('Ircv3 cap-gated commands', () => {
   it('skips MARKREAD without the cap, sends it with', () => {
     const { ircv3, sent, cap } = make();
-    ircv3.markRead('#x', '2020-01-01T00:00:00Z');
+    ircv3.markRead('#x', '2020-01-01T00:00:00Z', 'bob');
     expect(sent).toHaveLength(0);
     cap('CAP * ACK :draft/read-marker');
-    ircv3.markRead('#x', '2020-01-01T00:00:00Z');
+    ircv3.markRead('#x', '2020-01-01T00:00:00Z', 'bob');
     expect(sent).toEqual(['MARKREAD #x timestamp=2020-01-01T00:00:00Z']);
+  });
+
+  it('skips MARKREAD when the session has no account', () => {
+    const { ircv3, sent, cap } = make();
+    cap('CAP * ACK :draft/read-marker');
+    ircv3.markRead('#x', '2020-01-01T00:00:00Z', '');
+    expect(sent).toHaveLength(0);
   });
 
   it('skips MARKREAD, METADATA and TAGMSG to local $ buffers', () => {
     const { ircv3, sent, cap } = make();
     cap('CAP * ACK :draft/read-marker draft/metadata-2 message-tags');
-    ircv3.markRead('$notice:gardian', '2020-01-01T00:00:00Z');
+    ircv3.markRead('$notice:gardian', '2020-01-01T00:00:00Z', 'bob');
     ircv3.fetchMetadata('$server');
     ircv3.sendTyping('$notice:gardian', 'active');
     ircv3.react('$notice:gardian', 'abc', '\u{1F600}');
@@ -134,7 +141,7 @@ describe('Ircv3 cap-gated commands', () => {
   it('skips MARKREAD, METADATA and TAGMSG to ZNC module nicks', () => {
     const { ircv3, sent, cap } = make();
     cap('CAP * ACK :draft/read-marker draft/metadata-2 message-tags');
-    ircv3.markRead('*status', '2020-01-01T00:00:00Z');
+    ircv3.markRead('*status', '2020-01-01T00:00:00Z', 'bob');
     ircv3.fetchMetadata('*status');
     ircv3.sendTyping('*status', 'active');
     ircv3.react('*status', 'abc', '\u{1F600}');

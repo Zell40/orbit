@@ -166,6 +166,10 @@ export function createChatStore(ns = '') {
   const helpers = makeHelpers(set, get, closedChannels);
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine, addMessage } = helpers;
   const readMarkSent: Record<string, number> = {}; // throttle server MARKREAD per buffer
+  const pushMarkRead = (name: string, ts: number) => {
+    const { client, account } = get();
+    client?.ircv3.markRead(name, new Date(ts).toISOString(), account);
+  };
 
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, profileCache });
   // Outgoing input/slash-command parser lives in store/commands.ts.
@@ -580,7 +584,7 @@ export function createChatStore(ns = '') {
         if (pb && pb.messages.length) {
           const latest = pb.messages[pb.messages.length - 1].ts;
           if (latest > pb.readTs) {
-            get().client?.ircv3.markRead(pb.name, new Date(latest).toISOString());
+            pushMarkRead(pb.name, latest);
             patchBuffer(prev, (b) => ({ ...b, readTs: latest }));
           }
         }
@@ -599,7 +603,7 @@ export function createChatStore(ns = '') {
         const b = s.buffers[name];
         if (b?.messages.length) {
           const latest = b.messages[b.messages.length - 1].ts;
-          if (latest > b.readTs) s.client?.ircv3.markRead(b.name, new Date(latest).toISOString());
+          if (latest > b.readTs) pushMarkRead(b.name, latest);
         }
       }
       // …then clear unread/highlight everywhere in one update.
@@ -628,7 +632,7 @@ export function createChatStore(ns = '') {
       const now = Date.now();
       if (now - (readMarkSent[key] || 0) > 2000) {
         readMarkSent[key] = now;
-        s.client?.ircv3.markRead(b.name, new Date(latest).toISOString());
+        pushMarkRead(b.name, latest);
       }
     },
 
