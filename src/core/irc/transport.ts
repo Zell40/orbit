@@ -1,3 +1,5 @@
+import { setStayAwake } from '@/platform/wake-lock';
+
 // WebSocket transport for the IRC client.
 //
 // Owns everything socket-level and nothing protocol-level: the connection
@@ -12,6 +14,12 @@
 export function isWebircGateway(url: string): boolean {
   try { return /\/webirc\//i.test(new URL(url).pathname); }
   catch { return /\/webirc\//i.test(url); }
+}
+
+function likelyMobile(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  if (typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches) return true;
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 export interface TransportHooks {
@@ -48,7 +56,7 @@ export class Transport {
   private resumeHooked = false;
 
   // --- socket lifecycle tunables (named, not magic numbers) ---------------
-  private readonly keepaliveMs = 45_000;    // send a PING this often to keep NAT/proxy state warm
+  private keepaliveMs = 45_000;         // send a PING this often to keep NAT/proxy state warm
   private readonly deadAfterMs = 150_000;   // no inbound data for this long ⇒ socket is dead, recycle it
   private readonly connectTimeoutMs = 12_000; // handshake stuck in CONNECTING this long ⇒ give up & retry
   private readonly maxBackoffMs = 30_000;   // ceiling for the reconnect backoff
@@ -68,12 +76,14 @@ export class Transport {
     // IRCv3 names. Skip them on /webirc/ (and when the caller asks for plain).
     this.preferPlain = !!opts?.plain || isWebircGateway(url);
     this.skipProtosThisOpen = false;
+    this.keepaliveMs = likelyMobile() ? 22_000 : 45_000;
     this.hookResume();
     this.openSocket();
   }
 
   disconnect(reason = 'Au revoir'): void {
     this.wantConnected = false; // stop auto-reconnect
+    setStayAwake(false);
     this.unhookResume();
     this.stopKeepalive();
     this.clearConnectTimer();
@@ -124,7 +134,10 @@ export class Transport {
   private hookResume(): void {
     if (this.resumeHooked || typeof window === 'undefined') return;
     this.resumeHooked = true;
-    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', this.onVisible);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.onVisible);
+      document.addEventListener('resume', this.onResume);
+    }
     window.addEventListener('online', this.onResume);
     window.addEventListener('focus', this.onResume);
     window.addEventListener('pageshow', this.onResume);
@@ -134,7 +147,10 @@ export class Transport {
   private unhookResume(): void {
     if (!this.resumeHooked || typeof window === 'undefined') return;
     this.resumeHooked = false;
-    if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', this.onVisible);
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.onVisible);
+      document.removeEventListener('resume', this.onResume);
+    }
     window.removeEventListener('online', this.onResume);
     window.removeEventListener('focus', this.onResume);
     window.removeEventListener('pageshow', this.onResume);
@@ -236,6 +252,7 @@ export class Transport {
       this.skipProtosThisOpen = false;
       if (!useProtos) this.preferPlain = true;
       this.startKeepalive();
+      setStayAwake(true);
       this.hooks.onOpen(); // the client sends its registration burst
     };
     ws.onmessage = (ev) => {
