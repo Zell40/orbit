@@ -194,7 +194,7 @@ export class Ircv3 {
     if (skipIrcdTarget(target)) return 'skipped-target';
     if (!this.acked.has('draft/metadata-2')) return 'no-cap';
     if (muted) this.tx.send(`METADATA ${target} SET soju.im/muted 1`);
-    else this.tx.send(`METADATA ${target} SET soju.im/muted`);
+    else this.tx.send(`METADATA ${target} SET soju.im/muted 0`);
     return 'sent';
   }
   /** Restore mute level after JOIN (multi-device sync). */

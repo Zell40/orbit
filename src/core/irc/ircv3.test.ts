@@ -146,7 +146,7 @@ describe('Ircv3 cap-gated commands', () => {
     ircv3.setBufferMuted('#x', false);
     expect(sent).toEqual([
       'METADATA #x SET soju.im/muted 1',
-      'METADATA #x SET soju.im/muted',
+      'METADATA #x SET soju.im/muted 0',
     ]);
   });
 

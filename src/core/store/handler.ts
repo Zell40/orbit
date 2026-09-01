@@ -10,7 +10,7 @@ import { makeMode } from './mode';
 import { makeNumerics } from './numerics';
 import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
-import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync } from './context';
+import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -111,7 +111,7 @@ export function makeHandler(ctx: HandlerCtx) {
         // (client.ts forwards those post-registration) → list the caps in Status.
         const sub = (msg.params[1] || '').toUpperCase();
         const list = msg.params[msg.params[2] === '*' ? 3 : 2] ?? '';
-        serverLine(`[CAP ${sub}] ${list}`);
+        serverLine(`[CAP ${sub}] ${list}`, 'info');
         return;
       }
       case 'ERROR': { // server is closing the link — show why
@@ -232,13 +232,23 @@ export function makeHandler(ctx: HandlerCtx) {
         if (msg.command === 'FAIL' && cmd === 'METADATA') {
           const muteKey = msg.params.find((p) => p === 'soju.im/muted');
           if (muteKey) {
-            const target = msg.params.find((p) => p.startsWith('#') || p.startsWith('&'))
-              ?? msg.params.find((p, i) => i >= 2 && p !== muteKey && p !== '*' && p !== code);
-            if (target) takeBufferMuteSync(target);
+            let target = msg.params.find((p) => p.startsWith('#') || p.startsWith('&'));
+            if (target) {
+              takeBufferMuteSync(target);
+            } else {
+              const pending = takeAnyPendingBufferMuteSync();
+              if (pending) {
+                target = get().buffers[pending.canonKey]?.name ?? pending.canonKey;
+              }
+            }
+            const reason = desc || code || 'FAIL';
             serverLine(i18n.t('metadata.muteSyncFail', {
               target: target || '?',
-              reason: desc || code || 'FAIL',
+              reason,
             }), 'warning');
+            if (code === 'KEY_INVALID' || code === 'INVALID_KEY' || code === 'KEY_NO_PERMISSION') {
+              serverLine(i18n.t('metadata.muteSyncFailHint'), 'warning');
+            }
           }
           break;
         }

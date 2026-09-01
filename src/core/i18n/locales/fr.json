@@ -998,6 +998,8 @@
     "muteSyncServerOff": "Web Push : pas de sourdine serveur pour {{target}}",
     "muteSyncNoCap": "Web Push : draft/metadata-2 indisponible — sourdine locale seulement (pas de sync serveur)",
     "muteSyncFail": "Web Push : échec METADATA soju.im/muted pour {{target}} — {{reason}}",
+    "muteSyncFailHint": "Web Push : vérifiez que le module serveur ircv3_metadata est compilé et rechargé (/RELOADMODULE ircv3_metadata).",
+    "muteSyncNotJoined": "Web Push : sourdine locale seulement pour {{target}} (rejoignez le salon pour la sync serveur)",
     "muteSyncUnexpected": "Web Push : réponse METADATA inattendue pour {{target}}"
   },
   "pins": {

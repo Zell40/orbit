@@ -94,3 +94,13 @@ export function takeBufferMuteSync(target: string): BufferMuteSyncOp | undefined
   delete pendingBufferMuteSync[key];
   return op;
 }
+
+/** When FAIL omits the channel (e.g. KEY_INVALID), match the pending round-trip. */
+export function takeAnyPendingBufferMuteSync(): { canonKey: string; op: BufferMuteSyncOp } | undefined {
+  const keys = Object.keys(pendingBufferMuteSync);
+  if (!keys.length) return undefined;
+  const canonKey = keys[0];
+  const op = pendingBufferMuteSync[canonKey];
+  delete pendingBufferMuteSync[canonKey];
+  return op ? { canonKey, op } : undefined;
+}

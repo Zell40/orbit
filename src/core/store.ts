@@ -560,12 +560,18 @@ export function createChatStore(ns = '') {
       set({ notifyLevel: next });
       // Sync mute to the server so Web Push respects the same preference.
       const muted = level === 'mute';
-      const sync = get().client?.ircv3.setBufferMuted(name, muted);
+      const buf = get().buffers[key];
+      const target = buf?.name ?? name;
+      if (buf?.isChannel && !buf.joined) {
+        if (muted) serverLine(i18n.t('metadata.muteSyncNotJoined', { target }), 'warning');
+        return;
+      }
+      const sync = get().client?.ircv3.setBufferMuted(target, muted);
       if (sync === 'no-cap') {
         if (muted) serverLine(i18n.t('metadata.muteSyncNoCap'), 'warning');
       } else if (sync === 'sent') {
-        trackBufferMuteSync(name, muted ? 'set-on' : 'set-off');
-        serverLine(i18n.t('metadata.muteSyncPending', { target: name }), 'info');
+        trackBufferMuteSync(target, muted ? 'set-on' : 'set-off');
+        serverLine(i18n.t('metadata.muteSyncPending', { target }), 'info');
       }
     },
 
