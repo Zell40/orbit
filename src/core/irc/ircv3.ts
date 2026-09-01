@@ -168,10 +168,13 @@ export class Ircv3 {
     this.tx.send(`CHATHISTORY BEFORE ${target} timestamp=${beforeIso} ${limit}`);
   }
   // draft/chathistory — most recent `limit` items (messages + events w/ event-playback).
-  // Low priority: prefetched on join for every channel, must not block typing.
-  chathistoryLatest(target: string, limit: number): void {
+  // Background channels go on the low-priority queue so they don't block typing;
+  // the salon currently on screen is sent now so the first paint has history.
+  chathistoryLatest(target: string, limit: number, opts?: { urgent?: boolean }): void {
     if (!this.acked.has('draft/chathistory') || skipIrcdTarget(target)) return;
-    this.tx.lowSend(`CHATHISTORY LATEST ${target} * ${limit}`);
+    const line = `CHATHISTORY LATEST ${target} * ${limit}`;
+    if (opts?.urgent) this.tx.send(line);
+    else this.tx.lowSend(line);
   }
   // draft/metadata-2 — subscribe to the account-profile keys the network publishes
   // so the server pushes them (live + on channel join) for every user we can see.

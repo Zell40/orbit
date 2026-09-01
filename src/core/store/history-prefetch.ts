@@ -2,12 +2,12 @@ import { canon } from './context';
 
 type Ircv3Slice = {
   hasCap(name: string): boolean;
-  chathistoryLatest(target: string, limit: number): void;
+  chathistoryLatest(target: string, limit: number, opts?: { urgent?: boolean }): void;
 };
 
 /** Ask CHATHISTORY LATEST once per channel join. Returns true when a request was sent. */
 export function prefetchLatestHistory(
-  get: () => { client: { ircv3: Ircv3Slice } | null },
+  get: () => { client: { ircv3: Ircv3Slice } | null; active?: string },
   asked: Set<string>,
   ch: string,
 ): boolean {
@@ -16,7 +16,8 @@ export function prefetchLatestHistory(
   const cl = get().client;
   if (!cl?.ircv3.hasCap('draft/chathistory')) return false;
   asked.add(key);
-  cl.ircv3.chathistoryLatest(ch, 50);
+  const urgent = canon(get().active || '') === key;
+  cl.ircv3.chathistoryLatest(ch, 50, { urgent });
   return true;
 }
 

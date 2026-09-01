@@ -11,6 +11,7 @@ import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBo
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { makeHelpers, rememberQueryAccount } from './store/helpers';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
+import { prefetchLatestHistory } from './store/history-prefetch';
 import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
@@ -348,6 +349,16 @@ export function createChatStore(ns = '') {
           if (icon) patch.networkIcon = icon;
           if (client.server.network) patch.ircNetwork = client.server.network;
           if (Object.keys(patch).length) set(patch);
+          // JOIN/366 can race CAP ACK (bouncer playback). Once registered the cap
+          // is settled — pick up any already-joined salon whose prefetch no-op'd.
+          window.setTimeout(() => {
+            const s = get();
+            if (s.client !== client || s.status !== 'registered') return;
+            for (const name of s.order) {
+              const b = s.buffers[name];
+              if (b?.isChannel && b.joined) prefetchLatestHistory(get, historyAsked, b.name);
+            }
+          }, 800);
         }
       });
       client.on('reconnecting', (secs) => {

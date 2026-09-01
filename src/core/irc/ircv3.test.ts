@@ -195,6 +195,14 @@ describe('Ircv3 cap-gated commands', () => {
     expect(low).toEqual(['CHATHISTORY LATEST #x * 50']);
   });
 
+  it('sends CHATHISTORY for the visible channel immediately', () => {
+    const { ircv3, sent, low, cap } = make();
+    cap('CAP * ACK :draft/chathistory');
+    ircv3.chathistoryLatest('#x', 50, { urgent: true });
+    expect(sent).toEqual(['CHATHISTORY LATEST #x * 50']);
+    expect(low).toHaveLength(0);
+  });
+
   it('skips chathistory prefetch without the cap', () => {
     const { ircv3, low } = make();
     ircv3.chathistoryLatest('#x', 50);

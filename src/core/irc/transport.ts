@@ -320,12 +320,19 @@ export class Transport {
   }
 
   private drain(): void {
-    const now = Date.now();
-    const add = Math.floor((now - this.lastRefill) / this.refillMs);
-    if (add > 0) { this.tokens = Math.min(this.burst, this.tokens + add); this.lastRefill += add * this.refillMs; }
+    this.refillTokens();
     while (this.sendQueue.length && this.tokens > 0) { this.tokens--; this.sendRaw(this.sendQueue.shift()!); }
     if (this.sendQueue.length && !this.drainTimer) {
       this.drainTimer = setTimeout(() => { this.drainTimer = null; this.drain(); }, this.refillMs);
+    }
+  }
+
+  private refillTokens(): void {
+    const now = Date.now();
+    const add = Math.floor((now - this.lastRefill) / this.refillMs);
+    if (add > 0) {
+      this.tokens = Math.min(this.burst, this.tokens + add);
+      this.lastRefill += add * this.refillMs;
     }
   }
 
@@ -347,14 +354,21 @@ export class Transport {
   }
   private drainLow(): void {
     if (this.lowTimer || !this.lowQueue.length) return;
+    this.pumpLow(400);
+  }
+  private pumpLow(delay: number): void {
     this.lowTimer = setTimeout(() => {
       this.lowTimer = null;
       if (!this.lowQueue.length) return;
-      // Always let the user's own messages go first.
-      if (this.sendQueue.length || this.tokens <= 0) { this.drainLow(); return; }
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) this.sendRaw(this.lowQueue.shift()!);
-      this.drainLow();
-    }, 1400);
+      this.refillTokens();
+      if (this.sendQueue.length) { this.drain(); this.pumpLow(400); return; }
+      if (this.tokens <= 0) { this.pumpLow(this.refillMs); return; }
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.tokens--;
+        this.sendRaw(this.lowQueue.shift()!);
+      }
+      if (this.lowQueue.length) this.pumpLow(400);
+    }, delay);
   }
 
   private feed(chunk: string): void {

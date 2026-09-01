@@ -164,6 +164,18 @@ describe('Transport — outbound', () => {
     vi.advanceTimersByTime(1000);
     expect(last().sent).toHaveLength(10);      // drained
   });
+
+  it('lowSend still goes out after the token burst is spent', () => {
+    const { t } = setup();
+    t.connect('ws://x'); last()._open();
+    for (let i = 0; i < 8; i++) t.send(`L${i}`);
+    expect(last().sent).toHaveLength(8);
+    t.lowSend('CHATHISTORY LATEST #x * 50');
+    vi.advanceTimersByTime(400);
+    expect(last().sent.some((s) => s.includes('CHATHISTORY'))).toBe(false);
+    vi.advanceTimersByTime(1000); // token refill + drainLow retry
+    expect(last().sent.some((s) => s.includes('CHATHISTORY'))).toBe(true);
+  });
 });
 
 describe('Transport — reconnect', () => {

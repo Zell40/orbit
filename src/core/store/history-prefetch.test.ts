@@ -36,4 +36,22 @@ describe('prefetchLatestHistory', () => {
     prefetchLatestHistory(get, asked, '#x');
     expect(latest).toEqual(['#x', '#x']);
   });
+
+  it('marks the active salon as urgent', () => {
+    const asked = new Set<string>();
+    const latest: { t: string; urgent?: boolean }[] = [];
+    const get = () => ({
+      active: '#entrenous.chat',
+      client: {
+        ircv3: {
+          hasCap: (c: string) => c === 'draft/chathistory',
+          chathistoryLatest: (t: string, _n?: number, opts?: { urgent?: boolean }) => {
+            latest.push({ t, urgent: opts?.urgent });
+          },
+        },
+      },
+    });
+    prefetchLatestHistory(get, asked, '#EntreNous.chat');
+    expect(latest).toEqual([{ t: '#EntreNous.chat', urgent: true }]);
+  });
 });
