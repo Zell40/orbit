@@ -139,7 +139,7 @@ describe('Ircv3 cap-gated commands', () => {
     ]);
   });
 
-  it('sends soju.im/muted SET/clear when mute toggles', () => { => {
+  it('sends soju.im/muted SET/clear when mute toggles', () => {
     const { ircv3, sent, cap } = make();
     cap('CAP * ACK :draft/metadata-2');
     ircv3.setBufferMuted('#x', true);
