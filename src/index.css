@@ -574,6 +574,11 @@ input, textarea { font-family: inherit; }
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+.main:has(.main__room-bg[data-rg-pic]) .bouncer-game {
+  background: color-mix(in srgb, #dc2626 16%, var(--bg));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
 /* Message text: stronger frosted chips so lines stay readable on the picture */
 html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
   background: color-mix(in srgb, var(--bg) 88%, var(--bg-soft));
@@ -2293,28 +2298,33 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .guestprompt__extra li { margin: 0 0 .28rem; }
 
 /* Bouncer session: TAGMSG game HUD is unavailable in this channel.
-   Sits flush under .chan-hero (same side padding, no extra bottom gap). */
+   Sits under the topbar, above the topic — a warning, not a quiet note. */
 .bouncer-game {
   margin: 0;
-  padding: .55rem .95rem;
+  padding: .6rem .95rem .6rem .85rem;
   display: flex; flex-wrap: wrap; gap: .55rem 1rem; align-items: center;
-  background: var(--bg-soft); color: var(--ink);
-  border: 0; border-bottom: 1px solid var(--border); border-radius: 0;
+  background: color-mix(in srgb, #dc2626 11%, var(--bg));
+  color: var(--ink);
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, #dc2626 38%, var(--border));
+  box-shadow: inset 4px 0 0 #dc2626;
+  border-radius: 0;
 }
+.bouncer-game__icon { width: 22px; height: 22px; flex: none; color: #dc2626; }
 .bouncer-game__txt { flex: 1 1 16rem; min-width: 0; }
-.bouncer-game__title { display: block; font-size: .92rem; font-weight: 800; letter-spacing: -.01em; }
-.bouncer-game__body { margin: .28rem 0 0; font-size: .85rem; line-height: 1.4; color: var(--muted); }
+.bouncer-game__title { display: block; font-size: .92rem; font-weight: 800; letter-spacing: -.01em; color: #b91c1c; }
+.bouncer-game__body { margin: .28rem 0 0; font-size: .85rem; line-height: 1.4; color: color-mix(in srgb, #b91c1c 42%, var(--ink-2)); }
 .bouncer-game__actions { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
 .bouncer-game__go {
   min-height: 38px; padding: .45rem .9rem; border-radius: 10px; border: 0; cursor: pointer;
-  background: var(--accent); color: #fff; font: inherit; font-weight: 700; font-size: .85rem;
+  background: #dc2626; color: #fff; font: inherit; font-weight: 700; font-size: .85rem;
 }
-.bouncer-game__go:hover { filter: brightness(1.05); }
+.bouncer-game__go:hover { background: #b91c1c; }
 .bouncer-game__later {
-  border: 0; background: none; color: var(--faint); font: inherit; font-size: .8rem;
+  border: 0; background: none; color: #b91c1c; font: inherit; font-size: .8rem;
   font-weight: 600; cursor: pointer; padding: .25rem .4rem;
 }
-.bouncer-game__later:hover { color: var(--muted); text-decoration: underline; }
+.bouncer-game__later:hover { color: #7f1d1d; text-decoration: underline; }
 
 /* NickServ (and similar) service alert — centered, readable popup */
 .servalert {

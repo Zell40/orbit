@@ -59,8 +59,8 @@ export function Chat() {
         <Topbar onMenu={() => setNavOpen(true)} onMembers={() => setMembersOpen(true)} />
         {/* Conference: always under topbar (desktop + mobile), topic stays compact below. */}
         {mainBanners.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
-        <ChannelTopicBanner />
         <BouncerVisualBanner />
+        <ChannelTopicBanner />
         <MessageList />
         <Composer />
       </main>
