@@ -916,6 +916,21 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .infoline__body--stack .infoline__txt + .infoline__txt {
   padding-top: .38rem; border-top: 1px solid rgba(59,123,255,.18);
 }
+.messages--console .infoline,
+.messages--console .motdline,
+.messages--console .noticeline,
+.messages--console .warnline,
+.messages--console .errorline,
+.messages--console .urlline,
+.messages--console .actuline,
+.messages--console .modeline,
+.messages--console .topicline,
+.messages--console .noticeline-wrap {
+  /* Status is a log, not a chat: use the full pane (the 70% SMS cap is for salons). */
+  width: auto;
+  max-width: none;
+  align-self: stretch;
+}
 .messages--console .infoline { background: rgba(59,123,255,.10); border-color: transparent; box-shadow: inset 3px 0 0 #3b7bff; }
 .messages--console .infoline__txt { color: var(--term-fg); }
 
@@ -968,6 +983,10 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 /* Bubble messages (default on via html[data-bubbles=on]) */
 html[data-bubbles="on"] .group:not(.group--cont) { margin-top: .45rem; }
 html[data-bubbles="on"] .group__body { max-width: min(42rem, 92%); min-width: 0; }
+html[data-bubbles="on"] .messages--console .group__body { max-width: none; }
+html[data-bubbles="on"] .messages--console .group .line {
+  display: block; width: auto; max-width: none;
+}
 html[data-bubbles="on"] .group .line {
   display: inline-block;
   max-width: 100%;
