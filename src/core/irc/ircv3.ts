@@ -190,15 +190,18 @@ export class Ircv3 {
     this.tx.send(`METADATA ${target} GET avatar bio pronouns timezone url`);
   }
   /** Per-buffer mute flag (soju.im/muted) — silences Web Push on the server. */
-  setBufferMuted(target: string, muted: boolean): void {
-    if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return;
+  setBufferMuted(target: string, muted: boolean): 'sent' | 'no-cap' | 'skipped-target' {
+    if (skipIrcdTarget(target)) return 'skipped-target';
+    if (!this.acked.has('draft/metadata-2')) return 'no-cap';
     if (muted) this.tx.send(`METADATA ${target} SET soju.im/muted 1`);
     else this.tx.send(`METADATA ${target} SET soju.im/muted`);
+    return 'sent';
   }
   /** Restore mute level after JOIN (multi-device sync). */
-  fetchBufferMuted(target: string): void {
-    if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return;
+  fetchBufferMuted(target: string): boolean {
+    if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return false;
     this.tx.lowSend(`METADATA ${target} GET soju.im/muted`);
+    return true;
   }
   // MONITOR (online-notify): + add, - remove, L list, C clear.
   monitor(op: '+' | '-' | 'L' | 'C', targets = ''): void {

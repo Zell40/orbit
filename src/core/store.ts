@@ -7,7 +7,7 @@ import type { Buffer, ConnectOptions, WhoisInfo, MessageKind } from './irc/types
 import { getConfig } from './config';
 import { resolveConnectUsername } from './irc/ident';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
-import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick } from './store/context';
+import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick, trackBufferMuteSync } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { makeHelpers, rememberQueryAccount } from './store/helpers';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
@@ -169,7 +169,7 @@ export function createChatStore(ns = '') {
   const store = create<ChatState>((set, get) => {
   // Buffer/message helpers live in store/helpers.ts.
   const helpers = makeHelpers(set, get, closedChannels);
-  const { ensureBuffer, patchBuffer, dropBuffer, sysLine, addMessage } = helpers;
+  const { ensureBuffer, patchBuffer, dropBuffer, sysLine, serverLine, addMessage } = helpers;
   const readMarkSent: Record<string, number> = {}; // throttle server MARKREAD per buffer
   const pushMarkRead = (name: string, ts: number) => {
     const { client, account } = get();
@@ -559,7 +559,14 @@ export function createChatStore(ns = '') {
       saveNotify(next, ns);
       set({ notifyLevel: next });
       // Sync mute to the server so Web Push respects the same preference.
-      get().client?.ircv3.setBufferMuted(name, level === 'mute');
+      const muted = level === 'mute';
+      const sync = get().client?.ircv3.setBufferMuted(name, muted);
+      if (sync === 'no-cap') {
+        if (muted) serverLine(i18n.t('metadata.muteSyncNoCap'), 'warning');
+      } else if (sync === 'sent') {
+        trackBufferMuteSync(name, muted ? 'set-on' : 'set-off');
+        serverLine(i18n.t('metadata.muteSyncPending', { target: name }), 'info');
+      }
     },
 
     togglePin(msgid) {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeWhois } from './whois';
 import { parseLine } from '../irc/parser';
-import { canon } from './context';
+import { canon, trackBufferMuteSync } from './context';
 import type { WhoisInfo } from '../irc/types';
 import type { ChatState } from '../store';
 
@@ -10,6 +10,7 @@ function setup(initial: Record<string, WhoisInfo> = {}, nick = 'me') {
   let account = '';
   let notifyLevel: Record<string, string> = {};
   const lines: [string, string][] = [];
+  const statusLines: string[] = [];
   const get = () => ({ whois, nick, account, notifyLevel }) as unknown as ChatState;
   const set = (partial: Partial<ChatState>) => {
     if (partial.whois) whois = partial.whois;
@@ -21,8 +22,9 @@ function setup(initial: Record<string, WhoisInfo> = {}, nick = 'me') {
     whois = { ...whois, [nickName]: fn(cur) };
   };
   const sysLine = (name: string, text: string) => { lines.push([name, text]); };
-  const w = makeWhois({ get, set, patchWhois, sysLine, persistNs: '' } as Parameters<typeof makeWhois>[0]);
-  return { w, whois: () => whois, account: () => account, lines, notifyLevel: () => notifyLevel };
+  const serverLine = (text: string) => { statusLines.push(text); };
+  const w = makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs: '' } as Parameters<typeof makeWhois>[0]);
+  return { w, whois: () => whois, account: () => account, lines, statusLines, notifyLevel: () => notifyLevel };
 }
 
 describe('makeWhois — building the WhoisInfo', () => {
@@ -67,6 +69,13 @@ describe('makeWhois — soju.im/muted buffer prefs', () => {
     expect(notifyLevel()[canon('#x')]).toBe('mute');
     expect(w.handleWhois(parseLine(':srv 766 me #x soju.im/muted :key not set'))).toBe(true);
     expect(notifyLevel()[canon('#x')]).toBeUndefined();
+  });
+
+  it('reports server mute sync status in Status when a SET round-trip is pending', () => {
+    const { w, statusLines } = setup();
+    trackBufferMuteSync('#x', 'set-on');
+    w.handleWhois(parseLine(':srv 761 me #x soju.im/muted * :1'));
+    expect(statusLines.some((l) => l.includes('#x') && l.includes('soju.im/muted'))).toBe(true);
   });
 });
 

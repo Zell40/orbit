@@ -7,8 +7,9 @@
 // `handleWhois()` before its main switch and uses `clearWhois()` for the 401
 // (no-such-nick) fallback. RPL_AWAY (301) intentionally stays in the dispatcher —
 // it also drives the "user is away" query notice.
+import i18n from '../i18n';
 import { fmtDuration, formatUserModes } from '@/lib/format-text';
-import { canon } from './context';
+import { canon, takeBufferMuteSync } from './context';
 import { saveNotify } from './persistence';
 import type { IrcMessage, WhoisInfo } from '../irc/types';
 import type { StoreApi } from 'zustand';
@@ -20,11 +21,12 @@ interface WhoisDeps {
   set: StoreApi<ChatState>['setState'];
   patchWhois: StoreHelpers['patchWhois'];
   sysLine: StoreHelpers['sysLine'];
+  serverLine: StoreHelpers['serverLine'];
   /** Network namespace for persist keys (same as createChatStore ns). */
   persistNs?: string;
 }
 
-export function makeWhois({ get, set, patchWhois, sysLine, persistNs = '' }: WhoisDeps) {
+export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs = '' }: WhoisDeps) {
   function clearWhois(nick: string): void {
     const rest = { ...get().whois }; delete rest[nick]; set({ whois: rest });
   }
@@ -68,11 +70,23 @@ export function makeWhois({ get, set, patchWhois, sysLine, persistNs = '' }: Who
     clearWhois(n);
   }
 
+  function reportBufferMuteSync(target: string, muted: boolean): void {
+    const op = takeBufferMuteSync(target);
+    if (op === 'set-on' && muted) serverLine(i18n.t('metadata.muteSyncOk', { target }), 'info');
+    else if (op === 'set-off' && !muted) serverLine(i18n.t('metadata.muteSyncCleared', { target }), 'info');
+    else if (op === 'get' && muted) serverLine(i18n.t('metadata.muteSyncRestored', { target }), 'info');
+    else if (op === 'get' && !muted) serverLine(i18n.t('metadata.muteSyncServerOff', { target }), 'info');
+    else if (op === 'set-on' || op === 'set-off') {
+      serverLine(i18n.t('metadata.muteSyncUnexpected', { target }), 'warning');
+    }
+  }
+
   // Store one draft/metadata-2 key for a user; an empty/absent value clears it.
   function applyMeta(target: string, key: string, value: string | undefined): void {
     if (!target || !key) return;
     if (key === 'soju.im/muted') {
       applyBufferMutedFromServer(target, value === '1');
+      reportBufferMuteSync(target, value === '1');
       return;
     }
     patchWhois(target, (w) => {

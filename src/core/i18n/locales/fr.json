@@ -990,6 +990,16 @@
     "mute": "En sourdine",
     "muteDesc": "Aucune alerte ni son"
   },
+  "metadata": {
+    "muteSyncPending": "Web Push : envoi METADATA soju.im/muted pour {{target}}…",
+    "muteSyncOk": "Web Push : sourdine serveur active pour {{target}} (soju.im/muted=1)",
+    "muteSyncCleared": "Web Push : sourdine serveur levée pour {{target}}",
+    "muteSyncRestored": "Web Push : sourdine serveur confirmée pour {{target}} (restaurée au JOIN)",
+    "muteSyncServerOff": "Web Push : pas de sourdine serveur pour {{target}}",
+    "muteSyncNoCap": "Web Push : draft/metadata-2 indisponible — sourdine locale seulement (pas de sync serveur)",
+    "muteSyncFail": "Web Push : échec METADATA soju.im/muted pour {{target}} — {{reason}}",
+    "muteSyncUnexpected": "Web Push : réponse METADATA inattendue pour {{target}}"
+  },
   "pins": {
     "pin": "Épingler",
     "unpin": "Désépingler",

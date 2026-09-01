@@ -7,7 +7,7 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import { hostmask } from './text';
-import { SERVER, canon, isChannelName, inQuietBatch } from './context';
+import { SERVER, canon, isChannelName, inQuietBatch, trackBufferMuteSync } from './context';
 import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
 import type { IrcMessage } from '../irc/types';
@@ -51,7 +51,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           // Server autojoin can race ahead of CAP ACK; 366 retries if this no-ops.
           prefetchLatestHistory(get, historyAsked, ch);
           // Restore per-channel mute from the server (soju.im/muted → Web Push).
-          get().client?.ircv3.fetchBufferMuted(ch);
+          if (get().client?.ircv3.fetchBufferMuted(ch)) trackBufferMuteSync(ch, 'get');
         }
         // extended-join: ":nick JOIN #chan <account> :<realname>" — '*'/'0' = none.
         // Gives us account + realname up front, so no WHO needed for joiners.

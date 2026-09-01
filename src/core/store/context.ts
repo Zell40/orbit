@@ -79,3 +79,18 @@ export function inMultilineBatch(msg: IrcMessage): string | undefined {
   const ref = msg.tags['batch'];
   return ref && openBatches[ref]?.type === 'draft/multiline' ? ref : undefined;
 }
+
+/** Pending soju.im/muted METADATA round-trip (SET or GET) awaiting a 761/766/FAIL. */
+export type BufferMuteSyncOp = 'set-on' | 'set-off' | 'get';
+const pendingBufferMuteSync: Record<string, BufferMuteSyncOp> = Object.create(null);
+
+export function trackBufferMuteSync(target: string, op: BufferMuteSyncOp): void {
+  pendingBufferMuteSync[canon(target)] = op;
+}
+
+export function takeBufferMuteSync(target: string): BufferMuteSyncOp | undefined {
+  const key = canon(target);
+  const op = pendingBufferMuteSync[key];
+  delete pendingBufferMuteSync[key];
+  return op;
+}

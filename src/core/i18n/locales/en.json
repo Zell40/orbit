@@ -990,6 +990,16 @@
     "mute": "Muted",
     "muteDesc": "No alerts or sound"
   },
+  "metadata": {
+    "muteSyncPending": "Web Push: sending METADATA soju.im/muted for {{target}}…",
+    "muteSyncOk": "Web Push: server mute active for {{target}} (soju.im/muted=1)",
+    "muteSyncCleared": "Web Push: server mute cleared for {{target}}",
+    "muteSyncRestored": "Web Push: server mute confirmed for {{target}} (restored on JOIN)",
+    "muteSyncServerOff": "Web Push: no server mute for {{target}}",
+    "muteSyncNoCap": "Web Push: draft/metadata-2 unavailable — local mute only (no server sync)",
+    "muteSyncFail": "Web Push: METADATA soju.im/muted failed for {{target}} — {{reason}}",
+    "muteSyncUnexpected": "Web Push: unexpected METADATA response for {{target}}"
+  },
   "pins": {
     "pin": "Pin",
     "unpin": "Unpin",

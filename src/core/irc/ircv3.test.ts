@@ -128,7 +128,18 @@ describe('Ircv3 cap-gated commands', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('sends soju.im/muted SET/clear when mute toggles', () => {
+  it('returns sent/no-cap/skipped-target for setBufferMuted', () => {
+    const { ircv3, sent, cap } = make();
+    expect(ircv3.setBufferMuted('#x', true)).toBe('no-cap');
+    cap('CAP * ACK :draft/metadata-2');
+    expect(ircv3.setBufferMuted('#x', true)).toBe('sent');
+    expect(ircv3.setBufferMuted('$server', true)).toBe('skipped-target');
+    expect(sent).toEqual([
+      'METADATA #x SET soju.im/muted 1',
+    ]);
+  });
+
+  it('sends soju.im/muted SET/clear when mute toggles', () => { => {
     const { ircv3, sent, cap } = make();
     cap('CAP * ACK :draft/metadata-2');
     ircv3.setBufferMuted('#x', true);

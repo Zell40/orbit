@@ -10,7 +10,7 @@ import { makeMode } from './mode';
 import { makeNumerics } from './numerics';
 import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
-import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch } from './context';
+import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync } from './context';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -37,7 +37,7 @@ export function makeHandler(ctx: HandlerCtx) {
   const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
-  const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine, persistNs });
+  const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs });
   // Channel-membership events (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME). See ./membership.
   const { handleMembership } = makeMembership({ get, set, closedChannels, helpers, historyAsked });
   // IRCv3 BATCH open/close (chathistory + multiline merge). See ./batch.
@@ -227,9 +227,21 @@ export function makeHandler(ctx: HandlerCtx) {
         // never a user command — its failures (e.g. INVALID_TARGET after parting a
         // channel) are benign races, so don't surface them as a scary Status line.
         if (msg.command === 'FAIL' && cmd === 'CHATHISTORY') break;
-        // METADATA (SUB/GET/SYNC) is likewise an automatic client request — its
-        // failures (unsupported subcommand, a key we can't read) are benign.
-        if (msg.command === 'FAIL' && cmd === 'METADATA') break;
+        // METADATA (SUB/GET/SYNC) failures are usually benign — except soju.im/muted
+        // sync (Web Push sourdine), which we surface in Status.
+        if (msg.command === 'FAIL' && cmd === 'METADATA') {
+          const muteKey = msg.params.find((p) => p === 'soju.im/muted');
+          if (muteKey) {
+            const target = msg.params.find((p) => p.startsWith('#') || p.startsWith('&'))
+              ?? msg.params.find((p, i) => i >= 2 && p !== muteKey && p !== '*' && p !== code);
+            if (target) takeBufferMuteSync(target);
+            serverLine(i18n.t('metadata.muteSyncFail', {
+              target: target || '?',
+              reason: desc || code || 'FAIL',
+            }), 'warning');
+          }
+          break;
+        }
         // MARKREAD / WEBPUSH are automatic and keyed to the NickServ account.
         // Guests (and the window before 900) get FAIL INTERNAL_ERROR / FORBIDDEN
         // — don't dump those into the channel the user is looking at.
