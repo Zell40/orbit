@@ -141,6 +141,41 @@ export const NoticeGroup = memo(function NoticeGroup({ messages }: { messages: C
   );
 });
 
+export const InfoGroup = memo(function InfoGroup({ messages }: { messages: ChatMessage[] }) {
+  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
+  const lines = messages.map((m) => m.text.replace(/^[*•]+\s*/, ''));
+  if (!lines.length) return null;
+  const stacked = lines.length > 1;
+  const combined = lines.join('\n');
+  return (
+    <div className="infoline">
+      <div className="infoline__head">
+        <span className="infoline__tag">Info</span>
+        {!stacked && <span className="infoline__txt">{formatIrc(lines[0], false, linkPreviews)}</span>}
+      </div>
+      {stacked && (
+        <div className="infoline__body infoline__body--stack">
+          {lines.map((text, i) => (
+            <span key={messages[i].id} className="infoline__txt">{formatIrc(text, false, linkPreviews)}</span>
+          ))}
+        </div>
+      )}
+      <CalloutPreviews text={combined} />
+    </div>
+  );
+});
+
+export const MotdGroup = memo(function MotdGroup({ messages }: { messages: ChatMessage[] }) {
+  if (!messages.length) return null;
+  const text = messages.map((m) => m.text).join('\n');
+  return (
+    <div className="motdline">
+      <span className="motdline__tag">MOTD</span>
+      <span className="motdline__txt">{formatIrc(text, false, false)}</span>
+    </div>
+  );
+});
+
 // Renders a non-message event (join/part/mode/topic/ban/notice/info/warning/…)
 // as its own status line. The container routes every kind that isn't a
 // privmsg/action here; MsgRow handles the message rows.
@@ -149,19 +184,6 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const mirc = useTheme().startsWith('yomirc');
   const isConsole = useActiveChat((s) => s.active === SERVER);
-
-  // Status is a terminal: keep MOTD/system as lines, never the SMS-style
-  // NOTICE/Info callouts used in channels and queries.
-  if (isConsole && (m.kind === 'notice' || m.kind === 'info' || m.kind === 'warning')) {
-    const body = m.text.replace(/^[*•»ℹ️⚠\uFE0F\s]+/, '');
-    return (
-      <div className={`sysline sysline--${m.kind}`}>
-        {m.from ? <span className="who">{m.from}</span> : null}
-        {m.from ? ' ' : ''}
-        {body}
-      </div>
-    );
-  }
 
   // yomIRC: render every server event as a classic mIRC status line — [HH:MM] * …
   // (notice keeps its own styled line below, as in the modern theme).

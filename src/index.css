@@ -912,17 +912,25 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .infoline__tag { flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   padding: .2rem .55rem; border-radius: 999px; line-height: 1.2; background: #3b7bff; color: #fff; box-shadow: 0 2px 6px -2px rgba(59,123,255,.6); }
 .infoline__txt { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
+.infoline__body { display: flex; flex-direction: column; align-items: stretch; gap: .28rem; min-width: 0; }
+.infoline__body--stack .infoline__txt + .infoline__txt {
+  padding-top: .38rem; border-top: 1px solid rgba(59,123,255,.18);
+}
+.messages--console .infoline { background: rgba(59,123,255,.10); border-color: transparent; box-shadow: inset 3px 0 0 #3b7bff; }
+.messages--console .infoline__txt { color: var(--term-fg); }
 
 /* MOTD — same callout language as Info; high-contrast tag (white on deep green) */
-.motdline { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
+.motdline { display: flex; flex-direction: column; align-items: stretch; gap: .35rem; margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
   background: rgba(16, 185, 129, .08); border: 1px solid rgba(16, 185, 129, .28); border-left: 3px solid #059669; }
-.motdline__tag { flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+.motdline__tag { align-self: flex-start; flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   padding: .2rem .55rem; border-radius: 999px; line-height: 1.2; background: #047857; color: #fff !important;
   box-shadow: 0 2px 6px -2px rgba(4,120,87,.55); }
 .motdline__txt { font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; white-space: pre-wrap; }
 .messages--console .motdline { background: rgba(16, 185, 129, .10); border-color: transparent; box-shadow: inset 3px 0 0 #10b981; }
 .messages--console .motdline__tag { background: #047857 !important; color: #fff !important; }
 .messages--console .motdline__txt { color: var(--term-fg); }
+.messages--console .noticeline { background: rgba(139, 92, 246, .12); border-color: transparent; box-shadow: inset 3px 0 0 #8b5cf6; }
+.messages--console .noticeline__txt { color: var(--term-fg); }
 
 /* Channel topic + room picture (thumbnail stays; large pic is .main__room-bg) */
 .chan-hero {
@@ -2127,8 +2135,6 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .messages--console .sysline .who { color: var(--term-accent-2); font-weight: 700; }
 .messages--console .sysline--cmd { color: var(--term-accent); font-weight: 700; }   /* your echoed commands */
 .messages--console .sysline--cmd::first-letter { color: var(--term-accent); }
-.messages--console .sysline--notice,
-.messages--console .sysline--info,
 .messages--console .sysline--warning { color: var(--term-fg); }
 .messages--console .daysep span { background: var(--term-bg-2); color: var(--term-dim); border-color: var(--term-border); }
 .messages--console .daysep::before, .messages--console .daysep::after { background: var(--term-border); }
