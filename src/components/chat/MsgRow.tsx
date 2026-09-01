@@ -75,7 +75,8 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   // chathistory-replayed ones (e.g. on a fresh mobile join) often don't — so
   // fall back to the author's account from the channel member list.
   const memberAccount = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.account);
-  const avatarAccount = m.account || memberAccount;
+  const myAccount = useActiveChat((s) => s.account);
+  const avatarAccount = m.account || memberAccount || (m.self ? myAccount : undefined);
   const avatarUrl = useAvatarUrl(avatarAccount);
   const mirc = useTheme().startsWith('yomirc');
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);

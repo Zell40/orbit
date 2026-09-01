@@ -36,6 +36,7 @@
     "markAway": "Uzakta olarak işaretle",
     "presence": "Durum",
     "newChat": "Yeni sohbet",
+    "reorderHint": "Sıralamak için sürükleyin",
     "profileTip": "{{nick}} — profilimi gör"
   },
   "topbar": {
@@ -354,6 +355,8 @@
       "soundsHint": "Bahsedildiğinde veya özel mesajda bip.",
       "hideJoins": "Girişleri / çıkışları gizle",
       "hideJoinsHint": "«katıldı / ayrıldı» satırlarını gizler.",
+      "hideModes": "Mod değişikliklerini gizle",
+      "hideModesHint": "Sohbette «+o / +v / …» satırlarını gizler.",
       "linkPreviews": "Bağlantı önizlemeleri",
       "linkPreviewsHint": "Bağlantılar, resimler, ses ve videolar için önizleme gösterir.",
       "highlightLabel": "Vurgulama anahtar kelimeleri",

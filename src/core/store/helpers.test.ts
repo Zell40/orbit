@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { makeHelpers } from './helpers';
+import { makeHelpers, rememberQueryAccount } from './helpers';
 import type { ChatState } from '../store';
 import type { ChatMessage } from '../irc/types';
 
@@ -105,5 +105,15 @@ describe('addMessage query privmsg coalesce', () => {
     const msgs = state.buffers['#aide.chat'].messages;
     expect(msgs).toHaveLength(1);
     expect(msgs[0].text).toBe('part one of a long line continues here.');
+  });
+});
+
+describe('rememberQueryAccount', () => {
+  it('stores the account on a query buffer and ignores channels', () => {
+    const { helpers, state } = setup();
+    rememberQueryAccount(helpers.patchBuffer, 'AideMoi', 'AideMoi', 'harry');
+    expect(state.buffers.aidemoi.members['AideMoi']?.account).toBe('harry');
+    rememberQueryAccount(helpers.patchBuffer, '#Aide.chat', 'bob', 'bobacct');
+    expect(state.buffers['#aide.chat'].members.bob).toBeUndefined();
   });
 });

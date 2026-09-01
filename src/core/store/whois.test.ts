@@ -1,25 +1,28 @@
 import { describe, it, expect } from 'vitest';
 import { makeWhois } from './whois';
 import { parseLine } from '../irc/parser';
+import { canon } from './context';
 import type { WhoisInfo } from '../irc/types';
 import type { ChatState } from '../store';
 
 function setup(initial: Record<string, WhoisInfo> = {}, nick = 'me') {
   let whois: Record<string, WhoisInfo> = { ...initial };
   let account = '';
+  let notifyLevel: Record<string, string> = {};
   const lines: [string, string][] = [];
-  const get = () => ({ whois, nick, account }) as unknown as ChatState;
+  const get = () => ({ whois, nick, account, notifyLevel }) as unknown as ChatState;
   const set = (partial: Partial<ChatState>) => {
     if (partial.whois) whois = partial.whois;
     if (typeof partial.account === 'string') account = partial.account;
+    if (partial.notifyLevel) notifyLevel = partial.notifyLevel as Record<string, string>;
   };
   const patchWhois = (nickName: string, fn: (w: WhoisInfo) => WhoisInfo) => {
     const cur = whois[nickName] ?? { nick: nickName, loading: true };
     whois = { ...whois, [nickName]: fn(cur) };
   };
   const sysLine = (name: string, text: string) => { lines.push([name, text]); };
-  const w = makeWhois({ get, set, patchWhois, sysLine } as Parameters<typeof makeWhois>[0]);
-  return { w, whois: () => whois, account: () => account, lines };
+  const w = makeWhois({ get, set, patchWhois, sysLine, persistNs: '' } as Parameters<typeof makeWhois>[0]);
+  return { w, whois: () => whois, account: () => account, lines, notifyLevel: () => notifyLevel };
 }
 
 describe('makeWhois — building the WhoisInfo', () => {
@@ -54,6 +57,16 @@ describe('makeWhois — building the WhoisInfo', () => {
     const { w } = setup();
     expect(w.handleWhois(parseLine(':srv 353 me = #x :bob'))).toBe(false);
     expect(w.handleWhois(parseLine(':bob!u@h PRIVMSG #x :hi'))).toBe(false);
+  });
+});
+
+describe('makeWhois — soju.im/muted buffer prefs', () => {
+  it('maps muted=1 to notifyLevel mute and clears on key-not-set', () => {
+    const { w, notifyLevel } = setup();
+    expect(w.handleWhois(parseLine(':srv 761 me #x soju.im/muted * :1'))).toBe(true);
+    expect(notifyLevel()[canon('#x')]).toBe('mute');
+    expect(w.handleWhois(parseLine(':srv 766 me #x soju.im/muted :key not set'))).toBe(true);
+    expect(notifyLevel()[canon('#x')]).toBeUndefined();
   });
 });
 

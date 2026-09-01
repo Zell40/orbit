@@ -25,19 +25,21 @@ interface HandlerCtx {
   lastAwayNotice: Record<string, number>;
   filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
   namesInFlight: Set<string>;
+  historyAsked: Set<string>;
   profileCache: Map<string, { realname?: string; account?: string }>;
+  persistNs?: string;
 }
 
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
-  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, profileCache } = ctx;
+  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs = '' } = ctx;
   const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
-  const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine });
+  const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine, persistNs });
   // Channel-membership events (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME). See ./membership.
-  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers });
+  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers, historyAsked });
   // IRCv3 BATCH open/close (chathistory + multiline merge). See ./batch.
   const { handleBatch } = makeBatch({ get, set, helpers });
   // TAGMSG: typing indicators + reactions. See ./tagmsg.
@@ -49,7 +51,7 @@ export function makeHandler(ctx: HandlerCtx) {
   // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
   const { handleMode } = makeMode({ get, set, helpers });
   // Numeric replies (RPL_*/ERR_*) + the generic error/console fallback. See ./numerics.
-  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, profileCache });
+  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -73,8 +75,8 @@ export function makeHandler(ctx: HandlerCtx) {
         else if (msg.command === 'NICK') { text = i18n.t('system.nick', { nick: msg.nick, newnick: msg.params[0] }); kind = 'nick'; }
         else if (msg.command === 'TOPIC') { text = msg.params[1] || ''; kind = 'topic'; }
         else if (msg.command === 'MODE') {
-          const modestr = [msg.params[1], ...msg.params.slice(2)].filter(Boolean).join(' ');
-          text = i18n.t('system.modes', { nick: msg.nick, modes: modestr }); kind = 'system';
+          const argStr = msg.params.length > 2 ? ' ' + msg.params.slice(2).join(' ') : '';
+          text = `${msg.params[1] ?? ''}${argStr}`; kind = 'mode';
         }
         // Deterministic id so the same historical event dedups across re-fetches
         // (events carry no msgid, so newId() would duplicate them on every reconnect).

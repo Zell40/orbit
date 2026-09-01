@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { avatarBg } from '../lib/format';
 import { buildSwitcherResults, type SwitcherItem } from '../lib/switcher';
 import { useActiveChat } from '../core/networks';
+import { sidebarBufferOrder } from '../core/store/sidebar-order';
 import { Icon } from './Icon';
 
 // Command-palette-style quick switcher (Ctrl/⌘-K): fuzzy-jump to any open
@@ -16,9 +17,11 @@ export function QuickSwitcher() {
   const client = useActiveChat((s) => s.client);
   // Stable-ref selects (a new-array selector would loop under zustand v5).
   const order = useActiveChat((s) => s.order);
+  const sidebarOrder = useActiveChat((s) => s.sidebarOrder);
   const buffers = useActiveChat((s) => s.buffers);
   const friends = useActiveChat((s) => s.friends);
   const nick = useActiveChat((s) => s.nick);
+  const arranged = useMemo(() => sidebarBufferOrder(order, sidebarOrder), [order, sidebarOrder]);
 
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -26,8 +29,8 @@ export function QuickSwitcher() {
   const close = () => setModal('');
 
   const results = useMemo(
-    () => buildSwitcherResults(q, { order, buffers, friends, nick }),
-    [q, order, buffers, friends, nick],
+    () => buildSwitcherResults(q, { order: arranged, buffers, friends, nick }),
+    [q, arranged, buffers, friends, nick],
   );
   const cur = Math.min(sel, Math.max(0, results.length - 1));
 

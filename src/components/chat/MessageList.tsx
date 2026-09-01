@@ -37,6 +37,7 @@ export function MessageList() {
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const search = useActiveChat((s) => s.search);
   const hideJoinQuit = useActiveChat((s) => s.prefs.hideJoinQuit);
+  const hideModes = useActiveChat((s) => s.prefs.hideModes);
   const mirc = useTheme().startsWith('yomirc');
   const loadMore = useActiveChat((s) => s.loadMoreHistory);
   const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
@@ -234,6 +235,7 @@ export function MessageList() {
   for (const m of shown) {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
     if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
+    if (hideModes && !isConsole && m.kind === 'mode') continue;
     const day = dayIndex(m.ts);
     if (day !== lastDay) { flush(); flushNotices(); rows.push(<div key={`d-${m.id}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {

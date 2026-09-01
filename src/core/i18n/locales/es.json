@@ -36,6 +36,7 @@
     "markAway": "Marcar ausente",
     "presence": "Presencia",
     "newChat": "Nueva conversación",
+    "reorderHint": "Arrastra para reordenar",
     "profileTip": "{{nick}} — ver mi perfil"
   },
   "topbar": {
@@ -354,6 +355,8 @@
       "soundsHint": "Un pitido al mencionarte o en mensaje directo.",
       "hideJoins": "Ocultar entradas / salidas",
       "hideJoinsHint": "Oculta los «se unió / salió».",
+      "hideModes": "Ocultar cambios de modo",
+      "hideModesHint": "Oculta las líneas «+o / +v / …» en la conversación.",
       "linkPreviews": "Vistas previas de enlaces",
       "linkPreviewsHint": "Muestra vistas previas de enlaces, imágenes, audio y vídeo.",
       "highlightLabel": "Palabras clave de resaltado",

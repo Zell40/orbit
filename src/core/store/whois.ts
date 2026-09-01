@@ -9,6 +9,7 @@
 // it also drives the "user is away" query notice.
 import { fmtDuration, formatUserModes } from '@/lib/format-text';
 import { canon } from './context';
+import { saveNotify } from './persistence';
 import type { IrcMessage, WhoisInfo } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -19,11 +20,25 @@ interface WhoisDeps {
   set: StoreApi<ChatState>['setState'];
   patchWhois: StoreHelpers['patchWhois'];
   sysLine: StoreHelpers['sysLine'];
+  /** Network namespace for persist keys (same as createChatStore ns). */
+  persistNs?: string;
 }
 
-export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
+export function makeWhois({ get, set, patchWhois, sysLine, persistNs = '' }: WhoisDeps) {
   function clearWhois(nick: string): void {
     const rest = { ...get().whois }; delete rest[nick]; set({ whois: rest });
+  }
+
+  // Apply soju.im/muted from the server without re-sending METADATA (avoids a loop).
+  function applyBufferMutedFromServer(target: string, muted: boolean): void {
+    if (!target) return;
+    const key = canon(target);
+    const next = { ...get().notifyLevel };
+    if (muted) next[key] = 'mute';
+    else if (next[key] === 'mute') delete next[key];
+    else return;
+    saveNotify(next, persistNs);
+    set({ notifyLevel: next });
   }
 
   // yomirc /whois: print the collected WHOIS to its origin window as classic mIRC
@@ -56,6 +71,10 @@ export function makeWhois({ get, set, patchWhois, sysLine }: WhoisDeps) {
   // Store one draft/metadata-2 key for a user; an empty/absent value clears it.
   function applyMeta(target: string, key: string, value: string | undefined): void {
     if (!target || !key) return;
+    if (key === 'soju.im/muted') {
+      applyBufferMutedFromServer(target, value === '1');
+      return;
+    }
     patchWhois(target, (w) => {
       const meta = { ...(w.meta ?? {}) };
       if (value) meta[key] = value; else delete meta[key];

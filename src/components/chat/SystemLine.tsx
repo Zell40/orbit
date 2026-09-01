@@ -2,7 +2,7 @@ import { memo, Fragment, useLayoutEffect, useRef, useState, type ReactNode } fro
 import { Trans, useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, formatIrc, splitNoticeLines, groupModeDisplay, formatModeChange, isNickModeGroup, type ModeDisplayGroup } from '@/lib/format';
-import { isChannelName } from '@/core/store/context';
+import { SERVER, isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
@@ -148,6 +148,20 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   const { t } = useTranslation();
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const mirc = useTheme().startsWith('yomirc');
+  const isConsole = useActiveChat((s) => s.active === SERVER);
+
+  // Status is a terminal: keep MOTD/system as lines, never the SMS-style
+  // NOTICE/Info callouts used in channels and queries.
+  if (isConsole && (m.kind === 'notice' || m.kind === 'info' || m.kind === 'warning')) {
+    const body = m.text.replace(/^[*•»ℹ️⚠\uFE0F\s]+/, '');
+    return (
+      <div className={`sysline sysline--${m.kind}`}>
+        {m.from ? <span className="who">{m.from}</span> : null}
+        {m.from ? ' ' : ''}
+        {body}
+      </div>
+    );
+  }
 
   // yomIRC: render every server event as a classic mIRC status line — [HH:MM] * …
   // (notice keeps its own styled line below, as in the modern theme).
@@ -261,6 +275,9 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     const isAlert = m.text.startsWith('\x01ALERT\x01');
     const warnPrefix = m.kind === 'system' ? m.text.match(/^⚠\uFE0F?\s*/) : null;
     if (warnPrefix) {
+      if (isConsole) {
+        return <div className="sysline sysline--warning">{m.text.slice(warnPrefix[0].length)}</div>;
+      }
       return (
         <div className="errorline" role="alert">
           <svg className="errorline__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"

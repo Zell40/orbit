@@ -495,6 +495,12 @@ input, textarea { font-family: inherit; }
   transition: background .13s;
 }
 .room:hover { background: var(--bg-soft); }
+.room.is-draggable { cursor: grab; }
+.room.is-draggable:active { cursor: grabbing; }
+.room.is-draggable > * { pointer-events: none; }
+.room.is-draggable .room__close { pointer-events: auto; }
+.room.is-dragging { opacity: .42; }
+.room.is-drop { box-shadow: inset 0 2px 0 0 var(--accent); }
 .room.is-active { background: var(--accent-soft); }
 .room.is-active::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 60%; border-radius: 0 3px 3px 0; background: var(--accent); box-shadow: 0 0 10px 0 rgba(20,82,204,.6); }
 .room.is-active .room__name { color: var(--accent-d); }
@@ -2121,9 +2127,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .messages--console .sysline .who { color: var(--term-accent-2); font-weight: 700; }
 .messages--console .sysline--cmd { color: var(--term-accent); font-weight: 700; }   /* your echoed commands */
 .messages--console .sysline--cmd::first-letter { color: var(--term-accent); }
-.messages--console .infoline { background: var(--accent-soft); border-color: transparent; box-shadow: inset 3px 0 0 var(--term-accent-2); }
-.messages--console .infoline__tag { background: var(--accent-soft); color: var(--term-accent-2); }
-.messages--console .infoline__txt { color: var(--term-fg); }
+.messages--console .sysline--notice,
+.messages--console .sysline--info,
+.messages--console .sysline--warning { color: var(--term-fg); }
 .messages--console .daysep span { background: var(--term-bg-2); color: var(--term-dim); border-color: var(--term-border); }
 .messages--console .daysep::before, .messages--console .daysep::after { background: var(--term-border); }
 .messages--console .unread-divider span { color: var(--term-accent); }

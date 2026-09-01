@@ -170,7 +170,7 @@ export class Ircv3 {
   // draft/chathistory — most recent `limit` items (messages + events w/ event-playback).
   // Low priority: prefetched on join for every channel, must not block typing.
   chathistoryLatest(target: string, limit: number): void {
-    if (skipIrcdTarget(target)) return;
+    if (!this.acked.has('draft/chathistory') || skipIrcdTarget(target)) return;
     this.tx.lowSend(`CHATHISTORY LATEST ${target} * ${limit}`);
   }
   // draft/metadata-2 — subscribe to the account-profile keys the network publishes
@@ -185,6 +185,17 @@ export class Ircv3 {
   fetchMetadata(target: string): void {
     if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return;
     this.tx.send(`METADATA ${target} GET avatar bio pronouns timezone url`);
+  }
+  /** Per-buffer mute flag (soju.im/muted) — silences Web Push on the server. */
+  setBufferMuted(target: string, muted: boolean): void {
+    if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return;
+    if (muted) this.tx.send(`METADATA ${target} SET soju.im/muted 1`);
+    else this.tx.send(`METADATA ${target} SET soju.im/muted`);
+  }
+  /** Restore mute level after JOIN (multi-device sync). */
+  fetchBufferMuted(target: string): void {
+    if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return;
+    this.tx.lowSend(`METADATA ${target} GET soju.im/muted`);
   }
   // MONITOR (online-notify): + add, - remove, L list, C clear.
   monitor(op: '+' | '-' | 'L' | 'C', targets = ''): void {

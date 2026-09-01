@@ -12,6 +12,24 @@ type G = StoreApi<ChatState>['getState'];
 const WHOIS_CAP = 64; // most WHOIS entries anyone actually views at once; bounds server spam
 const QUERY_CAP = 100; // open query (PM) windows; far above real use, caps a server PM flood
 
+/** Remember a services account on a query buffer so PM rows can resolve avatars. */
+export function rememberQueryAccount(
+  patchBuffer: (name: string, fn: (b: Buffer) => Buffer) => void,
+  dest: string,
+  nick: string,
+  account?: string,
+): void {
+  if (!account || !nick) return;
+  if (isChannelName(dest) || isPseudoBuffer(dest)) return;
+  patchBuffer(dest, (b) => {
+    if (b.isChannel) return b;
+    const cur = b.members[nick];
+    if (cur?.account === account) return b;
+    return { ...b, members: { ...b.members, [nick]: { nick, prefix: '', ...cur, account } } };
+  });
+}
+
+
 /** Join LineWrapper fragments; keep list/notice items on their own line. */
 function joinCoalescedText(prev: string, next: string, kind?: MessageKind): string {
   if (!prev) return next;

@@ -9,6 +9,7 @@ import { desktopNotify, blip } from '@/platform/notify';
 import { hostmask } from './text';
 import { SERVER, canon, isChannelName, inQuietBatch } from './context';
 import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
+import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
 import type { IrcMessage } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -19,9 +20,10 @@ interface MembershipDeps {
   set: StoreApi<ChatState>['setState'];
   closedChannels: Set<string>;
   helpers: StoreHelpers;
+  historyAsked: Set<string>;
 }
 
-export function makeMembership({ get, set, closedChannels, helpers }: MembershipDeps) {
+export function makeMembership({ get, set, closedChannels, helpers, historyAsked }: MembershipDeps) {
   const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, patchWhois, sysLine } = helpers;
 
   // Handle a membership event (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME) or a live
@@ -31,9 +33,10 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
     switch (msg.command) {
       case 'JOIN': {
         const ch = msg.params[0];
-        if (msg.nick === me) closedChannels.delete(canon(ch)); // we're (re)joining → allow the buffer again
+        const self = !!me && canon(msg.nick) === canon(me);
+        if (self) closedChannels.delete(canon(ch)); // we're (re)joining → allow the buffer again
         ensureBuffer(ch);
-        if (msg.nick === me) {
+        if (self) {
           patchBuffer(ch, (b) => ({ ...b, joined: true }));
           const want = (getExpectedBootChannels()[0] || '').trim();
           if (want) {
@@ -45,27 +48,31 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
           }
           // Pull full history (messages + JOIN/PART/KICK/MODE/TOPIC events via event-playback)
           // from m_ircv3_chathistory — the +H auto-replay only carries messages. Deduped by id.
-          const cl = get().client;
-          if (cl?.ircv3.hasCap('draft/chathistory')) cl.ircv3.chathistoryLatest(ch, 50);
+          // Server autojoin can race ahead of CAP ACK; 366 retries if this no-ops.
+          prefetchLatestHistory(get, historyAsked, ch);
+          // Restore per-channel mute from the server (soju.im/muted → Web Push).
+          get().client?.ircv3.fetchBufferMuted(ch);
         }
         // extended-join: ":nick JOIN #chan <account> :<realname>" — '*'/'0' = none.
         // Gives us account + realname up front, so no WHO needed for joiners.
         const joinAcct = msg.params[1] && msg.params[1] !== '*' && msg.params[1] !== '0' ? msg.params[1] : undefined;
         const joinReal = msg.params[2] || undefined;
         patchBuffer(ch, (b) => ({ ...b, members: { ...b.members, [msg.nick]: { nick: msg.nick, user: msg.user || undefined, host: msg.host || undefined, prefix: '', account: joinAcct, realname: joinReal } } }));
-        if (msg.nick === me && joinReal) get().client?.setRealname(joinReal);
+        if (self && joinReal) get().client?.setRealname(joinReal);
         // ZNC attach: no SASL 900 — our own extended-join carries the NickServ account.
-        if (msg.nick === me && joinAcct) set({ account: joinAcct });
+        if (self && joinAcct) set({ account: joinAcct });
         if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg));
         return true;
       }
       case 'PART': {
         const ch = msg.params[0];
+        const selfPart = !!me && canon(msg.nick) === canon(me);
+        if (selfPart) forgetHistoryPrefetch(historyAsked, ch);
         patchBuffer(ch, (b) => {
           const members = { ...b.members }; delete members[msg.nick];
           // Self-part → no longer a member: clear `joined` so we stop firing
           // chathistory/typing on a channel we left (CHATHISTORY would FAIL).
-          return { ...b, members, joined: msg.nick === me ? false : b.joined };
+          return { ...b, members, joined: selfPart ? false : b.joined };
         });
         if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg));
         return true;
@@ -74,13 +81,14 @@ export function makeMembership({ get, set, closedChannels, helpers }: Membership
         const ch = msg.params[0];
         const target = msg.params[1];
         const reason = msg.params[2] ?? '';
-        if (target === me) {
+        if (target === me || (!!me && canon(target) === canon(me))) {
           // We got kicked out. Tell the user, then close the salon and drop it
           // from the list (closedChannels stops a late stray line resurrecting it).
           const tail = reason ? ` (${reason})` : '';
           sysLine(SERVER, `${i18n.t('system.kickedFrom', { ch, by: msg.nick })}${tail}`, 'system');
           desktopNotify(i18n.t('system.kickedTitle', { ch }), `${i18n.t('system.kickedByNotif', { by: msg.nick })}${tail}`);
           if (get().prefs.sound) blip();
+          forgetHistoryPrefetch(historyAsked, ch);
           closedChannels.add(canon(ch));
           dropBuffer(ch);
           set({ profileUser: '', kicked: { channel: ch, by: msg.nick, reason, kind: 'kick' } });

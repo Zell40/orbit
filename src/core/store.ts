@@ -9,7 +9,8 @@ import { resolveConnectUsername } from './irc/ident';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
-import { makeHelpers } from './store/helpers';
+import { makeHelpers, rememberQueryAccount } from './store/helpers';
+import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { makeHandler } from './store/handler';
 import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
@@ -104,11 +105,13 @@ export interface ChatState {
   nickServAlert: ServiceAlert | null; // incoming NickServ notice — centered popup
   nickError: { nick: string; code: string; text: string } | null; // 432/433 after a NICK attempt
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
+  sidebarOrder: { channels: string[]; queries: string[] };
 
   connect: (opts: ConnectOptions) => void;
   setActive: (name: string) => void;
   openQuery: (nick: string, fromChannel?: string) => void;
   closeBuffer: (name: string) => void;
+  reorderSidebar: (section: 'channels' | 'queries', from: string, to: string) => void;
   openUser: (nick: string) => void;
   refreshUser: (nick: string) => void;
   whoisText: (nick: string) => void;
@@ -157,6 +160,7 @@ export function createChatStore(ns = '') {
   const closedChannels = new Set<string>(); // channels the user explicitly closed — not auto-resurrected
   const knownServices = new Set<string>(); // canon nicks the server tagged as services
   const namesInFlight = new Set<string>(); // channels currently receiving a NAMES (353…366) burst
+  const historyAsked = new Set<string>(); // channels already sent CHATHISTORY LATEST this session
   // Soft cache of GECOS/account across reconnect nicklist clears (until WHOX refills).
   const profileCache = new Map<string, { realname?: string; account?: string }>();
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
@@ -171,7 +175,7 @@ export function createChatStore(ns = '') {
     client?.ircv3.markRead(name, new Date(ts).toISOString(), account);
   };
 
-  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, profileCache });
+  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
   const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers });
@@ -218,6 +222,7 @@ export function createChatStore(ns = '') {
     profileUser: '',
     whois: {},
     pmContext: {},
+    sidebarOrder: loadSidebarOrder(ns),
     modal: '',
     reportSubject: '',
     cban: null,
@@ -349,6 +354,7 @@ export function createChatStore(ns = '') {
         resetBatches(); // drop any batch left half-open when the socket dropped
         knownServices.clear(); // re-learn services after reconnect rather than accrete forever
         namesInFlight.clear();
+        historyAsked.clear();
         // Drop stale nicklists immediately — NAMES on rejoin will refill them.
         // Avoids ghost guests (Harry208 + Harry365) while the socket is down.
         // Keep a short-lived GECOS/account cache so âge/genre/ville flash back
@@ -449,6 +455,17 @@ export function createChatStore(ns = '') {
       set({ profileUser: '' });
     },
 
+    reorderSidebar(section, from, to) {
+      const s = get();
+      const live = section === 'channels' ? liveChannels(s.order) : liveQueries(s.order);
+      const arranged = arrangeNames(live, s.sidebarOrder[section]);
+      const next = moveName(arranged, from, to);
+      if (next === arranged) return;
+      const sidebarOrder = { ...s.sidebarOrder, [section]: next };
+      saveSidebarOrder(sidebarOrder, ns);
+      set({ sidebarOrder });
+    },
+
     closeProfile() { set({ profileUser: '' }); },
     setModal(m) { set({ modal: m }); },
 
@@ -530,6 +547,8 @@ export function createChatStore(ns = '') {
       if (level === 'mentions') delete next[key]; else next[key] = level;
       saveNotify(next, ns);
       set({ notifyLevel: next });
+      // Sync mute to the server so Web Push respects the same preference.
+      get().client?.ircv3.setBufferMuted(name, level === 'mute');
     },
 
     togglePin(msgid) {
@@ -590,6 +609,33 @@ export function createChatStore(ns = '') {
         }
       }
       patchBuffer(key, (b) => ({ ...b, unread: 0, highlight: false }));
+      // Query windows have no nicklist — copy the peer's account from a shared
+      // channel / WHOIS / GECOS cache so PM avatars resolve without a fresh WHOIS.
+      if (!isChannelName(key) && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
+        const s = get();
+        const buf = s.buffers[key];
+        const peerNick = buf?.name || name;
+        const already = buf?.members[peerNick]?.account
+          || Object.values(buf?.members || {}).find((m) => canon(m.nick) === key)?.account;
+        if (!already) {
+          let account = s.whois[peerNick]?.account || profileCache.get(key)?.account;
+          if (!account) {
+            for (const w of Object.values(s.whois)) {
+              if (canon(w.nick) === key && w.account) { account = w.account; break; }
+            }
+          }
+          if (!account) {
+            for (const n of s.order) {
+              const b = s.buffers[n];
+              if (!b?.isChannel) continue;
+              const m = b.members[peerNick] || Object.values(b.members).find((x) => canon(x.nick) === key);
+              if (m?.account) { account = m.account; break; }
+            }
+          }
+          if (account) rememberQueryAccount(patchBuffer, peerNick, peerNick, account);
+        }
+        if (s.account && s.nick) rememberQueryAccount(patchBuffer, peerNick, s.nick, s.account);
+      }
       set({ active: key });
       // Phone: hide the left drawer so the conversation is on screen (Explore /
       // gallery join never went through a sidebar row, so they used to leave it open).

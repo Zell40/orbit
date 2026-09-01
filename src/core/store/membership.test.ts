@@ -7,7 +7,7 @@ import type { StoreHelpers } from './helpers';
 
 // A minimal fake store: buffers keyed by lowercased name, with member maps the
 // membership handler mutates through the helper stubs.
-function setup() {
+function setup(historyAsked = new Set<string>()) {
   const state = {
     nick: 'me', account: '', active: '', order: [] as string[],
     buffers: {} as Record<string, { name: string; isChannel: boolean; members: Record<string, { nick: string; user?: string; host?: string; realname?: string; account?: string; prefix?: string; away?: boolean }>; joined: boolean }>,
@@ -44,7 +44,7 @@ function setup() {
     state.buffers[k(chan)] = { name: chan, isChannel: true, joined: true, members: Object.fromEntries(members.map((n) => [n, { nick: n }])) };
     state.order.push(k(chan));
   };
-  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers } as Parameters<typeof makeMembership>[0]);
+  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers, historyAsked } as Parameters<typeof makeMembership>[0]);
   const on = (line: string) => handleMembership(parseLine(line), state.nick);
   return { on, state, lines, closedChannels, seed, k };
 }
@@ -137,5 +137,53 @@ describe('membership handler', () => {
     expect(state.active).toBe('');
     on(':me!u@h JOIN #Baccalaureat.chat');
     expect(state.active).toBe('#Baccalaureat.chat');
+  });
+
+  it('requests CHATHISTORY LATEST on our own JOIN when the cap is ACK’d', () => {
+    const { on, state } = setup();
+    const latest: string[] = [];
+    const muted: string[] = [];
+    state.client = {
+      ircv3: {
+        hasCap: (c: string) => c === 'draft/chathistory',
+        chathistoryLatest: (t: string) => latest.push(t),
+        fetchBufferMuted: (t: string) => muted.push(t),
+      },
+    };
+    on(':bob!u@h JOIN #x');
+    on(':me!u@h JOIN #x');
+    expect(latest).toEqual(['#x']);
+    expect(muted).toEqual(['#x']);
+  });
+
+  it('skips CHATHISTORY when draft/chathistory is not ACK’d', () => {
+    const { on, state } = setup();
+    const latest: string[] = [];
+    state.client = {
+      ircv3: {
+        hasCap: () => false,
+        chathistoryLatest: (t: string) => latest.push(t),
+        fetchBufferMuted: () => {},
+      },
+    };
+    on(':me!u@h JOIN #x');
+    expect(latest).toEqual([]);
+  });
+
+  it('requests history again after we PART and rejoin', () => {
+    const historyAsked = new Set<string>();
+    const { on, state } = setup(historyAsked);
+    const latest: string[] = [];
+    state.client = {
+      ircv3: {
+        hasCap: (c: string) => c === 'draft/chathistory',
+        chathistoryLatest: (t: string) => latest.push(t),
+        fetchBufferMuted: () => {},
+      },
+    };
+    on(':me!u@h JOIN #x');
+    on(':me!u@h PART #x');
+    on(':me!u@h JOIN #x');
+    expect(latest).toEqual(['#x', '#x']);
   });
 });

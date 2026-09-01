@@ -130,6 +130,7 @@ export function NotificationsSection() {
         {getConfig().features.push && <PushRow />}
         <ToggleRow icon="🔊" label={t('settings.notifications.sounds')} hint={t('settings.notifications.soundsHint')} prefKey="sound" />
         <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
+        <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />
         <ToggleRow icon="🚪" label={t('settings.notifications.confirmClose')} hint={t('settings.notifications.confirmCloseHint')} prefKey="confirmClose" />
         {getConfig().features.linkPreviews && (
           <ToggleRow icon="🔗" label={t('settings.notifications.linkPreviews')} hint={t('settings.notifications.linkPreviewsHint')} prefKey="linkPreviews" />

@@ -128,6 +128,17 @@ describe('Ircv3 cap-gated commands', () => {
     expect(sent).toHaveLength(0);
   });
 
+  it('sends soju.im/muted SET/clear when mute toggles', () => {
+    const { ircv3, sent, cap } = make();
+    cap('CAP * ACK :draft/metadata-2');
+    ircv3.setBufferMuted('#x', true);
+    ircv3.setBufferMuted('#x', false);
+    expect(sent).toEqual([
+      'METADATA #x SET soju.im/muted 1',
+      'METADATA #x SET soju.im/muted',
+    ]);
+  });
+
   it('skips MARKREAD, METADATA and TAGMSG to local $ buffers', () => {
     const { ircv3, sent, cap } = make();
     cap('CAP * ACK :draft/read-marker draft/metadata-2 message-tags');
@@ -177,9 +188,16 @@ describe('Ircv3 cap-gated commands', () => {
   });
 
   it('routes chathistory prefetch through the low-priority queue', () => {
-    const { ircv3, sent, low } = make();
+    const { ircv3, sent, low, cap } = make();
+    cap('CAP * ACK :draft/chathistory');
     ircv3.chathistoryLatest('#x', 50);
     expect(sent).toHaveLength(0);
     expect(low).toEqual(['CHATHISTORY LATEST #x * 50']);
+  });
+
+  it('skips chathistory prefetch without the cap', () => {
+    const { ircv3, low } = make();
+    ircv3.chathistoryLatest('#x', 50);
+    expect(low).toHaveLength(0);
   });
 });

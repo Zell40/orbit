@@ -13,6 +13,7 @@ import { getConfig } from '../config';
 import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho } from './notices';
+import { rememberQueryAccount } from './helpers';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -194,6 +195,9 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       channelContext: chanCtx,
       tags: clientTagsForPlugins(msg.tags),
     };
+    const acct = cm.account || (self ? get().account : undefined);
+    if (acct) rememberQueryAccount(patchBuffer, bufferName, msg.nick, acct);
+    if (self && get().account) rememberQueryAccount(patchBuffer, bufferName, me, get().account);
     // Remember an incoming PM's channel context so our replies carry it back
     // (a one-off notice isn't a thread we reply into, so it doesn't seed this).
     if (chanCtx && !self && kind !== 'notice' && isChannelName(chanCtx)) {

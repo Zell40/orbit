@@ -36,6 +36,7 @@
     "markAway": "Mark as away",
     "presence": "Presence",
     "newChat": "New chat",
+    "reorderHint": "Drag to reorder",
     "profileTip": "{{nick}} — view my profile"
   },
   "topbar": {
@@ -393,6 +394,8 @@
       "soundsHint": "A beep on mention or direct message.",
       "hideJoins": "Hide joins / parts",
       "hideJoinsHint": "Hides “joined / left” lines.",
+      "hideModes": "Hide mode changes",
+      "hideModesHint": "Hides “sets +o / +v / …” lines in the conversation.",
       "linkPreviews": "Link previews",
       "linkPreviewsHint": "Show inline previews for links, images, audio and video.",
       "highlightLabel": "Highlight keywords",

@@ -10,6 +10,7 @@ import { getConfig } from './core/config';
 import { usePluginRegistry, matchShortcut } from './modules/registry';
 import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks';
 import { useChat } from './core/store';
+import { sidebarNavOrder } from './core/store/sidebar-order';
 import { getPrefs } from './ui/prefs';
 import { saveResume } from './core/resume';
 import { shouldSkipClosePrompt, armLeaveWithoutPrompt } from './core/direct-reconnect';
@@ -114,7 +115,7 @@ export default function App() {
       }
       // Alt+↑ / Alt+↓ — previous / next conversation
       if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        const order = st.order;
+        const order = sidebarNavOrder(st.order, st.sidebarOrder);
         if (order.length) {
           e.preventDefault();
           const i = Math.max(0, order.indexOf(st.active));

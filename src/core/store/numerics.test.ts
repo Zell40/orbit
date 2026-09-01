@@ -8,7 +8,7 @@ import type { StoreHelpers } from './helpers';
 const mk = (command: string, params: string[] = []): IrcMessage =>
   ({ command, params, tags: {}, nick: '', prefix: '', raw: '' }) as unknown as IrcMessage;
 
-function setup(over: Record<string, unknown> = {}) {
+function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string>()) {
   const sys: { name: string; text: string }[] = [];
   const server: string[] = [];
   let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
@@ -42,9 +42,10 @@ function setup(over: Record<string, unknown> = {}) {
     closedChannels: new Set<string>(), lastCantSend: {}, lastAwayNotice: {},
     clearWhois: () => {},
     namesInFlight: new Set<string>(),
+    historyAsked,
     profileCache: new Map(),
   } as Parameters<typeof makeNumerics>[0]);
-  return { handleNumerics, state, sys, server };
+  return { handleNumerics, state, sys, server, historyAsked };
 }
 
 describe('store numerics handler', () => {
@@ -214,6 +215,41 @@ describe('store numerics handler', () => {
   it('returns false for a non-numeric command', () => {
     const { handleNumerics } = setup();
     expect(handleNumerics(mk('PRIVMSG', ['#x', 'hi']))).toBe(false);
+  });
+
+  it('requests CHATHISTORY LATEST on 366 when the cap is ACK’d', () => {
+    const latest: string[] = [];
+    const { handleNumerics } = setup({
+      client: {
+        numerics: new Numerics(),
+        who: () => {},
+        send: () => {},
+        ircv3: {
+          hasCap: (c: string) => c === 'draft/chathistory',
+          chathistoryLatest: (t: string) => latest.push(t),
+        },
+      },
+    });
+    expect(handleNumerics(mk('366', ['me', '#EntreNous.chat', 'End of /NAMES list']))).toBe(true);
+    expect(latest).toEqual(['#EntreNous.chat']);
+  });
+
+  it('does not request CHATHISTORY twice for the same channel on 366', () => {
+    const latest: string[] = [];
+    const { handleNumerics } = setup({
+      client: {
+        numerics: new Numerics(),
+        who: () => {},
+        send: () => {},
+        ircv3: {
+          hasCap: (c: string) => c === 'draft/chathistory',
+          chathistoryLatest: (t: string) => latest.push(t),
+        },
+      },
+    });
+    handleNumerics(mk('366', ['me', '#x', 'End of /NAMES list']));
+    handleNumerics(mk('366', ['me', '#x', 'End of /NAMES list']));
+    expect(latest).toEqual(['#x']);
   });
 
   it('ignores a WHOX 354 that is not our token, leaving it for later handlers', () => {

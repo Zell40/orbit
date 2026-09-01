@@ -36,6 +36,7 @@
     "markAway": "Als abwesend markieren",
     "presence": "Anwesenheit",
     "newChat": "Neue Unterhaltung",
+    "reorderHint": "Ziehen zum Umsortieren",
     "profileTip": "{{nick}} — mein Profil ansehen"
   },
   "topbar": {
@@ -354,6 +355,8 @@
       "soundsHint": "Ein Piep bei Erwähnung oder Direktnachricht.",
       "hideJoins": "Beitritte / Verlassen ausblenden",
       "hideJoinsHint": "Blendet „beigetreten / verlassen“ aus.",
+      "hideModes": "Mode-Änderungen ausblenden",
+      "hideModesHint": "Blendet „+o / +v / …“-Zeilen im Verlauf aus.",
       "linkPreviews": "Link-Vorschauen",
       "linkPreviewsHint": "Zeigt Vorschauen für Links, Bilder, Audio und Videos.",
       "highlightLabel": "Hervorhebungs-Schlüsselwörter",

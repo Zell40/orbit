@@ -4,6 +4,7 @@ import { getConfig } from '../core/config';
 export interface Prefs {
   sound: boolean;        // play a blip on mention / private message
   hideJoinQuit: boolean; // hide join/part/quit lines in busy channels
+  hideModes: boolean;    // hide MODE lines (+o/+v/…) in the conversation history
   compact: boolean;      // denser message rows
   clock24: boolean;      // 24h timestamps (else 12h am/pm)
   textScale: number;     // UI text size multiplier (1 = default; 0.9 / 1.1 / 1.25)
@@ -30,7 +31,7 @@ const LEGACY_KEY = 'tchatou-prefs';
 function defaults(): Prefs {
   const d = getConfig().defaults;
   return {
-    sound: d.sound, hideJoinQuit: d.hideJoinQuit, compact: d.compact, clock24: d.clock24,
+    sound: d.sound, hideJoinQuit: d.hideJoinQuit, hideModes: false, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: true,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,

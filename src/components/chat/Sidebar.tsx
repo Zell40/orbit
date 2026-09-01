@@ -1,7 +1,7 @@
-import { memo, useState, useSyncExternalStore } from 'react';
+import { memo, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER, isNoticeBuffer, noticeBufferNick } from '@/core/store';
-import { isChannelName } from '@/core/store/context';
+import { arrangedChannels, arrangedQueries } from '@/core/store/sidebar-order';
 import { avatarBg } from '@/lib/format';
 import { switchWithTransition } from '@/lib/viewTransition';
 import { stripFormatting } from '@/core/store/text';
@@ -76,16 +76,26 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
 }
 
 type Filter = 'all' | 'rooms' | 'people';
+type SidebarSection = 'channels' | 'queries';
+
+// HTML5 DnD dataTransfer is unreliable across browsers for custom types; a
+// module-level payload is enough because only one drag runs at a time.
+let dnd: { name: string; section: SidebarSection } | null = null;
 
 // One conversation row. Memoized + subscribed to its OWN buffer, so a message in
 // channel X re-renders only X's row, not the whole list on every incoming line.
-const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string; mirc: boolean; onNavigate: () => void }) {
+const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag }: {
+  name: string; mirc: boolean; onNavigate: () => void; section?: SidebarSection; canDrag?: boolean;
+}) {
   const { t } = useTranslation();
   const b = useActiveChat((s) => s.buffers[name]);
   const isActive = useActiveChat((s) => s.active === name);
   const setActive = useActiveChat((s) => s.setActive);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
+  const reorderSidebar = useActiveChat((s) => s.reorderSidebar);
   const serverName = useActiveChat((s) => s.serverName);
+  const [over, setOver] = useState(false);
+  const skipClick = useRef(false);
   if (!b) return null;
   const isServer = name === SERVER;
   const isNotices = isNoticeBuffer(name);
@@ -96,11 +106,47 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
   // minimal (yomirc) skin can hide the repetitive "Public channel" fallback.
   const channelTopic = b.isChannel ? stripFormatting(b.topic || '').trim() : '';
   const genericSub = !isServer && !isNotices && !channelTopic; // no real subtitle (topicless channel or a DM)
+  const draggable = !!(canDrag && section);
+  const go = () => {
+    if (skipClick.current) return;
+    switchWithTransition(() => setActive(name));
+    onNavigate();
+  };
   return (
-    <div className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${isNotices ? 'room--notices' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''}`}
+    <div className={`room ${isActive ? 'is-active' : ''} ${isServer ? 'room--status' : ''} ${isNotices ? 'room--notices' : ''} ${b.unread > 0 ? 'has-unread' : ''} ${b.highlight ? 'has-mention' : ''} ${draggable ? 'is-draggable' : ''} ${over ? 'is-drop' : ''}`}
       role="button" tabIndex={0}
-      onClick={() => { switchWithTransition(() => setActive(name)); onNavigate(); }}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); switchWithTransition(() => setActive(name)); onNavigate(); } }}>
+      draggable={draggable}
+      title={draggable ? t('sidebar.reorderHint') : undefined}
+      onClick={go}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } }}
+      onDragStart={(e) => {
+        if (!draggable || !section) return;
+        skipClick.current = true;
+        dnd = { name, section };
+        e.dataTransfer.setData('text/plain', name);
+        e.dataTransfer.effectAllowed = 'move';
+        e.currentTarget.classList.add('is-dragging');
+      }}
+      onDragEnd={(e) => {
+        e.currentTarget.classList.remove('is-dragging');
+        setOver(false);
+        dnd = null;
+        window.setTimeout(() => { skipClick.current = false; }, 80);
+      }}
+      onDragOver={(e) => {
+        if (!draggable || !dnd || dnd.section !== section || dnd.name === name) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setOver(true);
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setOver(false);
+        if (!section || !dnd || dnd.section !== section || dnd.name === name) return;
+        reorderSidebar(section, dnd.name, name);
+        dnd = null;
+      }}>
       <span className="room__av" data-server={isServer || undefined} data-notices={isNotices || undefined}
         style={isServer || (isNotices && !noticeNick) ? undefined : { background: avatarBg(noticeNick || name) }}>
         {b.isChannel ? <span className="room__hash">#</span> : glyph}
@@ -119,6 +165,7 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
         <button
           type="button"
           className="room__close"
+          draggable={false}
           title={b.isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           onClick={(e) => { e.stopPropagation(); closeBuffer(name); }}
         >✕</button>
@@ -129,11 +176,11 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate }: { name: string
 
 export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useTranslation();
-  // Subscribe to `order` only (changes on buffer add/remove/reorder) — NOT the
-  // whole buffers map, which is replaced on every incoming message and would
-  // otherwise re-render + re-map the entire conversation list per line. Each
-  // RoomRow reads its own buffer; channel-vs-DM is derived from the name.
+  // Subscribe to `order` and the persisted drag order (not the whole buffers
+  // map — that is replaced on every incoming message). Each RoomRow reads its
+  // own buffer; A–Z / custom order is derived in arrangedChannels/Queries.
   const order = useActiveChat((s) => s.order);
+  const sidebarOrder = useActiveChat((s) => s.sidebarOrder);
   const setModal = useActiveChat((s) => s.setModal);
   const showStatus = useActiveChat((s) => s.prefs.showStatus);
   const sidebarItems = usePluginRegistry((s) => s.ui);
@@ -142,8 +189,9 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const mirc = useTheme().startsWith('yomirc');
 
   const match = (n: string) => n.toLowerCase().includes(q.trim().toLowerCase());
-  const channels = order.filter((n) => isChannelName(n) && match(n));
-  const queries = order.filter((n) => n !== SERVER && !isNoticeBuffer(n) && !isChannelName(n) && match(n));
+  const searching = !!q.trim();
+  const channels = arrangedChannels(order, sidebarOrder).filter(match);
+  const queries = arrangedQueries(order, sidebarOrder).filter(match);
   const noticeBufs = order.filter((n) => isNoticeBuffer(n) && (filter !== 'rooms') && (
     !q.trim()
     || match(n)
@@ -155,7 +203,9 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
   const showChannels = filter !== 'people';
   const showQueries = filter !== 'rooms';
 
-  const item = (name: string) => <RoomRow key={name} name={name} mirc={mirc} onNavigate={onNavigate} />;
+  const item = (name: string, section?: SidebarSection) => (
+    <RoomRow key={name} name={name} mirc={mirc} onNavigate={onNavigate} section={section} canDrag={!searching && !!section} />
+  );
 
   const totalShown = (showChannels ? channels.length : 0) + (showQueries ? queries.length : 0) + (hasServer ? 1 : 0) + noticeBufs.length;
 
@@ -190,11 +240,11 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
         {sidebarItems.filter((u) => u.slot === 'sidebar_room').map((u) => (
           <PluginBoundary key={u.id} render={u.render} label="sidebar_room" />
         ))}
-        {showChannels && channels.map(item)}
+        {showChannels && channels.map((n) => item(n, 'channels'))}
         {showQueries && queries.length > 0 && <div className="rooms-h">{t('sidebar.privateMessages')}</div>}
-        {showQueries && queries.map(item)}
+        {showQueries && queries.map((n) => item(n, 'queries'))}
         {showQueries && noticeBufs.length > 0 && <div className="rooms-h">{t('sidebar.notices')}</div>}
-        {showQueries && noticeBufs.map(item)}
+        {showQueries && noticeBufs.map((n) => item(n))}
         {!mirc && hasServer && item(SERVER)}
         {totalShown === 0 && <div className="rooms-empty">{t('sidebar.noResults')}</div>}
         {/* Fill the space under a short list with a way to find more rooms. */}

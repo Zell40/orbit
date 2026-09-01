@@ -3,6 +3,7 @@ import { desktopNotify, blip } from '@/platform/notify';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
+import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -16,6 +17,7 @@ interface NumericsDeps {
   lastAwayNotice: Record<string, number>;
   clearWhois: (nick: string) => void;
   namesInFlight: Set<string>;
+  historyAsked: Set<string>;
   profileCache?: Map<string, { realname?: string; account?: string }>;
 }
 
@@ -70,7 +72,7 @@ function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatStat
 // numeric was consumed. Every 3-digit reply is either handled by name here or
 // routed by the generic fallback (errors → a ⚠ line where the user is looking,
 // info → the server console), so nothing is ever dumped unlabelled.
-export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, profileCache }: NumericsDeps) {
+export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache }: NumericsDeps) {
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine, serverLine, patchWhois } = helpers;
   // LIST: keep the previous catalogue on screen while a refresh is in flight
   // (wiping it on 321 made Explore look empty/stuck). Live-append only when
@@ -152,6 +154,9 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
           namesInFlight.delete(canon(chan));
           get().client?.who(chan);
           get().client?.send(`MODE ${chan}`);
+          // Join is complete here — CAP is ACK'd even if the server autojoin JOIN
+          // raced ahead of draft/chathistory (or arrived without a self-JOIN).
+          prefetchLatestHistory(get, historyAsked, chan);
         }
         return true;
       }
