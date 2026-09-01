@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeHelpers, rememberQueryAccount } from './helpers';
 import type { ChatState } from '../store';
-import type { ChatMessage } from '../irc/types';
+import type { ChatMessage, Member } from '../irc/types';
 
 function setup() {
   const state = {
@@ -12,7 +12,7 @@ function setup() {
       '#aide.chat': {
         name: '#Aide.chat',
         isChannel: true,
-        members: {},
+        members: {} as Record<string, Member>,
         messages: [] as ChatMessage[],
         unread: 0,
         joined: true,
@@ -20,7 +20,7 @@ function setup() {
       aidemoi: {
         name: 'AideMoi',
         isChannel: false,
-        members: {},
+        members: {} as Record<string, Member>,
         messages: [] as ChatMessage[],
         unread: 0,
         joined: false,

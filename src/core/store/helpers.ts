@@ -25,7 +25,7 @@ export function rememberQueryAccount(
     if (b.isChannel) return b;
     const cur = b.members[nick];
     if (cur?.account === account) return b;
-    return { ...b, members: { ...b.members, [nick]: { nick, prefix: '', ...cur, account } } };
+    return { ...b, members: { ...b.members, [nick]: { ...(cur ?? { nick, prefix: '' }), account } } };
   });
 }
 
