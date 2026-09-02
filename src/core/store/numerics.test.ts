@@ -9,17 +9,22 @@ const mk = (command: string, params: string[] = []): IrcMessage =>
   ({ command, params, tags: {}, nick: '', prefix: '', raw: '' }) as unknown as IrcMessage;
 
 function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string>()) {
-  const sys: { name: string; text: string }[] = [];
+  const sys: { name: string; text: string; kind?: string; from?: string }[] = [];
   const server: string[] = [];
   const serverKind: string[] = [];
   let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
+  const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[] }> =
+    (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[] }>) || {};
   const state = {
     client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
-    buffers: {}, banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
+    nick: 'me',
+    buffers,
+    banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
     prefs: { sound: false }, whois,
     profileUser: '', nickError: null as { nick: string; code: string; text: string } | null,
     ...over,
+    buffers: (over.buffers as typeof buffers) || buffers,
   };
   const get = () => state as unknown as ChatState;
   const set = (p: Partial<typeof state>) => {
@@ -27,10 +32,16 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     Object.assign(state, p);
   };
   const helpers = {
-    ensureBuffer: () => {},
-    patchBuffer: () => {},
-    dropBuffer: () => {},
-    sysLine: (name: string, text: string) => { sys.push({ name, text }); },
+    ensureBuffer: (name: string) => {
+      const key = name.toLowerCase();
+      if (!state.buffers[key]) state.buffers[key] = { name, joined: false, messages: [] };
+    },
+    patchBuffer: (name: string, fn: (b: (typeof state.buffers)[string]) => (typeof state.buffers)[string]) => {
+      const key = name.toLowerCase();
+      if (state.buffers[key]) state.buffers[key] = fn(state.buffers[key]);
+    },
+    dropBuffer: (name: string) => { delete state.buffers[name.toLowerCase()]; },
+    sysLine: (name: string, text: string, kind?: string, from?: string) => { sys.push({ name, text, kind: kind || 'system', from }); },
     serverLine: (text: string, kind?: string) => { server.push(text); serverKind.push(kind || ''); },
     patchWhois: (nick: string, fn: (w: { nick: string; loading: boolean; notFound?: boolean }) => typeof whois[string]) => {
       const cur = whois[nick] ?? { nick, loading: true };
@@ -38,15 +49,16 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
       state.whois = whois;
     },
   } as unknown as StoreHelpers;
+  const closedChannels = new Set<string>();
   const { handleNumerics } = makeNumerics({
     get, set, helpers,
-    closedChannels: new Set<string>(), lastCantSend: {}, lastAwayNotice: {},
+    closedChannels, lastCantSend: {}, lastAwayNotice: {},
     clearWhois: () => {},
     namesInFlight: new Set<string>(),
     historyAsked,
     profileCache: new Map(),
   } as Parameters<typeof makeNumerics>[0]);
-  return { handleNumerics, state, sys, server, serverKind, historyAsked };
+  return { handleNumerics, state, sys, server, serverKind, historyAsked, closedChannels };
 }
 
 describe('store numerics handler', () => {
@@ -286,5 +298,39 @@ describe('store numerics handler', () => {
     expect(handleNumerics(mk('461', ['me', 'JOIN', 'Not enough parameters']))).toBe(true);
     expect(sys.some((l) => l.text.includes('⚠️'))).toBe(true);
     expect(serverKind).toEqual([]);
+  });
+
+  it('474 keeps the buffer and sets joinDenied instead of dropping it', () => {
+    const { handleNumerics, state, closedChannels } = setup();
+    expect(handleNumerics(mk('474', ['me', '#secret', 'Cannot join channel (+b)']))).toBe(true);
+    expect(state.buffers['#secret']?.joinDenied).toMatchObject({ code: '474', flag: '+b', reasonKey: 'banned' });
+    expect(state.buffers['#secret']?.joined).toBe(false);
+    expect(closedChannels.has('#secret')).toBe(false);
+  });
+
+  it('520 marks the buffer as oper-only', () => {
+    const { handleNumerics, state } = setup();
+    expect(handleNumerics(mk('520', ['me', '#opers', 'Need to be opered']))).toBe(true);
+    expect(state.buffers['#opers']?.joinDenied).toMatchObject({ code: '520', flag: '+O', reasonKey: 'oper' });
+  });
+
+  it('477 while already joined does not overlay', () => {
+    const { handleNumerics, state, sys } = setup({
+      buffers: { '#x': { name: '#x', joined: true, messages: [] } },
+    });
+    expect(handleNumerics(mk('477', ['me', '#x', 'Need registered nick']))).toBe(true);
+    expect(state.buffers['#x']?.joinDenied).toBeUndefined();
+    expect(state.buffers['#x']?.joined).toBe(true);
+    expect(sys.some((l) => l.name === '#x' && l.text.includes('⚠️'))).toBe(true);
+  });
+
+  it('341 RPL_INVITING writes an invite callout on the channel', () => {
+    const { handleNumerics, sys, server } = setup({
+      nick: 'me',
+      buffers: { '#x': { name: '#x', joined: true, messages: [] } },
+    });
+    expect(handleNumerics(mk('341', ['me', 'Jessie', '#x']))).toBe(true);
+    expect(sys).toContainEqual({ name: '#x', text: 'Jessie', kind: 'invite', from: 'me' });
+    expect(server).toEqual([]);
   });
 });

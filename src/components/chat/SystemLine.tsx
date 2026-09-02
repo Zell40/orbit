@@ -143,6 +143,42 @@ function KickCallout({ from, target, reason }: { from: string; target: string; r
   );
 }
 
+function NickCallout({ m }: { m: ChatMessage }) {
+  const { t } = useTranslation();
+  const neu = m.text.trim();
+  const structured = !!m.from && !!neu && !/\s/.test(neu);
+  return (
+    <div className="nickline">
+      <span className="nickline__tag">{t('modeline.nickTag')}</span>
+      <span className="nickline__time">{fmtTime(m.ts)}</span>
+      {structured ? (
+        <>
+          <ModeNick nick={m.from} />
+          <span className="nickline__verb">{t('modeline.nickVerb')}</span>
+          <ModeNick nick={neu} />
+        </>
+      ) : (
+        <span className="nickline__verb">{m.text.replace(/^[*•»]+\s*/, '')}</span>
+      )}
+    </div>
+  );
+}
+
+function InviteCallout({ from, target, chan }: { from: string; target: string; chan?: string }) {
+  const { t } = useTranslation();
+  const you = !target;
+  return (
+    <div className="inviteline">
+      <span className="inviteline__tag">{t('modeline.inviteTag')}</span>
+      {from ? <ModeNick nick={from} /> : null}
+      <span className="inviteline__verb">{you ? t('modeline.inviteYou') : t('modeline.inviteVerb')}</span>
+      {you
+        ? (chan ? <span className="inviteline__chan">{chan}</span> : null)
+        : <ModeNick nick={target} />}
+    </div>
+  );
+}
+
 function parseSignedBan(text: string): { add: boolean; mask: string; hits: string } | null {
   const [head, hits = ''] = text.split('\n');
   if (!/^[+-] /.test(head)) return null;
@@ -291,6 +327,16 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       const [target, ...rest] = m.text.split('\n');
       const reason = rest.join('\n');
       body = <>{m.from} {t('modeline.kickVerb')} {target} {t('modeline.kickChannel')}{reason ? ` (${reason})` : ''}</>;
+    } else if (m.kind === 'invite') {
+      const [target, chan = ''] = m.text.split('\n');
+      body = target
+        ? <>{m.from} {t('modeline.inviteVerb')} {target}</>
+        : <>{m.from} {t('modeline.inviteYou')} {chan}</>;
+    } else if (m.kind === 'nick') {
+      const neu = m.text.trim();
+      body = m.from && neu && !/\s/.test(neu)
+        ? <>{m.from} {t('modeline.nickVerb')} {neu}</>
+        : m.text.replace(/^[*•»]+\s*/, '');
     } else if (m.kind === 'topic') {
       body = m.text
         ? <>{m.from} {t('modeline.topicChanged')} {formatIrc(m.text, false, linkPreviews)}</>
@@ -299,7 +345,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       body = m.text.replace(/^[*•»]+\s*/, '');
     } else if (m.kind === 'motd') {
       body = formatIrc(m.text, false, false);
-    } else { // join / part / quit / nick / system
+    } else { // join / part / quit / system
       const rest = m.text.replace(m.from, '').trim();
       body = m.from
         ? <>{m.from}{m.mask ? <span className="mircline__host"> ({m.mask})</span> : null} {rest}</>
@@ -397,6 +443,13 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     const [target, ...rest] = m.text.split('\n');
     return <KickCallout from={m.from} target={target} reason={rest.join('\n') || undefined} />;
   }
+  if (m.kind === 'nick') {
+    return <NickCallout m={m} />;
+  }
+  if (m.kind === 'invite') {
+    const [target, chan = ''] = m.text.split('\n');
+    return <InviteCallout from={m.from} target={target} chan={chan || undefined} />;
+  }
   if (m.kind === 'topic') {
     return (
       <div className="topicline">
@@ -410,7 +463,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       </div>
     );
   }
-  if (['join', 'part', 'quit', 'nick', 'system'].includes(m.kind)) {
+  if (['join', 'part', 'quit', 'system'].includes(m.kind)) {
     const isCmd = m.text.startsWith('»');
     const isAlert = m.text.startsWith('\x01ALERT\x01');
     const warnPrefix = m.kind === 'system' ? m.text.match(/^⚠\uFE0F?\s*/) : null;

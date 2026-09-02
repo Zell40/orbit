@@ -606,6 +606,11 @@
     "banRemoved": "a retiré le ban sur",
     "kickVerb": "a exclu",
     "kickChannel": "du salon",
+    "nickTag": "PSEUDO",
+    "nickVerb": "est désormais",
+    "inviteTag": "INVITATION",
+    "inviteVerb": "a invité",
+    "inviteYou": "t'invite à rejoindre",
     "modeVerb": "applique",
     "promoted": "a promu {{target}} {{roles}} du salon",
     "demoted": "a retiré à {{target}} {{roles}} du salon",
@@ -635,6 +640,21 @@
       "key": "clé",
       "limit": "limite"
     }
+  },
+  "joinDenied": {
+    "title": "Salon non joignable",
+    "close": "Fermer le salon",
+    "full": "Le salon a atteint sa limite de membres (+l).",
+    "invite": "Le salon est sur invitation uniquement (+i).",
+    "banned": "Tu es banni de ce salon (+b).",
+    "key": "Ce salon nécessite une clé (+k).",
+    "registered": "Il faut un pseudo enregistré pour rejoindre ce salon (+r).",
+    "tls": "Ce salon n'accepte que les connexions chiffrées (+z).",
+    "admin": "Ce salon est réservé aux administrateurs.",
+    "oper": "Ce salon est réservé aux IRCops (+O).",
+    "toomany": "Tu as rejoint trop de salons.",
+    "badmask": "Nom de salon invalide.",
+    "fallback": "Impossible de rejoindre ce salon."
   },
   "banners": {
     "reconnecting": "Reconnexion…",

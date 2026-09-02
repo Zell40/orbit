@@ -603,6 +603,8 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 .main:has(.main__room-bg[data-rg-pic]) .modeline,
 .main:has(.main__room-bg[data-rg-pic]) .banline,
 .main:has(.main__room-bg[data-rg-pic]) .kickline,
+.main:has(.main__room-bg[data-rg-pic]) .nickline,
+.main:has(.main__room-bg[data-rg-pic]) .inviteline,
 .main:has(.main__room-bg[data-rg-pic]) .topicline,
 .main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert) {
   background: color-mix(in srgb, var(--bg) 90%, transparent);
@@ -749,7 +751,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 
 /* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE / USER MODE): SMS-style width. */
-.noticeline, .infoline, .umodeline, .operline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .banline, .kickline, .noticeline-wrap {
+.noticeline, .infoline, .umodeline, .operline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .banline, .kickline, .nickline, .inviteline, .noticeline-wrap {
   align-self: flex-start;
   width: max-content;
   max-width: min(70%, calc(100% - 2.2rem));
@@ -935,6 +937,86 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .kickline__reason { color: var(--faint); font-size: .8rem; font-weight: 600; }
 .messages--console .kickline { background: rgba(194, 65, 12, .10); border-color: transparent; box-shadow: inset 3px 0 0 #c2410c; }
 
+/* nick change — tagged PSEUDO / NICK callout (JOIN-style: tag + time + nicks) */
+.nickline {
+  display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .5rem;
+  width: fit-content; max-width: 100%;
+  margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-soft) 92%, var(--bg));
+  border: 1px solid rgba(99, 102, 241, .28);
+  box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 4px 0 0 #6366f1;
+  font-size: .84rem; line-height: 1.4; color: var(--ink-2);
+  overflow-wrap: anywhere; word-break: break-word;
+}
+.nickline__tag {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: 999px; line-height: 1.2;
+  background: #6366f1; color: #fff; box-shadow: 0 2px 6px -2px rgba(99, 102, 241, .55);
+}
+.nickline__time {
+  flex: none; font-size: .72rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+.nickline__verb { color: var(--muted); font-size: .84rem; font-weight: 600; }
+.messages--console .nickline { background: rgba(99, 102, 241, .10); border-color: transparent; box-shadow: inset 3px 0 0 #6366f1; }
+
+/* invite — tagged INVITATION callout (replaces INFO for INVITE / 341) */
+.inviteline {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem;
+  margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
+  background: #ecfdf8;
+  border: 1px solid rgba(13, 148, 136, .28);
+  border-left: 3px solid #0d9488;
+  font-size: .84rem; line-height: 1.4; color: var(--ink-2);
+  overflow-wrap: anywhere; word-break: break-word;
+}
+.inviteline__tag {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: 999px; line-height: 1.2;
+  background: #0d9488; color: #fff; box-shadow: 0 2px 6px -2px rgba(13, 148, 136, .55);
+}
+.inviteline__verb { color: var(--muted); font-size: .84rem; font-weight: 600; }
+.inviteline__chan { font-weight: 700; color: var(--ink); }
+.messages--console .inviteline { background: rgba(13, 148, 136, .10); border-color: transparent; box-shadow: inset 3px 0 0 #0d9488; }
+
+/* JOIN refused — in-pane dialog */
+.join-denied {
+  flex: 1; min-height: 0; display: grid; place-items: center;
+  padding: 1.5rem 1.2rem; overflow: auto;
+}
+.join-denied__card {
+  width: min(28rem, 100%);
+  padding: 1.35rem 1.4rem 1.2rem;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px -16px rgba(20,30,45,.35);
+  text-align: center;
+}
+.join-denied__title {
+  margin: 0 0 .55rem; font-size: 1.08rem; font-weight: 800; color: var(--ink);
+}
+.join-denied__reason {
+  margin: 0; font-size: .92rem; line-height: 1.45; color: var(--ink-2);
+}
+.join-denied__flag {
+  display: inline-block; margin-top: .65rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .78rem; font-weight: 800; letter-spacing: .04em;
+  padding: .18rem .5rem; border-radius: 999px;
+  background: var(--bg-soft-2, rgba(127,127,127,.12)); color: var(--muted);
+}
+.join-denied__detail {
+  margin: .7rem 0 0; font-size: .82rem; line-height: 1.4; color: var(--faint);
+  word-break: break-word;
+}
+.join-denied__close {
+  margin-top: 1.1rem; min-height: 38px; padding: .45rem 1.1rem;
+  border: 0; border-radius: 10px; cursor: pointer;
+  background: var(--accent); color: #fff; font: inherit; font-weight: 700;
+}
+.join-denied__close:hover { filter: brightness(1.05); }
+
 
 /* server info notices (rehash warnings, broadcasts) — tagged "Info" callout */
 .infoline { display: flex; flex-direction: column; align-items: stretch; gap: .35rem; margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
@@ -960,6 +1042,8 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .messages--console .topicline,
 .messages--console .banline,
 .messages--console .kickline,
+.messages--console .nickline,
+.messages--console .inviteline,
 .messages--console .noticeline-wrap {
   /* Status is a log, not a chat: use the full pane (the 70% SMS cap is for salons). */
   width: auto;
@@ -2700,7 +2784,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .umodeline, .operline, .warnline, .noticeline, .errorline, .actuline, .modeline, .banline, .kickline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .umodeline, .operline, .warnline, .noticeline, .errorline, .actuline, .modeline, .banline, .kickline, .nickline, .inviteline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */

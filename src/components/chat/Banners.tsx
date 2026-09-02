@@ -157,3 +157,28 @@ export function BouncerVisualBanner() {
     </div>
   );
 }
+
+/** In-channel card when JOIN was refused (banned / +l / +i / +O / …). */
+export function JoinDeniedPanel() {
+  const { t } = useTranslation();
+  const denied = useActiveChat((s) => s.buffers[s.active]?.joinDenied);
+  const closeBuffer = useActiveChat((s) => s.closeBuffer);
+  const name = useActiveChat((s) => s.buffers[s.active]?.name || s.active);
+  if (!denied) return null;
+  const reason = t(`joinDenied.${denied.reasonKey}`);
+  const detail = denied.detail;
+  const showDetail = !!detail && detail.toLowerCase() !== String(reason).toLowerCase();
+  return (
+    <div className="join-denied" role="alertdialog" aria-labelledby="join-denied-title" aria-describedby="join-denied-reason">
+      <div className="join-denied__card">
+        <h2 id="join-denied-title" className="join-denied__title">{t('joinDenied.title')}</h2>
+        <p id="join-denied-reason" className="join-denied__reason">{reason}</p>
+        {denied.flag ? <span className="join-denied__flag">{denied.flag}</span> : null}
+        {showDetail ? <p className="join-denied__detail">{detail}</p> : null}
+        <button type="button" className="join-denied__close" onClick={() => closeBuffer(name)}>
+          {t('joinDenied.close')}
+        </button>
+      </div>
+    </div>
+  );
+}

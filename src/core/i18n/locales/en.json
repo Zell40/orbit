@@ -606,6 +606,11 @@
     "banRemoved": "removed the ban on",
     "kickVerb": "kicked",
     "kickChannel": "from the channel",
+    "nickTag": "NICK",
+    "nickVerb": "is now",
+    "inviteTag": "INVITE",
+    "inviteVerb": "invited",
+    "inviteYou": "invites you to join",
     "modeVerb": "set",
     "promoted": "promoted {{target}} to {{roles}} of the channel",
     "demoted": "removed {{roles}} from {{target}} of the channel",
@@ -635,6 +640,21 @@
       "key": "key",
       "limit": "limit"
     }
+  },
+  "joinDenied": {
+    "title": "Unable to join this channel",
+    "close": "Close channel",
+    "full": "The channel has reached its member limit (+l).",
+    "invite": "This channel is invite-only (+i).",
+    "banned": "You are banned from this channel (+b).",
+    "key": "This channel requires a key (+k).",
+    "registered": "A registered nick is required to join (+r).",
+    "tls": "This channel only accepts encrypted connections (+z).",
+    "admin": "This channel is reserved for administrators.",
+    "oper": "This channel is reserved for IRC operators (+O).",
+    "toomany": "You have joined too many channels.",
+    "badmask": "Invalid channel name.",
+    "fallback": "Unable to join this channel."
   },
   "banners": {
     "reconnecting": "Reconnecting…",

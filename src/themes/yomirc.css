@@ -246,6 +246,7 @@
 [data-theme^="yomirc"] .mircline--sys-umode,
 [data-theme^="yomirc"] .mircline--sys-oper,
 [data-theme^="yomirc"] .mircline--sys-nick,
+[data-theme^="yomirc"] .mircline--sys-invite,
 [data-theme^="yomirc"] .mircline--sys-topic { color: var(--accent-d); }
 /* ---- THE NICK LIST: flat & inline, no access-level groups (real mIRC) ---- */
 [data-theme^="yomirc"] .members__list { background: var(--mirc-paper); margin: 0 2px 2px; padding: 1px; box-shadow: inset 1px 1px 0 var(--mirc-shadow), inset -1px -1px 0 var(--mirc-light); }

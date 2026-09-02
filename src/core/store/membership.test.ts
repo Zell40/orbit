@@ -83,13 +83,24 @@ describe('membership handler', () => {
   });
 
   it('NICK renames the member across channels; our own NICK updates state.nick', () => {
-    const { on, state, seed } = setup();
+    const { on, state, seed, lines } = setup();
     seed('#a', ['bob']);
     on(':bob!u@h NICK bobby');
     expect(state.buffers['#a'].members['bobby']).toBeDefined();
     expect(state.buffers['#a'].members['bob']).toBeUndefined();
+    expect(lines).toContainEqual({ name: '#a', text: 'bobby', kind: 'nick', from: 'bob' });
     on(':me!u@h NICK me2');
     expect(state.nick).toBe('me2');
+  });
+
+  it('self JOIN clears a previous joinDenied overlay', () => {
+    const { on, state, seed } = setup();
+    seed('#x', []);
+    state.buffers['#x'].joined = false;
+    (state.buffers['#x'] as { joinDenied?: unknown }).joinDenied = { code: '474', flag: '+b', reasonKey: 'banned', detail: '' };
+    on(':me!u@h JOIN #x');
+    expect(state.buffers['#x'].joined).toBe(true);
+    expect((state.buffers['#x'] as { joinDenied?: unknown }).joinDenied).toBeUndefined();
   });
 
   it('KICK of someone else drops them; KICK of us closes the buffer', () => {

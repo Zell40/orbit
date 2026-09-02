@@ -25,6 +25,7 @@ export type MessageKind =
   | 'oper'
   | 'ban'
   | 'kick'
+  | 'invite'
   | 'join'
   | 'part'
   | 'quit'
@@ -113,6 +114,8 @@ export interface Buffer {
   readTs: number;                  // draft/read-marker: ts of last-read message (0 = none)
   peerReadTs: number;              // last ts the DM peer marked displayed (0 = none)
   typing: Record<string, number>;  // nick -> expiry ms (draft/typing)
+  /** JOIN refused (banned / +l / +i / +O / …) — overlay in this window until closed. */
+  joinDenied?: { code: string; flag: string; reasonKey: string; detail: string };
 }
 
 export interface ConnectOptions {

@@ -74,7 +74,7 @@ export function makeHandler(ctx: HandlerCtx) {
         else if (msg.command === 'PART') { text = i18n.t('system.part', { nick: msg.nick }); kind = 'part'; }
         else if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
         else if (msg.command === 'KICK') { text = msg.params[2] ? `${msg.params[1]}\n${msg.params[2]}` : (msg.params[1] || ''); kind = 'kick'; }
-        else if (msg.command === 'NICK') { text = i18n.t('system.nick', { nick: msg.nick, newnick: msg.params[0] }); kind = 'nick'; }
+        else if (msg.command === 'NICK') { text = msg.params[0] || ''; kind = 'nick'; }
         else if (msg.command === 'TOPIC') { text = msg.params[1] || ''; kind = 'topic'; }
         else if (msg.command === 'MODE') {
           // Split +b/-b out of historical MODE so they replay as BAN callouts,
@@ -173,13 +173,12 @@ export function makeHandler(ctx: HandlerCtx) {
         const target = msg.params[0];
         const chan = msg.params[1] ?? '';
         if (target === me) {
-          sysLine(SERVER, `📨 ${i18n.t('system.inviteYou', { nick: msg.nick, chan })}`, 'info');
-          if (isChannelName(get().active)) sysLine(get().active, `📨 ${i18n.t('system.inviteYou', { nick: msg.nick, chan })}`, 'info');
+          sysLine(SERVER, `\n${chan}`, 'invite', msg.nick);
           desktopNotify(i18n.t('system.inviteTitle'), i18n.t('system.inviteYou', { nick: msg.nick, chan }));
           if (get().prefs.sound) blip();
         } else if (isChannelName(chan) && get().buffers[canon(chan)]) {
           // invite-notify: someone invited another user to a channel we're in.
-          sysLine(chan, `📨 ${i18n.t('system.inviteOther', { nick: msg.nick, target })}`, 'info');
+          sysLine(chan, target, 'invite', msg.nick);
         }
         break;
       }

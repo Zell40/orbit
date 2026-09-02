@@ -56,10 +56,20 @@ export function groupModeDisplay(modestring: string, args: string[] = []): ModeD
   const entries: Array<{ add: boolean; label: string; letter: string; target?: string }> = [];
   let add = true;
   let ai = 0;
+  let lastPrefixTarget: string | undefined;
   for (const ch of modestring) {
-    if (ch === '+') { add = true; continue; }
-    if (ch === '-') { add = false; continue; }
-    const param = modeConsumesParam(ch, add) ? (args[ai++] ?? '?') : undefined;
+    if (ch === '+') { add = true; lastPrefixTarget = undefined; continue; }
+    if (ch === '-') { add = false; lastPrefixTarget = undefined; continue; }
+    let param: string | undefined;
+    if (modeConsumesParam(ch, add)) {
+      param = args[ai] !== undefined ? args[ai++] : undefined;
+      if ((param === undefined || param === '?') && PREFIX_MODES.has(ch) && lastPrefixTarget) {
+        param = lastPrefixTarget;
+      } else if (param === undefined) {
+        param = '?';
+      }
+      if (PREFIX_MODES.has(ch) && param && param !== '?') lastPrefixTarget = param;
+    }
     entries.push({ add, label: modeDisplayLabel(ch), letter: ch, target: param });
   }
   const groups: ModeDisplayGroup[] = [];
@@ -113,7 +123,10 @@ export function modeStringWithoutBans(modestring: string, args: string[] = []): 
   for (const g of groups) {
     if (lastAdd !== g.add) { modes += g.add ? '+' : '-'; lastAdd = g.add; }
     modes += g.letters.join('');
-    if (g.target) outArgs.push(g.target);
+    if (g.target) {
+      const n = g.letters.filter((l) => modeConsumesParam(l, g.add)).length;
+      for (let i = 0; i < Math.max(n, 1); i++) outArgs.push(g.target);
+    }
   }
   return outArgs.length ? `${modes} ${outArgs.join(' ')}` : modes;
 }

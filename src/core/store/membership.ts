@@ -38,7 +38,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         if (self) closedChannels.delete(canon(ch)); // we're (re)joining → allow the buffer again
         ensureBuffer(ch);
         if (self) {
-          patchBuffer(ch, (b) => ({ ...b, joined: true }));
+          patchBuffer(ch, (b) => ({ ...b, joined: true, joinDenied: undefined }));
           const want = (getExpectedBootChannels()[0] || '').trim();
           if (want) {
             // First URL/startup channel is the one to display. Ignore the
@@ -129,7 +129,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
               delete members[msg.nick];
               return { ...bb, members };
             });
-            sysLine(name, i18n.t('system.nick', { nick: msg.nick, newnick: nn }), 'nick');
+            sysLine(name, nn, 'nick', msg.nick);
           }
         }
         return true;

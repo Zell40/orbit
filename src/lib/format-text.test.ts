@@ -82,6 +82,19 @@ describe('groupModeDisplay', () => {
     }]);
   });
 
+  it('inherits a missing prefix arg from the previous prefix nick', () => {
+    expect(groupModeDisplay('+qo', ['Jessie'])).toEqual([{
+      add: true,
+      labels: ['Fondateur', 'Opérateur'],
+      letters: ['q', 'o'],
+      target: 'Jessie',
+    }]);
+  });
+
+  it('repeats the nick for each prefix letter when rebuilding without bans', () => {
+    expect(modeStringWithoutBans('+qo', ['Jessie'])).toBe('+qo Jessie Jessie');
+  });
+
   it('keeps separate groups when targets differ', () => {
     expect(groupModeDisplay('+ov', ['bob', 'alice'])).toEqual([
       { add: true, labels: ['Opérateur'], letters: ['o'], target: 'bob' },

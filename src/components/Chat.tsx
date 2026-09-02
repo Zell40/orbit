@@ -8,7 +8,7 @@ import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { ChannelTopicBanner } from './chat/ChannelTopicBanner';
 import { MemberList } from './chat/MemberList';
-import { ReconnectBanner, KickToast, NickServAlert, BouncerVisualBanner } from './chat/Banners';
+import { ReconnectBanner, KickToast, NickServAlert, BouncerVisualBanner, JoinDeniedPanel } from './chat/Banners';
 import { usePluginRegistry } from '../modules/registry';
 import { PluginBoundary } from './PluginBoundary';
 import { FriendsPanel } from './chat/FriendsPanel';
@@ -19,7 +19,10 @@ export function Chat() {
   const { t } = useTranslation();
   const [navOpen, setNavOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
-  const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
+  const isChannel = useActiveChat((s) => {
+    const b = s.buffers[s.active];
+    return !!b?.isChannel && !b.joinDenied;
+  });
   // A plugin-filled bar across the very top (branding + portal links). Nothing
   // renders it by default, so the shell collapses to just the app.
   const ui = usePluginRegistry((s) => s.ui);
@@ -31,6 +34,7 @@ export function Chat() {
     try { return g.inChannel(channelName); } catch { return false; }
   });
   const visualPlugins = new Set(visualGames.map((g) => g.plugin));
+  const joinDenied = useActiveChat((s) => !!s.buffers[s.active]?.joinDenied);
   // Persistent, root-level home for plugin popovers/panels (see UiSlot 'overlay').
   // Conference sits in the main column under the topbar so chrome stays visible.
   const overlays = ui.filter((u) => u.slot === 'overlay');
@@ -60,9 +64,13 @@ export function Chat() {
         {/* Conference: always under topbar (desktop + mobile), topic stays compact below. */}
         {mainBanners.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}
         <BouncerVisualBanner />
-        <ChannelTopicBanner />
-        <MessageList />
-        <Composer />
+        {!joinDenied && <ChannelTopicBanner />}
+        {joinDenied ? <JoinDeniedPanel /> : (
+          <>
+            <MessageList />
+            <Composer />
+          </>
+        )}
       </main>
       {isChannel && <MemberList onNavigate={() => setMembersOpen(false)} />}
       <TabBar variant="desktop" />

@@ -24,7 +24,20 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '471', '473', '474', '475', '476', '477', '489', '519', '520']);
+
+const JOIN_DENIED: Record<string, { flag: string; reasonKey: string }> = {
+  '405': { flag: '', reasonKey: 'toomany' },
+  '471': { flag: '+l', reasonKey: 'full' },
+  '473': { flag: '+i', reasonKey: 'invite' },
+  '474': { flag: '+b', reasonKey: 'banned' },
+  '475': { flag: '+k', reasonKey: 'key' },
+  '476': { flag: '', reasonKey: 'badmask' },
+  '477': { flag: '+r', reasonKey: 'registered' },
+  '489': { flag: '+z', reasonKey: 'tls' },
+  '519': { flag: '', reasonKey: 'admin' },
+  '520': { flag: '+O', reasonKey: 'oper' },
+};
 
 function findWhois(table: ChatState['whois'], nick: string): ChatState['whois'][string] | undefined {
   if (!nick) return undefined;
@@ -80,6 +93,25 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
   // there was nothing to show yet.
   let listAcc: { name: string; users: number; topic: string }[] | null = null;
   let listLive = false;
+
+  function applyJoinDenied(ch: string, code: string, detail: string): void {
+    const existing = get().buffers[canon(ch)];
+    if (existing?.joined) {
+      const key = JOIN_DENIED[code]?.reasonKey || 'fallback';
+      sysLine(ch, `⚠️ ${detail.trim() || i18n.t(`joinDenied.${key}`)}`, 'system');
+      if (get().prefs.sound) blip();
+      return;
+    }
+    closedChannels.delete(canon(ch));
+    ensureBuffer(ch);
+    const meta = JOIN_DENIED[code] || { flag: '', reasonKey: 'fallback' };
+    patchBuffer(ch, (b) => ({
+      ...b,
+      joined: false,
+      joinDenied: { code, flag: meta.flag, reasonKey: meta.reasonKey, detail: detail.trim() },
+    }));
+    if (get().prefs.sound) blip();
+  }
 
   function handleNumerics(msg: IrcMessage): boolean {
     switch (msg.command) {
@@ -287,9 +319,16 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '336': // RPL_INVITELIST (a channel you're invited to)
         if (msg.params[1]) serverLine(i18n.t('system.invitePending', { chan: msg.params[1] }));
         return true;
-      case '341': // RPL_INVITING: <me> <nick> <channel> — confirm our invite was sent
-        serverLine(i18n.t('system.inviteSent', { nick: msg.params[1], chan: msg.params[2] }));
+      case '341': { // RPL_INVITING: <me> <nick> <channel> — confirm our invite was sent
+        const nick = msg.params[1] || '';
+        const chan = msg.params[2] || '';
+        if (isChannelName(chan) && get().buffers[canon(chan)]) {
+          sysLine(chan, nick, 'invite', get().nick);
+        } else {
+          serverLine(i18n.t('system.inviteSent', { nick, chan }));
+        }
         return true;
+      }
       case '381': { // RPL_YOUREOPER — /oper succeeded
         const serverText = msg.params.length > 1 ? msg.params[msg.params.length - 1] : '';
         serverLine(i18n.t('numerics.381', { defaultValue: '' }) || serverText, 'oper');
@@ -404,15 +443,19 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         });
         return true;
       }
-      case '474': { // ERR_BANNEDFROMCHAN: join refused — we're banned from the channel
+      case '405': // ERR_TOOMANYCHANNELS
+      case '471': // ERR_CHANNELISFULL (+l)
+      case '473': // ERR_INVITEONLYCHAN (+i)
+      case '474': // ERR_BANNEDFROMCHAN (+b)
+      case '475': // ERR_BADCHANNELKEY (+k)
+      case '476': // ERR_BADCHANMASK
+      case '477': // ERR_NEEDREGGEDNICK (+r) — InspIRCd
+      case '489': // ERR_SECUREONLYCHAN (+z)
+      case '519': // ERR_ADMONLYCHAN
+      case '520': { // ERR_OPERONLYCHAN (+O)
         const ch = msg.params[1];
         if (!isChannelName(ch)) return true;
-        sysLine(SERVER, i18n.t('system.bannedFrom', { ch }), 'system');
-        desktopNotify(i18n.t('system.bannedTitle', { ch }), i18n.t('system.bannedBody'));
-        if (get().prefs.sound) blip();
-        closedChannels.add(canon(ch)); // a failed join may have opened a buffer — drop it
-        dropBuffer(ch);
-        set({ kicked: { channel: ch, by: '', reason: '', kind: 'ban' } });
+        applyJoinDenied(ch, msg.command, msg.params[msg.params.length - 1] || '');
         return true;
       }
       case '926': { // ERR_BADCHANNEL (m_cban): join refused — channel is CBANed network-wide
