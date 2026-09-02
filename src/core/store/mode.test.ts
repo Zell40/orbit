@@ -14,13 +14,13 @@ function setup() {
     buffers: {} as Record<string, Buf>,
   };
   const k = (n: string) => n.toLowerCase();
-  const lines: { name: string; text: string; kind: string }[] = [];
+  const lines: { name: string; text: string; kind: string; from?: string }[] = [];
   const serverLines: { text: string; kind?: string }[] = [];
   const get = () => state as unknown as ChatState;
   const set = (p: Partial<typeof state>) => Object.assign(state, p);
   const helpers = {
     patchBuffer: (name: string, fn: (b: Buf) => Buf) => { if (state.buffers[k(name)]) state.buffers[k(name)] = fn(state.buffers[k(name)]); },
-    sysLine: (name: string, text: string, kind: string) => { lines.push({ name, text, kind }); },
+    sysLine: (name: string, text: string, kind: string, from?: string) => { lines.push({ name, text, kind, from }); },
     serverLine: (text: string, kind?: string) => { serverLines.push({ text, kind }); },
   } as unknown as StoreHelpers;
   const seedChan = (chan: string, members: string[]) => {
@@ -54,8 +54,31 @@ describe('MODE handler', () => {
     seedChan('#x', ['bob']); // bob!u@h
     on(':op!u@h MODE #x +b *!*@h', 'me');
     const bans = lines.filter((l) => l.kind === 'ban');
-    expect(bans.length).toBeGreaterThanOrEqual(1);
-    expect(bans.some((l) => l.text.includes('bob'))).toBe(true); // hit list
+    expect(bans).toHaveLength(1);
+    expect(bans[0].from).toBe('op');
+    expect(bans[0].text.startsWith('+ *!*@h')).toBe(true);
+    expect(bans[0].text).toContain('bob');
+    expect(lines.some((l) => l.kind === 'mode')).toBe(false);
+  });
+
+  it('keeps a MODE callout for +ob, without the +b part', () => {
+    const { on, lines, seedChan } = setup();
+    seedChan('#x', ['bob']);
+    on(':op!u@h MODE #x +ob bob user!*@*', 'me');
+    expect(lines.filter((l) => l.kind === 'ban')).toHaveLength(1);
+    const modes = lines.filter((l) => l.kind === 'mode');
+    expect(modes).toHaveLength(1);
+    expect(modes[0].text).toBe('+o bob');
+  });
+
+  it('treats +b as a ban even when CHANMODES has no type-A list', () => {
+    const { on, lines, seedChan, state } = setup();
+    state.client.server.isupport = { CHANMODES: ',k,l,imnpst' };
+    seedChan('#x', ['bob']);
+    on(':op!u@h MODE #x +b bob!*@*', 'me');
+    expect(lines.filter((l) => l.kind === 'ban')).toHaveLength(1);
+    expect(lines.some((l) => l.kind === 'mode')).toBe(false);
+    expect(lines[0].text.startsWith('+ bob!*@*')).toBe(true);
   });
 
   it('shows a combined mode line for a channel flag change', () => {

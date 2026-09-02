@@ -25,6 +25,12 @@ describe('parseModeChanges', () => {
     expect(changes.map((c) => c.mode)).toEqual(['i', 'm', 'n']);
     expect(changes.every((c) => c.param === undefined && c.kind === 'flag')).toBe(true);
   });
+
+  it('treats b as a list mode even with empty type-A CHANMODES', () => {
+    const empty = buildModeContext({ CHANMODES: ',k,l,imnpst' }, { o: '@' });
+    const changes = parseModeChanges('+b', ['*!*@x'], empty);
+    expect(changes[0]).toMatchObject({ mode: 'b', param: '*!*@x', kind: 'list' });
+  });
 });
 
 describe('applyUserModes', () => {

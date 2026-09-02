@@ -24,6 +24,7 @@ export type MessageKind =
   | 'umode'
   | 'oper'
   | 'ban'
+  | 'kick'
   | 'join'
   | 'part'
   | 'quit'

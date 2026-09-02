@@ -601,6 +601,8 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 .main:has(.main__room-bg[data-rg-pic]) .errorline,
 .main:has(.main__room-bg[data-rg-pic]) .actuline,
 .main:has(.main__room-bg[data-rg-pic]) .modeline,
+.main:has(.main__room-bg[data-rg-pic]) .banline,
+.main:has(.main__room-bg[data-rg-pic]) .kickline,
 .main:has(.main__room-bg[data-rg-pic]) .topicline,
 .main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert) {
   background: color-mix(in srgb, var(--bg) 90%, transparent);
@@ -747,7 +749,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 
 /* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE / USER MODE): SMS-style width. */
-.noticeline, .infoline, .umodeline, .operline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .noticeline-wrap {
+.noticeline, .infoline, .umodeline, .operline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .banline, .kickline, .noticeline-wrap {
   align-self: flex-start;
   width: max-content;
   max-width: min(70%, calc(100% - 2.2rem));
@@ -895,21 +897,42 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .reply-quote--link { background: none; border: 0; cursor: pointer; text-align: left; font: inherit; color: inherit; padding: 0; }
 
 
-/* ban / unban — a clear, prominent channel line (not the faint sysline) */
+/* ban / unban — tagged BAN callout, not mixed with MODE */
 .banline {
-  margin: .25rem 1.3rem; padding: .4rem .7rem; border-radius: 9px;
-  background: rgba(214, 70, 95, .1); border: 1px solid rgba(214, 70, 95, .28);
-  color: var(--ink); font-size: .86rem; font-weight: 600; overflow-wrap: anywhere; word-break: break-word;
-}
-
-
-/* ban / unban line — clearly visible like a real IRC client */
-.banline {
-  margin: .2rem 1rem; padding: .4rem .7rem; border-radius: 9px;
-  font-size: .84rem; font-weight: 600; line-height: 1.4;
-  color: #9a2e3f; background: #fdeef0; border: 1px solid #f5d2d8;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem;
+  margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
+  background: #fdeef0;
+  border: 1px solid rgba(225, 29, 72, .28);
+  border-left: 3px solid #e11d48;
+  font-size: .84rem; line-height: 1.4; color: var(--ink-2);
   overflow-wrap: anywhere; word-break: break-word;
 }
+.banline__tag {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: 999px; line-height: 1.2;
+  background: #e11d48; color: #fff; box-shadow: 0 2px 6px -2px rgba(225, 29, 72, .55);
+}
+.banline__verb { color: var(--muted); font-size: .84rem; font-weight: 600; }
+.messages--console .banline { background: rgba(225, 29, 72, .10); border-color: transparent; box-shadow: inset 3px 0 0 #e11d48; }
+
+/* kick — tagged KICK callout */
+.kickline {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem;
+  margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
+  background: #fff1e8;
+  border: 1px solid rgba(194, 65, 12, .28);
+  border-left: 3px solid #c2410c;
+  font-size: .84rem; line-height: 1.4; color: var(--ink-2);
+  overflow-wrap: anywhere; word-break: break-word;
+}
+.kickline__tag {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: 999px; line-height: 1.2;
+  background: #c2410c; color: #fff; box-shadow: 0 2px 6px -2px rgba(194, 65, 12, .55);
+}
+.kickline__verb, .kickline__chan { color: var(--muted); font-size: .84rem; font-weight: 600; }
+.kickline__reason { color: var(--faint); font-size: .8rem; font-weight: 600; }
+.messages--console .kickline { background: rgba(194, 65, 12, .10); border-color: transparent; box-shadow: inset 3px 0 0 #c2410c; }
 
 
 /* server info notices (rehash warnings, broadcasts) — tagged "Info" callout */
@@ -934,6 +957,8 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .messages--console .actuline,
 .messages--console .modeline,
 .messages--console .topicline,
+.messages--console .banline,
+.messages--console .kickline,
 .messages--console .noticeline-wrap {
   /* Status is a log, not a chat: use the full pane (the 70% SMS cap is for salons). */
   width: auto;
@@ -2657,7 +2682,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .umodeline, .operline, .warnline, .noticeline, .errorline, .actuline, .modeline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .umodeline, .operline, .warnline, .noticeline, .errorline, .actuline, .modeline, .banline, .kickline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */

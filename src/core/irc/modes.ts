@@ -32,7 +32,7 @@ export function buildModeContext(
   isupport: Record<string, string>,
   prefixModeToChar: Record<string, string>,
 ): ModeContext {
-  const cm = (isupport['CHANMODES'] || '').split(',');
+  const cm = (isupport['CHANMODES'] || 'beI,k,l,imnstp').split(',');
   const set = (s: string | undefined) => new Set((s || '').split('').filter(Boolean));
   return {
     typeA: set(cm[0]),
@@ -46,7 +46,7 @@ export function buildModeContext(
 // Per the spec's parameter rules, does this mode consume a parameter here?
 function takesParam(mode: string, add: boolean, ctx: ModeContext): boolean {
   if (ctx.prefixModeToChar[mode]) return true; // prefix: always
-  if (ctx.typeA.has(mode)) return true;         // A: always
+  if (mode === 'b' || ctx.typeA.has(mode)) return true; // ban is always a list, even before 005
   if (ctx.typeB.has(mode)) return true;         // B: always
   if (ctx.typeC.has(mode)) return add;          // C: on set only
   return false;                                  // D (or unknown): never
@@ -54,7 +54,7 @@ function takesParam(mode: string, add: boolean, ctx: ModeContext): boolean {
 
 function kindOf(mode: string, ctx: ModeContext): ModeKind {
   if (ctx.prefixModeToChar[mode]) return 'prefix';
-  if (ctx.typeA.has(mode)) return 'list';
+  if (mode === 'b' || ctx.typeA.has(mode)) return 'list';
   if (ctx.typeB.has(mode) || ctx.typeC.has(mode)) return 'param';
   return 'flag';
 }

@@ -99,7 +99,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
             const members = { ...b.members }; delete members[target];
             return { ...b, members };
           });
-          sysLine(ch, i18n.t('system.kick', { target, by: msg.nick }) + (reason ? ` (${reason})` : ''), 'system');
+          sysLine(ch, reason ? `${target}\n${reason}` : target, 'kick', msg.nick);
         }
         return true;
       }

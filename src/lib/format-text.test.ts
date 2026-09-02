@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loosenNoticeText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange } from './format-text';
+import { loosenNoticeText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange, banTargetLabel, modeStringWithoutBans } from './format-text';
 
 describe('loosenNoticeText', () => {
   it('splits | INFO | blocks onto separate paragraphs', () => {
@@ -94,5 +94,23 @@ describe('groupModeDisplay', () => {
       .toBe('a promu Zell356 Opérateur et Fondateur du salon');
     expect(formatModeChange({ add: true, labels: ['Voice'], letters: ['v'], target: 'bob' }))
       .toBe('a promu bob Voice du salon');
+  });
+});
+
+describe('banTargetLabel', () => {
+  it('uses the nick part of user!*@* masks', () => {
+    expect(banTargetLabel('user!*@*')).toBe('user');
+    expect(banTargetLabel('*!*@evil.host')).toBe('*!*@evil.host');
+  });
+
+  it('prefers the nicks the mask currently hits', () => {
+    expect(banTargetLabel('user!*@*', 'bob')).toBe('bob');
+  });
+});
+
+describe('modeStringWithoutBans', () => {
+  it('drops +b/-b and keeps the rest', () => {
+    expect(modeStringWithoutBans('+ob', ['bob', 'user!*@*'])).toBe('+o bob');
+    expect(modeStringWithoutBans('+b', ['user!*@*'])).toBeNull();
   });
 });

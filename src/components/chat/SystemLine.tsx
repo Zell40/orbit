@@ -1,7 +1,7 @@
 import { memo, Fragment, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, formatIrc, splitNoticeLines, groupModeDisplay, formatModeChange, isNickModeGroup, type ModeDisplayGroup } from '@/lib/format';
+import { fmtTime, nickColor, formatIrc, splitNoticeLines, formatModeChange, isNickModeGroup, banTargetLabel, splitModeAndBans, modeStringWithoutBans, type ModeDisplayGroup } from '@/lib/format';
 import { SERVER, isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
@@ -108,6 +108,39 @@ function ModeRoles({ letters, labels }: { letters: string[]; labels: string[] })
     return <span key={i} className={cls ? `modeline__role role-${cls}` : 'modeline__role'}>{label}</span>;
   });
   return <span className="modeline__roles">{joinRoleNodes(nodes, t('modeline.and'))}</span>;
+}
+
+function BanCallout({ from, add, mask, hits }: { from: string; add: boolean; mask: string; hits?: string }) {
+  const { t } = useTranslation();
+  const target = banTargetLabel(mask, hits);
+  return (
+    <div className="banline">
+      <span className="banline__tag">{t('modeline.banTag')}</span>
+      {from ? <ModeNick nick={from} /> : null}
+      <span className="banline__verb">{add ? t('modeline.banAdded') : t('modeline.banRemoved')}</span>
+      <ModeNick nick={target} />
+    </div>
+  );
+}
+
+function KickCallout({ from, target, reason }: { from: string; target: string; reason?: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="kickline">
+      <span className="kickline__tag">{t('modeline.kickTag')}</span>
+      {from ? <ModeNick nick={from} /> : null}
+      <span className="kickline__verb">{t('modeline.kickVerb')}</span>
+      <ModeNick nick={target} />
+      <span className="kickline__chan">{t('modeline.kickChannel')}</span>
+      {reason ? <span className="kickline__reason">({reason})</span> : null}
+    </div>
+  );
+}
+
+function parseSignedBan(text: string): { add: boolean; mask: string; hits: string } | null {
+  const [head, hits = ''] = text.split('\n');
+  if (!/^[+-] /.test(head)) return null;
+  return { add: head.startsWith('+'), mask: head.slice(2), hits };
 }
 
 function ModeClause({ g }: { g: ModeDisplayGroup }) {
@@ -237,16 +270,30 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     let body: ReactNode;
     if (m.kind === 'mode') {
       const [modes, ...margs] = m.text.split(' ');
-      body = <>{m.from} {t('modeline.modeVerb')} {modes}{margs.length ? ' ' + margs.join(' ') : ''}</>;
+      const leftover = modeStringWithoutBans(modes, margs);
+      const { bans } = splitModeAndBans(modes, margs);
+      const bits: string[] = [];
+      if (leftover) bits.push(`${m.from} ${t('modeline.modeVerb')} ${leftover}`);
+      for (const g of bans) bits.push(`${m.from} ${g.add ? t('modeline.banAdded') : t('modeline.banRemoved')} ${banTargetLabel(g.target || '')}`);
+      body = bits.join(' · ') || `${m.from} ${t('modeline.modeVerb')} ${modes}${margs.length ? ' ' + margs.join(' ') : ''}`;
+    } else if (m.kind === 'ban') {
+      const parsed = parseSignedBan(m.text);
+      body = parsed
+        ? <>{m.from} {parsed.add ? t('modeline.banAdded') : t('modeline.banRemoved')} {banTargetLabel(parsed.mask, parsed.hits)}</>
+        : m.text.replace(/^[*•»🔨♻️]+\s*/, '');
+    } else if (m.kind === 'kick') {
+      const [target, ...rest] = m.text.split('\n');
+      const reason = rest.join('\n');
+      body = <>{m.from} {t('modeline.kickVerb')} {target} {t('modeline.kickChannel')}{reason ? ` (${reason})` : ''}</>;
     } else if (m.kind === 'topic') {
       body = m.text
         ? <>{m.from} {t('modeline.topicChanged')} {formatIrc(m.text, false, linkPreviews)}</>
         : <>{m.from} {t('modeline.topicRemoved')}</>;
-    } else if (m.kind === 'info' || m.kind === 'ban' || m.kind === 'umode' || m.kind === 'oper') {
+    } else if (m.kind === 'info' || m.kind === 'umode' || m.kind === 'oper') {
       body = m.text.replace(/^[*•»]+\s*/, '');
     } else if (m.kind === 'motd') {
       body = formatIrc(m.text, false, false);
-    } else { // join / part / quit / nick / kick / system
+    } else { // join / part / quit / nick / system
       const rest = m.text.replace(m.from, '').trim();
       body = m.from
         ? <>{m.from}{m.mask ? <span className="mircline__host"> ({m.mask})</span> : null} {rest}</>
@@ -314,22 +361,35 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   }
   if (m.kind === 'mode') {
     const [modes, ...margs] = m.text.split(' ');
-    const groups = groupModeDisplay(modes, margs);
+    const { groups, bans } = splitModeAndBans(modes, margs);
     return (
-      <div className="modeline">
-        <span className="modeline__tag">{t('modeline.modeTag')}</span>
-        <ModeNick nick={m.from} />
-        <span className="modeline__body">{groups.map((g, i) => (
-          <Fragment key={i}>
-            <ModeClause g={g} />
-            {i < groups.length - 1 ? ' · ' : ''}
-          </Fragment>
-        ))}</span>
-      </div>
+      <>
+        {groups.length > 0 && (
+          <div className="modeline">
+            <span className="modeline__tag">{t('modeline.modeTag')}</span>
+            <ModeNick nick={m.from} />
+            <span className="modeline__body">{groups.map((g, i) => (
+              <Fragment key={i}>
+                <ModeClause g={g} />
+                {i < groups.length - 1 ? ' · ' : ''}
+              </Fragment>
+            ))}</span>
+          </div>
+        )}
+        {bans.map((g, i) => (
+          <BanCallout key={`b-${m.id}-${i}`} from={m.from} add={g.add} mask={g.target!} />
+        ))}
+      </>
     );
   }
   if (m.kind === 'ban') {
-    return <div className="banline">{m.text}</div>;
+    const parsed = parseSignedBan(m.text);
+    if (parsed) return <BanCallout from={m.from} add={parsed.add} mask={parsed.mask} hits={parsed.hits} />;
+    return <div className="banline"><span className="banline__tag">{t('modeline.banTag')}</span><span className="banline__verb">{m.text}</span></div>;
+  }
+  if (m.kind === 'kick') {
+    const [target, ...rest] = m.text.split('\n');
+    return <KickCallout from={m.from} target={target} reason={rest.join('\n') || undefined} />;
   }
   if (m.kind === 'topic') {
     return (

@@ -10,6 +10,7 @@ import { makeMode } from './mode';
 import { makeNumerics } from './numerics';
 import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
+import { modeStringWithoutBans, splitModeAndBans } from '@/lib/format-text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
 import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading } from '@/platform/push';
 import type { StoreApi } from 'zustand';
@@ -72,21 +73,47 @@ export function makeHandler(ctx: HandlerCtx) {
         if (msg.command === 'JOIN') { text = i18n.t('system.join', { nick: msg.nick }); kind = 'join'; }
         else if (msg.command === 'PART') { text = i18n.t('system.part', { nick: msg.nick }); kind = 'part'; }
         else if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
-        else if (msg.command === 'KICK') { text = i18n.t('system.kick', { target: msg.params[1], by: msg.nick }); kind = 'system'; }
+        else if (msg.command === 'KICK') { text = msg.params[2] ? `${msg.params[1]}\n${msg.params[2]}` : (msg.params[1] || ''); kind = 'kick'; }
         else if (msg.command === 'NICK') { text = i18n.t('system.nick', { nick: msg.nick, newnick: msg.params[0] }); kind = 'nick'; }
         else if (msg.command === 'TOPIC') { text = msg.params[1] || ''; kind = 'topic'; }
         else if (msg.command === 'MODE') {
-          const argStr = msg.params.length > 2 ? ' ' + msg.params.slice(2).join(' ') : '';
-          text = `${msg.params[1] ?? ''}${argStr}`; kind = 'mode';
+          // Split +b/-b out of historical MODE so they replay as BAN callouts,
+          // matching live MODE handling (pure ban → no MODE line).
+          const modes = msg.params[1] ?? '';
+          const margs = msg.params.slice(2);
+          const leftover = modeStringWithoutBans(modes, margs);
+          const { bans } = splitModeAndBans(modes, margs);
+          const ts = tsOf(msg);
+          const batch = (historyCollect[epRef] ||= []);
+          for (const g of bans) {
+            const mask = g.target || '';
+            batch.push({
+              id: `${msg.tags['msgid'] || `evt:MODE:${ts}:${msg.nick}`}:b:${mask}`,
+              bufferName: chan, from: msg.nick, text: `${g.add ? '+' : '-'} ${mask}`,
+              ts, kind: 'ban', self: false,
+            });
+          }
+          if (leftover) {
+            batch.push({
+              id: msg.tags['msgid'] || `evt:MODE:${ts}:${msg.nick}:${leftover}`,
+              bufferName: chan, from: msg.nick, text: leftover,
+              ts, kind: 'mode', self: false,
+            });
+          } else if (!bans.length) {
+            const argStr = margs.length ? ' ' + margs.join(' ') : '';
+            text = `${modes}${argStr}`; kind = 'mode';
+          }
         }
-        // Deterministic id so the same historical event dedups across re-fetches
-        // (events carry no msgid, so newId() would duplicate them on every reconnect).
-        const evId = msg.tags['msgid'] || `evt:${msg.command}:${tsOf(msg)}:${msg.nick}:${msg.params.join(',')}`;
-        const evMask = ['JOIN', 'PART', 'QUIT'].includes(msg.command) ? hostmask(msg) : '';
-        (historyCollect[epRef] ||= []).push({
-          id: evId, bufferName: chan, from: msg.nick, text,
-          ts: tsOf(msg), kind, self: false, mask: evMask || undefined,
-        });
+        if (msg.command !== 'MODE' || text) {
+          // Deterministic id so the same historical event dedups across re-fetches
+          // (events carry no msgid, so newId() would duplicate them on every reconnect).
+          const evId = msg.tags['msgid'] || `evt:${msg.command}:${tsOf(msg)}:${msg.nick}:${msg.params.join(',')}`;
+          const evMask = ['JOIN', 'PART', 'QUIT'].includes(msg.command) ? hostmask(msg) : '';
+          (historyCollect[epRef] ||= []).push({
+            id: evId, bufferName: chan, from: msg.nick, text,
+            ts: tsOf(msg), kind, self: false, mask: evMask || undefined,
+          });
+        }
       }
       return;
     }

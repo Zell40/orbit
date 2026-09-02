@@ -17,7 +17,7 @@ function setup(historyAsked = new Set<string>()) {
     setActive(n: string) { this.active = n; },
   };
   const closedChannels = new Set<string>();
-  const lines: { name: string; text: string; kind: string }[] = [];
+  const lines: { name: string; text: string; kind: string; from?: string }[] = [];
   const k = (n: string) => n.toLowerCase();
   const get = () => state as unknown as ChatState;
   const set = (p: Partial<typeof state>) => Object.assign(state, p);
@@ -38,7 +38,7 @@ function setup(historyAsked = new Set<string>()) {
     patchWhois: (nick: string, fn: (w: typeof state.whois[string]) => typeof state.whois[string]) => {
       state.whois = { ...state.whois, [nick]: fn(state.whois[nick] ?? { nick, loading: true }) };
     },
-    sysLine: (name: string, text: string, kind: string) => { lines.push({ name, text, kind }); },
+    sysLine: (name: string, text: string, kind: string, from?: string) => { lines.push({ name, text, kind, from }); },
   } as unknown as StoreHelpers;
   const seed = (chan: string, members: string[]) => {
     state.buffers[k(chan)] = { name: chan, isChannel: true, joined: true, members: Object.fromEntries(members.map((n) => [n, { nick: n }])) };
@@ -93,10 +93,11 @@ describe('membership handler', () => {
   });
 
   it('KICK of someone else drops them; KICK of us closes the buffer', () => {
-    const { on, state, seed, closedChannels, k } = setup();
+    const { on, state, seed, closedChannels, k, lines } = setup();
     seed('#x', ['bob', 'me']);
     on(':op!u@h KICK #x bob :rude');
     expect(state.buffers['#x'].members['bob']).toBeUndefined();
+    expect(lines).toContainEqual({ name: '#x', text: 'bob\nrude', kind: 'kick', from: 'op' });
 
     on(':op!u@h KICK #x me :out');
     expect(state.buffers['#x']).toBeUndefined();        // buffer dropped

@@ -9,6 +9,7 @@ import i18n from '../i18n';
 import { canon, isChannelName } from './context';
 import { maskMatches } from './text';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
+import { modeStringWithoutBans } from '@/lib/format-text';
 import type { IrcMessage } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -68,12 +69,11 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
         // other list modes (+e/+I) ride along in the combined line.
         if (c.mode === 'b' && c.param) {
           const mask = c.param;
-          banLines.push(c.add ? `🔨 ${i18n.t('system.banned', { nick: msg.nick, mask })}` : `♻️ ${i18n.t('system.unbanned', { nick: msg.nick, mask })}`);
           const members = get().buffers[canon(chan)]?.members ?? {};
           const hit = Object.values(members)
             .filter((m) => maskMatches(mask, `${m.nick}!${m.user || '*'}@${m.host || '*'}`))
             .map((m) => m.nick);
-          if (hit.length) banLines.push(i18n.t(c.add ? 'system.bansAdded' : 'system.bansRemoved', { list: hit.join(', ') }));
+          banLines.push(`${c.add ? '+' : '-'} ${mask}${hit.length ? `\n${hit.join(', ')}` : ''}`);
         } else showCombined = true;
       } else {
         // type B/C param mode or type D flag → maintain the channel mode string
@@ -82,12 +82,12 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
       }
     }
 
-    for (const line of banLines) sysLine(chan, line, 'ban');
+    for (const line of banLines) sysLine(chan, line, 'ban', msg.nick);
     // The combined mode line is shown for everything except a pure ban change
     // (those are already covered by the dedicated ban lines above).
     if (showCombined) {
-      const argStr = msg.params.length > 2 ? ' ' + msg.params.slice(2).join(' ') : '';
-      sysLine(chan, `${msg.params[1] ?? ''}${argStr}`, 'mode', msg.nick);
+      const stripped = modeStringWithoutBans(msg.params[1] ?? '', msg.params.slice(2));
+      if (stripped) sysLine(chan, stripped, 'mode', msg.nick);
     }
     return true;
   }

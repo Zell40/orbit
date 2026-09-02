@@ -75,9 +75,42 @@ export function groupModeDisplay(modestring: string, args: string[] = []): ModeD
   return groups;
 }
 
-/** True when the grouped change is a nick prefix (+q/+a/+o/+h/+v). */
-export function isNickModeGroup(g: ModeDisplayGroup): boolean {
-  return !!g.target && g.letters.length > 0 && g.letters.every((l) => PREFIX_MODES.has(l));
+/** True when the grouped change is only +b/-b (shown as a BAN callout). */
+export function isBanModeGroup(g: ModeDisplayGroup): boolean {
+  return g.letters.length > 0 && g.letters.every((l) => l === 'b');
+}
+
+/** Nick to show for a ban mask (`user!*@*` → `user`; host/extban masks stay as-is). */
+export function banTargetLabel(mask: string, hits = ''): string {
+  const hit = hits.trim();
+  if (hit) return hit;
+  const nick = (mask.split('!')[0] || '').trim();
+  if (nick && nick !== '*' && !/[~$*@]/.test(nick)) return nick;
+  return mask;
+}
+
+/** Split a MODE string into prefix/flag groups vs +b/-b groups. */
+export function splitModeAndBans(modestring: string, args: string[] = []): { groups: ModeDisplayGroup[]; bans: ModeDisplayGroup[] } {
+  const all = groupModeDisplay(modestring, args);
+  return {
+    groups: all.filter((g) => !isBanModeGroup(g)),
+    bans: all.filter((g) => isBanModeGroup(g) && g.target),
+  };
+}
+
+/** Rebuild a MODE payload without +b/-b (those have their own BAN callout). */
+export function modeStringWithoutBans(modestring: string, args: string[] = []): string | null {
+  const { groups } = splitModeAndBans(modestring, args);
+  if (!groups.length) return null;
+  let modes = '';
+  const outArgs: string[] = [];
+  let lastAdd: boolean | undefined;
+  for (const g of groups) {
+    if (lastAdd !== g.add) { modes += g.add ? '+' : '-'; lastAdd = g.add; }
+    modes += g.letters.join('');
+    if (g.target) outArgs.push(g.target);
+  }
+  return outArgs.length ? `${modes} ${outArgs.join(' ')}` : modes;
 }
 
 /** Join role labels for a MODE sentence ("Opérateur et Fondateur"). */

@@ -35,8 +35,8 @@
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .actuline__tag { background: #0284c7; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .actuline__txt { color: #7dd3fc; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .actuline__txt a { color: #7dd3fc !important; border-color: rgba(56,189,248,.35); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { background: rgba(214, 70, 95, .16); border-color: rgba(214, 70, 95, .38); }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { color: #f3a9b5; background: #311a1f; border-color: #5a2a32; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { background: rgba(225, 29, 72, .16); border-color: rgba(251, 113, 133, .38); border-left-color: #fb7185; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .kickline { background: rgba(194, 65, 12, .16); border-color: rgba(251, 146, 60, .38); border-left-color: #fb923c; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .mode-add { color: #2ecc71; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .infoline { background: rgba(59,123,255,.12); border-color: rgba(110,160,255,.3); }
 [data-theme="dark"] .umodeline,
