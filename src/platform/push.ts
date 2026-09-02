@@ -124,8 +124,14 @@ type PushDevicesState = { devices: PushDevice[]; loading: boolean };
 const pushDeviceListeners = new Set<() => void>();
 let pushDevices: PushDevice[] = [];
 let pushDevicesLoading = false;
+let pushDevicesSnapshot: PushDevicesState = { devices: pushDevices, loading: pushDevicesLoading };
+
+function syncPushDevicesSnapshot(): void {
+  pushDevicesSnapshot = { devices: pushDevices, loading: pushDevicesLoading };
+}
 
 function notifyPushDevices(): void {
+  syncPushDevicesSnapshot();
   for (const fn of pushDeviceListeners) fn();
 }
 
@@ -135,7 +141,7 @@ export function subscribePushDevices(listener: () => void): () => void {
 }
 
 export function getPushDevicesState(): PushDevicesState {
-  return { devices: pushDevices, loading: pushDevicesLoading };
+  return pushDevicesSnapshot;
 }
 
 /** SHA-256 endpoint → 16 hex chars (matches ircv3_webpush DeviceId). */
