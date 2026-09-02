@@ -70,12 +70,16 @@ function PushRow() {
     : on ? t('settings.notifications.pushActive')
     : t('settings.notifications.pushHint');
 
+  // Same conditions as PushDevicesList: keep the row centred when it renders nothing.
+  const showDevices = supported && hasVapid && !!account;
+
   return (
-    <div className="srow">
+    <div className={`srow${showDevices ? ' srow--stack' : ''}`}>
       <span className="srow__ic" aria-hidden>📲</span>
       <div className="srow__txt">
         <div className="srow__label">{t('settings.notifications.pushLabel')}</div>
         <div className="srow__hint" style={err ? { color: 'var(--danger, #d33)' } : undefined}>{hint}</div>
+        {showDevices && <PushDevicesList />}
       </div>
       {supported && hasVapid
         ? <button className={`switch ${on ? 'is-on' : ''} ${busy ? 'is-busy' : ''}`} role="switch" aria-checked={on}
@@ -132,7 +136,6 @@ export function NotificationsSection() {
           </div>
         </div>
         {getConfig().features.push && <PushRow />}
-        {getConfig().features.push && <PushDevicesList />}
         <ToggleRow icon="🔊" label={t('settings.notifications.sounds')} hint={t('settings.notifications.soundsHint')} prefKey="sound" />
         <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
         <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />

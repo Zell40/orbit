@@ -1769,6 +1769,11 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .sseg--grid button { padding: .42rem .55rem; white-space: nowrap; }
 
 .upbtn--sm { flex: none; padding: .45rem .85rem; font-size: .85rem; }
+.srow--stack { align-items: flex-start; }
+.srow--stack > .switch { margin-top: .3rem; }
+.push-devices { margin-top: .55rem; }
+.push-devices__label { font-size: .8rem; font-weight: 700; color: var(--ink); }
+.push-devices__hint { font-size: .78rem; color: var(--muted); margin-top: .12rem; line-height: 1.35; }
 .push-devices__list { list-style: none; margin: .35rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .45rem; }
 .push-devices__item { display: flex; align-items: flex-start; gap: .55rem; padding: .55rem .65rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); }
 .push-devices__item--local { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); background: var(--accent-soft); }
