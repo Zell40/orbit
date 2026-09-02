@@ -51,13 +51,16 @@ export function PushDevicesList() {
                     <div className="push-devices__main">
                       <div className="push-devices__title">
                         {isLocal ? t('settings.notifications.pushDeviceThis') : d.host}
-                        {isLocal && d.host !== '?' ? ` · ${d.host}` : ''}
                       </div>
+                      {isLocal && d.host !== '?' && (
+                        <div className="push-devices__host">{d.host}</div>
+                      )}
                       <div className="push-devices__meta">
                         {d.online
                           ? t('settings.notifications.pushDeviceOnline', { nick: d.nick })
                           : t('settings.notifications.pushDeviceOffline', { nick: d.nick })}
-                        {' · '}
+                      </div>
+                      <div className="push-devices__meta">
                         {t('settings.notifications.pushDeviceUpdated', { date: fmtTs(d.updated) })}
                       </div>
                       {d.shared && (
