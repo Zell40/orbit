@@ -100,6 +100,16 @@ export async function disablePush(client: IrcClient, account: string): Promise<v
   } catch { /* ignore */ }
 }
 
+/** NickServ LOGOUT: drop this endpoint from the account on the server only — keeps orbit-push=on and the browser subscription so refreshPush re-registers on the next login. */
+export async function unregisterPushOnAccountLogout(client: IrcClient, account: string): Promise<void> {
+  if (!account || !isPushSupported()) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) client.ircv3.webpushUnregister(sub.endpoint, account);
+  } catch { /* ignore */ }
+}
+
 // Re-assert the subscription after (re)connect so it survives server expiry and
 // reconnects. Cheap no-op if push was never enabled, isn't permitted, or the
 // session has no NickServ account (WEBPUSH REGISTER would FAIL FORBIDDEN).

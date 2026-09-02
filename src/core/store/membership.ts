@@ -10,6 +10,7 @@ import { hostmask } from './text';
 import { SERVER, canon, isChannelName, inQuietBatch, trackBufferMuteSync } from './context';
 import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
+import { unregisterPushOnAccountLogout } from '@/platform/push';
 import type { IrcMessage } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -188,7 +189,12 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         const acct = msg.params[0];
         const account = acct && acct !== '*' ? acct : undefined;
         patchMemberEverywhere(msg.nick, { account });
-        if (msg.nick === me) set({ account: account ?? '' });
+        if (msg.nick === me) {
+          const prev = get().account;
+          const next = account ?? '';
+          if (prev && !next && get().client) void unregisterPushOnAccountLogout(get().client!, prev);
+          set({ account: next });
+        }
         return true;
       }
       default:

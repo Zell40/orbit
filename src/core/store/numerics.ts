@@ -1,5 +1,6 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
+import { unregisterPushOnAccountLogout } from '@/platform/push';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
@@ -218,9 +219,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '900': // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
         set({ account: msg.params[2] || '' });
         return true;
-      case '901': // RPL_LOGGEDOUT
+      case '901': { // RPL_LOGGEDOUT
+        const prevAccount = get().account;
         set({ account: '' });
+        if (prevAccount && get().client) void unregisterPushOnAccountLogout(get().client!, prevAccount);
         return true;
+      }
       case '221': // RPL_UMODEIS: <me> <modestring> — our current user modes
         set({ umodes: applyUserModes('', msg.params[1] ?? '') });
         return true;
