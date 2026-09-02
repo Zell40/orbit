@@ -19,12 +19,11 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
     nick: 'me',
-    buffers,
     banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
     prefs: { sound: false }, whois,
     profileUser: '', nickError: null as { nick: string; code: string; text: string } | null,
     ...over,
-    buffers: (over.buffers as typeof buffers) || buffers,
+    buffers,
   };
   const get = () => state as unknown as ChatState;
   const set = (p: Partial<typeof state>) => {
