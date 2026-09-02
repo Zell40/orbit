@@ -12,7 +12,7 @@ import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
 import { modeStringWithoutBans, splitModeAndBans } from '@/lib/format-text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
-import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading } from '@/platform/push';
+import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading, onWebPushServerAck } from '@/platform/push';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -164,6 +164,8 @@ export function makeHandler(ctx: HandlerCtx) {
       case 'WEBPUSH': {
         const sub = (msg.params[0] || '').toUpperCase();
         if (sub === 'DEVICE' || sub === 'END') handleWebPushListMessage(sub, msg.params.slice(1));
+        // REGISTER is often async (test push first) — refresh the list when the server confirms.
+        else if (sub === 'REGISTER' || sub === 'UNREGISTER') onWebPushServerAck(get().client);
         break;
       }
       case 'INVITE': {

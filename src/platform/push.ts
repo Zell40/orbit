@@ -81,6 +81,8 @@ export async function enablePush(client: IrcClient, account: string): Promise<{ 
     if (!sub) return { ok: false, reason: 'no-subscription' };
     registerWithServer(client, sub, account);
     setPref(true);
+    pushRegisterPending = true;
+    notifyPushDevices();
     return { ok: true };
   } catch {
     return { ok: false, reason: 'error' };
@@ -90,6 +92,8 @@ export async function enablePush(client: IrcClient, account: string): Promise<{ 
 // Turn push off: tell the ircd to drop it, then unsubscribe in the browser.
 export async function disablePush(client: IrcClient, account: string): Promise<void> {
   setPref(false);
+  pushRegisterPending = false;
+  notifyPushDevices();
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
@@ -120,15 +124,26 @@ export interface PushDevice {
   shared: boolean;
 }
 
-type PushDevicesState = { devices: PushDevice[]; loading: boolean; listFailed: boolean };
+type PushDevicesState = { devices: PushDevice[]; loading: boolean; listFailed: boolean; registerPending: boolean };
 const pushDeviceListeners = new Set<() => void>();
 let pushDevices: PushDevice[] = [];
 let pushDevicesLoading = false;
 let pushListFailed = false;
-let pushDevicesSnapshot: PushDevicesState = { devices: pushDevices, loading: pushDevicesLoading, listFailed: pushListFailed };
+let pushRegisterPending = false;
+let pushDevicesSnapshot: PushDevicesState = {
+  devices: pushDevices,
+  loading: pushDevicesLoading,
+  listFailed: pushListFailed,
+  registerPending: pushRegisterPending,
+};
 
 function syncPushDevicesSnapshot(): void {
-  pushDevicesSnapshot = { devices: pushDevices, loading: pushDevicesLoading, listFailed: pushListFailed };
+  pushDevicesSnapshot = {
+    devices: pushDevices,
+    loading: pushDevicesLoading,
+    listFailed: pushListFailed,
+    registerPending: pushRegisterPending,
+  };
 }
 
 function notifyPushDevices(): void {
@@ -180,6 +195,7 @@ export function handleWebPushListMessage(subcmd: string, params: string[]): void
   if (cmd === 'END') {
     pushDevicesLoading = false;
     pushListFailed = false;
+    if (pushDevices.length) pushRegisterPending = false;
     notifyPushDevices();
   }
 }
@@ -196,13 +212,21 @@ export function failPushDeviceList(): void {
   notifyPushDevices();
 }
 
-export function requestPushDeviceList(client: IrcClient): void {
-  if (pushDevicesLoading) return;
+export function requestPushDeviceList(client: IrcClient, force = false): void {
+  if (pushDevicesLoading && !force) return;
   pushDevices = [];
   pushDevicesLoading = true;
   pushListFailed = false;
   notifyPushDevices();
   client.ircv3.webpushList();
+}
+
+/** Server confirmed REGISTER/UNREGISTER — refresh the settings device list. */
+export function onWebPushServerAck(client: IrcClient | null | undefined): void {
+  pushRegisterPending = false;
+  notifyPushDevices();
+  if (!client) return;
+  requestPushDeviceList(client, true);
 }
 
 export async function removePushDevice(client: IrcClient, account: string, device: PushDevice, isLocal: boolean): Promise<void> {

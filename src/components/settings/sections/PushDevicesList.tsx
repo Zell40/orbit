@@ -20,7 +20,7 @@ export function PushDevicesList() {
   const client = useActiveChat((s) => s.client);
   const account = useActiveChat((s) => s.account);
   const hasVapid = !!client?.server.vapid;
-  const { devices, loading, listFailed } = useSyncExternalStore(subscribePushDevices, getPushDevicesState, getPushDevicesState);
+  const { devices, loading, listFailed, registerPending } = useSyncExternalStore(subscribePushDevices, getPushDevicesState, getPushDevicesState);
   const [localId, setLocalId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState('');
 
@@ -38,8 +38,8 @@ export function PushDevicesList() {
       <div className="push-devices__hint">{t('settings.notifications.pushDevicesHint')}</div>
       {listFailed
         ? <div className="push-devices__hint">{t('settings.notifications.pushDevicesUnavailable')}</div>
-        : loading && !devices.length
-        ? <div className="push-devices__hint">{t('settings.notifications.pushDevicesLoading')}</div>
+        : (loading || registerPending) && !devices.length
+        ? <div className="push-devices__hint">{t(registerPending && !loading ? 'settings.notifications.pushDevicesPending' : 'settings.notifications.pushDevicesLoading')}</div>
         : !devices.length
           ? <div className="push-devices__hint">{t('settings.notifications.pushDevicesEmpty')}</div>
           : (
