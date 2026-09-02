@@ -858,6 +858,8 @@
     "build": "Сборка",
     "license": "Лицензия",
     "source": "Исходный код",
+    "plugins": "Плагины EntreNous",
+    "upstream": "Исходный Orbit",
     "project": "Страница проекта",
     "running": "Развёртывание",
     "madeWith": "Сделано на React · IRCv3"

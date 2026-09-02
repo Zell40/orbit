@@ -858,6 +858,8 @@
     "build": "बिल्ड",
     "license": "इजाजतपत्र",
     "source": "स्रोत कोड",
+    "plugins": "EntreNous प्लगइन",
+    "upstream": "मूल Orbit",
     "project": "परियोजना पृष्ठ",
     "running": "डिप्लोयमेन्ट",
     "madeWith": "React · IRCv3 बाट बनेको"

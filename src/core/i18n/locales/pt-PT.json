@@ -858,6 +858,8 @@
     "build": "Build",
     "license": "Licença",
     "source": "Código-fonte",
+    "plugins": "Plugins EntreNous",
+    "upstream": "Orbit original",
     "project": "Página do projeto",
     "running": "Implementação",
     "madeWith": "Feito com React · IRCv3"

@@ -858,6 +858,8 @@
     "build": "Yapı",
     "license": "Lisans",
     "source": "Kaynak kodu",
+    "plugins": "EntreNous eklentileri",
+    "upstream": "Orbit kaynağı",
     "project": "Proje sayfası",
     "running": "Dağıtım",
     "madeWith": "React · IRCv3 ile yapıldı"

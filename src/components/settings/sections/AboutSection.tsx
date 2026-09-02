@@ -4,7 +4,14 @@ import { getConfig } from '@/core/config';
 
 // About — the app's own identity card (version/build injected at build time +
 // the project's open-source links). Orbit is the client; branding.* is the host.
-const ORBIT_SOURCE = 'https://git.devtronic.pro/orbit/orbit';
+// AGPL §13: these must be the sources of THIS deployment, not only upstream.
+const ORBIT_SOURCE = 'https://github.com/Zell40/orbit';
+const ORBIT_UPSTREAM = 'https://git.devtronic.pro/orbit/orbit';
+const PLUGINS_SOURCE = 'https://github.com/Zell40/entrenous-orbit';
+
+function hostPath(url: string): string {
+  return url.replace(/^https?:\/\//, '');
+}
 
 export function AboutSection() {
   const { t } = useTranslation();
@@ -14,9 +21,11 @@ export function AboutSection() {
   const rows: { label: string; value: ReactNode }[] = [
     { label: t('about.version'), value: __APP_VERSION__ },
     { label: t('about.build'), value: build },
-    { label: t('about.license'), value: <a href={`${ORBIT_SOURCE}/src/branch/main/LICENSE`} target="_blank" rel="noopener noreferrer">AGPL-3.0</a> },
-    { label: t('about.source'), value: <a href={ORBIT_SOURCE} target="_blank" rel="noopener noreferrer">{ORBIT_SOURCE.replace(/^https?:\/\//, '')} ↗</a> },
-    { label: t('about.project'), value: <a href={cfg.branding.projectUrl} target="_blank" rel="noopener noreferrer">{cfg.branding.projectUrl.replace(/^https?:\/\//, '')} ↗</a> },
+    { label: t('about.license'), value: <a href={`${ORBIT_SOURCE}/blob/main/LICENSE`} target="_blank" rel="noopener noreferrer">AGPL-3.0</a> },
+    { label: t('about.source'), value: <a href={ORBIT_SOURCE} target="_blank" rel="noopener noreferrer">{hostPath(ORBIT_SOURCE)} ↗</a> },
+    { label: t('about.plugins'), value: <a href={PLUGINS_SOURCE} target="_blank" rel="noopener noreferrer">{hostPath(PLUGINS_SOURCE)} ↗</a> },
+    { label: t('about.upstream'), value: <a href={ORBIT_UPSTREAM} target="_blank" rel="noopener noreferrer">{hostPath(ORBIT_UPSTREAM)} ↗</a> },
+    { label: t('about.project'), value: <a href={cfg.branding.projectUrl} target="_blank" rel="noopener noreferrer">{hostPath(cfg.branding.projectUrl)} ↗</a> },
     { label: t('about.running'), value: <a href={cfg.branding.url} target="_blank" rel="noopener noreferrer">{cfg.branding.name} ↗</a> },
     ...(cfg.branding.links || []).map((l) => ({
       label: l.label,

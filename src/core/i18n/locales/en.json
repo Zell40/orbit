@@ -978,6 +978,8 @@
     "build": "Build",
     "license": "License",
     "source": "Source code",
+    "plugins": "EntreNous plugins",
+    "upstream": "Orbit upstream",
     "project": "Project page",
     "running": "Deployment",
     "madeWith": "Built with React · IRCv3"
