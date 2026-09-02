@@ -110,6 +110,11 @@ function ModeRoles({ letters, labels }: { letters: string[]; labels: string[] })
   return <span className="modeline__roles">{joinRoleNodes(nodes, t('modeline.and'))}</span>;
 }
 
+function banLabelWithMask(mask: string, hits = ''): string {
+  const label = banTargetLabel(mask, hits);
+  return mask && mask !== label ? `${label} (${mask})` : label;
+}
+
 function BanCallout({ from, add, mask, hits }: { from: string; add: boolean; mask: string; hits?: string }) {
   const { t } = useTranslation();
   const target = banTargetLabel(mask, hits);
@@ -119,6 +124,7 @@ function BanCallout({ from, add, mask, hits }: { from: string; add: boolean; mas
       {from ? <ModeNick nick={from} /> : null}
       <span className="banline__verb">{add ? t('modeline.banAdded') : t('modeline.banRemoved')}</span>
       <ModeNick nick={target} />
+      {mask && mask !== target ? <span className="banline__mask">({mask})</span> : null}
     </div>
   );
 }
@@ -274,12 +280,12 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       const { bans } = splitModeAndBans(modes, margs);
       const bits: string[] = [];
       if (leftover) bits.push(`${m.from} ${t('modeline.modeVerb')} ${leftover}`);
-      for (const g of bans) bits.push(`${m.from} ${g.add ? t('modeline.banAdded') : t('modeline.banRemoved')} ${banTargetLabel(g.target || '')}`);
+      for (const g of bans) bits.push(`${m.from} ${g.add ? t('modeline.banAdded') : t('modeline.banRemoved')} ${banLabelWithMask(g.target || '')}`);
       body = bits.join(' · ') || `${m.from} ${t('modeline.modeVerb')} ${modes}${margs.length ? ' ' + margs.join(' ') : ''}`;
     } else if (m.kind === 'ban') {
       const parsed = parseSignedBan(m.text);
       body = parsed
-        ? <>{m.from} {parsed.add ? t('modeline.banAdded') : t('modeline.banRemoved')} {banTargetLabel(parsed.mask, parsed.hits)}</>
+        ? <>{m.from} {parsed.add ? t('modeline.banAdded') : t('modeline.banRemoved')} {banLabelWithMask(parsed.mask, parsed.hits)}</>
         : m.text.replace(/^[*•»🔨♻️]+\s*/, '');
     } else if (m.kind === 'kick') {
       const [target, ...rest] = m.text.split('\n');
