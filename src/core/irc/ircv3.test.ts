@@ -157,6 +157,7 @@ describe('Ircv3 cap-gated commands', () => {
     ircv3.fetchMetadata('$server');
     ircv3.sendTyping('$notice:gardian', 'active');
     ircv3.react('$notice:gardian', 'abc', '\u{1F600}');
+    ircv3.sendDisplayed('$notice:gardian', 1);
     expect(sent).toHaveLength(0);
   });
 
@@ -167,6 +168,7 @@ describe('Ircv3 cap-gated commands', () => {
     ircv3.fetchMetadata('*status');
     ircv3.sendTyping('*status', 'active');
     ircv3.react('*status', 'abc', '\u{1F600}');
+    ircv3.sendDisplayed('*status', 1);
     expect(sent).toHaveLength(0);
   });
 
@@ -174,7 +176,15 @@ describe('Ircv3 cap-gated commands', () => {
     const { ircv3, sent } = make();
     ircv3.sendTyping('#x', 'active');
     ircv3.react('#x', 'abc', '\u{1F600}');
+    ircv3.sendDisplayed('bob', 1);
     expect(sent).toHaveLength(0);
+  });
+
+  it('sends a displayed TAGMSG to a DM peer when message-tags is on', () => {
+    const { ircv3, sent, cap } = make();
+    cap('CAP * ACK :message-tags');
+    ircv3.sendDisplayed('bob', 1_700_000_000_000);
+    expect(sent).toEqual(['@+entrenous/displayed=1700000000000 TAGMSG bob']);
   });
 
   it('only sends MONITOR when ISUPPORT advertises it', () => {

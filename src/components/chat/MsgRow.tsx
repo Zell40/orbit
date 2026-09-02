@@ -12,12 +12,39 @@ import { useAvatarUrl } from '@/platform/avatars';
 import { usePluginRegistry, type MessageInfo } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
-import { isChannelName } from '@/core/store/context';
+import { isChannelName, isPseudoBuffer, isBouncerServiceNick } from '@/core/store/context';
+import { isService } from '@/core/services';
 import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage, highlightMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
 
 const QUICK = ['👍', '😂', '❤️', '🔥'];
+
+type ReceiptState = 'pending' | 'sent' | 'displayed';
+
+function ReceiptTicks({ state }: { state: ReceiptState }) {
+  const { t } = useTranslation();
+  const label = state === 'pending' ? t('messages.receiptPending')
+    : state === 'displayed' ? t('messages.receiptDisplayed')
+    : t('messages.receiptSent');
+  return (
+    <span className={`receipt receipt--${state}`} title={label} aria-label={label}>
+      {state === 'pending' ? (
+        <svg viewBox="0 0 16 16" aria-hidden>
+          <circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M8 5v3.2L10.2 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 18 12" aria-hidden>
+          <path d="M1.6 6.4 4.4 9.2 10.2 2.4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          {state === 'displayed' && (
+            <path d="M7.2 6.4 10 9.2 15.8 2.4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          )}
+        </svg>
+      )}
+    </span>
+  );
+}
 
 const msgInfo = (m: ChatMessage): MessageInfo =>
   ({
@@ -76,6 +103,8 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   // fall back to the author's account from the channel member list.
   const memberAccount = useActiveChat((s) => s.buffers[s.active]?.members[m.from]?.account);
   const myAccount = useActiveChat((s) => s.account);
+  const peerReadTs = useActiveChat((s) => s.buffers[s.active]?.peerReadTs ?? 0);
+  const readReceipts = useActiveChat((s) => s.prefs.readReceipts);
   const avatarAccount = m.account || memberAccount || (m.self ? myAccount : undefined);
   const avatarUrl = useAvatarUrl(avatarAccount);
   const mirc = useTheme().startsWith('yomirc');
@@ -232,6 +261,15 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
         <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
+          {m.self && !m.redacted && (m.kind === 'privmsg' || m.kind === 'action')
+            && !isChannelName(m.bufferName) && !isPseudoBuffer(m.bufferName)
+            && !isBouncerServiceNick(m.bufferName) && !isService(m.bufferName) && (
+            <ReceiptTicks state={
+              m.id.startsWith('local-') ? 'pending'
+                : (readReceipts && peerReadTs > 0 && m.ts <= peerReadTs) ? 'displayed'
+                : 'sent'
+            } />
+          )}
         </div>
         {!m.redacted && linkPreviews && getConfig().features.linkPreviews && (() => {
           const pu = firstPreviewableUrl(stripFormatting(m.text));

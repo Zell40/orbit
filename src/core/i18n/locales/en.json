@@ -181,7 +181,10 @@
     "searchResults_other": "{{count}} results for “{{q}}”",
     "newMessages": "New messages",
     "jumpNewest": "Jump to newest",
-    "loadingHistory": "Loading history…"
+    "loadingHistory": "Loading history…",
+    "receiptPending": "Sending…",
+    "receiptSent": "Sent",
+    "receiptDisplayed": "Read"
   },
   "modals": {
     "closeButton": "Close",
@@ -407,6 +410,8 @@
       "hideJoinsHint": "Hides “joined / left” lines.",
       "hideModes": "Hide mode changes",
       "hideModesHint": "Hides “sets +o / +v / …” lines in the conversation.",
+      "readReceipts": "Read receipts",
+      "readReceiptsHint": "In private chats, a clock then ticks show sending and when it was read. Off: you neither send yours nor see “Read”.",
       "linkPreviews": "Link previews",
       "linkPreviewsHint": "Show inline previews for links, images, audio and video.",
       "highlightLabel": "Highlight keywords",

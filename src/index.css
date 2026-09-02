@@ -1063,6 +1063,14 @@ html[data-bubbles="on"] .group--self .line {
   text-align: left;
   box-sizing: border-box;
 }
+.receipt {
+  display: inline-flex; align-items: center; margin-left: .4em; vertical-align: -2px;
+  color: var(--faint); flex: none;
+}
+.receipt svg { display: block; width: 15px; height: 12px; }
+.receipt--pending svg { width: 12px; height: 12px; }
+.receipt--displayed { color: #009393; }
+html[data-bubbles="on"] .group--self .receipt { margin-left: .45em; }
 /* Image shares: fit the caption/toolbar, stay pinned right like own text bubbles. */
 html[data-bubbles="on"] .group--self .line:has(.imgcard) {
   width: fit-content;

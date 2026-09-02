@@ -86,7 +86,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     }
     const buf: Buffer = {
       name, isChannel: isChannelName(name), messages: [], members: {},
-      topic: '', unread: 0, joined: false, readTs: 0, typing: {},
+      topic: '', unread: 0, joined: false, readTs: 0, peerReadTs: 0, typing: {},
     };
     set({ buffers: { ...buffers, [key]: buf }, order: [...order, key], pmContext });
   }

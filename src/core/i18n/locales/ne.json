@@ -152,6 +152,9 @@
     "searchResults_other": "«{{q}}» का लागि {{count}} परिणाम",
     "newMessages": "नयाँ म्यासेजहरू",
     "loadingHistory": "इतिहास लोड हुँदैछ…",
+    "receiptPending": "पठाउँदै…",
+    "receiptSent": "पठाइयो",
+    "receiptDisplayed": "पढियो",
     "jumpNewest": "नयाँमा जानुहोस्"
   },
   "modals": {
@@ -357,6 +360,8 @@
       "hideJoinsHint": "«सामेल भयो / छोड्यो» लुकाउँछ।",
       "hideModes": "मोड परिवर्तन लुकाउनुहोस्",
       "hideModesHint": "कुराकानीमा «+o / +v / …» लुकाउँछ।",
+      "readReceipts": "पढिएको सूचना",
+      "readReceiptsHint": "प्राइभेटमा घडी र टिकले पठाएको र पढिएको देखाउँछ। बन्द: आफ्नो पठाउँदैन र «पढियो» देख्दैन।",
       "linkPreviews": "लिंक पूर्वावलोकन",
       "linkPreviewsHint": "लिंक, तस्बिर, अडियो र भिडियोको इनलाइन पूर्वावलोकन देखाउँछ।",
       "highlightLabel": "हाइलाइट किवर्डहरू",

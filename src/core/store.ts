@@ -10,6 +10,7 @@ import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends,
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick, trackBufferMuteSync } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { makeHelpers, rememberQueryAccount } from './store/helpers';
+import { isService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
 import { makeHandler } from './store/handler';
@@ -171,9 +172,27 @@ export function createChatStore(ns = '') {
   const helpers = makeHelpers(set, get, closedChannels);
   const { ensureBuffer, patchBuffer, dropBuffer, sysLine, serverLine, addMessage } = helpers;
   const readMarkSent: Record<string, number> = {}; // throttle server MARKREAD per buffer
+  const displayedSent: Record<string, number> = {}; // throttle DM displayed TAGMSG per peer
   const pushMarkRead = (name: string, ts: number) => {
     const { client, account } = get();
     client?.ircv3.markRead(name, new Date(ts).toISOString(), account);
+  };
+  const pushDisplayed = (name: string) => {
+    const s = get();
+    if (!s.prefs.readReceipts) return;
+    if (isChannelName(name) || isPseudoBuffer(name) || isBouncerServiceNick(name) || isService(name)) return;
+    const b = s.buffers[canon(name)];
+    if (!b) return;
+    let latestPeer = 0;
+    for (const m of b.messages) {
+      if (!m.self && (m.kind === 'privmsg' || m.kind === 'action') && m.ts > latestPeer) latestPeer = m.ts;
+    }
+    if (!latestPeer) return;
+    const now = Date.now();
+    const key = canon(name);
+    if (now - (displayedSent[key] || 0) < 2000) return;
+    displayedSent[key] = now;
+    s.client?.ircv3.sendDisplayed(b.name, latestPeer);
   };
 
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns });
@@ -630,6 +649,7 @@ export function createChatStore(ns = '') {
             pushMarkRead(pb.name, latest);
             patchBuffer(prev, (b) => ({ ...b, readTs: latest }));
           }
+          pushDisplayed(pb.name);
         }
       }
       patchBuffer(key, (b) => ({ ...b, unread: 0, highlight: false }));
@@ -697,13 +717,15 @@ export function createChatStore(ns = '') {
       const b = s.buffers[key];
       if (!b || !b.messages.length) return;
       const latest = b.messages[b.messages.length - 1].ts;
-      if (latest <= b.readTs) return;
-      patchBuffer(key, (bf) => ({ ...bf, readTs: latest, unread: 0, highlight: false }));
-      const now = Date.now();
-      if (now - (readMarkSent[key] || 0) > 2000) {
-        readMarkSent[key] = now;
-        pushMarkRead(b.name, latest);
+      if (latest > b.readTs) {
+        patchBuffer(key, (bf) => ({ ...bf, readTs: latest, unread: 0, highlight: false }));
+        const now = Date.now();
+        if (now - (readMarkSent[key] || 0) > 2000) {
+          readMarkSent[key] = now;
+          pushMarkRead(b.name, latest);
+        }
       }
+      pushDisplayed(b.name);
     },
 
     notifyTyping() {

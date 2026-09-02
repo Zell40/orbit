@@ -227,6 +227,11 @@ export class Ircv3 {
     if (!this.acked.has('message-tags') || skipIrcdTarget(target)) return;
     this.tx.send(`@+typing=${state} TAGMSG ${target}`);
   }
+  /** Tell a DM peer we've displayed their messages up to `ts` (Orbit ↔ Orbit receipts). */
+  sendDisplayed(target: string, ts: number): void {
+    if (!this.acked.has('message-tags') || skipIrcdTarget(target) || !Number.isFinite(ts) || ts <= 0) return;
+    this.tx.send(`@+entrenous/displayed=${Math.floor(ts)} TAGMSG ${target}`);
+  }
   // draft/account-registration: create + confirm a network account. Gated at
   // the UI (the register form only shows when the cap is present), so no guard here.
   register(account: string, email: string, password: string): void {

@@ -152,6 +152,9 @@
     "searchResults_other": "«{{q}}» için {{count}} sonuç",
     "newMessages": "Yeni mesajlar",
     "loadingHistory": "Geçmiş yükleniyor…",
+    "receiptPending": "Gönderiliyor…",
+    "receiptSent": "Gönderildi",
+    "receiptDisplayed": "Okundu",
     "jumpNewest": "En yeniye git"
   },
   "modals": {
@@ -357,6 +360,8 @@
       "hideJoinsHint": "«katıldı / ayrıldı» satırlarını gizler.",
       "hideModes": "Mod değişikliklerini gizle",
       "hideModesHint": "Sohbette «+o / +v / …» satırlarını gizler.",
+      "readReceipts": "Okundu bilgisi",
+      "readReceiptsHint": "Özelde saat ve tikler gönderimi ve okunmayı gösterir. Kapalı: göndermezsin ve «Okundu» görmezsin.",
       "linkPreviews": "Bağlantı önizlemeleri",
       "linkPreviewsHint": "Bağlantılar, resimler, ses ve videolar için önizleme gösterir.",
       "highlightLabel": "Vurgulama anahtar kelimeleri",

@@ -20,6 +20,8 @@ export interface Prefs {
   showStatus: boolean;
   /** Off-channel NOTICEs in a Notices sidebar block (one buffer per sender). Off = current window. */
   noticeInbox: boolean;
+  /** DM read receipts (Orbit ↔ Orbit TAGMSG). Off = don't send, don't show "read". */
+  readReceipts: boolean;
   /** Hours to keep a shared image/voice file (clamped to filehost.retentionChoices). */
   uploadTtlHours: number;
 }
@@ -34,6 +36,7 @@ function defaults(): Prefs {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, hideModes: false, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: true,
+    readReceipts: true,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };
 }

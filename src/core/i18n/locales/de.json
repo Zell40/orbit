@@ -152,6 +152,9 @@
     "searchResults_other": "{{count}} Ergebnisse für „{{q}}“",
     "newMessages": "Neue Nachrichten",
     "loadingHistory": "Verlauf wird geladen…",
+    "receiptPending": "Senden…",
+    "receiptSent": "Gesendet",
+    "receiptDisplayed": "Gelesen",
     "jumpNewest": "Zum Neuesten springen"
   },
   "modals": {
@@ -357,6 +360,8 @@
       "hideJoinsHint": "Blendet „beigetreten / verlassen“ aus.",
       "hideModes": "Mode-Änderungen ausblenden",
       "hideModesHint": "Blendet „+o / +v / …“-Zeilen im Verlauf aus.",
+      "readReceipts": "Lesebestätigungen",
+      "readReceiptsHint": "Im Privatchat zeigen Uhr und Häkchen Versand und Lesen. Aus: du sendest keine und siehst kein „Gelesen“.",
       "linkPreviews": "Link-Vorschauen",
       "linkPreviewsHint": "Zeigt Vorschauen für Links, Bilder, Audio und Videos.",
       "highlightLabel": "Hervorhebungs-Schlüsselwörter",

@@ -152,6 +152,9 @@
     "searchResults_other": "{{count}} результатов по «{{q}}»",
     "newMessages": "Новые сообщения",
     "loadingHistory": "Загружаю историю…",
+    "receiptPending": "Отправка…",
+    "receiptSent": "Отправлено",
+    "receiptDisplayed": "Прочитано",
     "jumpNewest": "Перейти к новым"
   },
   "modals": {
@@ -357,6 +360,8 @@
       "hideJoinsHint": "Скрывает строки «зашёл / вышел».",
       "hideModes": "Скрыть смену режимов",
       "hideModesHint": "Скрывает строки «+o / +v / …» в переписке.",
+      "readReceipts": "Отчёты о прочтении",
+      "readReceiptsHint": "В личке часы и галочки показывают отправку и прочтение. Выкл.: не отправляешь свои и не видишь «Прочитано».",
       "linkPreviews": "Превью ссылок",
       "linkPreviewsHint": "Показывает превью ссылок, изображений, аудио и видео.",
       "highlightLabel": "Ключевые слова подсветки",

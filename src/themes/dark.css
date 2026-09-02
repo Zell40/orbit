@@ -45,6 +45,9 @@
 [data-theme="dark"] .operline,
 [data-theme="orbit"] .operline,
 [data-theme="orbit-dark"] .operline { background: rgba(0,147,147,.16); border-color: rgba(94,234,212,.35); }
+[data-theme="dark"] .receipt--displayed,
+[data-theme="orbit"] .receipt--displayed,
+[data-theme="orbit-dark"] .receipt--displayed { color: #5eead4; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline { background: rgba(240,169,58,.14); border-color: rgba(240,169,58,.42); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline__txt { color: var(--ink); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-owner { color: #e3b554; }

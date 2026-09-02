@@ -152,6 +152,9 @@
     "searchResults_other": "{{count}} resultados para «{{q}}»",
     "newMessages": "Mensajes nuevos",
     "loadingHistory": "Cargando historial…",
+    "receiptPending": "Enviando…",
+    "receiptSent": "Enviado",
+    "receiptDisplayed": "Leído",
     "jumpNewest": "Ir al más reciente"
   },
   "modals": {
@@ -357,6 +360,8 @@
       "hideJoinsHint": "Oculta los «se unió / salió».",
       "hideModes": "Ocultar cambios de modo",
       "hideModesHint": "Oculta las líneas «+o / +v / …» en la conversación.",
+      "readReceipts": "Confirmaciones de lectura",
+      "readReceiptsHint": "En privados, un reloj y ticks indican el envío y la lectura. Desactivado: no envías las tuyas ni ves «Leído».",
       "linkPreviews": "Vistas previas de enlaces",
       "linkPreviewsHint": "Muestra vistas previas de enlaces, imágenes, audio y vídeo.",
       "highlightLabel": "Palabras clave de resaltado",

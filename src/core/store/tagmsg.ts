@@ -1,8 +1,8 @@
-// TAGMSG sub-handler — the tag-only messages: typing indicators (+typing) and
-// reactions (+draft/react on a +draft/reply target). Split out of handler.ts as
-// the first, cleanest slice of the messaging block; the dispatcher calls
-// handleTagmsg(msg, me) before its command switch.
+// TAGMSG sub-handler — typing indicators, DM read receipts, and reactions.
+// Split out of handler.ts as the first, cleanest slice of the messaging block;
+// the dispatcher calls handleTagmsg(msg, me) before its command switch.
 import { isChannelName } from './context';
+import { isService } from '../services';
 import type { IrcMessage } from '../irc/types';
 import type { StoreHelpers } from './helpers';
 
@@ -36,6 +36,16 @@ export function makeTagmsg({ ensureBuffer, patchBuffer }: TagmsgDeps) {
           }
           return b;
         }), 6200);
+      }
+    }
+
+    // DM read receipts (Orbit ↔ Orbit): peer displayed our messages up to `ts`.
+    const displayed = msg.tags['+entrenous/displayed'];
+    if (displayed && !fromMe && !isChannelName(target) && !isChannelName(msg.nick) && !isService(msg.nick)) {
+      const t = Number(displayed);
+      if (Number.isFinite(t) && t > 0) {
+        ensureBuffer(msg.nick);
+        patchBuffer(msg.nick, (b) => ({ ...b, peerReadTs: Math.max(b.peerReadTs || 0, t) }));
       }
     }
 
