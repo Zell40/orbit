@@ -394,6 +394,7 @@
       "pushDevicesHint": "Web Push endpoints for your account on this network (max. 5 per account).",
       "pushDevicesLoading": "Loading…",
       "pushDevicesEmpty": "No devices registered for this account.",
+      "pushDevicesUnavailable": "Device list unavailable (server needs an up-to-date ircv3_webpush module with WEBPUSH LIST).",
       "pushDeviceThis": "This device",
       "pushDeviceOnline": "Online ({{nick}})",
       "pushDeviceOffline": "Offline (last nick: {{nick}})",

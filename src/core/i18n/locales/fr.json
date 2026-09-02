@@ -394,6 +394,7 @@
       "pushDevicesHint": "Push Web actifs pour ton compte sur ce réseau (max. 5 par compte).",
       "pushDevicesLoading": "Chargement…",
       "pushDevicesEmpty": "Aucun appareil enregistré pour ce compte.",
+      "pushDevicesUnavailable": "Liste des appareils indisponible (module ircv3_webpush à jour requis : WEBPUSH LIST).",
       "pushDeviceThis": "Cet appareil",
       "pushDeviceOnline": "En ligne ({{nick}})",
       "pushDeviceOffline": "Hors ligne (dernier nick : {{nick}})",

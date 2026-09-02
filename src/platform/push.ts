@@ -120,14 +120,15 @@ export interface PushDevice {
   shared: boolean;
 }
 
-type PushDevicesState = { devices: PushDevice[]; loading: boolean };
+type PushDevicesState = { devices: PushDevice[]; loading: boolean; listFailed: boolean };
 const pushDeviceListeners = new Set<() => void>();
 let pushDevices: PushDevice[] = [];
 let pushDevicesLoading = false;
-let pushDevicesSnapshot: PushDevicesState = { devices: pushDevices, loading: pushDevicesLoading };
+let pushListFailed = false;
+let pushDevicesSnapshot: PushDevicesState = { devices: pushDevices, loading: pushDevicesLoading, listFailed: pushListFailed };
 
 function syncPushDevicesSnapshot(): void {
-  pushDevicesSnapshot = { devices: pushDevices, loading: pushDevicesLoading };
+  pushDevicesSnapshot = { devices: pushDevices, loading: pushDevicesLoading, listFailed: pushListFailed };
 }
 
 function notifyPushDevices(): void {
@@ -178,13 +179,28 @@ export function handleWebPushListMessage(subcmd: string, params: string[]): void
   }
   if (cmd === 'END') {
     pushDevicesLoading = false;
+    pushListFailed = false;
     notifyPushDevices();
   }
 }
 
+/** LIST failed (old server, missing cap, etc.) — stop the settings spinner. */
+export function isPushDeviceListLoading(): boolean {
+  return pushDevicesLoading;
+}
+
+export function failPushDeviceList(): void {
+  if (!pushDevicesLoading) return;
+  pushDevicesLoading = false;
+  pushListFailed = true;
+  notifyPushDevices();
+}
+
 export function requestPushDeviceList(client: IrcClient): void {
+  if (pushDevicesLoading) return;
   pushDevices = [];
   pushDevicesLoading = true;
+  pushListFailed = false;
   notifyPushDevices();
   client.ircv3.webpushList();
 }

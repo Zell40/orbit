@@ -20,7 +20,7 @@ export function PushDevicesList() {
   const client = useActiveChat((s) => s.client);
   const account = useActiveChat((s) => s.account);
   const hasVapid = !!client?.server.vapid;
-  const { devices, loading } = useSyncExternalStore(subscribePushDevices, getPushDevicesState, getPushDevicesState);
+  const { devices, loading, listFailed } = useSyncExternalStore(subscribePushDevices, getPushDevicesState, getPushDevicesState);
   const [localId, setLocalId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState('');
 
@@ -36,7 +36,9 @@ export function PushDevicesList() {
     <div className="sfield push-devices">
       <div className="sfield__label">📱 {t('settings.notifications.pushDevicesLabel')}</div>
       <div className="srow__hint">{t('settings.notifications.pushDevicesHint')}</div>
-      {loading && !devices.length
+      {listFailed
+        ? <div className="srow__hint">{t('settings.notifications.pushDevicesUnavailable')}</div>
+        : loading && !devices.length
         ? <div className="srow__hint">{t('settings.notifications.pushDevicesLoading')}</div>
         : !devices.length
           ? <div className="srow__hint">{t('settings.notifications.pushDevicesEmpty')}</div>

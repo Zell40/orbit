@@ -27,6 +27,7 @@ describe('push devices', () => {
     handleWebPushListMessage('END', []);
     expect(getPushDevicesState()).toEqual({
       loading: false,
+      listFailed: false,
       devices: [{
         id: 'abcd1234',
         host: 'fcm.googleapis.com',
@@ -44,6 +45,6 @@ describe('push devices', () => {
     handleWebPushListMessage('END', []);
     const client = { ircv3: { webpushList: () => {} } } as unknown as IrcClient;
     requestPushDeviceList(client);
-    expect(getPushDevicesState()).toEqual({ loading: true, devices: [] });
+    expect(getPushDevicesState()).toEqual({ loading: true, listFailed: false, devices: [] });
   });
 });

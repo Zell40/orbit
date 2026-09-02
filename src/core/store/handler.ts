@@ -11,7 +11,7 @@ import { makeNumerics } from './numerics';
 import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
-import { handleWebPushListMessage } from '@/platform/push';
+import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading } from '@/platform/push';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -261,7 +261,14 @@ export function makeHandler(ctx: HandlerCtx) {
         // MARKREAD / WEBPUSH are automatic and keyed to the NickServ account.
         // Guests (and the window before 900) get FAIL INTERNAL_ERROR / FORBIDDEN
         // — don't dump those into the channel the user is looking at.
-        if (msg.command === 'FAIL' && (cmd === 'MARKREAD' || cmd === 'WEBPUSH')) break;
+        if (msg.command === 'FAIL' && (cmd === 'MARKREAD' || cmd === 'WEBPUSH')) {
+          if (cmd === 'WEBPUSH') failPushDeviceList();
+          break;
+        }
+        if (msg.command === 'NOTE' && (cmd === 'WEBPUSH' || (isPushDeviceListLoading() && desc.includes('WEBPUSH')))) {
+          failPushDeviceList();
+          break;
+        }
         // Otherwise surface it where the user is looking: FAIL/WARN as a ⚠ line,
         // NOTE as an info callout. Label with the command + code when present.
         const tag = cmd && cmd !== '*' ? `${cmd}${code && code !== '*' ? ` (${code})` : ''} — ` : '';
