@@ -176,6 +176,29 @@ export const MotdGroup = memo(function MotdGroup({ messages }: { messages: ChatM
   );
 });
 
+export const OperGroup = memo(function OperGroup({ messages }: { messages: ChatMessage[] }) {
+  const { t } = useTranslation();
+  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
+  const lines = messages.map((m) => m.text.replace(/^[*•⚠\uFE0F]+\s*/, ''));
+  if (!lines.length) return null;
+  const stacked = lines.length > 1;
+  return (
+    <div className="operline">
+      <div className="operline__head">
+        <span className="operline__tag">{t('modeline.operTag')}</span>
+        {!stacked && <span className="operline__txt">{formatIrc(lines[0], false, linkPreviews)}</span>}
+      </div>
+      {stacked && (
+        <div className="operline__body operline__body--stack">
+          {lines.map((text, i) => (
+            <span key={messages[i].id} className="operline__txt">{formatIrc(text, false, linkPreviews)}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
 export const UmodeGroup = memo(function UmodeGroup({ messages }: { messages: ChatMessage[] }) {
   const { t } = useTranslation();
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
@@ -219,7 +242,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       body = m.text
         ? <>{m.from} {t('modeline.topicChanged')} {formatIrc(m.text, false, linkPreviews)}</>
         : <>{m.from} {t('modeline.topicRemoved')}</>;
-    } else if (m.kind === 'info' || m.kind === 'ban' || m.kind === 'umode') {
+    } else if (m.kind === 'info' || m.kind === 'ban' || m.kind === 'umode' || m.kind === 'oper') {
       body = m.text.replace(/^[*•»]+\s*/, '');
     } else if (m.kind === 'motd') {
       body = formatIrc(m.text, false, false);
@@ -251,6 +274,9 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   }
   if (m.kind === 'umode') {
     return <UmodeGroup messages={[m]} />;
+  }
+  if (m.kind === 'oper') {
+    return <OperGroup messages={[m]} />;
   }
   if (m.kind === 'url') {
     const urls = previewableUrls(stripFormatting(m.text));

@@ -11,6 +11,7 @@ const mk = (command: string, params: string[] = []): IrcMessage =>
 function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string>()) {
   const sys: { name: string; text: string }[] = [];
   const server: string[] = [];
+  const serverKind: string[] = [];
   let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
   const state = {
     client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
@@ -30,7 +31,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     patchBuffer: () => {},
     dropBuffer: () => {},
     sysLine: (name: string, text: string) => { sys.push({ name, text }); },
-    serverLine: (text: string) => { server.push(text); },
+    serverLine: (text: string, kind?: string) => { server.push(text); serverKind.push(kind || ''); },
     patchWhois: (nick: string, fn: (w: { nick: string; loading: boolean; notFound?: boolean }) => typeof whois[string]) => {
       const cur = whois[nick] ?? { nick, loading: true };
       whois = { ...whois, [nick]: fn(cur) };
@@ -45,7 +46,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     historyAsked,
     profileCache: new Map(),
   } as Parameters<typeof makeNumerics>[0]);
-  return { handleNumerics, state, sys, server, historyAsked };
+  return { handleNumerics, state, sys, server, serverKind, historyAsked };
 }
 
 describe('store numerics handler', () => {
@@ -255,5 +256,35 @@ describe('store numerics handler', () => {
   it('ignores a WHOX 354 that is not our token, leaving it for later handlers', () => {
     const { handleNumerics } = setup();
     expect(handleNumerics(mk('354', ['me', '999', '#x', 'bob', 'H', '0']))).toBe(false);
+  });
+
+  it('381 RPL_YOUREOPER is an OPER console callout, not INFO', () => {
+    const { handleNumerics, server, serverKind, sys } = setup();
+    expect(handleNumerics(mk('381', ['me', 'You are now an IRC operator']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(serverKind).toEqual(['oper']);
+    expect(server[0].length).toBeGreaterThan(0);
+  });
+
+  it('491 ERR_NOOPERHOST is an OPER console callout, not a ⚠ system line', () => {
+    const { handleNumerics, server, serverKind, sys } = setup();
+    expect(handleNumerics(mk('491', ['me', 'No O-lines for your host']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(serverKind).toEqual(['oper']);
+    expect(server[0].length).toBeGreaterThan(0);
+  });
+
+  it('461 ERR_NEEDMOREPARAMS for OPER uses the OPER callout', () => {
+    const { handleNumerics, serverKind, sys } = setup();
+    expect(handleNumerics(mk('461', ['me', 'OPER', 'Not enough parameters']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(serverKind).toEqual(['oper']);
+  });
+
+  it('461 ERR_NEEDMOREPARAMS for other commands stays a generic error line', () => {
+    const { handleNumerics, sys, serverKind } = setup({ active: 'status' });
+    expect(handleNumerics(mk('461', ['me', 'JOIN', 'Not enough parameters']))).toBe(true);
+    expect(sys.some((l) => l.text.includes('⚠️'))).toBe(true);
+    expect(serverKind).toEqual([]);
   });
 });

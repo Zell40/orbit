@@ -521,6 +521,7 @@
   "modeline": {
     "modeTag": "mod",
     "userModeTag": "KULLANICI MODU",
+    "operTag": "OPER",
     "modeVerb": "uyguladı",
     "topicTag": "konu",
     "topicChanged": "konuyu değiştirdi",
@@ -656,6 +657,7 @@
     "476": "Geçersiz kanal maskesi.",
     "481": "Yetersiz ayrıcalık.",
     "482": "Kanal operatörü olmalısın.",
+    "381": "Artık bir IRC operatörüsün.",
     "491": "Operatör erişimi yok.",
     "524": "Yardım bulunamadı.",
     "525": "Geçersiz anahtar."

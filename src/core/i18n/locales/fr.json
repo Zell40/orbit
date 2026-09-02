@@ -592,6 +592,7 @@
   "modeline": {
     "modeTag": "mode",
     "userModeTag": "MODE UTILISATEUR",
+    "operTag": "OPER",
     "modeVerb": "applique",
     "promoted": "a promu {{target}} {{roles}} du salon",
     "demoted": "a retiré à {{target}} {{roles}} du salon",
@@ -767,6 +768,7 @@
     "476": "Masque de salon invalide.",
     "481": "Privilèges insuffisants.",
     "482": "Tu dois être opérateur du salon.",
+    "381": "Tu es maintenant opérateur IRC.",
     "491": "Aucun accès opérateur.",
     "524": "Aide introuvable.",
     "525": "Clé invalide."

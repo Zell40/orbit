@@ -592,6 +592,7 @@
   "modeline": {
     "modeTag": "mode",
     "userModeTag": "USER MODE",
+    "operTag": "OPER",
     "modeVerb": "set",
     "promoted": "promoted {{target}} to {{roles}} of the channel",
     "demoted": "removed {{roles}} from {{target}} of the channel",
@@ -767,6 +768,7 @@
     "476": "Invalid channel mask.",
     "481": "Insufficient privileges.",
     "482": "You must be a channel operator.",
+    "381": "You are now an IRC operator.",
     "491": "No operator access.",
     "524": "Help not found.",
     "525": "Invalid key."

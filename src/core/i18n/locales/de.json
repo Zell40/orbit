@@ -521,6 +521,7 @@
   "modeline": {
     "modeTag": "Modus",
     "userModeTag": "BENUTZERMODUS",
+    "operTag": "OPER",
     "modeVerb": "setzt",
     "topicTag": "Thema",
     "topicChanged": "hat das Thema geändert",
@@ -656,6 +657,7 @@
     "476": "Ungültige Kanalmaske.",
     "481": "Unzureichende Rechte.",
     "482": "Du musst Kanaloperator sein.",
+    "381": "Du bist jetzt IRC-Operator.",
     "491": "Kein Operatorzugang.",
     "524": "Hilfe nicht gefunden.",
     "525": "Ungültiger Schlüssel."

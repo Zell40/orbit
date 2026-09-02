@@ -24,7 +24,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '396', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433']);
 
 function findWhois(table: ChatState['whois'], nick: string): ChatState['whois'][string] | undefined {
   if (!nick) return undefined;
@@ -290,6 +290,25 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '341': // RPL_INVITING: <me> <nick> <channel> — confirm our invite was sent
         serverLine(i18n.t('system.inviteSent', { nick: msg.params[1], chan: msg.params[2] }));
         return true;
+      case '381': { // RPL_YOUREOPER — /oper succeeded
+        const serverText = msg.params.length > 1 ? msg.params[msg.params.length - 1] : '';
+        serverLine(i18n.t('numerics.381', { defaultValue: '' }) || serverText, 'oper');
+        return true;
+      }
+      case '491': { // ERR_NOOPERHOST — /oper refused (no O-line)
+        const serverText = msg.params.length > 1 ? msg.params[msg.params.length - 1] : '';
+        serverLine(i18n.t('numerics.491', { defaultValue: '' }) || serverText, 'oper');
+        if (get().prefs.sound) blip();
+        return true;
+      }
+      case '461': { // ERR_NEEDMOREPARAMS — only intercept OPER (other 461 stay generic)
+        if ((msg.params[1] || '').toUpperCase() === 'OPER') {
+          const serverText = msg.params.length > 2 ? msg.params[msg.params.length - 1] : '';
+          serverLine(i18n.t('numerics.461', { defaultValue: '' }) || serverText, 'oper');
+          return true;
+        }
+        break;
+      }
       case '305': // RPL_UNAWAY
         set({ away: false }); serverLine(i18n.t('system.awayOff'));
         return true;

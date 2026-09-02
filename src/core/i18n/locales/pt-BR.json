@@ -521,6 +521,7 @@
   "modeline": {
     "modeTag": "modo",
     "userModeTag": "MODO USUÁRIO",
+    "operTag": "OPER",
     "modeVerb": "aplica",
     "topicTag": "tópico",
     "topicChanged": "mudou o tópico",
@@ -656,6 +657,7 @@
     "476": "Máscara de canal inválida.",
     "481": "Privilégios insuficientes.",
     "482": "Você precisa ser operador do canal.",
+    "381": "Você agora é um operador IRC.",
     "491": "Sem acesso de operador.",
     "524": "Ajuda não encontrada.",
     "525": "Chave inválida."

@@ -22,6 +22,7 @@ export type MessageKind =
   | 'warning'
   | 'mode'
   | 'umode'
+  | 'oper'
   | 'ban'
   | 'join'
   | 'part'
