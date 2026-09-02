@@ -41,9 +41,11 @@ function PushRow() {
   const [err, setErr] = useState('');
   const hasVapid = !!client?.server.vapid;
   const browserDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
+  // Pref stays on across LOGOUT so refreshPush can re-register — but the switch must look off without an account.
+  const effectiveOn = !!account && on;
 
   async function toggle() {
-    if (!client || busy) return;
+    if (!client || busy || !account) return;
     setBusy(true); setErr('');
     if (on) {
       await disablePush(client, account);
@@ -68,13 +70,13 @@ function PushRow() {
     : !hasVapid ? t('settings.notifications.pushUnavailable')
     : !account ? t('settings.notifications.pushNeedAccount')
     : err ? err
-    : browserDenied && !on ? t('settings.notifications.pushDenied')
-    : on ? t('settings.notifications.pushActive')
+    : browserDenied && !effectiveOn ? t('settings.notifications.pushDenied')
+    : effectiveOn ? t('settings.notifications.pushActive')
     : t('settings.notifications.pushHint');
 
   // Same conditions as PushDevicesList: keep the row centred when it renders nothing.
   const showDevices = supported && hasVapid && !!account;
-  const hintIsError = !!err || (browserDenied && !on);
+  const hintIsError = !!err || (browserDenied && !effectiveOn && !!account);
 
   return (
     <div className={`srow${showDevices ? ' srow--stack' : ''}`}>
@@ -85,7 +87,7 @@ function PushRow() {
         {showDevices && <PushDevicesList />}
       </div>
       {supported && hasVapid
-        ? <button className={`switch ${on ? 'is-on' : ''} ${busy ? 'is-busy' : ''}`} role="switch" aria-checked={on}
+        ? <button className={`switch ${effectiveOn ? 'is-on' : ''} ${busy ? 'is-busy' : ''}`} role="switch" aria-checked={effectiveOn}
             aria-label={t('settings.notifications.pushLabel')} disabled={busy || !account} onClick={toggle}><span className="switch__dot" /></button>
         : <span className="srow__hint">—</span>}
     </div>
