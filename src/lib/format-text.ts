@@ -75,6 +75,11 @@ export function groupModeDisplay(modestring: string, args: string[] = []): ModeD
   return groups;
 }
 
+/** True when the grouped change is a nick prefix grant (+o/+v/…), not a flag or list. */
+export function isNickModeGroup(g: ModeDisplayGroup): boolean {
+  return !!g.target && g.letters.length > 0 && g.letters.every((l) => PREFIX_MODES.has(l));
+}
+
 /** True when the grouped change is only +b/-b (shown as a BAN callout). */
 export function isBanModeGroup(g: ModeDisplayGroup): boolean {
   return g.letters.length > 0 && g.letters.every((l) => l === 'b');

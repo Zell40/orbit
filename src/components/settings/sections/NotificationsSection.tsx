@@ -40,6 +40,7 @@ function PushRow() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const hasVapid = !!client?.server.vapid;
+  const browserDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
 
   async function toggle() {
     if (!client || busy) return;
@@ -67,18 +68,20 @@ function PushRow() {
     : !hasVapid ? t('settings.notifications.pushUnavailable')
     : !account ? t('settings.notifications.pushNeedAccount')
     : err ? err
+    : browserDenied && !on ? t('settings.notifications.pushDenied')
     : on ? t('settings.notifications.pushActive')
     : t('settings.notifications.pushHint');
 
   // Same conditions as PushDevicesList: keep the row centred when it renders nothing.
   const showDevices = supported && hasVapid && !!account;
+  const hintIsError = !!err || (browserDenied && !on);
 
   return (
     <div className={`srow${showDevices ? ' srow--stack' : ''}`}>
       <span className="srow__ic" aria-hidden>📲</span>
       <div className="srow__txt">
         <div className="srow__label">{t('settings.notifications.pushLabel')}</div>
-        <div className="srow__hint" style={err ? { color: 'var(--danger, #d33)' } : undefined}>{hint}</div>
+        <div className="srow__hint" style={hintIsError ? { color: 'var(--danger, #d33)' } : undefined}>{hint}</div>
         {showDevices && <PushDevicesList />}
       </div>
       {supported && hasVapid
