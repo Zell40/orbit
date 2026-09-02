@@ -11,6 +11,7 @@ import { makeNumerics } from './numerics';
 import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
+import { handleWebPushListMessage } from '@/platform/push';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -131,6 +132,11 @@ export function makeHandler(ctx: HandlerCtx) {
           sysLine(SERVER, `⛔ ${i18n.t('system.killed', { nick: msg.nick })}${reason ? ` : ${reason}` : ''}`, 'system');
           desktopNotify(i18n.t('system.killedTitle'), i18n.t('system.killedBody', { nick: msg.nick }));
         }
+        break;
+      }
+      case 'WEBPUSH': {
+        const sub = (msg.params[0] || '').toUpperCase();
+        if (sub === 'DEVICE' || sub === 'END') handleWebPushListMessage(sub, msg.params.slice(1));
         break;
       }
       case 'INVITE': {

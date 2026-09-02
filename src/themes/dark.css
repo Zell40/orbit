@@ -39,6 +39,9 @@
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { color: #f3a9b5; background: #311a1f; border-color: #5a2a32; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .mode-add { color: #2ecc71; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .infoline { background: rgba(59,123,255,.12); border-color: rgba(110,160,255,.3); }
+[data-theme="dark"] .umodeline,
+[data-theme="orbit"] .umodeline,
+[data-theme="orbit-dark"] .umodeline { background: rgba(79,70,229,.16); border-color: rgba(165,180,252,.35); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline { background: rgba(240,169,58,.14); border-color: rgba(240,169,58,.42); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .warnline__txt { color: var(--ink); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .role-owner { color: #e3b554; }

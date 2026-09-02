@@ -241,8 +241,17 @@ export class Ircv3 {
     if (!account || this.tx.isupport()['VAPID'] === undefined) return;
     this.tx.send(`WEBPUSH REGISTER ${endpoint} ${keys}`);
   }
+  webpushList(): void {
+    if (this.tx.isupport()['VAPID'] === undefined) return;
+    this.tx.send('WEBPUSH LIST');
+  }
   webpushUnregister(endpoint: string, account: string): void {
     if (!account || this.tx.isupport()['VAPID'] === undefined) return;
     this.tx.send(`WEBPUSH UNREGISTER ${endpoint}`);
+  }
+  /** Unregister by 16-hex device id (from WEBPUSH LIST) or full https endpoint. */
+  webpushUnregisterTarget(target: string, account: string): void {
+    if (!account || !target || this.tx.isupport()['VAPID'] === undefined) return;
+    this.tx.send(`WEBPUSH UNREGISTER ${target}`);
   }
 }

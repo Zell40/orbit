@@ -37,7 +37,7 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
         const named = change.replace(/[+-]/g, '').split('').map((c) => i18n.t(`umodes.${c}`, '')).filter(Boolean);
         serverLine(named.length
           ? i18n.t('system.yourModesNamed', { modes: next, change, names: named.join(', ') })
-          : i18n.t('system.yourModes', { modes: next, change }), 'info');
+          : i18n.t('system.yourModes', { modes: next, change }), 'umode');
       }
       return true;
     }

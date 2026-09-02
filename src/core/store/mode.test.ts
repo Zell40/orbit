@@ -15,13 +15,13 @@ function setup() {
   };
   const k = (n: string) => n.toLowerCase();
   const lines: { name: string; text: string; kind: string }[] = [];
-  const serverLines: string[] = [];
+  const serverLines: { text: string; kind?: string }[] = [];
   const get = () => state as unknown as ChatState;
   const set = (p: Partial<typeof state>) => Object.assign(state, p);
   const helpers = {
     patchBuffer: (name: string, fn: (b: Buf) => Buf) => { if (state.buffers[k(name)]) state.buffers[k(name)] = fn(state.buffers[k(name)]); },
     sysLine: (name: string, text: string, kind: string) => { lines.push({ name, text, kind }); },
-    serverLine: (text: string) => { serverLines.push(text); },
+    serverLine: (text: string, kind?: string) => { serverLines.push({ text, kind }); },
   } as unknown as StoreHelpers;
   const seedChan = (chan: string, members: string[]) => {
     state.buffers[k(chan)] = { name: chan, modes: '', modeParams: {}, members: Object.fromEntries(members.map((n) => [n, { nick: n, user: 'u', host: 'h', prefix: '' }])) };
@@ -38,6 +38,7 @@ describe('MODE handler', () => {
     expect(state.umodes).toContain('i');
     expect(state.umodes).toContain('w');
     expect(serverLines).toHaveLength(1);
+    expect(serverLines[0].kind).toBe('umode');
   });
 
   it('applies a +o membership grant to the member prefix', () => {

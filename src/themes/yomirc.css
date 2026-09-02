@@ -243,6 +243,7 @@
 [data-theme^="yomirc"] .mircline--sys-kick,
 [data-theme^="yomirc"] .mircline--sys-ban { color: var(--mirc-quit); }
 [data-theme^="yomirc"] .mircline--sys-mode,
+[data-theme^="yomirc"] .mircline--sys-umode,
 [data-theme^="yomirc"] .mircline--sys-nick,
 [data-theme^="yomirc"] .mircline--sys-topic { color: var(--accent-d); }
 /* ---- THE NICK LIST: flat & inline, no access-level groups (real mIRC) ---- */

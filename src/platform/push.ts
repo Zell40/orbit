@@ -94,7 +94,7 @@ export async function disablePush(client: IrcClient, account: string): Promise<v
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     if (sub) {
-      client.ircv3.webpushUnregister(sub.endpoint, account);
+      client.ircv3.webpushUnregisterTarget(sub.endpoint, account);
       await sub.unsubscribe();
     }
   } catch { /* ignore */ }
@@ -106,8 +106,89 @@ export async function unregisterPushOnAccountLogout(client: IrcClient, account: 
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
-    if (sub) client.ircv3.webpushUnregister(sub.endpoint, account);
+    if (sub) client.ircv3.webpushUnregisterTarget(sub.endpoint, account);
   } catch { /* ignore */ }
+}
+
+export interface PushDevice {
+  id: string;
+  host: string;
+  nick: string;
+  updated: number;
+  lastSuccess: number;
+  online: boolean;
+  shared: boolean;
+}
+
+type PushDevicesState = { devices: PushDevice[]; loading: boolean };
+const pushDeviceListeners = new Set<() => void>();
+let pushDevices: PushDevice[] = [];
+let pushDevicesLoading = false;
+
+function notifyPushDevices(): void {
+  for (const fn of pushDeviceListeners) fn();
+}
+
+export function subscribePushDevices(listener: () => void): () => void {
+  pushDeviceListeners.add(listener);
+  return () => { pushDeviceListeners.delete(listener); };
+}
+
+export function getPushDevicesState(): PushDevicesState {
+  return { devices: pushDevices, loading: pushDevicesLoading };
+}
+
+/** SHA-256 endpoint → 16 hex chars (matches ircv3_webpush DeviceId). */
+export async function pushDeviceId(endpoint: string): Promise<string> {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(endpoint));
+  return Array.from(new Uint8Array(hash).slice(0, 8))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export async function localPushDeviceId(): Promise<string | null> {
+  if (!isPushSupported()) return null;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    return sub ? pushDeviceId(sub.endpoint) : null;
+  } catch { return null; }
+}
+
+export function handleWebPushListMessage(subcmd: string, params: string[]): void {
+  const cmd = subcmd.toUpperCase();
+  if (cmd === 'DEVICE' && params.length >= 7) {
+    pushDevices.push({
+      id: params[0],
+      host: params[1],
+      nick: params[2],
+      updated: Number(params[3]) || 0,
+      lastSuccess: Number(params[4]) || 0,
+      online: params[5] === '1',
+      shared: params[6] === '1',
+    });
+    notifyPushDevices();
+    return;
+  }
+  if (cmd === 'END') {
+    pushDevicesLoading = false;
+    notifyPushDevices();
+  }
+}
+
+export function requestPushDeviceList(client: IrcClient): void {
+  pushDevices = [];
+  pushDevicesLoading = true;
+  notifyPushDevices();
+  client.ircv3.webpushList();
+}
+
+export async function removePushDevice(client: IrcClient, account: string, device: PushDevice, isLocal: boolean): Promise<void> {
+  if (!account) return;
+  client.ircv3.webpushUnregisterTarget(device.id, account);
+  pushDevices = pushDevices.filter((d) => d.id !== device.id);
+  if (isLocal) setPref(false);
+  notifyPushDevices();
 }
 
 // Re-assert the subscription after (re)connect so it survives server expiry and

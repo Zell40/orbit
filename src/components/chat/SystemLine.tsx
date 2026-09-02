@@ -176,6 +176,29 @@ export const MotdGroup = memo(function MotdGroup({ messages }: { messages: ChatM
   );
 });
 
+export const UmodeGroup = memo(function UmodeGroup({ messages }: { messages: ChatMessage[] }) {
+  const { t } = useTranslation();
+  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
+  const lines = messages.map((m) => m.text.replace(/^[*•]+\s*/, ''));
+  if (!lines.length) return null;
+  const stacked = lines.length > 1;
+  return (
+    <div className="umodeline">
+      <div className="umodeline__head">
+        <span className="umodeline__tag">{t('modeline.userModeTag')}</span>
+        {!stacked && <span className="umodeline__txt">{formatIrc(lines[0], false, linkPreviews)}</span>}
+      </div>
+      {stacked && (
+        <div className="umodeline__body umodeline__body--stack">
+          {lines.map((text, i) => (
+            <span key={messages[i].id} className="umodeline__txt">{formatIrc(text, false, linkPreviews)}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
 // Renders a non-message event (join/part/mode/topic/ban/notice/info/warning/…)
 // as its own status line. The container routes every kind that isn't a
 // privmsg/action here; MsgRow handles the message rows.
@@ -196,7 +219,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       body = m.text
         ? <>{m.from} {t('modeline.topicChanged')} {formatIrc(m.text, false, linkPreviews)}</>
         : <>{m.from} {t('modeline.topicRemoved')}</>;
-    } else if (m.kind === 'info' || m.kind === 'ban') {
+    } else if (m.kind === 'info' || m.kind === 'ban' || m.kind === 'umode') {
       body = m.text.replace(/^[*•»]+\s*/, '');
     } else if (m.kind === 'motd') {
       body = formatIrc(m.text, false, false);
@@ -225,6 +248,9 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
         <CalloutPreviews text={infoText} />
       </div>
     );
+  }
+  if (m.kind === 'umode') {
+    return <UmodeGroup messages={[m]} />;
   }
   if (m.kind === 'url') {
     const urls = previewableUrls(stripFormatting(m.text));

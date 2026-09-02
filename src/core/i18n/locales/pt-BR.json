@@ -520,6 +520,7 @@
   },
   "modeline": {
     "modeTag": "modo",
+    "userModeTag": "MODO USUÁRIO",
     "modeVerb": "aplica",
     "topicTag": "tópico",
     "topicChanged": "mudou o tópico",

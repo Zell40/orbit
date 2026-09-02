@@ -520,6 +520,7 @@
   },
   "modeline": {
     "modeTag": "Modus",
+    "userModeTag": "BENUTZERMODUS",
     "modeVerb": "setzt",
     "topicTag": "Thema",
     "topicChanged": "hat das Thema geändert",

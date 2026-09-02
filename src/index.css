@@ -593,6 +593,7 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 }
 .main:has(.main__room-bg[data-rg-pic]) .motdline,
 .main:has(.main__room-bg[data-rg-pic]) .infoline,
+.main:has(.main__room-bg[data-rg-pic]) .umodeline,
 .main:has(.main__room-bg[data-rg-pic]) .urlline,
 .main:has(.main__room-bg[data-rg-pic]) .warnline,
 .main:has(.main__room-bg[data-rg-pic]) .noticeline,
@@ -744,8 +745,8 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .sysline--alert__body { flex: 1; }
 
 
-/* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE): SMS-style width. */
-.noticeline, .infoline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .noticeline-wrap {
+/* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE / USER MODE): SMS-style width. */
+.noticeline, .infoline, .umodeline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .noticeline-wrap {
   align-self: flex-start;
   width: max-content;
   max-width: min(70%, calc(100% - 2.2rem));
@@ -922,6 +923,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   padding-top: .38rem; border-top: 1px solid rgba(59,123,255,.18);
 }
 .messages--console .infoline,
+.messages--console .umodeline,
 .messages--console .motdline,
 .messages--console .noticeline,
 .messages--console .warnline,
@@ -938,6 +940,20 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 }
 .messages--console .infoline { background: rgba(59,123,255,.10); border-color: transparent; box-shadow: inset 3px 0 0 #3b7bff; }
 .messages--console .infoline__txt { color: var(--term-fg); }
+
+/* own user-mode changes — tagged "MODE UTILISATEUR", not mixed with INFO */
+.umodeline { display: flex; flex-direction: column; align-items: stretch; gap: .35rem; margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
+  background: rgba(79,70,229,.08); border: 1px solid rgba(79,70,229,.24); border-left: 3px solid #4f46e5; }
+.umodeline__head { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; min-width: 0; }
+.umodeline__tag { flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: 999px; line-height: 1.2; background: #4f46e5; color: #fff; box-shadow: 0 2px 6px -2px rgba(79,70,229,.55); }
+.umodeline__txt { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.45; color: var(--ink-2); overflow-wrap: anywhere; }
+.umodeline__body { display: flex; flex-direction: column; align-items: stretch; gap: .28rem; min-width: 0; }
+.umodeline__body--stack .umodeline__txt + .umodeline__txt {
+  padding-top: .38rem; border-top: 1px solid rgba(79,70,229,.18);
+}
+.messages--console .umodeline { background: rgba(79,70,229,.10); border-color: transparent; box-shadow: inset 3px 0 0 #4f46e5; }
+.messages--console .umodeline__txt { color: var(--term-fg); }
 
 /* MOTD — same callout language as Info; high-contrast tag (white on deep green) */
 .motdline { display: flex; flex-direction: column; align-items: stretch; gap: .35rem; margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
@@ -1704,6 +1720,13 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .sseg--grid button { padding: .42rem .55rem; white-space: nowrap; }
 
 .upbtn--sm { flex: none; padding: .45rem .85rem; font-size: .85rem; }
+.push-devices__list { list-style: none; margin: .35rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .45rem; }
+.push-devices__item { display: flex; align-items: flex-start; gap: .55rem; padding: .55rem .65rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); }
+.push-devices__item--local { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); background: var(--accent-soft); }
+.push-devices__main { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: .15rem; }
+.push-devices__title { font-size: .86rem; font-weight: 700; color: var(--ink); }
+.push-devices__meta { font-size: .78rem; color: var(--muted); line-height: 1.35; }
+.push-devices__warn { font-size: .78rem; font-weight: 650; color: #b45309; line-height: 1.35; }
 .sbadge-ok { display: inline-flex; align-items: center; gap: .3rem; font-size: .82rem; font-weight: 800; color: var(--online-d, #15a36a); }
 .set-leave { width: 100%; padding: .7rem; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg-soft); color: var(--danger); font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; transition: background .13s, color .13s, border-color .13s; }
 .set-leave:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
@@ -2610,7 +2633,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .warnline, .noticeline, .errorline, .actuline, .modeline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .umodeline, .warnline, .noticeline, .errorline, .actuline, .modeline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */

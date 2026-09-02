@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { SERVER, isNoticeBuffer } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
 import { MsgRow } from './MsgRow';
-import { SystemLine, NoticeGroup, InfoGroup, MotdGroup } from './SystemLine';
+import { SystemLine, NoticeGroup, InfoGroup, MotdGroup, UmodeGroup } from './SystemLine';
 import { EventGroup } from './EventGroup';
 import { SearchResults } from './SearchResults';
 import { useTheme } from '@/themes';
 
 // Message kinds rendered as a status line (SystemLine); everything else
 // (privmsg/action, plus any unknown kind) is a grouped message row (MsgRow).
-const SYSTEM_KINDS = new Set(['notice', 'info', 'url', 'motd', 'warning', 'mode', 'ban', 'topic', 'join', 'part', 'quit', 'nick', 'system']);
+const SYSTEM_KINDS = new Set(['notice', 'info', 'url', 'motd', 'warning', 'mode', 'umode', 'ban', 'topic', 'join', 'part', 'quit', 'nick', 'system']);
 // Presence noise that gets folded into a single EventGroup line.
 const GROUP_KINDS = new Set(['join', 'part', 'quit']);
 
@@ -212,8 +212,9 @@ export function MessageList() {
   let pendingNotices: typeof buffer.messages = [];
   let pendingInfo: typeof buffer.messages = [];
   let pendingMotd: typeof buffer.messages = [];
+  let pendingUmode: typeof buffer.messages = [];
   const grouping = !mirc && !isConsole; // classic mIRC + the console keep per-line join/part
-  const callouts = !mirc; // NOTICE / Info / MOTD infobulles — including Status
+  const callouts = !mirc; // NOTICE / Info / MOTD / user-mode infobulles — including Status
   const flush = () => {
     if (!pending.length) return;
     rows.push(<EventGroup key={`eg-${pending[0].id}`} events={pending} />);
@@ -234,7 +235,12 @@ export function MessageList() {
     rows.push(<MotdGroup key={`mg-${pendingMotd[0].id}`} messages={pendingMotd} />);
     pendingMotd = [];
   };
-  const flushCallouts = () => { flush(); flushNotices(); flushInfo(); flushMotd(); };
+  const flushUmode = () => {
+    if (!pendingUmode.length) return;
+    rows.push(<UmodeGroup key={`ug-${pendingUmode[0].id}`} messages={pendingUmode} />);
+    pendingUmode = [];
+  };
+  const flushCallouts = () => { flush(); flushNotices(); flushInfo(); flushMotd(); flushUmode(); };
   // Windowed slice while tailOnly, extended down to keep the unread divider (and a
   // little read context, so hadRead flips) inside the rendered range.
   let start = 0;
@@ -260,26 +266,32 @@ export function MessageList() {
     if (m.ts <= buffer.readTs) hadRead = true;
     // Fold a run of presence events into one grouped line.
     if (grouping && GROUP_KINDS.has(m.kind)) {
-      flushNotices(); flushInfo(); flushMotd();
+      flushNotices(); flushInfo(); flushMotd(); flushUmode();
       pending.push(m); lastFrom = ''; continue;
     }
     // Fold consecutive NOTICEs from the same sender into one callout.
     if (callouts && m.kind === 'notice') {
       const prev = pendingNotices[pendingNotices.length - 1];
       if (prev && prev.from === m.from) pendingNotices.push(m);
-      else { flush(); flushInfo(); flushMotd(); flushNotices(); pendingNotices.push(m); }
+      else { flush(); flushInfo(); flushMotd(); flushUmode(); flushNotices(); pendingNotices.push(m); }
       lastFrom = '';
       continue;
     }
     if (callouts && m.kind === 'info') {
-      flush(); flushNotices(); flushMotd();
+      flush(); flushNotices(); flushMotd(); flushUmode();
       pendingInfo.push(m);
       lastFrom = '';
       continue;
     }
     if (callouts && m.kind === 'motd') {
-      flush(); flushNotices(); flushInfo();
+      flush(); flushNotices(); flushInfo(); flushUmode();
       pendingMotd.push(m);
+      lastFrom = '';
+      continue;
+    }
+    if (callouts && m.kind === 'umode') {
+      flush(); flushNotices(); flushInfo(); flushMotd();
+      pendingUmode.push(m);
       lastFrom = '';
       continue;
     }

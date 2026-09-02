@@ -520,6 +520,7 @@
   },
   "modeline": {
     "modeTag": "mod",
+    "userModeTag": "KULLANICI MODU",
     "modeVerb": "uyguladı",
     "topicTag": "konu",
     "topicChanged": "konuyu değiştirdi",

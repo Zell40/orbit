@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
-import { isPushSupported, pushEnabledPref, enablePush, disablePush } from '@/platform/push';
+import { isPushSupported, pushEnabledPref, enablePush, disablePush, requestPushDeviceList } from '@/platform/push';
 import { useActiveChat } from '@/core/networks';
 import { getConsent, setConsent } from '@/core/consent';
 import { setGaConsent } from '@/core/ga';
 import { ToggleRow } from '../rows';
+import { PushDevicesList } from './PushDevicesList';
 
 // Withdraw / grant Google Analytics consent (only shown when GA is configured).
 function AnalyticsRow() {
@@ -46,10 +47,13 @@ function PushRow() {
     if (on) {
       await disablePush(client, account);
       setOn(false);
+      requestPushDeviceList(client);
     } else {
       const r = await enablePush(client, account);
-      if (r.ok) setOn(true);
-      else setErr(
+      if (r.ok) {
+        setOn(true);
+        requestPushDeviceList(client);
+      } else setErr(
         r.reason === 'denied' ? t('settings.notifications.pushDenied')
         : r.reason === 'no-vapid' ? t('settings.notifications.pushUnavailable')
         : r.reason === 'no-account' ? t('settings.notifications.pushNeedAccount')
@@ -128,6 +132,7 @@ export function NotificationsSection() {
           </div>
         </div>
         {getConfig().features.push && <PushRow />}
+        {getConfig().features.push && <PushDevicesList />}
         <ToggleRow icon="🔊" label={t('settings.notifications.sounds')} hint={t('settings.notifications.soundsHint')} prefKey="sound" />
         <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
         <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />

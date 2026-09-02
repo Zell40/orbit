@@ -520,6 +520,7 @@
   },
   "modeline": {
     "modeTag": "режим",
+    "userModeTag": "РЕЖИМ ПОЛЬЗОВАТЕЛЯ",
     "modeVerb": "установил",
     "topicTag": "тема",
     "topicChanged": "изменил тему",

@@ -520,6 +520,7 @@
   },
   "modeline": {
     "modeTag": "मोड",
+    "userModeTag": "प्रयोगकर्ता मोड",
     "modeVerb": "लागू गर्‍यो",
     "topicTag": "विषय",
     "topicChanged": "विषय परिवर्तन गर्‍यो",

@@ -21,6 +21,7 @@ export type MessageKind =
   | 'motd'
   | 'warning'
   | 'mode'
+  | 'umode'
   | 'ban'
   | 'join'
   | 'part'
