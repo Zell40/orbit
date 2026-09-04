@@ -183,6 +183,10 @@ export interface AppConfig {
     /** Soft cap passed to Jitsi configOverwrite (server MAX_PARTICIPANTS is authoritative). */
     maxParticipantsChannel?: number;
     maxParticipantsQuery?: number;
+    /** Channels where any member may start (ops still get Jitsi moderator). */
+    anyoneCanStartIn?: string[];
+    /** Per-channel overrides (requireChannelOp, requireAccount, maxParticipants). */
+    channelRules?: Record<string, { requireChannelOp?: boolean; requireAccount?: boolean; maxParticipants?: number }>;
     /** Append public Meet URL in the IRC invite (for non-Orbit clients). */
     publicLinkInInvite?: boolean;
     /** Hide tagged conference IRC lines in Orbit (Join banner instead). */
