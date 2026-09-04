@@ -11,7 +11,7 @@ const mkMsg = (p: Partial<ChatMessage>): ChatMessage =>
 
 function setup() {
   const state = {
-    buffers: { '#x': { name: '#x', messages: [] as ChatMessage[] } } as Record<string, { name: string; messages: ChatMessage[] }>,
+    buffers: { '#x': { name: '#x', messages: [] as ChatMessage[], peerReadTs: 0 } } as Record<string, { name: string; messages: ChatMessage[]; peerReadTs?: number }>,
     historyLoading: {} as Record<string, boolean>,
     historyDone: {} as Record<string, boolean>,
   };
@@ -107,5 +107,33 @@ describe('BATCH handler', () => {
   it('returns false for a non-BATCH command', () => {
     const { on } = setup();
     expect(on(':bob!u@h PRIVMSG #x :hi')).toBe(false);
+  });
+
+  it('sets peerReadTs from later channel messages in CHATHISTORY (double tick)', () => {
+    const { on, state } = setup();
+    on(':srv BATCH +abc chathistory #x');
+    historyCollect['abc'].push(mkMsg({ id: 'mine', from: 'me', text: 'yo', ts: 1000, self: true }));
+    historyCollect['abc'].push(mkMsg({ id: 'theirs', from: 'bob', text: 'yo mec', ts: 2000, self: false }));
+    on(':srv BATCH -abc');
+    expect((state.buffers['#x'] as { peerReadTs?: number }).peerReadTs).toBe(2000);
+  });
+
+  it('does not mark our last line read when nobody spoke after us in history', () => {
+    const { on, state } = setup();
+    on(':srv BATCH +abc chathistory #x');
+    historyCollect['abc'].push(mkMsg({ id: 'theirs', from: 'bob', text: 'yo mec', ts: 1000, self: false }));
+    historyCollect['abc'].push(mkMsg({ id: 'mine', from: 'me', text: 'yo', ts: 2000, self: true }));
+    on(':srv BATCH -abc');
+    expect((state.buffers['#x'] as { peerReadTs?: number }).peerReadTs).toBe(1000);
+  });
+
+  it('sets peerReadTs from a later DM reply in CHATHISTORY', () => {
+    const { on, state } = setup();
+    state.buffers['bob'] = { name: 'bob', messages: [] };
+    on(':srv BATCH +abc chathistory bob');
+    historyCollect['abc'].push(mkMsg({ id: 'mine', bufferName: 'bob', from: 'me', text: 'salut', ts: 1000, self: true }));
+    historyCollect['abc'].push(mkMsg({ id: 'theirs', bufferName: 'bob', from: 'bob', text: 're', ts: 3000, self: false }));
+    on(':srv BATCH -abc');
+    expect((state.buffers['bob'] as { peerReadTs?: number }).peerReadTs).toBe(3000);
   });
 });

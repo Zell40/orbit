@@ -75,6 +75,18 @@ export function sameReplayEvent(a: ChatMessage, b: ChatMessage): boolean {
     && Math.abs(a.ts - b.ts) <= REPLAY_DUP_MS;
 }
 
+/** Latest PRIVMSG/ACTION from someone else — drives the double-tick on our own
+ *  lines (`peerReadTs`). Used live and after CHATHISTORY merge (replay skips
+ *  the live "seen" path, so without this receipts vanish on join/reload). */
+export function latestPeerMessageTs(messages: ChatMessage[]): number {
+  let max = 0;
+  for (const m of messages) {
+    if (m.self || (m.kind !== 'privmsg' && m.kind !== 'action')) continue;
+    if (m.ts > max) max = m.ts;
+  }
+  return max;
+}
+
 export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
   // Buffers are keyed by the CASEMAPPING-folded name (canon); Buffer.name keeps
   // the original display case so the UI shows "#Taverne" while "#taverne" maps

@@ -11,7 +11,7 @@ import { canon, openBatches, historyCollect, multilineCollect } from './context'
 import type { ChatMessage, IrcMessage } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
-import type { StoreHelpers } from './helpers';
+import { latestPeerMessageTs, type StoreHelpers } from './helpers';
 
 interface BatchDeps {
   get: StoreApi<ChatState>['getState'];
@@ -75,7 +75,13 @@ export function makeBatch({ get, set, helpers }: BatchDeps) {
             fresh.push(m);
           }
           const merged = [...fresh, ...base].sort((a, z) => a.ts - z.ts);
-          return { ...buf, messages: merged.slice(-1000) };
+          const messages = merged.slice(-1000);
+          const peerSeen = latestPeerMessageTs(messages);
+          return {
+            ...buf,
+            messages,
+            ...(peerSeen > (buf.peerReadTs || 0) ? { peerReadTs: peerSeen } : {}),
+          };
         });
         set({
           historyLoading: { ...get().historyLoading, [key]: false },
