@@ -939,7 +939,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 /* nick change — tagged PSEUDO / NICK callout (JOIN-style: tag + time + nicks) */
 .nickline {
-  display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .5rem;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .5rem;
   width: fit-content; max-width: 100%;
   margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 12px;
   background: color-mix(in srgb, var(--bg-soft) 92%, var(--bg));
