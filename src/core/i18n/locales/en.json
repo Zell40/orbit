@@ -1049,7 +1049,7 @@
     "muteSyncFail": "Web Push: METADATA soju.im/muted failed for {{target}} — {{reason}}",
     "muteSyncFailHint": "Web Push: ensure the server ircv3_metadata module is built and reloaded (/RELOADMODULE ircv3_metadata).",
     "muteSyncNotJoined": "Web Push: local mute only for {{target}} (join the channel for server sync)",
-    "muteSyncUnexpected": "Web Push: inconsistent METADATA reply for {{target}} (mute state ≠ request — often a JOIN/mute race; try again)",
+    "muteSyncUnexpected": "Web Push: inconsistent METADATA reply for {{target}} (mute state ≠ request — often a JOIN/mute race; try again)"
   },
   "pins": {
     "pin": "Pin",
