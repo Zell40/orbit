@@ -812,6 +812,14 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .modeline .modeline__tag {
   background: #d97706; color: #fff; box-shadow: 0 2px 6px -2px rgba(217, 119, 6, .55);
 }
+.modeline--nick {
+  background: #f3fbf6;
+  border-color: rgba(22, 163, 74, .28);
+  border-left-color: #16a34a;
+}
+.modeline--nick .modeline__tag {
+  background: #16a34a; box-shadow: 0 2px 6px -2px rgba(22, 163, 74, .55);
+}
 .modeline__who { font-weight: 800; }
 .modeline__verb { color: var(--faint); font-size: .84rem; }
 .modeline__body { font-size: .84rem; color: var(--muted); font-weight: 600; }

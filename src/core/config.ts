@@ -170,7 +170,7 @@ export interface AppConfig {
     inviteText?: string;
     joinText?: string;
     joinButtonText?: string;
-    /** Require a logged-in IRC account (blocks guests / non-reg). */
+    /** Require a logged-in IRC account to start or join (cannot be relaxed per channel). */
     requireAccount?: boolean;
     /** On channels, only ops (~&@, optionally %) may start a conference. */
     requireChannelOp?: boolean;
@@ -183,10 +183,10 @@ export interface AppConfig {
     /** Soft cap passed to Jitsi configOverwrite (server MAX_PARTICIPANTS is authoritative). */
     maxParticipantsChannel?: number;
     maxParticipantsQuery?: number;
-    /** Channels where any member may start (ops still get Jitsi moderator). */
+    /** Channels where any registered member may start (ops still get Jitsi moderator). */
     anyoneCanStartIn?: string[];
-    /** Per-channel overrides (requireChannelOp, requireAccount, maxParticipants). */
-    channelRules?: Record<string, { requireChannelOp?: boolean; requireAccount?: boolean; maxParticipants?: number }>;
+    /** Per-channel overrides (requireChannelOp, maxParticipants). requireAccount stays global. */
+    channelRules?: Record<string, { requireChannelOp?: boolean; maxParticipants?: number }>;
     /** Append public Meet URL in the IRC invite (for non-Orbit clients). */
     publicLinkInInvite?: boolean;
     /** Hide tagged conference IRC lines in Orbit (Join banner instead). */

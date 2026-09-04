@@ -526,6 +526,8 @@
   },
   "modeline": {
     "modeTag": "modo",
+    "nickModeTag": "rol",
+    "chanModeTag": "modo",
     "userModeTag": "MODO USUARIO",
     "operTag": "OPER",
     "banTag": "BAN",

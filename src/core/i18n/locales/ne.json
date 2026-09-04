@@ -526,6 +526,8 @@
   },
   "modeline": {
     "modeTag": "मोड",
+    "nickModeTag": "भूमिका",
+    "chanModeTag": "मोड",
     "userModeTag": "प्रयोगकर्ता मोड",
     "operTag": "OPER",
     "banTag": "BAN",

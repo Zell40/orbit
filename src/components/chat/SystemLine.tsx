@@ -224,6 +224,27 @@ function coalesceFlagGroups(groups: ModeDisplayGroup[]): ModeDisplayGroup[] {
   return out;
 }
 
+function ModeChanFlags({ groups }: { groups: ModeDisplayGroup[] }) {
+  const { t } = useTranslation();
+  const sameSign = groups.length > 0 && groups.every((g) => g.add === groups[0].add);
+  return (
+    <>
+      {groups.map((g, i) => (
+        <div key={`f-${i}`} className="modeline__flags">
+          {!sameSign && (
+            <span className="modeline__verb">{g.add ? t('modeline.appliedVerb') : t('modeline.removedVerb')}</span>
+          )}
+          {g.letters.map((l, j) => (
+            <span key={j} className={g.add ? 'mode-add' : 'mode-rm'}>
+              {formatModeFlagLine(l, g.add, g.letters.length === 1 ? g.target : undefined)}
+            </span>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
 export const ModeGroup = memo(function ModeGroup({ messages }: { messages: ChatMessage[] }) {
   const { t } = useTranslation();
   if (!messages.length) return null;
@@ -238,39 +259,36 @@ export const ModeGroup = memo(function ModeGroup({ messages }: { messages: ChatM
   const merged = coalesceFlagGroups(groups);
   const nickGs = merged.filter(isNickModeGroup);
   const otherGs = merged.filter((g) => !isNickModeGroup(g));
-  const allOtherSameSign = otherGs.length > 0 && otherGs.every((g) => g.add === otherGs[0].add);
-  const verbInHead = nickGs.length === 0 && allOtherSameSign;
+  const sameChanSign = otherGs.length > 0 && otherGs.every((g) => g.add === otherGs[0].add);
   const head = messages[0];
   return (
     <>
-      {merged.length > 0 && (
-        <div className="modeline">
+      {nickGs.length > 0 && (
+        <div className="modeline modeline--nick">
           <div className="modeline__head">
-            <span className="modeline__tag">{t('modeline.modeTag')}</span>
+            <span className="modeline__tag">{t('modeline.nickModeTag')}</span>
             <CalloutTime ts={head.ts} />
             <ModeNick nick={head.from} />
-            {verbInHead && (
-              <span className="modeline__verb">{otherGs[0].add ? t('modeline.appliedVerb') : t('modeline.removedVerb')}</span>
-            )}
-            {nickGs.length === 1 && otherGs.length === 0 && (
+            {nickGs.length === 1 && (
               <span className="modeline__body"><ModeClause g={nickGs[0]} /></span>
             )}
           </div>
-          {(nickGs.length > 1 || (nickGs.length === 1 && otherGs.length > 0)) && nickGs.map((g, i) => (
+          {nickGs.length > 1 && nickGs.map((g, i) => (
             <div key={`n-${i}`} className="modeline__body"><ModeClause g={g} /></div>
           ))}
-          {otherGs.map((g, i) => (
-            <div key={`f-${i}`} className="modeline__flags">
-              {!verbInHead && (
-                <span className="modeline__verb">{g.add ? t('modeline.appliedVerb') : t('modeline.removedVerb')}</span>
-              )}
-              {g.letters.map((l, j) => (
-                <span key={j} className={g.add ? 'mode-add' : 'mode-rm'}>
-                  {formatModeFlagLine(l, g.add, g.letters.length === 1 ? g.target : undefined)}
-                </span>
-              ))}
-            </div>
-          ))}
+        </div>
+      )}
+      {otherGs.length > 0 && (
+        <div className="modeline modeline--chan">
+          <div className="modeline__head">
+            <span className="modeline__tag">{t('modeline.chanModeTag')}</span>
+            <CalloutTime ts={head.ts} />
+            <ModeNick nick={head.from} />
+            {sameChanSign && (
+              <span className="modeline__verb">{otherGs[0].add ? t('modeline.appliedVerb') : t('modeline.removedVerb')}</span>
+            )}
+          </div>
+          <ModeChanFlags groups={otherGs} />
         </div>
       )}
       {bans.map((g, i) => (

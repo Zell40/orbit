@@ -9,9 +9,16 @@
   border-left-color: #e0a35e;
 }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .topbar__pill:hover { color: #3fe0a0; }
-[data-theme="dark"] .modeline > .modeline__tag,
-[data-theme="orbit"] .modeline > .modeline__tag,
-[data-theme="orbit-dark"] .modeline > .modeline__tag { background: #d97706; color: #fff; }
+[data-theme="dark"] .modeline--nick,
+[data-theme="orbit"] .modeline--nick,
+[data-theme="orbit-dark"] .modeline--nick {
+  background: rgba(22, 163, 74, .16);
+  border-color: rgba(74, 222, 128, .35);
+  border-left-color: #4ade80;
+}
+[data-theme="dark"] .modeline--nick .modeline__tag,
+[data-theme="orbit"] .modeline--nick .modeline__tag,
+[data-theme="orbit-dark"] .modeline--nick .modeline__tag { background: #16a34a; color: #fff; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag--topic { background: #16294a; color: #6ea0ff; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline { background: rgba(139,92,246,.16); border-left-color: #a78bfa; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__tag { background: #8b6fe0 !important; }
