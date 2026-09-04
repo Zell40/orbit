@@ -69,7 +69,7 @@
       ]
     },
     {
-      "url": "/app/plugins/third/orbit-radio.js?v=2",
+      "url": "/app/plugins/third/orbit-radio.js?v=3",
       "sandbox": true,
       "permissions": [
         "storage",

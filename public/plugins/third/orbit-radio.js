@@ -1,11 +1,11 @@
 /*
  * Orbit radio — sandboxed web-radio player (orbit.panel).
- * Built-in French stations + user webradios (HTTPS only). Custom streams play
+ * Built-in French stations + user webradios (http/https). Custom streams play
  * at once for this browser and are offered to HelpServ (EcoutE) for review.
  *
  * Security: user URLs are never eval'd / innerHTML'd / navigated to. They only
- * become <audio src> after an https:// + public-host check. The sandbox CSP
- * still blocks fetch/XHR (connect-src none); media-src https: is required.
+ * become <audio src> after an http(s):// + public-host check. The sandbox CSP
+ * still blocks fetch/XHR (connect-src none); media-src must allow http: and https:.
  */
 Orbit.plugin('orbit-radio', function (orbit, log) {
   var REVIEW_NICK = 'EcoutE';
@@ -139,7 +139,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       nameIn.type = 'text'; nameIn.maxLength = 40; nameIn.placeholder = 'Nom de la radio';
       nameIn.autocomplete = 'off';
       var urlIn = document.createElement('input');
-      urlIn.type = 'url'; urlIn.maxLength = 400; urlIn.placeholder = 'https://…/stream.mp3';
+      urlIn.type = 'url'; urlIn.maxLength = 400; urlIn.placeholder = 'http(s)://…/stream.mp3';
       urlIn.autocomplete = 'off';
       addErr = document.createElement('div'); addErr.className = 'radd__err';
       var addBtn = orbit.el.button('Ajouter ma webradio', function () {
@@ -150,7 +150,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       addBtn.style.width = '100%'; addBtn.style.fontSize = '12.5px';
       var hint = document.createElement('p');
       hint.className = 'radd__hint';
-      hint.textContent = 'Flux HTTPS uniquement. Lecture immédiate ici ; le nom et le lien sont proposés à EcoutE pour vérification.';
+      hint.textContent = 'Flux http:// ou https://, hôte public. Lecture immédiate ici ; le nom et le lien sont proposés à EcoutE pour vérification.';
       add.appendChild(nameIn); add.appendChild(urlIn); add.appendChild(addErr);
       add.appendChild(addBtn); add.appendChild(hint);
       body.appendChild(add);
@@ -308,13 +308,17 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     if (/[\s<>"'\\]/.test(s)) return { err: 'Caractères interdits dans l’URL.' };
     var u;
     try { u = new URL(s); } catch (e) { return { err: 'URL invalide.' }; }
-    if (u.protocol !== 'https:') return { err: 'Le flux doit commencer par https://' };
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      return { err: 'Le flux doit commencer par http:// ou https://' };
+    }
     if (u.username || u.password) return { err: 'Pas d’identifiant dans l’URL.' };
     if (u.hash) return { err: 'Pas d’ancre (#) dans l’URL.' };
     if (!isPublicHost(u.hostname)) return { err: 'Hôte non autorisé.' };
+    var proto = u.protocol === 'http:' ? 'http:' : 'https:';
     var host = u.hostname;
-    if (u.port && u.port !== '443') host += ':' + u.port;
-    return { url: 'https://' + host + u.pathname + u.search };
+    var defPort = proto === 'http:' ? '80' : '443';
+    if (u.port && u.port !== defPort) host += ':' + u.port;
+    return { url: proto + '//' + host + u.pathname + u.search };
   }
   function initials(name) {
     var p = String(name).trim().split(/\s+/);
