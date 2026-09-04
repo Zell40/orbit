@@ -65,13 +65,10 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         case 'me': {
           if (active === SERVER || isNoticeBuffer(active)) break;
           client.action(active, arg);
-          // DMs: always echo locally — callerid (+g) returns 716 without echo-message.
-          if (!client.ircv3.hasCap('echo-message') || !isChannelName(active)) {
-            addMessage(active, {
-              id: newId(), bufferName: active, from: get().nick,
-              text: arg, ts: Date.now(), kind: 'action', self: true,
-            });
-          }
+          addMessage(active, {
+            id: newId(), bufferName: active, from: get().nick,
+            text: arg, ts: Date.now(), kind: 'action', self: true,
+          });
           break;
         }
         case 'join': {
@@ -94,15 +91,11 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
           const [t, ...m] = rest; const body = m.join(' ');
           if (!t || !body) break;
           client.privmsg(t, body);
-          // Optimistic echo for DMs even with echo-message (callerid 716 has no echo).
-          if (!client.ircv3.hasCap('echo-message') || !isChannelName(t)) {
-            const dest = isChannelName(t) ? t : t;
-            addMessage(dest, {
-              id: newId(), bufferName: dest, from: get().nick,
-              text: isService(t) ? maskSecret(body) : body,
-              ts: Date.now(), kind: 'privmsg', self: true,
-            });
-          }
+          addMessage(t, {
+            id: newId(), bufferName: t, from: get().nick,
+            text: isService(t) ? maskSecret(body) : body,
+            ts: Date.now(), kind: 'privmsg', self: true,
+          });
           break;
         }
         case 'notice': {
@@ -168,15 +161,14 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
     if (reply) { client.privmsgReply(active, body, reply.id, ctx); set({ replyTarget: null }); }
     else client.privmsg(active, body, ctx);
     if (isChannelName(active)) { client.ircv3.sendTyping(active, 'done'); resetTyping(); }
-    // Optimistic echo: always for DMs so undelivered callerid (+g) messages stay
-    // visible (server sends 716/717 and does not echo). Channels wait for echo-message.
-    if (!client.ircv3.hasCap('echo-message') || !isChannelName(active)) {
-      addMessage(active, {
-        id: newId(), bufferName: active, from: get().nick,
-        text: isService(active) ? maskSecret(text) : body,
-        ts: Date.now(), kind: 'privmsg', self: true, replyTo: reply?.id, channelContext: ctx,
-      });
-    }
+    // Optimistic echo immediately (clock icon). echo-message upgrades local- →
+    // the real msgid (sent ticks). Always do this on channels too — waiting for
+    // the server echo is what made sends feel laggy.
+    addMessage(active, {
+      id: newId(), bufferName: active, from: get().nick,
+      text: isService(active) ? maskSecret(text) : body,
+      ts: Date.now(), kind: 'privmsg', self: true, replyTo: reply?.id, channelContext: ctx,
+    });
   }
 
   return { sendInput };

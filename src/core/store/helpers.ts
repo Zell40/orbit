@@ -60,6 +60,21 @@ function joinCoalescedText(prev: string, next: string, kind?: MessageKind): stri
   return `${prev} ${next}`;
 }
 
+/** JOIN/TOPIC/… replayed by event-playback after the live line already landed. */
+const REPLAY_EVENT_KINDS = new Set(['join', 'part', 'quit', 'topic', 'nick', 'mode', 'kick', 'ban']);
+const REPLAY_DUP_MS = 90_000;
+
+function isReplayEvent(m: ChatMessage): boolean {
+  return REPLAY_EVENT_KINDS.has(m.kind);
+}
+
+export function sameReplayEvent(a: ChatMessage, b: ChatMessage): boolean {
+  return isReplayEvent(a) && a.kind === b.kind
+    && canon(a.from) === canon(b.from)
+    && a.text === b.text
+    && Math.abs(a.ts - b.ts) <= REPLAY_DUP_MS;
+}
+
 export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
   // Buffers are keyed by the CASEMAPPING-folded name (canon); Buffer.name keeps
   // the original display case so the UI shows "#Taverne" while "#taverne" maps
@@ -143,6 +158,26 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
       }
       // Idempotent: the exact same message id already present → ignore.
       if (m.id && b.messages.some((x) => x.id === m.id)) return b;
+      // Live JOIN/TOPIC vs CHATHISTORY event-playback: same event, different id
+      // and often a few seconds of clock skew (sysLine used to stamp Date.now()).
+      if (isReplayEvent(m)) {
+        const i = b.messages.findIndex((x) => sameReplayEvent(x, m));
+        if (i !== -1) {
+          const cur = b.messages[i];
+          if ((m.msgid && !cur.msgid) || m.ts < cur.ts || (m.mask && !cur.mask)) {
+            const msgs = b.messages.slice();
+            msgs[i] = {
+              ...cur,
+              id: m.msgid ? m.id : cur.id,
+              msgid: m.msgid ?? cur.msgid,
+              ts: Math.min(cur.ts, m.ts),
+              mask: cur.mask || m.mask,
+            };
+            return { ...b, messages: msgs };
+          }
+          return b;
+        }
+      }
       // Anope/services LineWrapper splits long NOTICE/PRIVMSG text across multiple
       // IRC frames. Merge rapid consecutive lines from the same nick into one bubble.
       if ((m.kind === 'notice' || m.kind === 'privmsg') && !m.self && m.from && !m.replyTo) {
@@ -184,8 +219,8 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
   const msgSig = (m: ChatMessage): string =>
     `${m.kind}\0${m.from}\0${Math.floor(m.ts / 1000)}\0${m.text}`;
 
-  function sysLine(name: string, text: string, kind: MessageKind, from = '', mask = ''): void {
-    addMessage(name, { id: newId(), bufferName: name, from, text, ts: Date.now(), kind, self: false, mask: mask || undefined });
+  function sysLine(name: string, text: string, kind: MessageKind, from = '', mask = '', ts?: number): void {
+    addMessage(name, { id: newId(), bufferName: name, from, text, ts: ts ?? Date.now(), kind, self: false, mask: mask || undefined });
   }
 
   function serverLine(text: string, kind: MessageKind = 'system'): void {
@@ -210,7 +245,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     }
     set({ whois });
   }
-  return { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sysLine, serverLine, patchWhois };
+  return { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sameReplayEvent, sysLine, serverLine, patchWhois };
 }
 
 export type StoreHelpers = ReturnType<typeof makeHelpers>;

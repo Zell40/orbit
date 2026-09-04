@@ -184,7 +184,8 @@
     "loadingHistory": "Chargement de l'historique…",
     "receiptPending": "Envoi…",
     "receiptSent": "Envoyé",
-    "receiptDisplayed": "Lu"
+    "receiptDisplayed": "Lu",
+    "receiptSeen": "Vu dans le salon"
   },
   "modals": {
     "closeButton": "Fermer",
@@ -412,7 +413,7 @@
       "hideModes": "Masquer les changements de mode",
       "hideModesHint": "Cache les lignes « pose +o / +v / … » dans la conversation.",
       "readReceipts": "Accusés de lecture",
-      "readReceiptsHint": "En privé, une horloge puis des ticks indiquent l’envoi et la lecture. Désactivé : tu n’envoies plus les tiens et tu ne vois plus « Lu ».",
+      "readReceiptsHint": "Horloge puis tick « envoyé » partout. En privé, double tick = lu. En salon, double tick = quelqu’un a écrit après toi. Désactivé : plus d’accusés.",
       "linkPreviews": "Aperçus de liens",
       "linkPreviewsHint": "Affiche des aperçus pour les liens, images, audio et vidéos.",
       "highlightLabel": "Mots-clés de surbrillance",
@@ -1048,7 +1049,7 @@
     "muteSyncFail": "Web Push : échec METADATA soju.im/muted pour {{target}} — {{reason}}",
     "muteSyncFailHint": "Web Push : vérifiez que le module serveur ircv3_metadata est compilé et rechargé (/RELOADMODULE ircv3_metadata).",
     "muteSyncNotJoined": "Web Push : sourdine locale seulement pour {{target}} (rejoignez le salon pour la sync serveur)",
-    "muteSyncUnexpected": "Web Push : réponse METADATA inattendue pour {{target}}"
+    "muteSyncUnexpected": "Web Push : réponse METADATA incohérente pour {{target}} (sourdine reçue ≠ demandée — souvent une course JOIN/sourdine, réessaie)",
   },
   "pins": {
     "pin": "Épingler",

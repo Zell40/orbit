@@ -48,6 +48,14 @@ describe('completeToken', () => {
     expect(completeToken('#', 1, ctx())).toBeNull();
   });
 
+  it('keeps one channel when LIST and the buffer key differ only by case', () => {
+    expect(completeToken('/join #edf', 11, ctx({
+      channels: ['#edfgdf.chat', '#EDFGDF.chat', '#edf-other'],
+    }))).toEqual({
+      start: 6, candidates: ['#edf-other ', '#EDFGDF.chat '], kind: 'channel',
+    });
+  });
+
   it('completes a bare channel name after /join', () => {
     expect(completeToken('/join o', 7, ctx())).toEqual({
       start: 6, candidates: ['#offtopic ', '#orbit '], kind: 'channel',

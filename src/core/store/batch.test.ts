@@ -3,7 +3,7 @@ import { makeBatch } from './batch';
 import { parseLine } from '../irc/parser';
 import { openBatches, historyCollect, multilineCollect, resetBatches } from './context';
 import type { ChatState } from '../store';
-import type { StoreHelpers } from './helpers';
+import { sameReplayEvent, type StoreHelpers } from './helpers';
 import type { ChatMessage } from '../irc/types';
 
 const mkMsg = (p: Partial<ChatMessage>): ChatMessage =>
@@ -21,6 +21,7 @@ function setup() {
   const set = (p: Partial<typeof state>) => Object.assign(state, p);
   const helpers = {
     msgSig: (m: ChatMessage) => `${m.kind} ${m.from} ${Math.floor(m.ts / 1000)} ${m.text}`,
+    sameReplayEvent,
     patchBuffer: (name: string, fn: (b: typeof state.buffers[string]) => typeof state.buffers[string]) => {
       const k = name.toLowerCase(); if (state.buffers[k]) state.buffers[k] = fn(state.buffers[k]);
     },
@@ -46,6 +47,20 @@ describe('BATCH handler', () => {
     expect(state.historyLoading['#x']).toBe(false);
     expect(openBatches['abc']).toBeUndefined();
     expect(historyCollect['abc']).toBeUndefined();
+  });
+
+  it('de-dupes a replayed JOIN/TOPIC that already landed live with a different timestamp', () => {
+    const { on, state } = setup();
+    state.buffers['#x'].messages = [
+      mkMsg({ id: 'live-topic', kind: 'topic', from: 'irc.example', text: 'hello', ts: 50_000 }),
+      mkMsg({ id: 'live-join', kind: 'join', from: 'Quen', text: 'Quen est entré', ts: 50_100 }),
+    ];
+    on(':srv BATCH +abc chathistory #x');
+    historyCollect['abc'].push(mkMsg({ id: 'hist-topic', kind: 'topic', from: 'irc.example', text: 'hello', ts: 48_000 }));
+    historyCollect['abc'].push(mkMsg({ id: 'hist-join', kind: 'join', from: 'Quen', text: 'Quen est entré', ts: 48_200 }));
+    on(':srv BATCH -abc');
+    expect(state.buffers['#x'].messages.filter((m) => m.kind === 'topic')).toHaveLength(1);
+    expect(state.buffers['#x'].messages.filter((m) => m.kind === 'join')).toHaveLength(1);
   });
 
   it('de-dupes a replayed message that matches one already shown (by signature)', () => {

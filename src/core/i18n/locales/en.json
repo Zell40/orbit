@@ -184,7 +184,8 @@
     "loadingHistory": "Loading history…",
     "receiptPending": "Sending…",
     "receiptSent": "Sent",
-    "receiptDisplayed": "Read"
+    "receiptDisplayed": "Read",
+    "receiptSeen": "Seen in the channel"
   },
   "modals": {
     "closeButton": "Close",
@@ -412,7 +413,7 @@
       "hideModes": "Hide mode changes",
       "hideModesHint": "Hides “sets +o / +v / …” lines in the conversation.",
       "readReceipts": "Read receipts",
-      "readReceiptsHint": "In private chats, a clock then ticks show sending and when it was read. Off: you neither send yours nor see “Read”.",
+      "readReceiptsHint": "A clock then a sent tick everywhere. In DMs, a double tick means read. In a channel, it means someone posted after you. Off: no receipts.",
       "linkPreviews": "Link previews",
       "linkPreviewsHint": "Show inline previews for links, images, audio and video.",
       "highlightLabel": "Highlight keywords",
@@ -1048,7 +1049,7 @@
     "muteSyncFail": "Web Push: METADATA soju.im/muted failed for {{target}} — {{reason}}",
     "muteSyncFailHint": "Web Push: ensure the server ircv3_metadata module is built and reloaded (/RELOADMODULE ircv3_metadata).",
     "muteSyncNotJoined": "Web Push: local mute only for {{target}} (join the channel for server sync)",
-    "muteSyncUnexpected": "Web Push: unexpected METADATA response for {{target}}"
+    "muteSyncUnexpected": "Web Push: inconsistent METADATA reply for {{target}} (mute state ≠ request — often a JOIN/mute race; try again)",
   },
   "pins": {
     "pin": "Pin",

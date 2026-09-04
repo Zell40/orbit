@@ -20,6 +20,10 @@ function CalloutPreviews({ text }: { text: string }) {
   return urls.length ? <>{urls.map((url) => <LinkPreview key={url} url={url} />)}</> : null;
 }
 
+function CalloutTime({ ts }: { ts: number }) {
+  return <span className="callout__time">{fmtTime(ts)}</span>;
+}
+
 // Shared NOTICE callout — one bubble, stacked lines when several notices share a sender.
 function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const { t } = useTranslation();
@@ -54,6 +58,7 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
     <div className="noticeline">
       <div className="noticeline__head">
         <span className="modeline__tag noticeline__tag">NOTICE</span>
+        <CalloutTime ts={head.ts} />
         {head.from && <span className="modeline__who" style={{ color: nickColor(head.from) }}>{head.from}</span>}
       </div>
       <div ref={clipRef} className={`noticeline__body${stacked ? ' noticeline__body--stack' : ''}${clamped ? ' is-clamped' : ''}`}>
@@ -115,12 +120,13 @@ function banLabelWithMask(mask: string, hits = ''): string {
   return mask && mask !== label ? `${label} (${mask})` : label;
 }
 
-function BanCallout({ from, add, mask, hits }: { from: string; add: boolean; mask: string; hits?: string }) {
+function BanCallout({ from, add, mask, hits, ts }: { from: string; add: boolean; mask: string; hits?: string; ts: number }) {
   const { t } = useTranslation();
   const target = banTargetLabel(mask, hits);
   return (
     <div className="banline">
       <span className="banline__tag">{t('modeline.banTag')}</span>
+      <CalloutTime ts={ts} />
       {from ? <ModeNick nick={from} /> : null}
       <span className="banline__verb">{add ? t('modeline.banAdded') : t('modeline.banRemoved')}</span>
       <ModeNick nick={target} />
@@ -129,11 +135,12 @@ function BanCallout({ from, add, mask, hits }: { from: string; add: boolean; mas
   );
 }
 
-function KickCallout({ from, target, reason }: { from: string; target: string; reason?: string }) {
+function KickCallout({ from, target, reason, ts }: { from: string; target: string; reason?: string; ts: number }) {
   const { t } = useTranslation();
   return (
     <div className="kickline">
       <span className="kickline__tag">{t('modeline.kickTag')}</span>
+      <CalloutTime ts={ts} />
       {from ? <ModeNick nick={from} /> : null}
       <span className="kickline__verb">{t('modeline.kickVerb')}</span>
       <ModeNick nick={target} />
@@ -150,7 +157,7 @@ function NickCallout({ m }: { m: ChatMessage }) {
   return (
     <div className="nickline">
       <span className="nickline__tag">{t('modeline.nickTag')}</span>
-      <span className="nickline__time">{fmtTime(m.ts)}</span>
+      <CalloutTime ts={m.ts} />
       {structured ? (
         <>
           <ModeNick nick={m.from} />
@@ -164,12 +171,13 @@ function NickCallout({ m }: { m: ChatMessage }) {
   );
 }
 
-function InviteCallout({ from, target, chan }: { from: string; target: string; chan?: string }) {
+function InviteCallout({ from, target, chan, ts }: { from: string; target: string; chan?: string; ts: number }) {
   const { t } = useTranslation();
   const you = !target;
   return (
     <div className="inviteline">
       <span className="inviteline__tag">{t('modeline.inviteTag')}</span>
+      <CalloutTime ts={ts} />
       {from ? <ModeNick nick={from} /> : null}
       <span className="inviteline__verb">{you ? t('modeline.inviteYou') : t('modeline.inviteVerb')}</span>
       {you
@@ -226,6 +234,7 @@ export const InfoGroup = memo(function InfoGroup({ messages }: { messages: ChatM
     <div className="infoline">
       <div className="infoline__head">
         <span className="infoline__tag">Info</span>
+        <CalloutTime ts={messages[0].ts} />
         {!stacked && <span className="infoline__txt">{formatIrc(lines[0], false, linkPreviews)}</span>}
       </div>
       {stacked && (
@@ -245,7 +254,10 @@ export const MotdGroup = memo(function MotdGroup({ messages }: { messages: ChatM
   const text = messages.map((m) => m.text).join('\n');
   return (
     <div className="motdline">
-      <span className="motdline__tag">MOTD</span>
+      <div className="motdline__head">
+        <span className="motdline__tag">MOTD</span>
+        <CalloutTime ts={messages[0].ts} />
+      </div>
       <span className="motdline__txt">{formatIrc(text, false, false)}</span>
     </div>
   );
@@ -261,6 +273,7 @@ export const OperGroup = memo(function OperGroup({ messages }: { messages: ChatM
     <div className="operline">
       <div className="operline__head">
         <span className="operline__tag">{t('modeline.operTag')}</span>
+        <CalloutTime ts={messages[0].ts} />
         {!stacked && <span className="operline__txt">{formatIrc(lines[0], false, linkPreviews)}</span>}
       </div>
       {stacked && (
@@ -284,15 +297,13 @@ export const UmodeGroup = memo(function UmodeGroup({ messages }: { messages: Cha
     <div className="umodeline">
       <div className="umodeline__head">
         <span className="umodeline__tag">{t('modeline.userModeTag')}</span>
-        {!stacked && <span className="umodeline__txt">{formatIrc(lines[0], false, linkPreviews)}</span>}
+        <CalloutTime ts={messages[0].ts} />
       </div>
-      {stacked && (
-        <div className="umodeline__body umodeline__body--stack">
-          {lines.map((text, i) => (
-            <span key={messages[i].id} className="umodeline__txt">{formatIrc(text, false, linkPreviews)}</span>
-          ))}
-        </div>
-      )}
+      <div className={`umodeline__body${stacked ? ' umodeline__body--stack' : ''}`}>
+        {lines.map((text, i) => (
+          <span key={messages[i].id} className="umodeline__txt">{formatIrc(text, false, linkPreviews)}</span>
+        ))}
+      </div>
     </div>
   );
 });
@@ -365,6 +376,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       <div className="infoline">
         <div className="infoline__head">
           <span className="infoline__tag">Info</span>
+          <CalloutTime ts={m.ts} />
           <span className="infoline__txt">{formatIrc(infoText, false, linkPreviews)}</span>
         </div>
         <CalloutPreviews text={infoText} />
@@ -385,6 +397,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       <div className="urlline">
         <div className="urlline__head">
           <span className="urlline__tag">{t('modeline.channelUrlTag')}</span>
+          <CalloutTime ts={m.ts} />
           {chanLabel && <span className="urlline__chan">{chanLabel}</span>}
           {!showPreviews && <span className="urlline__txt">{formatIrc(m.text, false, false)}</span>}
         </div>
@@ -395,7 +408,10 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   if (m.kind === 'motd') {
     return (
       <div className="motdline">
-        <span className="motdline__tag">MOTD</span>
+        <div className="motdline__head">
+          <span className="motdline__tag">MOTD</span>
+          <CalloutTime ts={m.ts} />
+        </div>
         <span className="motdline__txt">{formatIrc(m.text, false, false)}</span>
       </div>
     );
@@ -405,7 +421,10 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       <div className="warnline">
         <span className="warnline__ic" aria-hidden>🛡️</span>
         <div className="warnline__body">
-          <span className="warnline__tag">{t('security.tag')}</span>
+          <div className="warnline__head">
+            <span className="warnline__tag">{t('security.tag')}</span>
+            <CalloutTime ts={m.ts} />
+          </div>
           <span className="warnline__txt">{m.text}</span>
         </div>
       </div>
@@ -419,6 +438,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
         {groups.length > 0 && (
           <div className="modeline">
             <span className="modeline__tag">{t('modeline.modeTag')}</span>
+            <CalloutTime ts={m.ts} />
             <ModeNick nick={m.from} />
             <span className="modeline__body">{groups.map((g, i) => (
               <Fragment key={i}>
@@ -429,32 +449,33 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
           </div>
         )}
         {bans.map((g, i) => (
-          <BanCallout key={`b-${m.id}-${i}`} from={m.from} add={g.add} mask={g.target!} />
+          <BanCallout key={`b-${m.id}-${i}`} from={m.from} add={g.add} mask={g.target!} ts={m.ts} />
         ))}
       </>
     );
   }
   if (m.kind === 'ban') {
     const parsed = parseSignedBan(m.text);
-    if (parsed) return <BanCallout from={m.from} add={parsed.add} mask={parsed.mask} hits={parsed.hits} />;
-    return <div className="banline"><span className="banline__tag">{t('modeline.banTag')}</span><span className="banline__verb">{m.text}</span></div>;
+    if (parsed) return <BanCallout from={m.from} add={parsed.add} mask={parsed.mask} hits={parsed.hits} ts={m.ts} />;
+    return <div className="banline"><span className="banline__tag">{t('modeline.banTag')}</span><CalloutTime ts={m.ts} /><span className="banline__verb">{m.text}</span></div>;
   }
   if (m.kind === 'kick') {
     const [target, ...rest] = m.text.split('\n');
-    return <KickCallout from={m.from} target={target} reason={rest.join('\n') || undefined} />;
+    return <KickCallout from={m.from} target={target} reason={rest.join('\n') || undefined} ts={m.ts} />;
   }
   if (m.kind === 'nick') {
     return <NickCallout m={m} />;
   }
   if (m.kind === 'invite') {
     const [target, chan = ''] = m.text.split('\n');
-    return <InviteCallout from={m.from} target={target} chan={chan || undefined} />;
+    return <InviteCallout from={m.from} target={target} chan={chan || undefined} ts={m.ts} />;
   }
   if (m.kind === 'topic') {
     return (
       <div className="topicline">
         <div className="topicline__head">
           <span className="modeline__tag modeline__tag--topic">{t('modeline.topicTag')}</span>
+          <CalloutTime ts={m.ts} />
           <span className="modeline__who" style={{ color: nickColor(m.from) }}>{m.from}</span>
           <span className="modeline__verb">{m.text ? t('modeline.topicChanged') : t('modeline.topicRemoved')}</span>
         </div>
@@ -478,6 +499,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
             <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
+          <CalloutTime ts={m.ts} />
           <span className="errorline__txt">{m.text.slice(warnPrefix[0].length)}</span>
         </div>
       );

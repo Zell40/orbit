@@ -22,7 +22,7 @@ interface ModeDeps {
 }
 
 export function makeMode({ get, set, helpers }: ModeDeps) {
-  const { patchBuffer, sysLine, serverLine } = helpers;
+  const { patchBuffer, sysLine, serverLine, tsOf } = helpers;
 
   // Handle a MODE change. Returns true when it was one; `me` is our current nick.
   function handleMode(msg: IrcMessage, me: string): boolean {
@@ -82,12 +82,12 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
       }
     }
 
-    for (const line of banLines) sysLine(chan, line, 'ban', msg.nick);
+    for (const line of banLines) sysLine(chan, line, 'ban', msg.nick, '', tsOf(msg));
     // The combined mode line is shown for everything except a pure ban change
     // (those are already covered by the dedicated ban lines above).
     if (showCombined) {
       const stripped = modeStringWithoutBans(msg.params[1] ?? '', msg.params.slice(2));
-      if (stripped) sysLine(chan, stripped, 'mode', msg.nick);
+      if (stripped) sysLine(chan, stripped, 'mode', msg.nick, '', tsOf(msg));
     }
     return true;
   }

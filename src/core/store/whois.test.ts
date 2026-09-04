@@ -77,6 +77,17 @@ describe('makeWhois — soju.im/muted buffer prefs', () => {
     w.handleWhois(parseLine(':srv 761 me #x soju.im/muted * :1'));
     expect(statusLines.some((l) => l.includes('#x') && l.includes('soju.im/muted'))).toBe(true);
   });
+
+  it('does not warn unexpected when JOIN GET and SET replies are interleaved', () => {
+    const { w, statusLines } = setup();
+    // JOIN restores mute from server, then user toggles mute on — both pending.
+    trackBufferMuteSync('#x', 'get');
+    trackBufferMuteSync('#x', 'set-on');
+    // GET reply first (not muted), then SET reply (muted=1).
+    w.handleWhois(parseLine(':srv 766 me #x soju.im/muted :key not set'));
+    w.handleWhois(parseLine(':srv 761 me #x soju.im/muted * :1'));
+    expect(statusLines.some((l) => /incohérente|inconsistent|inattendue|unexpected/i.test(l))).toBe(false);
+  });
 });
 
 describe('makeWhois — draft/metadata-2 profile', () => {

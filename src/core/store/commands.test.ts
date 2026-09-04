@@ -112,4 +112,12 @@ describe('sendInput — messages + console', () => {
     expect(calledWith(client, 'privmsg')).toEqual([['alice', 'hello pending', undefined]]);
     expect(added.some((a) => a.name === 'alice' && a.m.self && a.m.text === 'hello pending')).toBe(true);
   });
+
+  it('a channel message echoes immediately even when echo-message is on', () => {
+    const { sendInput, client, added } = setup();
+    client.ircv3.hasCap = () => true;
+    sendInput('hello salon');
+    expect(calledWith(client, 'privmsg')).toEqual([['#x', 'hello salon', undefined]]);
+    expect(added.some((a) => a.name === '#x' && a.m.self && a.m.text === 'hello salon')).toBe(true);
+  });
 });

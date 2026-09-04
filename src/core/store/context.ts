@@ -80,27 +80,33 @@ export function inMultilineBatch(msg: IrcMessage): string | undefined {
   return ref && openBatches[ref]?.type === 'draft/multiline' ? ref : undefined;
 }
 
-/** Pending soju.im/muted METADATA round-trip (SET or GET) awaiting a 761/766/FAIL. */
+/** Pending soju.im/muted METADATA round-trips (SET or GET) awaiting a 761/766/FAIL.
+ *  FIFO per target — JOIN GET and a later mute SET must not overwrite each other
+ *  (that race used to surface as muteSyncUnexpected in Status). */
 export type BufferMuteSyncOp = 'set-on' | 'set-off' | 'get';
-const pendingBufferMuteSync: Record<string, BufferMuteSyncOp> = Object.create(null);
+const pendingBufferMuteSync: Record<string, BufferMuteSyncOp[]> = Object.create(null);
 
 export function trackBufferMuteSync(target: string, op: BufferMuteSyncOp): void {
-  pendingBufferMuteSync[canon(target)] = op;
+  const key = canon(target);
+  (pendingBufferMuteSync[key] ??= []).push(op);
 }
 
 export function takeBufferMuteSync(target: string): BufferMuteSyncOp | undefined {
   const key = canon(target);
-  const op = pendingBufferMuteSync[key];
-  delete pendingBufferMuteSync[key];
+  const q = pendingBufferMuteSync[key];
+  if (!q?.length) return undefined;
+  const op = q.shift();
+  if (!q.length) delete pendingBufferMuteSync[key];
   return op;
 }
 
-/** When FAIL omits the channel (e.g. KEY_INVALID), match the pending round-trip. */
+/** When FAIL omits the channel (e.g. KEY_INVALID), match the oldest pending round-trip. */
 export function takeAnyPendingBufferMuteSync(): { canonKey: string; op: BufferMuteSyncOp } | undefined {
   const keys = Object.keys(pendingBufferMuteSync);
   if (!keys.length) return undefined;
-  const canonKey = keys[0];
-  const op = pendingBufferMuteSync[canonKey];
-  delete pendingBufferMuteSync[canonKey];
-  return op ? { canonKey, op } : undefined;
+  for (const canonKey of keys) {
+    const op = takeBufferMuteSync(canonKey);
+    if (op) return { canonKey, op };
+  }
+  return undefined;
 }

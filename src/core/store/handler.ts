@@ -189,7 +189,7 @@ export function makeHandler(ctx: HandlerCtx) {
         patchBuffer(ch, (b) => ({ ...b, topic, topicBy: setter, topicAt: Date.now() }));
         // text = the new topic ('' = removed); from = who changed it. Rendered as
         // a tagged "sujet" line (like the MODE line) by MsgList.
-        sysLine(ch, topic, 'topic', msg.nick);
+        sysLine(ch, topic, 'topic', msg.nick, '', tsOf(msg));
         break;
       }
       case '332': // RPL_TOPIC

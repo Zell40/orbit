@@ -27,6 +27,18 @@ function sortAlpha(a: string, b: string) {
   return a.localeCompare(b, undefined, { sensitivity: 'base' });
 }
 
+/** One name per IRC casemapping fold — LIST + buffer keys often differ only by case. */
+function uniqueIgnoreCase(names: string[]): string[] {
+  const seen = new Map<string, string>();
+  for (const n of names) {
+    const k = n.toLowerCase();
+    const prev = seen.get(k);
+    if (!prev) seen.set(k, n);
+    else if (prev === prev.toLowerCase() && n !== n.toLowerCase()) seen.set(k, n);
+  }
+  return [...seen.values()];
+}
+
 export function completeToken(text: string, pos: number, ctx: CompleteContext): Completion | null {
   const before = text.slice(0, pos);
   const token = (before.match(/(\S*)$/)?.[1]) ?? '';
@@ -57,8 +69,7 @@ export function completeToken(text: string, pos: number, ctx: CompleteContext): 
     if (raw.length < 2) return null; // need at least "#x"
     const q = raw.toLowerCase();
     const suffix = token.includes(',') ? '' : ' ';
-    candidates = ctx.channels
-      .filter((c) => c.toLowerCase().startsWith(q))
+    candidates = uniqueIgnoreCase(ctx.channels.filter((c) => c.toLowerCase().startsWith(q)))
       .sort(sortAlpha)
       .map((c) => c + suffix);
     if (!candidates.length) return null;

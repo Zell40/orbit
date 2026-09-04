@@ -155,6 +155,7 @@
     "receiptPending": "A enviar…",
     "receiptSent": "Enviado",
     "receiptDisplayed": "Lido",
+    "receiptSeen": "Visto no canal",
     "jumpNewest": "Ir para o mais recente"
   },
   "modals": {

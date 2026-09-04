@@ -22,7 +22,11 @@ function setup(over: Partial<Record<string, unknown>> = {}) {
   const set = (p: Partial<typeof state>) => Object.assign(state, p);
   const helpers = {
     addMessage: (name: string, m: ChatMessage) => { added.push({ name, m }); },
-    patchBuffer: () => {},
+    patchBuffer: (name: string, fn: (b: { peerReadTs?: number }) => { peerReadTs?: number }) => {
+      const k = name.toLowerCase();
+      const cur = (state.buffers[k] as { peerReadTs?: number } | undefined) ?? { peerReadTs: 0 };
+      state.buffers[k] = { ...cur, ...fn(cur) } as (typeof state.buffers)[string];
+    },
     serverLine: (text: string) => { serverLines.push(text); },
     tsOf: () => 1000,
   } as unknown as StoreHelpers;
@@ -41,6 +45,12 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(added).toHaveLength(1);
     expect(added[0].name).toBe('#x');
     expect(added[0].m).toMatchObject({ from: 'bob', text: 'hello', kind: 'privmsg', self: false });
+  });
+
+  it('advances channel peerReadTs on a live reply from someone else', () => {
+    const { on, state } = setup();
+    on(':bob!u@h PRIVMSG #x :hello');
+    expect((state.buffers['#x'] as { peerReadTs?: number }).peerReadTs).toBe(1000);
   });
 
   it('opens a query for a PM from another user', () => {

@@ -22,10 +22,10 @@ const QUICK = ['👍', '😂', '❤️', '🔥'];
 
 type ReceiptState = 'pending' | 'sent' | 'displayed';
 
-function ReceiptTicks({ state }: { state: ReceiptState }) {
+function ReceiptTicks({ state, inChannel }: { state: ReceiptState; inChannel?: boolean }) {
   const { t } = useTranslation();
   const label = state === 'pending' ? t('messages.receiptPending')
-    : state === 'displayed' ? t('messages.receiptDisplayed')
+    : state === 'displayed' ? t(inChannel ? 'messages.receiptSeen' : 'messages.receiptDisplayed')
     : t('messages.receiptSent');
   return (
     <span className={`receipt receipt--${state}`} title={label} aria-label={label}>
@@ -194,10 +194,10 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
         {!cont && (
           <div className="actuline__head">
             <span className="actuline__tag" title={t('messages.actuBadge')}>{t('messages.actuBadge')}</span>
+            <span className="actuline__time">{fmtTime(m.ts)}</span>
             <button type="button" className="actuline__who" style={{ color: nickColor(m.from) }} onClick={() => openUser(m.from)}>
               {m.from}
             </button>
-            <span className="actuline__time">{fmtTime(m.ts)}</span>
           </div>
         )}
         {m.redacted ? (
@@ -229,6 +229,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
       <div data-mid={m.id} className="urlline">
         <div className="urlline__head">
           <span className="urlline__tag">{t('modeline.channelUrlTag')}</span>
+          <span className="callout__time">{fmtTime(m.ts)}</span>
           {chanLabel && <span className="urlline__chan">{chanLabel}</span>}
           {m.from && m.kind !== 'url' && <span className="modeline__who" style={{ color: isOper ? IRCOP_COLOR : nickColor(m.from) }}>{m.from}</span>}
           {!showPreviews && <span className="urlline__txt">{formatIrc(m.text, m.self, false)}</span>}
@@ -262,13 +263,16 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
           {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
           {m.self && !m.redacted && (m.kind === 'privmsg' || m.kind === 'action')
-            && !isChannelName(m.bufferName) && !isPseudoBuffer(m.bufferName)
+            && !isPseudoBuffer(m.bufferName)
             && !isBouncerServiceNick(m.bufferName) && !isService(m.bufferName) && (
-            <ReceiptTicks state={
-              m.id.startsWith('local-') ? 'pending'
-                : (readReceipts && peerReadTs > 0 && m.ts <= peerReadTs) ? 'displayed'
-                : 'sent'
-            } />
+            <ReceiptTicks
+              inChannel={isChannelName(m.bufferName)}
+              state={
+                m.id.startsWith('local-') ? 'pending'
+                  : (readReceipts && peerReadTs > 0 && m.ts <= peerReadTs) ? 'displayed'
+                  : 'sent'
+              }
+            />
           )}
         </div>
         {!m.redacted && linkPreviews && getConfig().features.linkPreviews && (() => {

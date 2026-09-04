@@ -108,6 +108,22 @@ describe('addMessage query privmsg coalesce', () => {
   });
 });
 
+describe('addMessage replay events', () => {
+  it('drops a JOIN that matches one already shown with a different timestamp', () => {
+    const { helpers, state } = setup();
+    helpers.addMessage('#Aide.chat', {
+      id: 'live', bufferName: '#Aide.chat', from: 'Quen', text: 'Quen est entré',
+      ts: 50_000, kind: 'join', self: false,
+    });
+    helpers.addMessage('#Aide.chat', {
+      id: 'hist', bufferName: '#Aide.chat', from: 'Quen', text: 'Quen est entré',
+      ts: 48_000, kind: 'join', self: false,
+    });
+    expect(state.buffers['#aide.chat'].messages).toHaveLength(1);
+    expect(state.buffers['#aide.chat'].messages[0].ts).toBe(48_000);
+  });
+});
+
 describe('rememberQueryAccount', () => {
   it('stores the account on a query buffer and ignores channels', () => {
     const { helpers, state } = setup();

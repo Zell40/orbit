@@ -25,7 +25,7 @@ interface MembershipDeps {
 }
 
 export function makeMembership({ get, set, closedChannels, helpers, historyAsked }: MembershipDeps) {
-  const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, patchWhois, sysLine } = helpers;
+  const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, patchWhois, sysLine, tsOf } = helpers;
 
   // Handle a membership event (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME) or a live
   // member-state notify (AWAY/ACCOUNT). Returns true when handled; `me` is the
@@ -62,7 +62,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         if (self && joinReal) get().client?.setRealname(joinReal);
         // ZNC attach: no SASL 900 — our own extended-join carries the NickServ account.
         if (self && joinAcct) set({ account: joinAcct });
-        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg));
+        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg), tsOf(msg));
         return true;
       }
       case 'PART': {
@@ -75,7 +75,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           // chathistory/typing on a channel we left (CHATHISTORY would FAIL).
           return { ...b, members, joined: selfPart ? false : b.joined };
         });
-        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg));
+        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg), tsOf(msg));
         return true;
       }
       case 'KICK': {
@@ -99,7 +99,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
             const members = { ...b.members }; delete members[target];
             return { ...b, members };
           });
-          sysLine(ch, reason ? `${target}\n${reason}` : target, 'kick', msg.nick);
+          sysLine(ch, reason ? `${target}\n${reason}` : target, 'kick', msg.nick, '', tsOf(msg));
         }
         return true;
       }
@@ -111,7 +111,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
               const members = { ...b.members }; delete members[msg.nick];
               return { ...b, members };
             });
-            if (!inQuietBatch(msg)) sysLine(name, i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg));
+            if (!inQuietBatch(msg)) sysLine(name, i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg), tsOf(msg));
           }
         }
         return true;
@@ -129,7 +129,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
               delete members[msg.nick];
               return { ...bb, members };
             });
-            sysLine(name, nn, 'nick', msg.nick);
+            sysLine(name, nn, 'nick', msg.nick, '', tsOf(msg));
           }
         }
         return true;

@@ -77,8 +77,10 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
     else if (op === 'get' && muted) serverLine(i18n.t('metadata.muteSyncRestored', { target }), 'info');
     else if (op === 'get' && !muted) serverLine(i18n.t('metadata.muteSyncServerOff', { target }), 'info');
     else if (op === 'set-on' || op === 'set-off') {
+      // True mismatch (rare after FIFO queue): e.g. SET 1 answered as cleared.
       serverLine(i18n.t('metadata.muteSyncUnexpected', { target }), 'warning');
     }
+    // op === undefined → unsolicited METADATA update (another session / watcher): stay quiet.
   }
 
   // Store one draft/metadata-2 key for a user; an empty/absent value clears it.

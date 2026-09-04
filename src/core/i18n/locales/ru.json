@@ -155,6 +155,7 @@
     "receiptPending": "Отправка…",
     "receiptSent": "Отправлено",
     "receiptDisplayed": "Прочитано",
+    "receiptSeen": "Видно на канале",
     "jumpNewest": "Перейти к новым"
   },
   "modals": {

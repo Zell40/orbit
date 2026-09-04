@@ -155,6 +155,7 @@
     "receiptPending": "Gönderiliyor…",
     "receiptSent": "Gönderildi",
     "receiptDisplayed": "Okundu",
+    "receiptSeen": "Kanalda görüldü",
     "jumpNewest": "En yeniye git"
   },
   "modals": {

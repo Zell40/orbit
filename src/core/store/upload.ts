@@ -83,9 +83,7 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
   function share(client: IrcClient, active: string, caption: string): void {
     const styled = `\x02\x1D${caption}\x0F`;
     client.action(active, styled);
-    if (!client.ircv3.hasCap('echo-message')) {
-      addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: styled, ts: Date.now(), kind: 'action', self: true });
-    }
+    addMessage(active, { id: newId(), bufferName: active, from: get().nick, text: styled, ts: Date.now(), kind: 'action', self: true });
   }
 
   // Turn an upload failure into a human line; content-policy hits get an \x01ALERT\x01 card.

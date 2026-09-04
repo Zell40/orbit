@@ -218,6 +218,11 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       return true;
     }
     addMessage(bufferName, cm);
+    // Channel "seen": a live reply from someone else (not JOIN, not history).
+    if (!self && kind !== 'notice' && isChannelName(bufferName)) {
+      const seenAt = cm.ts;
+      patchBuffer(bufferName, (b) => (seenAt > (b.peerReadTs || 0) ? { ...b, peerReadTs: seenAt } : b));
+    }
     if (nickServParty && !self && shouldPopupNickServ(text)) {
       set({ nickServAlert: { from: msg.nick || 'NickServ', text: statusTag + text, ts: Date.now() } });
     }

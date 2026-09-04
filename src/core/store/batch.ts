@@ -20,7 +20,7 @@ interface BatchDeps {
 }
 
 export function makeBatch({ get, set, helpers }: BatchDeps) {
-  const { msgSig, patchBuffer, addMessage, serverLine } = helpers;
+  const { msgSig, sameReplayEvent, patchBuffer, addMessage, serverLine } = helpers;
 
   // Handle a BATCH open/close. Returns true when it was a BATCH.
   function handleBatch(msg: IrcMessage): boolean {
@@ -58,11 +58,16 @@ export function makeBatch({ get, set, helpers }: BatchDeps) {
           const fresh: ChatMessage[] = [];
           for (const m of items) {
             const sig = msgSig(m);
-            const at = sigIdx.get(sig);
+            let at = sigIdx.get(sig);
+            if (at === undefined) {
+              const loose = base.findIndex((x) => sameReplayEvent(x, m));
+              if (loose !== -1) at = loose;
+            }
             if (at !== undefined) {
               // Same message already present (other replay source). Upgrade it to
               // the copy that carries the real msgid so REDACT/react target it.
               if (m.msgid && !base[at].msgid) base[at] = { ...base[at], id: m.id, msgid: m.msgid };
+              else if (m.ts < base[at].ts) base[at] = { ...base[at], ts: m.ts };
               continue;
             }
             if (haveId.has(m.id) || seen.has(sig)) continue;
