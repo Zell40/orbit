@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loosenNoticeText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange, banTargetLabel, modeStringWithoutBans } from './format-text';
+import { loosenNoticeText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange, formatModeFlagLine, banTargetLabel, modeStringWithoutBans } from './format-text';
 
 describe('loosenNoticeText', () => {
   it('splits | INFO | blocks onto separate paragraphs', () => {
@@ -107,6 +107,19 @@ describe('groupModeDisplay', () => {
       .toBe('a promu Zell356 Opérateur et Fondateur du salon');
     expect(formatModeChange({ add: true, labels: ['Voice'], letters: ['v'], target: 'bob' }))
       .toBe('a promu bob Voice du salon');
+  });
+
+  it('merges flag modes of the same sign into one group', () => {
+    const g = groupModeDisplay('+nPrt');
+    expect(g).toHaveLength(1);
+    expect(g[0]).toMatchObject({ add: true, letters: ['n', 'P', 'r', 't'] });
+  });
+
+  it('formats a flag as letter plus a short gloss', () => {
+    expect(formatModeFlagLine('i', true)).toBe('+i (sur invitation uniquement)');
+    expect(formatModeFlagLine('r', true)).toBe('+r (salon enregistré)');
+    expect(formatModeChange({ add: true, labels: ['Sur invitation'], letters: ['i'] }))
+      .toBe('a appliqué +i (sur invitation uniquement)');
   });
 });
 

@@ -620,6 +620,9 @@
     "promotedRich": "promoted <nick></nick> to <roles></roles> of the channel",
     "demotedRich": "removed <roles></roles> from <nick></nick> of the channel",
     "applied": "applied {{change}}",
+    "removedApplied": "removed {{change}}",
+    "appliedVerb": "applied",
+    "removedVerb": "removed",
     "twoRoles": "{{a}} and {{b}}",
     "manyRoles": "{{head}} and {{last}}",
     "and": "and",
@@ -701,6 +704,7 @@
   "chanFlags": {
     "invite": {
       "label": "Invite only",
+      "brief": "invite only",
       "desc": "You must be invited to enter (+i)"
     },
     "moderated": {
@@ -734,6 +738,11 @@
     "stripColor": {
       "label": "Strip colours",
       "desc": "Removes colour codes from messages (+S)"
+    },
+    "registered": {
+      "label": "Registered channel",
+      "brief": "registered channel",
+      "desc": "The channel is registered with services (+r)"
     },
     "regOnly": {
       "label": "Accounts only",

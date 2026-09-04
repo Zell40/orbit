@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SERVER, isNoticeBuffer } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
 import { MsgRow } from './MsgRow';
-import { SystemLine, NoticeGroup, InfoGroup, MotdGroup, UmodeGroup, OperGroup } from './SystemLine';
+import { SystemLine, NoticeGroup, InfoGroup, MotdGroup, UmodeGroup, OperGroup, ModeGroup } from './SystemLine';
 import { EventGroup } from './EventGroup';
 import { SearchResults } from './SearchResults';
 import { useTheme } from '@/themes';
@@ -214,6 +214,7 @@ export function MessageList() {
   let pendingMotd: typeof buffer.messages = [];
   let pendingUmode: typeof buffer.messages = [];
   let pendingOper: typeof buffer.messages = [];
+  let pendingMode: typeof buffer.messages = [];
   const grouping = !mirc && !isConsole; // classic mIRC + the console keep per-line join/part
   const callouts = !mirc; // NOTICE / Info / MOTD / user-mode / OPER infobulles — including Status
   const flush = () => {
@@ -246,7 +247,12 @@ export function MessageList() {
     rows.push(<OperGroup key={`og-${pendingOper[0].id}`} messages={pendingOper} />);
     pendingOper = [];
   };
-  const flushCallouts = () => { flush(); flushNotices(); flushInfo(); flushMotd(); flushUmode(); flushOper(); };
+  const flushMode = () => {
+    if (!pendingMode.length) return;
+    rows.push(<ModeGroup key={`md-${pendingMode[0].id}`} messages={pendingMode} />);
+    pendingMode = [];
+  };
+  const flushCallouts = () => { flush(); flushNotices(); flushInfo(); flushMotd(); flushUmode(); flushOper(); flushMode(); };
   // Windowed slice while tailOnly, extended down to keep the unread divider (and a
   // little read context, so hadRead flips) inside the rendered range.
   let start = 0;
@@ -272,38 +278,45 @@ export function MessageList() {
     if (m.ts <= buffer.readTs) hadRead = true;
     // Fold a run of presence events into one grouped line.
     if (grouping && GROUP_KINDS.has(m.kind)) {
-      flushNotices(); flushInfo(); flushMotd(); flushUmode(); flushOper();
+      flushNotices(); flushInfo(); flushMotd(); flushUmode(); flushOper(); flushMode();
       pending.push(m); lastFrom = ''; continue;
     }
     // Fold consecutive NOTICEs from the same sender into one callout.
     if (callouts && m.kind === 'notice') {
       const prev = pendingNotices[pendingNotices.length - 1];
       if (prev && prev.from === m.from) pendingNotices.push(m);
-      else { flush(); flushInfo(); flushMotd(); flushUmode(); flushOper(); flushNotices(); pendingNotices.push(m); }
+      else { flush(); flushInfo(); flushMotd(); flushUmode(); flushOper(); flushMode(); flushNotices(); pendingNotices.push(m); }
       lastFrom = '';
       continue;
     }
     if (callouts && m.kind === 'info') {
-      flush(); flushNotices(); flushMotd(); flushUmode(); flushOper();
+      flush(); flushNotices(); flushMotd(); flushUmode(); flushOper(); flushMode();
       pendingInfo.push(m);
       lastFrom = '';
       continue;
     }
     if (callouts && m.kind === 'motd') {
-      flush(); flushNotices(); flushInfo(); flushUmode(); flushOper();
+      flush(); flushNotices(); flushInfo(); flushUmode(); flushOper(); flushMode();
       pendingMotd.push(m);
       lastFrom = '';
       continue;
     }
     if (callouts && m.kind === 'umode') {
-      flush(); flushNotices(); flushInfo(); flushMotd(); flushOper();
+      flush(); flushNotices(); flushInfo(); flushMotd(); flushOper(); flushMode();
       pendingUmode.push(m);
       lastFrom = '';
       continue;
     }
     if (callouts && m.kind === 'oper') {
-      flush(); flushNotices(); flushInfo(); flushMotd(); flushUmode();
+      flush(); flushNotices(); flushInfo(); flushMotd(); flushUmode(); flushMode();
       pendingOper.push(m);
+      lastFrom = '';
+      continue;
+    }
+    if (callouts && m.kind === 'mode') {
+      const prev = pendingMode[pendingMode.length - 1];
+      if (prev && prev.from === m.from) pendingMode.push(m);
+      else { flush(); flushNotices(); flushInfo(); flushMotd(); flushUmode(); flushOper(); flushMode(); pendingMode.push(m); }
       lastFrom = '';
       continue;
     }

@@ -24,7 +24,7 @@ const ALWAYS_PARAM = new Set(['k']);
 const SET_PARAM = new Set(['l']);
 const FLAG_LABEL: Record<string, string> = {
   i: 'invite', m: 'moderated', n: 'noExternal', t: 'topicLock', s: 'secret', p: 'private',
-  c: 'blockColor', C: 'noCtcp', S: 'stripColor', R: 'regOnly', M: 'regModerated',
+  c: 'blockColor', C: 'noCtcp', S: 'stripColor', r: 'registered', R: 'regOnly', M: 'regModerated',
   O: 'operOnly', z: 'tlsOnly', N: 'noNickChange', K: 'noKnock', P: 'permanent',
 };
 
@@ -36,6 +36,14 @@ function modeDisplayLabel(letter: string): string {
   if (letter === 'k') return i18n.t('modeline.param.key', 'key');
   if (letter === 'l') return i18n.t('modeline.param.limit', 'limit');
   return letter;
+}
+
+function modeFlagBrief(letter: string): string {
+  const flag = FLAG_LABEL[letter];
+  if (!flag) return modeDisplayLabel(letter);
+  const briefKey = `chanFlags.${flag}.brief`;
+  if (i18n.exists(briefKey)) return i18n.t(briefKey);
+  return i18n.t(`chanFlags.${flag}.label`, letter);
 }
 
 function modeConsumesParam(letter: string, add: boolean): boolean {
@@ -75,7 +83,12 @@ export function groupModeDisplay(modestring: string, args: string[] = []): ModeD
   const groups: ModeDisplayGroup[] = [];
   for (const e of entries) {
     const last = groups[groups.length - 1];
-    if (last && last.add === e.add && e.target && last.target === e.target) {
+    const eNick = PREFIX_MODES.has(e.letter);
+    const lastNick = last && last.letters.every((l) => PREFIX_MODES.has(l));
+    if (last && last.add === e.add && eNick && lastNick && e.target && last.target === e.target) {
+      last.labels.push(e.label);
+      last.letters.push(e.letter);
+    } else if (last && last.add === e.add && !eNick && !lastNick && !e.target && !last.target) {
       last.labels.push(e.label);
       last.letters.push(e.letter);
     } else {
@@ -139,15 +152,26 @@ export function joinModeLabels(labels: string[]): string {
   return i18n.t('modeline.manyRoles', { head: labels.slice(0, -1).join(', '), last: labels[labels.length - 1] });
 }
 
+/** `+i (sur invitation uniquement)` — letter plus a short gloss. */
+export function formatModeFlagLine(letter: string, add: boolean, param?: string): string {
+  const sign = add ? '+' : '-';
+  const brief = modeFlagBrief(letter);
+  const extra = param && param !== '?' ? ` : ${param}` : '';
+  if (brief === letter && !extra) return `${sign}${letter}`;
+  return `${sign}${letter} (${brief}${extra})`;
+}
+
 /** Natural-language clause for one grouped MODE change. */
 export function formatModeChange(g: ModeDisplayGroup): string {
-  const roles = joinModeLabels(g.labels);
-  if (g.target) {
+  if (isNickModeGroup(g) && g.target) {
+    const roles = joinModeLabels(g.labels);
     return g.add
       ? i18n.t('modeline.promoted', { target: g.target, roles })
       : i18n.t('modeline.demoted', { target: g.target, roles });
   }
-  return i18n.t('modeline.applied', { change: `${g.add ? '+' : '-'}${g.labels.join(', ')}` });
+  const param = g.letters.length === 1 ? g.target : undefined;
+  const change = g.letters.map((l) => formatModeFlagLine(l, g.add, param)).join(', ');
+  return i18n.t(g.add ? 'modeline.applied' : 'modeline.removedApplied', { change });
 }
 
 /** Soften dense service NOTICE text for readable callouts (INFO blocks, sentences). */

@@ -1,7 +1,7 @@
 import { memo, Fragment, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, formatIrc, splitNoticeLines, formatModeChange, isNickModeGroup, banTargetLabel, splitModeAndBans, modeStringWithoutBans, type ModeDisplayGroup } from '@/lib/format';
+import { fmtTime, nickColor, formatIrc, splitNoticeLines, formatModeChange, formatModeFlagLine, isNickModeGroup, banTargetLabel, splitModeAndBans, modeStringWithoutBans, type ModeDisplayGroup } from '@/lib/format';
 import { SERVER, isChannelName } from '@/core/store/context';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
@@ -207,6 +207,78 @@ function ModeClause({ g }: { g: ModeDisplayGroup }) {
   }
   return <span className={g.add ? 'mode-add' : 'mode-rm'}>{formatModeChange(g)}</span>;
 }
+
+function coalesceFlagGroups(groups: ModeDisplayGroup[]): ModeDisplayGroup[] {
+  const out: ModeDisplayGroup[] = [];
+  for (const g of groups) {
+    const last = out[out.length - 1];
+    const gNick = isNickModeGroup(g);
+    const lastNick = last && isNickModeGroup(last);
+    if (last && !gNick && !lastNick && last.add === g.add && !last.target && !g.target) {
+      last.labels.push(...g.labels);
+      last.letters.push(...g.letters);
+    } else {
+      out.push({ add: g.add, labels: [...g.labels], letters: [...g.letters], target: g.target });
+    }
+  }
+  return out;
+}
+
+export const ModeGroup = memo(function ModeGroup({ messages }: { messages: ChatMessage[] }) {
+  const { t } = useTranslation();
+  if (!messages.length) return null;
+  const groups: ModeDisplayGroup[] = [];
+  const bans: ModeDisplayGroup[] = [];
+  for (const m of messages) {
+    const [modes, ...margs] = m.text.split(' ');
+    const parsed = splitModeAndBans(modes, margs);
+    groups.push(...parsed.groups);
+    bans.push(...parsed.bans);
+  }
+  const merged = coalesceFlagGroups(groups);
+  const nickGs = merged.filter(isNickModeGroup);
+  const otherGs = merged.filter((g) => !isNickModeGroup(g));
+  const allOtherSameSign = otherGs.length > 0 && otherGs.every((g) => g.add === otherGs[0].add);
+  const verbInHead = nickGs.length === 0 && allOtherSameSign;
+  const head = messages[0];
+  return (
+    <>
+      {merged.length > 0 && (
+        <div className="modeline">
+          <div className="modeline__head">
+            <span className="modeline__tag">{t('modeline.modeTag')}</span>
+            <CalloutTime ts={head.ts} />
+            <ModeNick nick={head.from} />
+            {verbInHead && (
+              <span className="modeline__verb">{otherGs[0].add ? t('modeline.appliedVerb') : t('modeline.removedVerb')}</span>
+            )}
+            {nickGs.length === 1 && otherGs.length === 0 && (
+              <span className="modeline__body"><ModeClause g={nickGs[0]} /></span>
+            )}
+          </div>
+          {(nickGs.length > 1 || (nickGs.length === 1 && otherGs.length > 0)) && nickGs.map((g, i) => (
+            <div key={`n-${i}`} className="modeline__body"><ModeClause g={g} /></div>
+          ))}
+          {otherGs.map((g, i) => (
+            <div key={`f-${i}`} className="modeline__flags">
+              {!verbInHead && (
+                <span className="modeline__verb">{g.add ? t('modeline.appliedVerb') : t('modeline.removedVerb')}</span>
+              )}
+              {g.letters.map((l, j) => (
+                <span key={j} className={g.add ? 'mode-add' : 'mode-rm'}>
+                  {formatModeFlagLine(l, g.add, g.letters.length === 1 ? g.target : undefined)}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+      {bans.map((g, i) => (
+        <BanCallout key={`b-${head.id}-${i}`} from={head.from} add={g.add} mask={g.target!} ts={head.ts} />
+      ))}
+    </>
+  );
+});
 
 export const NoticeGroup = memo(function NoticeGroup({ messages }: { messages: ChatMessage[] }) {
   if (!messages.length) return null;
@@ -431,28 +503,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     );
   }
   if (m.kind === 'mode') {
-    const [modes, ...margs] = m.text.split(' ');
-    const { groups, bans } = splitModeAndBans(modes, margs);
-    return (
-      <>
-        {groups.length > 0 && (
-          <div className="modeline">
-            <span className="modeline__tag">{t('modeline.modeTag')}</span>
-            <CalloutTime ts={m.ts} />
-            <ModeNick nick={m.from} />
-            <span className="modeline__body">{groups.map((g, i) => (
-              <Fragment key={i}>
-                <ModeClause g={g} />
-                {i < groups.length - 1 ? ' · ' : ''}
-              </Fragment>
-            ))}</span>
-          </div>
-        )}
-        {bans.map((g, i) => (
-          <BanCallout key={`b-${m.id}-${i}`} from={m.from} add={g.add} mask={g.target!} ts={m.ts} />
-        ))}
-      </>
-    );
+    return <ModeGroup messages={[m]} />;
   }
   if (m.kind === 'ban') {
     const parsed = parseSignedBan(m.text);

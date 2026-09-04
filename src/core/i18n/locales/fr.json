@@ -620,6 +620,9 @@
     "promotedRich": "a promu <nick></nick> <roles></roles> du salon",
     "demotedRich": "a retiré à <nick></nick> <roles></roles> du salon",
     "applied": "a appliqué {{change}}",
+    "removedApplied": "a retiré {{change}}",
+    "appliedVerb": "a appliqué",
+    "removedVerb": "a retiré",
     "twoRoles": "{{a}} et {{b}}",
     "manyRoles": "{{head}} et {{last}}",
     "and": "et",
@@ -701,66 +704,87 @@
   "chanFlags": {
     "invite": {
       "label": "Sur invitation",
+      "brief": "sur invitation uniquement",
       "desc": "Il faut être invité pour entrer (+i)"
     },
     "moderated": {
       "label": "Modéré",
+      "brief": "salon modéré",
       "desc": "Seuls les voix et ops peuvent parler (+m)"
     },
     "noExternal": {
       "label": "Pas de messages externes",
+      "brief": "pas de messages externes",
       "desc": "Seuls les membres peuvent écrire (+n)"
     },
     "topicLock": {
       "label": "Sujet protégé",
+      "brief": "sujet protégé",
       "desc": "Seuls les ops changent le sujet (+t)"
     },
     "secret": {
       "label": "Secret",
+      "brief": "secret",
       "desc": "Caché des listes publiques (+s)"
     },
     "private": {
       "label": "Privé",
+      "brief": "privé",
       "desc": "Absent des listes, /whois masqué (+p)"
     },
     "blockColor": {
       "label": "Sans couleurs",
+      "brief": "sans couleurs",
       "desc": "Bloque les codes couleur/format (+c)"
     },
     "noCtcp": {
       "label": "Sans CTCP",
+      "brief": "sans CTCP",
       "desc": "Bloque les requêtes CTCP (+C)"
     },
     "stripColor": {
       "label": "Couleurs retirées",
+      "brief": "couleurs retirées",
       "desc": "Retire les codes couleur des messages (+S)"
+    },
+    "registered": {
+      "label": "Salon enregistré",
+      "brief": "salon enregistré",
+      "desc": "Le salon est enregistré auprès des services (+r)"
     },
     "regOnly": {
       "label": "Comptes uniquement",
+      "brief": "comptes enregistrés uniquement",
       "desc": "Il faut être enregistré pour entrer (+R)"
     },
     "regModerated": {
       "label": "Enregistrés pour parler",
+      "brief": "enregistrés pour parler",
       "desc": "Seuls les comptes enregistrés parlent (+M)"
     },
     "operOnly": {
       "label": "Opérateurs uniquement",
+      "brief": "opérateurs uniquement",
       "desc": "Réservé aux opérateurs IRC (+O)"
     },
     "tlsOnly": {
       "label": "TLS uniquement",
+      "brief": "TLS uniquement",
       "desc": "Connexion sécurisée obligatoire (+z)"
     },
     "noNickChange": {
       "label": "Pseudo verrouillé",
+      "brief": "pseudo verrouillé",
       "desc": "Interdit de changer de pseudo (+N)"
     },
     "noKnock": {
       "label": "Sans toc-toc",
+      "brief": "sans toc-toc",
       "desc": "Désactive la commande KNOCK (+K)"
     },
     "permanent": {
       "label": "Permanent",
+      "brief": "permanent",
       "desc": "Le salon persiste sans membres (+P)"
     }
   },

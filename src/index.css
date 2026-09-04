@@ -798,22 +798,24 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .sysline--mode { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; padding: .26rem 1.3rem; }
 .sysline--mode::before { display: none; }
 .modeline {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem;
+  display: flex; flex-direction: column; align-items: stretch; gap: .28rem;
   margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 8px;
   background: #fff6eb;
   border: 1px solid rgba(185, 114, 42, .28);
   border-left: 3px solid #d97706;
 }
+.modeline__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; min-width: 0; }
 .modeline__tag {
   flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
   padding: .2rem .55rem; border-radius: 999px; line-height: 1.2;
 }
-.modeline > .modeline__tag {
+.modeline .modeline__tag {
   background: #d97706; color: #fff; box-shadow: 0 2px 6px -2px rgba(217, 119, 6, .55);
 }
 .modeline__who { font-weight: 800; }
 .modeline__verb { color: var(--faint); font-size: .84rem; }
 .modeline__body { font-size: .84rem; color: var(--muted); font-weight: 600; }
+.modeline__flags { display: flex; flex-direction: column; gap: .12rem; font-size: .84rem; font-weight: 650; min-width: 0; }
 .modeline__role { font-weight: 800; }
 .mode-add { color: #16a34a; } .mode-rm { color: #d6465f; }
 
