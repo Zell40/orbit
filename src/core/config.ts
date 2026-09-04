@@ -128,6 +128,19 @@ export interface AppConfig {
     brand?: { text?: string; logo?: string; href?: string };
     links?: { label: string; icon?: string; href: string }[];
   };
+  /** Bottom-nav HelpServ shortcuts (orbit-helpdesk): one tab, several desks. */
+  helpdesk?: {
+    label?: string;
+    title?: string;
+    desks?: {
+      id?: string;
+      label?: string;
+      title?: string;
+      bot?: string;
+      channel?: string;
+      links?: { label?: string; url: string }[];
+    }[];
+  };
   /** Search/link-unfurl metadata. Applied to <head> at boot by src/core/seo.ts
    *  (description + Open Graph/Twitter cards + canonical + JSON-LD). Fields default
    *  to `branding` (title = name, image = a preview screenshot). index.html ships a

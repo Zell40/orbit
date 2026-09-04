@@ -28,6 +28,18 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
+/** Radio / games stay next to Accueil·Amis; helpdesk is always the last tab. */
+function sortNavItems(items: { plugin: string }[]) {
+  const rank = (p: string) => {
+    const n = p.toLowerCase();
+    if (n === 'helpdesk' || n.includes('helpdesk')) return 90;
+    if (n.includes('radio')) return 10;
+    if (n.includes('games')) return 20;
+    return 50;
+  };
+  return [...items].sort((a, b) => rank(a.plugin) - rank(b.plugin) || a.plugin.localeCompare(b.plugin));
+}
+
 // App footer bar: account chip (avatar · nick · presence) + settings · nav
 // (Accueil / Salons / Amis) · plugin footer items — everything that used to
 // live in the left rail and the sidebar footer, in one place like a real app.
@@ -66,7 +78,7 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
           <span className="tab__lb">{t('nav.home')}</span>
         </button>
         <TabFriends />
-        {footerVisible && footerItems.filter((u) => u.slot === 'nav_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="nav_item" />)}
+        {footerVisible && sortNavItems(footerItems.filter((u) => u.slot === 'nav_item')).map((u) => <PluginBoundary key={u.id} render={u.render} label="nav_item" />)}
       </nav>
       <div className="appbar__actions">
         {footerVisible && footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
