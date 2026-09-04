@@ -391,6 +391,8 @@
       "pushUnavailable": "Indisponible sur ce serveur.",
       "pushDenied": "Autorisation refusée par le navigateur. Ouvre les paramètres du site (cadenas ou ⋮) → Notifications → Autoriser, puis réessaie. Sur iPhone, installe d’abord l’app via « Sur l’écran d’accueil ».",
       "pushNeedAccount": "Connecte-toi à ton compte pour les notifications push.",
+      "pushNeedAccountTitle": "Notifications push",
+      "pushNeedAccountBody": "Pour utiliser les notifications push, tu dois disposer d’un compte.",
       "pushFailed": "Échec de l’activation.",
       "pushActive": "Actif — alertes même app fermée (au mieux si connecté à ton compte).",
       "pushHint": "Reçois les MP et mentions même quand l’app est fermée.",
@@ -1048,6 +1050,7 @@
     "muteSyncNoCap": "Web Push : draft/metadata-2 indisponible — sourdine locale seulement (pas de sync serveur)",
     "muteSyncFail": "Web Push : échec METADATA soju.im/muted pour {{target}} — {{reason}}",
     "muteSyncFailHint": "Web Push : vérifiez que le module serveur ircv3_metadata est compilé et rechargé (/RELOADMODULE ircv3_metadata).",
+    "muteSyncNeedAccount": "Web Push : sourdine locale seulement pour {{target}} — connecte-toi à ton compte pour la sync serveur (et les notifications push).",
     "muteSyncNotJoined": "Web Push : sourdine locale seulement pour {{target}} (rejoignez le salon pour la sync serveur)",
     "muteSyncUnexpected": "Web Push : réponse METADATA incohérente pour {{target}} (sourdine reçue ≠ demandée — souvent une course JOIN/sourdine, réessaie)"
   },

@@ -276,12 +276,18 @@ export function makeHandler(ctx: HandlerCtx) {
               }
             }
             const reason = desc || code || 'FAIL';
-            serverLine(i18n.t('metadata.muteSyncFail', {
-              target: target || '?',
-              reason,
-            }), 'warning');
-            if (code === 'KEY_INVALID' || code === 'INVALID_KEY' || code === 'KEY_NO_PERMISSION') {
-              serverLine(i18n.t('metadata.muteSyncFailHint'), 'warning');
+            const needAccount = code === 'KEY_NO_PERMISSION'
+              || /must be logged in|not (logged|identif|authentic)/i.test(reason);
+            if (needAccount) {
+              serverLine(i18n.t('metadata.muteSyncNeedAccount', { target: target || '?' }), 'info');
+            } else {
+              serverLine(i18n.t('metadata.muteSyncFail', {
+                target: target || '?',
+                reason,
+              }), 'warning');
+              if (code === 'KEY_INVALID' || code === 'INVALID_KEY') {
+                serverLine(i18n.t('metadata.muteSyncFailHint'), 'warning');
+              }
             }
           }
           break;

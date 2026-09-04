@@ -7,6 +7,7 @@ import { getConsent, setConsent } from '@/core/consent';
 import { setGaConsent } from '@/core/ga';
 import { ToggleRow } from '../rows';
 import { PushDevicesList } from './PushDevicesList';
+import { Modal } from '@/components/modals/Modal';
 
 // Withdraw / grant Google Analytics consent (only shown when GA is configured).
 function AnalyticsRow() {
@@ -39,16 +40,18 @@ function PushRow() {
   const [on, setOn] = useState(pushEnabledPref());
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [askAccount, setAskAccount] = useState(false);
   const hasVapid = !!client?.server.vapid;
   const browserDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
   const requireAccount = getConfig().features.pushRequireAccount !== false;
+  const registerUrl = (getConfig().branding.registerUrl || '').trim();
   // Pref stays on across LOGOUT so refreshPush can re-register — but the switch must look off without an account.
   const effectiveOn = !!account && on;
 
   async function toggle() {
     if (!client || busy) return;
     if (requireAccount && !account) {
-      setErr(t('settings.notifications.pushNeedAccount'));
+      setAskAccount(true);
       return;
     }
     if (!account) return;
@@ -96,6 +99,18 @@ function PushRow() {
         ? <button className={`switch ${effectiveOn ? 'is-on' : ''} ${busy ? 'is-busy' : ''}`} role="switch" aria-checked={effectiveOn}
             aria-label={t('settings.notifications.pushLabel')} disabled={busy || (!account && !requireAccount)} onClick={toggle}><span className="switch__dot" /></button>
         : <span className="srow__hint">—</span>}
+      {askAccount && (
+        <Modal title={t('settings.notifications.pushNeedAccountTitle')} onClose={() => setAskAccount(false)} stacked>
+          <p className="modal__sub">{t('settings.notifications.pushNeedAccountBody')}</p>
+          <div className="modal__actions">
+            <button type="button" className="upbtn" onClick={() => setAskAccount(false)}>{t('modals.closeButton')}</button>
+            {registerUrl ? (
+              <a className="upbtn upbtn--primary" href={registerUrl} target="_blank" rel="noopener noreferrer"
+                onClick={() => setAskAccount(false)}>{t('connect.createButton')}</a>
+            ) : null}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

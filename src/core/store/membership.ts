@@ -52,7 +52,8 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           // Server autojoin can race ahead of CAP ACK; 366 retries if this no-ops.
           prefetchLatestHistory(get, historyAsked, ch);
           // Restore per-channel mute from the server (soju.im/muted → Web Push).
-          if (get().client?.ircv3.fetchBufferMuted(ch)) trackBufferMuteSync(ch, 'get');
+          // Guests have no persisted buffer prefs — skip the GET (avoids Status noise).
+          if (get().account && get().client?.ircv3.fetchBufferMuted(ch)) trackBufferMuteSync(ch, 'get');
         }
         // extended-join: ":nick JOIN #chan <account> :<realname>" — '*'/'0' = none.
         // Gives us account + realname up front, so no WHO needed for joiners.

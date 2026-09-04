@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 // Shared modal shell: backdrop, centered card, title bar + close, Escape-to-close.
 // The specific dialogs (Join/Explore/Friends/…) render their body as children.
-export function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+export function Modal({ title, onClose, children, wide, stacked }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; stacked?: boolean }) {
   const { t } = useTranslation();
   const cardRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -27,7 +27,7 @@ export function Modal({ title, onClose, children, wide }: { title: string; onClo
     return () => { window.removeEventListener('keydown', onKey); returnTo?.focus?.(); }; // give focus back on close
   }, [onClose]);
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className={`modal-backdrop${stacked ? ' modal-backdrop--stack' : ''}`} onClick={onClose}>
       <div ref={cardRef} className={`modal ${wide ? 'modal--wide' : ''}`} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         <div className="modal__head">
           <h3>{title}</h3>

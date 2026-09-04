@@ -155,6 +155,7 @@ describe('membership handler', () => {
     const { on, state } = setup();
     const latest: string[] = [];
     const muted: string[] = [];
+    state.account = 'alice';
     state.client = {
       ircv3: {
         hasCap: (c: string) => c === 'draft/chathistory',
@@ -166,6 +167,21 @@ describe('membership handler', () => {
     on(':me!u@h JOIN #x');
     expect(latest).toEqual(['#x']);
     expect(muted).toEqual(['#x']);
+  });
+
+  it('skips soju.im/muted GET on JOIN when not logged into an account', () => {
+    const { on, state } = setup();
+    const muted: string[] = [];
+    state.account = '';
+    state.client = {
+      ircv3: {
+        hasCap: () => false,
+        chathistoryLatest: () => {},
+        fetchBufferMuted: (t: string) => muted.push(t),
+      },
+    };
+    on(':me!u@h JOIN #x');
+    expect(muted).toEqual([]);
   });
 
   it('skips CHATHISTORY when draft/chathistory is not ACK’d', () => {

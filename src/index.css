@@ -1739,6 +1739,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 
 /* ============ MODALS ============ */
 .modal-backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(20,30,45,.5); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 1.2rem; animation: fade .15s ease both; }
+.modal-backdrop--stack { z-index: 130; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 /* Standard entrance for panels/popovers/menus — a soft fade + rise, like the radio
    window. Referenced app-wide (modals, pickers, menus). */
@@ -1755,6 +1756,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 .modal__input:focus { border-color: var(--accent); background: var(--bg); box-shadow: 0 0 0 3px rgba(20,82,204,.16); }
 .modal__actions { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1.1rem; }
 .modal__actions .upbtn { flex: none; padding: .6rem 1.1rem; }
+.modal__actions a.upbtn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 .modal__label { display: block; font-size: .82rem; font-weight: 600; color: var(--ink); margin: .9rem 0 .35rem; }
 .modal__label:first-of-type { margin-top: .2rem; }
 textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }

@@ -578,9 +578,14 @@ export function createChatStore(ns = '') {
       saveNotify(next, ns);
       set({ notifyLevel: next });
       // Sync mute to the server so Web Push respects the same preference.
+      // Guests cannot SET buffer metadata (ircv3_metadata requireaccount) — keep local only.
       const muted = level === 'mute';
       const buf = get().buffers[key];
       const target = buf?.name ?? name;
+      if (!get().account) {
+        if (muted) serverLine(i18n.t('metadata.muteSyncNeedAccount', { target }), 'info');
+        return;
+      }
       if (buf?.isChannel && !buf.joined) {
         if (muted) serverLine(i18n.t('metadata.muteSyncNotJoined', { target }), 'warning');
         return;
