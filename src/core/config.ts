@@ -90,6 +90,9 @@ export interface AppConfig {
   /** Feature switches — turn whole features off for a deployment. */
   features: {
     push: boolean;          // Web Push notifications (Settings row)
+    /** When true (default), WEBPUSH needs a NickServ account — toggling push while
+     *  a guest shows an error instead of silently ignoring the click. */
+    pushRequireAccount?: boolean;
     imageUpload: boolean;   // the composer image button + paste/drag upload
     register: boolean;      // account creation (the "Créer un compte" tab)
     linkPreviews: boolean;  // rich link-preview cards (via the server unfurl endpoint)
@@ -225,7 +228,7 @@ const DEFAULT_CONFIG: AppConfig = {
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
   report: { service: 'ReportServ', target: '#staff' },
   defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
-  features: { push: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false, passkeySasl: false, saslScram: false, saslOauthBearer: false, webmcp: true, bouncer: false },
+  features: { push: true, pushRequireAccount: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false, passkeySasl: false, saslScram: false, saslOauthBearer: false, webmcp: true, bouncer: false },
   filehost: { retentionHours: 24, retentionChoices: [1, 6, 24, 72] },
   plugins: [],
   builtins: [],

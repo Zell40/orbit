@@ -1790,6 +1790,7 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .srow__txt { flex: 1; min-width: 0; }
 .srow__label { font-size: .94rem; font-weight: 700; color: var(--ink); }
 .srow__hint { font-size: .78rem; color: var(--muted); margin-top: .12rem; line-height: 1.35; }
+.srow__hint.is-error { color: var(--danger, #d6465f); font-weight: 650; }
 .sfield__err { margin-top: .15rem; font-size: .82rem; font-weight: 650; color: var(--danger, #dc2626); line-height: 1.35; }
 .srow__ctrl { flex: none; display: flex; align-items: center; gap: .4rem; }
 

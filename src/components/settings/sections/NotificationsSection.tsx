@@ -41,11 +41,17 @@ function PushRow() {
   const [err, setErr] = useState('');
   const hasVapid = !!client?.server.vapid;
   const browserDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
+  const requireAccount = getConfig().features.pushRequireAccount !== false;
   // Pref stays on across LOGOUT so refreshPush can re-register — but the switch must look off without an account.
   const effectiveOn = !!account && on;
 
   async function toggle() {
-    if (!client || busy || !account) return;
+    if (!client || busy) return;
+    if (requireAccount && !account) {
+      setErr(t('settings.notifications.pushNeedAccount'));
+      return;
+    }
+    if (!account) return;
     setBusy(true); setErr('');
     if (on) {
       await disablePush(client, account);
@@ -68,8 +74,8 @@ function PushRow() {
 
   const hint = !supported ? t('settings.notifications.pushUnsupported')
     : !hasVapid ? t('settings.notifications.pushUnavailable')
-    : !account ? t('settings.notifications.pushNeedAccount')
     : err ? err
+    : requireAccount && !account ? t('settings.notifications.pushNeedAccount')
     : browserDenied && !effectiveOn ? t('settings.notifications.pushDenied')
     : effectiveOn ? t('settings.notifications.pushActive')
     : t('settings.notifications.pushHint');
@@ -83,12 +89,12 @@ function PushRow() {
       <span className="srow__ic" aria-hidden>📲</span>
       <div className="srow__txt">
         <div className="srow__label">{t('settings.notifications.pushLabel')}</div>
-        <div className="srow__hint" style={hintIsError ? { color: 'var(--danger, #d33)' } : undefined}>{hint}</div>
+        <div className={`srow__hint${hintIsError ? ' is-error' : ''}`}>{hint}</div>
         {showDevices && <PushDevicesList />}
       </div>
       {supported && hasVapid
         ? <button className={`switch ${effectiveOn ? 'is-on' : ''} ${busy ? 'is-busy' : ''}`} role="switch" aria-checked={effectiveOn}
-            aria-label={t('settings.notifications.pushLabel')} disabled={busy || !account} onClick={toggle}><span className="switch__dot" /></button>
+            aria-label={t('settings.notifications.pushLabel')} disabled={busy || (!account && !requireAccount)} onClick={toggle}><span className="switch__dot" /></button>
         : <span className="srow__hint">—</span>}
     </div>
   );
