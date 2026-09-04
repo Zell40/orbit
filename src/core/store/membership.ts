@@ -138,7 +138,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
       case 'CHGHOST': {
         // chghost: ":nick!olduser@oldhost CHGHOST <newuser> <newhost>" — the user's
         // ident/host changed. Update their user@host in every channel they share and
-        // show an old→new system line (like MODE/TOPIC).
+        // show an old→new HOST callout (like NICK / MODE).
         const newUser = msg.params[0];
         const newHost = msg.params[1];
         const newId2 = `${newUser}@${newHost}`;
@@ -154,7 +154,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
             if (!mm) return bb;
             return { ...bb, members: { ...bb.members, [msg.nick]: { ...mm, user: newUser, host: newHost } } };
           });
-          if (oldId !== newId2) sysLine(name, i18n.t('system.hostChange', { nick: msg.nick, old: oldId, new: newId2 }), 'system');
+          if (oldId !== newId2) sysLine(name, `${oldId}\n${newId2}`, 'host', msg.nick, '', tsOf(msg));
         }
         // Keep an open WHOIS/profile panel in sync.
         if (get().whois[msg.nick]) patchWhois(msg.nick, (w) => ({ ...w, user: newUser, host: newHost }));

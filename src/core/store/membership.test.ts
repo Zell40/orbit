@@ -93,6 +93,17 @@ describe('membership handler', () => {
     expect(state.nick).toBe('me2');
   });
 
+  it('CHGHOST updates user@host and emits a host line', () => {
+    const { on, state, seed, lines } = setup();
+    seed('#a', ['bob']);
+    state.buffers['#a'].members['bob'] = { nick: 'bob', user: 'u', host: 'old.example' };
+    on(':bob!u@old.example CHGHOST u new.example');
+    expect(state.buffers['#a'].members['bob']).toMatchObject({ user: 'u', host: 'new.example' });
+    expect(lines).toContainEqual({
+      name: '#a', text: 'u@old.example\nu@new.example', kind: 'host', from: 'bob',
+    });
+  });
+
   it('self JOIN clears a previous joinDenied overlay', () => {
     const { on, state, seed } = setup();
     seed('#x', []);

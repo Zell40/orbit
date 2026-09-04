@@ -604,6 +604,7 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 .main:has(.main__room-bg[data-rg-pic]) .banline,
 .main:has(.main__room-bg[data-rg-pic]) .kickline,
 .main:has(.main__room-bg[data-rg-pic]) .nickline,
+.main:has(.main__room-bg[data-rg-pic]) .hostline,
 .main:has(.main__room-bg[data-rg-pic]) .inviteline,
 .main:has(.main__room-bg[data-rg-pic]) .topicline,
 .main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert) {
@@ -751,7 +752,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 
 
 /* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE / USER MODE): SMS-style width. */
-.noticeline, .infoline, .umodeline, .operline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .banline, .kickline, .nickline, .inviteline, .noticeline-wrap {
+.noticeline, .infoline, .umodeline, .operline, .urlline, .motdline, .warnline, .errorline, .actuline, .modeline, .topicline, .banline, .kickline, .nickline, .hostline, .inviteline, .noticeline-wrap {
   align-self: flex-start;
   width: max-content;
   max-width: min(70%, calc(100% - 2.2rem));
@@ -970,6 +971,31 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .nickline__verb { color: var(--muted); font-size: .84rem; font-weight: 600; }
 .messages--console .nickline { background: rgba(99, 102, 241, .10); border-color: transparent; box-shadow: inset 3px 0 0 #6366f1; }
 
+/* hostname / cloak change — tagged HOST callout (CHGHOST) */
+.hostline {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .5rem;
+  width: fit-content; max-width: 100%;
+  margin: .22rem 1.1rem; padding: .42rem .7rem; border-radius: 12px;
+  background: #eef9fc;
+  border: 1px solid rgba(8, 145, 178, .28);
+  box-shadow: 0 1px 0 rgba(20,30,45,.04), inset 4px 0 0 #0891b2;
+  font-size: .84rem; line-height: 1.4; color: var(--ink-2);
+  overflow-wrap: anywhere; word-break: break-word;
+}
+.hostline__tag {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: .2rem .55rem; border-radius: 999px; line-height: 1.2;
+  background: #0891b2; color: #fff; box-shadow: 0 2px 6px -2px rgba(8, 145, 178, .55);
+}
+.hostline__verb { color: var(--muted); font-size: .84rem; font-weight: 600; }
+.hostline__mask {
+  color: var(--faint); font-size: .8rem; font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.hostline__mask--new { color: var(--ink-2); }
+.hostline__arrow { color: var(--faint); font-weight: 700; }
+.messages--console .hostline { background: rgba(8, 145, 178, .10); border-color: transparent; box-shadow: inset 3px 0 0 #0891b2; }
+
 /* invite — tagged INVITATION callout (replaces INFO for INVITE / 341) */
 .inviteline {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem;
@@ -1053,6 +1079,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .messages--console .banline,
 .messages--console .kickline,
 .messages--console .nickline,
+.messages--console .hostline,
 .messages--console .inviteline,
 .messages--console .noticeline-wrap {
   /* Status is a log, not a chat: use the full pane (the 70% SMS cap is for salons). */
@@ -2799,7 +2826,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .chan-hero__body { padding: 0; gap: .1rem; }
   .chan-hero__topic { font-size: .76rem; -webkit-line-clamp: 3; }
   .chan-hero__more { font-size: .7rem; min-height: 28px; padding: .15rem 0; }
-  .motdline, .infoline, .umodeline, .operline, .warnline, .noticeline, .errorline, .actuline, .modeline, .banline, .kickline, .nickline, .inviteline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
+  .motdline, .infoline, .umodeline, .operline, .warnline, .noticeline, .errorline, .actuline, .modeline, .banline, .kickline, .nickline, .hostline, .inviteline, .eventgroup-wrap { margin-left: .7rem; margin-right: .7rem; }
 
   /* Members: hidden in flow, slide in from the right as a drawer when the
      online pill is tapped (mirrors the left room-list drawer). */

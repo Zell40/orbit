@@ -613,6 +613,8 @@
     "kickChannel": "du salon",
     "nickTag": "PSEUDO",
     "nickVerb": "est désormais",
+    "hostTag": "HOST",
+    "hostVerb": "a changé d’hôte :",
     "inviteTag": "INVITATION",
     "inviteVerb": "a invité",
     "inviteYou": "t'invite à rejoindre",

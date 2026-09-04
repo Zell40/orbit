@@ -538,6 +538,8 @@
     "kickChannel": "del canal",
     "nickTag": "NICK",
     "nickVerb": "ahora es",
+    "hostTag": "HOST",
+    "hostVerb": "cambió de host:",
     "inviteTag": "INVITACIÓN",
     "inviteVerb": "ha invitado a",
     "inviteYou": "te invita a unirte a",

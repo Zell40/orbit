@@ -613,6 +613,8 @@
     "kickChannel": "from the channel",
     "nickTag": "NICK",
     "nickVerb": "is now",
+    "hostTag": "HOST",
+    "hostVerb": "changed host:",
     "inviteTag": "INVITE",
     "inviteVerb": "invited",
     "inviteYou": "invites you to join",

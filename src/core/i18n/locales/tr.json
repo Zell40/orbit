@@ -538,6 +538,8 @@
     "kickChannel": "kanaldan",
     "nickTag": "NICK",
     "nickVerb": "artık",
+    "hostTag": "HOST",
+    "hostVerb": "host değiştirdi:",
     "inviteTag": "DAVET",
     "inviteVerb": "davet etti",
     "inviteYou": "seni katılmaya davet ediyor",

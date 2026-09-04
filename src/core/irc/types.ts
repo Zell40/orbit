@@ -30,6 +30,7 @@ export type MessageKind =
   | 'part'
   | 'quit'
   | 'nick'
+  | 'host'
   | 'topic';
 
 export interface Reaction {

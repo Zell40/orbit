@@ -538,6 +538,8 @@
     "kickChannel": "च्यानलबाट",
     "nickTag": "NICK",
     "nickVerb": "अब",
+    "hostTag": "HOST",
+    "hostVerb": "ले होस्ट परिवर्तन गर्‍यो:",
     "inviteTag": "निमन्त्रणा",
     "inviteVerb": "ले निम्तो दिए",
     "inviteYou": "तपाईंलाई जोडिन निम्तो दिन्छ",

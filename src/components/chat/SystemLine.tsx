@@ -171,6 +171,29 @@ function NickCallout({ m }: { m: ChatMessage }) {
   );
 }
 
+function HostCallout({ m }: { m: ChatMessage }) {
+  const { t } = useTranslation();
+  const [oldId = '', newId = ''] = m.text.split('\n');
+  const structured = !!m.from && !!oldId && !!newId;
+  return (
+    <div className="hostline">
+      <span className="hostline__tag">{t('modeline.hostTag')}</span>
+      <CalloutTime ts={m.ts} />
+      {structured ? (
+        <>
+          <ModeNick nick={m.from} />
+          <span className="hostline__verb">{t('modeline.hostVerb')}</span>
+          <span className="hostline__mask">{oldId}</span>
+          <span className="hostline__arrow" aria-hidden>→</span>
+          <span className="hostline__mask hostline__mask--new">{newId}</span>
+        </>
+      ) : (
+        <span className="hostline__verb">{m.text.replace(/^[*•»]+\s*/, '')}</span>
+      )}
+    </div>
+  );
+}
+
 function InviteCallout({ from, target, chan, ts }: { from: string; target: string; chan?: string; ts: number }) {
   const { t } = useTranslation();
   const you = !target;
@@ -438,6 +461,11 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       body = m.from && neu && !/\s/.test(neu)
         ? <>{m.from} {t('modeline.nickVerb')} {neu}</>
         : m.text.replace(/^[*•»]+\s*/, '');
+    } else if (m.kind === 'host') {
+      const [oldId = '', newId = ''] = m.text.split('\n');
+      body = m.from && oldId && newId
+        ? <>{m.from} {t('modeline.hostVerb')} {oldId} → {newId}</>
+        : m.text.replace(/^[*•»]+\s*/, '');
     } else if (m.kind === 'topic') {
       body = m.text
         ? <>{m.from} {t('modeline.topicChanged')} {formatIrc(m.text, false, linkPreviews)}</>
@@ -534,6 +562,9 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
   }
   if (m.kind === 'nick') {
     return <NickCallout m={m} />;
+  }
+  if (m.kind === 'host') {
+    return <HostCallout m={m} />;
   }
   if (m.kind === 'invite') {
     const [target, chan = ''] = m.text.split('\n');

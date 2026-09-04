@@ -61,7 +61,7 @@ function joinCoalescedText(prev: string, next: string, kind?: MessageKind): stri
 }
 
 /** JOIN/TOPIC/… replayed by event-playback after the live line already landed. */
-const REPLAY_EVENT_KINDS = new Set(['join', 'part', 'quit', 'topic', 'nick', 'mode', 'kick', 'ban']);
+const REPLAY_EVENT_KINDS = new Set(['join', 'part', 'quit', 'topic', 'nick', 'host', 'mode', 'kick', 'ban']);
 const REPLAY_DUP_MS = 90_000;
 
 function isReplayEvent(m: ChatMessage): boolean {

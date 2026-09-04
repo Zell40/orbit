@@ -45,6 +45,7 @@
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .banline { background: rgba(225, 29, 72, .16); border-color: rgba(251, 113, 133, .38); border-left-color: #fb7185; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .kickline { background: rgba(194, 65, 12, .16); border-color: rgba(251, 146, 60, .38); border-left-color: #fb923c; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .nickline { background: rgba(99, 102, 241, .16); border-color: rgba(165, 180, 252, .38); }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .hostline { background: rgba(8, 145, 178, .16); border-color: rgba(34, 211, 238, .38); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .inviteline { background: rgba(13, 148, 136, .16); border-color: rgba(45, 212, 191, .38); border-left-color: #2dd4bf; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .join-denied__card { background: var(--bg-soft); }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .mode-add { color: #2ecc71; }

@@ -62,11 +62,11 @@ export function makeHandler(ctx: HandlerCtx) {
     const cl = get().client;
     if (cl) { isupport.chanTypes = cl.server.chantypes; isupport.casemapping = cl.server.casemapping; isupport.statusPrefixes = cl.server.isupport['STATUSMSG'] || ''; }
 
-    // draft/event-playback: a JOIN/PART/QUIT/KICK/NICK/TOPIC inside a chathistory
+    // draft/event-playback: a JOIN/PART/QUIT/KICK/NICK/TOPIC/CHGHOST inside a chathistory
     // batch is HISTORICAL — collect it as a system line (prepended with the rest of
     // the history); never let it mutate live channel/member state.
     const epRef = inHistoryBatch(msg);
-    if (epRef && ['JOIN', 'PART', 'QUIT', 'KICK', 'NICK', 'TOPIC', 'MODE'].includes(msg.command)) {
+    if (epRef && ['JOIN', 'PART', 'QUIT', 'KICK', 'NICK', 'TOPIC', 'MODE', 'CHGHOST'].includes(msg.command)) {
       const chan = openBatches[epRef].target;
       if (chan) {
         let text = '', kind: MessageKind = 'system';
@@ -75,6 +75,13 @@ export function makeHandler(ctx: HandlerCtx) {
         else if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
         else if (msg.command === 'KICK') { text = msg.params[2] ? `${msg.params[1]}\n${msg.params[2]}` : (msg.params[1] || ''); kind = 'kick'; }
         else if (msg.command === 'NICK') { text = msg.params[0] || ''; kind = 'nick'; }
+        else if (msg.command === 'CHGHOST') {
+          const nu = msg.params[0] || '';
+          const nh = msg.params[1] || '';
+          const oldId = `${msg.user}@${msg.host}`;
+          const newId = `${nu}@${nh}`;
+          if (oldId !== newId) { text = `${oldId}\n${newId}`; kind = 'host'; }
+        }
         else if (msg.command === 'TOPIC') { text = msg.params[1] || ''; kind = 'topic'; }
         else if (msg.command === 'MODE') {
           // Split +b/-b out of historical MODE so they replay as BAN callouts,
@@ -104,7 +111,7 @@ export function makeHandler(ctx: HandlerCtx) {
             text = `${modes}${argStr}`; kind = 'mode';
           }
         }
-        if (msg.command !== 'MODE' || text) {
+        if (text) {
           // Deterministic id so the same historical event dedups across re-fetches
           // (events carry no msgid, so newId() would duplicate them on every reconnect).
           const evId = msg.tags['msgid'] || `evt:${msg.command}:${tsOf(msg)}:${msg.nick}:${msg.params.join(',')}`;
