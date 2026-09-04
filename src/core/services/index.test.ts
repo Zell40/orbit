@@ -61,11 +61,12 @@ describe('routeMessage', () => {
   });
   it('does not treat notices as a query to open', () => {
     expect(routeMessage({ ...base, isNotice: true })).toBe('active');
-    expect(routeMessage({ ...base, serviceParty: true })).toBe('active');
-    expect(routeMessage({ ...base, serviceParty: true, isNotice: false })).toBe('active');
+    expect(routeMessage({ ...base, serviceParty: true, isNotice: true })).toBe('active');
   });
-  it('opens a query only for a genuine user PRIVMSG', () => {
+  it('opens a query for a PRIVMSG, including U-lined HelpServ desks', () => {
     expect(routeMessage(base)).toBe('query');
+    expect(routeMessage({ ...base, serviceParty: true })).toBe('query');
+    expect(routeMessage({ ...base, serviceParty: true, isNotice: false })).toBe('query');
   });
 });
 

@@ -19,21 +19,47 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     { id: 'fiprock', name: 'FIP Rock', tag: 'Rock', url: 'https://icecast.radiofrance.fr/fiprock-midfi.mp3', color: '#c41e3a', abbr: 'RK' },
     { id: 'fipgroove', name: 'FIP Groove', tag: 'Funk · Soul', url: 'https://icecast.radiofrance.fr/fipgroove-midfi.mp3', color: '#d4a017', abbr: 'GR' },
     { id: 'mouv', name: 'Mouv\'', tag: 'Hip-hop · Electro', url: 'https://icecast.radiofrance.fr/mouv-midfi.mp3', color: '#111111', abbr: 'MV' },
-    { id: 'rtl', name: 'RTL', tag: 'Généraliste', url: 'https://streaming.radio.rtl.fr/rtl-1-44-128', color: '#0055a4', abbr: 'RTL' },
-    { id: 'rtl2', name: 'RTL2', tag: 'Pop-rock', url: 'https://streaming.radio.rtl.fr/rtl2-1-44-128', color: '#e30613', abbr: 'R2' },
-    { id: 'fun', name: 'Fun Radio', tag: 'Dance · Hits', url: 'https://streaming.radio.funradio.fr/fun-1-44-128', color: '#ff6600', abbr: 'FUN' },
+    { id: 'rtl', name: 'RTL', tag: 'Généraliste', url: 'https://streamer-02.rtl.fr/rtl-1-44-128?listen=webGJmqBU59boQ7rZDjrGO5e4', color: '#0055a4', abbr: 'RTL' },
+    { id: 'rtl2', name: 'RTL2', tag: 'Pop-rock', url: 'https://streamer-02.rtl.fr/rtl2-1-44-128?listen=webGJmqBU59boQ7rZDjrGO5e4', color: '#e30613', abbr: 'R2' },
+    { id: 'fun', name: 'Fun Radio', tag: 'Dance · Hits', url: 'https://streamer-03.rtl.fr/fun-1-44-128?listen=webGJmqBU59boQ7rZDjrGO5e4', color: '#ff6600', abbr: 'FUN' },
     { id: 'europe1', name: 'Europe 1', tag: 'Généraliste', url: 'https://europe1.lmn.fm/europe1.mp3', color: '#003087', abbr: 'E1' },
     { id: 'europe2', name: 'Europe 2', tag: 'Pop · Rock', url: 'https://europe2.lmn.fm/europe2.mp3', color: '#e2007a', abbr: 'E2' },
     { id: 'rmc', name: 'RMC', tag: 'Info · Sport', url: 'https://audio.bfmtv.com/rmcradio_128.mp3', color: '#c4a000', abbr: 'RMC' },
-    { id: 'nrj', name: 'NRJ', tag: 'Hits', url: 'https://scdn.nrjaudio.fm/adwz1/fr/30001/mp3_128.mp3?origine=orbit', color: '#e30613', abbr: 'NRJ' },
-    { id: 'cherie', name: 'Chérie FM', tag: 'Love songs', url: 'https://scdn.nrjaudio.fm/adwz1/fr/30201/mp3_128.mp3?origine=orbit', color: '#e91e8c', abbr: 'CH' },
-    { id: 'rire', name: 'Rire & Chansons', tag: 'Humour', url: 'https://scdn.nrjaudio.fm/adwz1/fr/30401/mp3_128.mp3?origine=orbit', color: '#f4a261', abbr: 'R&C' },
-    { id: 'nostalgie', name: 'Nostalgie', tag: 'Années 60–90', url: 'https://scdn.nrjaudio.fm/adwz1/fr/30601/mp3_128.mp3?origine=orbit', color: '#1a365d', abbr: 'NO' },
+    { id: 'nrj', name: 'NRJ', tag: 'Hits', url: 'https://scdn.nrjaudio.fm/audio1/fr/30001/mp3_128.mp3', color: '#e30613', abbr: 'NRJ' },
+    { id: 'cherie', name: 'Chérie FM', tag: 'Love songs', url: 'https://streaming.nrjaudio.fm/ouuku85n3nje?origine=fluxurlradio', color: '#e91e8c', abbr: 'CH' },
+    { id: 'rire', name: 'Rire & Chansons', tag: 'Humour', url: 'https://scdn.nrjaudio.fm/audio1/fr/30401/mp3_128.mp3', color: '#f4a261', abbr: 'R&C' },
+    { id: 'nostalgie', name: 'Nostalgie', tag: 'Années 60–90', url: 'https://scdn.nrjaudio.fm/audio1/fr/30601/mp3_128.mp3', color: '#1a365d', abbr: 'NO' },
     { id: 'skyrock', name: 'Skyrock', tag: 'Rap · Urban', url: 'https://icecast.skyrock.net/s/natio_mp3_128k', color: '#111111', abbr: 'SKY' },
     { id: 'rfm', name: 'RFM', tag: 'Pop', url: 'https://stream.rfm.fr/rfm.mp3', color: '#e6007e', abbr: 'RFM' },
     { id: 'nova', name: 'Radio Nova', tag: 'Éclectique', url: 'https://novazz.ice.infomaniak.ch/novazz-128.mp3', color: '#ff5400', abbr: 'NV' },
     { id: 'ouifm', name: 'Oui FM', tag: 'Rock', url: 'https://ouifm.ice.infomaniak.ch/ouifm-high.mp3', color: '#00a651', abbr: 'OUI' },
+    { id: 'latina', name: 'Latina', tag: 'Latina', url: 'http://start-latina.ice.infomaniak.ch/start-latina-high.mp3', color: '#c8102e', abbr: 'La' },
   ];
+  var LOGO = {
+    inter: { bg: '#e2001a', fg: '#fff', lines: ['France', 'Inter'], size: 12 },
+    info: { bg: '#0066cc', fg: '#fff', lines: ['france', 'info'], size: 13 },
+    culture: { bg: '#6b2d5b', fg: '#fff', lines: ['France', 'Culture'], size: 10 },
+    musique: { bg: '#8b1a4a', fg: '#fff', lines: ['France', 'Musique'], size: 10 },
+    fip: { bg: '#ffe100', fg: '#111', lines: ['FIP'], size: 22 },
+    fiprock: { bg: '#111', fg: '#ffe100', lines: ['FIP', 'ROCK'], size: 12 },
+    fipgroove: { bg: '#c9a227', fg: '#111', lines: ['FIP', 'GROOVE'], size: 10 },
+    mouv: { bg: '#111', fg: '#d6ff00', lines: ['mouv\''], size: 15 },
+    rtl: { bg: '#0055a4', fg: '#fff', lines: ['RTL'], size: 20 },
+    rtl2: { bg: '#e30613', fg: '#fff', lines: ['RTL2'], size: 17 },
+    fun: { bg: '#ff6600', fg: '#fff', lines: ['FUN'], size: 18 },
+    europe1: { bg: '#003087', fg: '#fff', lines: ['EUROPE', '1'], size: 11 },
+    europe2: { bg: '#e2007a', fg: '#fff', lines: ['EUROPE', '2'], size: 11 },
+    rmc: { bg: '#1a1a1a', fg: '#e8c547', lines: ['RMC'], size: 18 },
+    nrj: { bg: '#e30613', fg: '#fff', lines: ['NRJ'], size: 20 },
+    cherie: { bg: '#e91e8c', fg: '#fff', lines: ['CHÉRIE'], size: 11 },
+    rire: { bg: '#f4a261', fg: '#111', lines: ['RIRE &', 'CHANSONS'], size: 9 },
+    nostalgie: { bg: '#1a365d', fg: '#e8c547', lines: ['Nostalgie'], size: 9 },
+    skyrock: { bg: '#111', fg: '#ffe000', lines: ['SKY', 'ROCK'], size: 13 },
+    rfm: { bg: '#e6007e', fg: '#fff', lines: ['RFM'], size: 20 },
+    nova: { bg: '#ff5400', fg: '#fff', lines: ['NOVA'], size: 16 },
+    ouifm: { bg: '#00a651', fg: '#fff', lines: ['OUI', 'FM'], size: 14 },
+    latina: { bg: '#c8102e', fg: '#fff', lines: ['LATINA'], size: 11 },
+  };
 
   function clampVol(v) { v = Number(v); return isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.6; }
   function loadCustom() {
@@ -81,7 +107,9 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     '@keyframes rq{0%,100%{transform:scaleY(.28)}50%{transform:scaleY(1)}}' +
     '@keyframes rp{0%,100%{opacity:1}50%{opacity:.35}}' +
     '.rbar{width:3px;border-radius:2px;background:var(--accent,#3a7);transform-origin:bottom;animation:rq .9s ease-in-out infinite}' +
-    '.rlogo{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font-size:8px;font-weight:800;letter-spacing:.02em;line-height:1;text-align:center}' +
+    '.rlogo{flex:none;width:32px;height:32px;border-radius:8px;overflow:hidden;background:transparent}' +
+    '.rlogo--now{width:40px;height:40px;border-radius:10px}' +
+    '.rlogo svg{width:100%;height:100%;display:block}' +
     '.rrow{display:flex;align-items:center;gap:8px;padding:.35rem .45rem;border:0;border-radius:10px;background:transparent;color:var(--ink,inherit);font:inherit;text-align:left;cursor:pointer;width:100%}' +
     '.rrow:hover{background:rgba(128,128,128,.13)}' +
     '.rrow.on{box-shadow:inset 3px 0 0 var(--accent,#3a7);background:rgba(128,128,128,.08)}' +
@@ -108,7 +136,7 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
       bigPlay.style.cssText = 'flex:none;width:42px;height:42px;border-radius:50%;border:0;cursor:pointer;display:grid;place-items:center;font-size:17px;background:var(--accent,#3a7);color:var(--bg,#fff);box-shadow:0 6px 16px -6px var(--accent,#3a7)';
       bigPlay.onclick = toggle;
       nowLogo = document.createElement('div');
-      nowLogo.className = 'rlogo';
+      nowLogo.className = 'rlogo rlogo--now';
       var meta = document.createElement('div'); meta.style.cssText = 'min-width:0;flex:1';
       nowName = document.createElement('div'); nowName.style.cssText = 'font-weight:800;font-size:14px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
       var sub = document.createElement('div'); sub.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted,#999);margin-top:2px';
@@ -178,8 +206,42 @@ Orbit.plugin('orbit-radio', function (orbit, log) {
     audio.play().catch(function (e) { log('play blocked: ' + e); render(); });
   }
   function paintLogo(el, st) {
-    el.textContent = st.abbr || initials(st.name);
-    el.style.background = st.color || colorFrom(st.name);
+    el.textContent = '';
+    el.appendChild(makeLogoSvg(st));
+  }
+  function makeLogoSvg(st) {
+    var spec = LOGO[st.id] || {
+      bg: st.color || colorFrom(st.name),
+      fg: '#fff',
+      lines: [st.abbr || initials(st.name)],
+      size: 16,
+    };
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 64 64');
+    svg.setAttribute('aria-hidden', 'true');
+    var bg = document.createElementNS(NS, 'rect');
+    bg.setAttribute('width', '64');
+    bg.setAttribute('height', '64');
+    bg.setAttribute('rx', '14');
+    bg.setAttribute('fill', spec.bg);
+    svg.appendChild(bg);
+    var lines = spec.lines;
+    var fs = spec.size || (lines.length > 1 ? 12 : 20);
+    var ys = lines.length === 1 ? [40] : lines.length === 2 ? [27, 48] : [20, 36, 52];
+    for (var i = 0; i < lines.length; i++) {
+      var t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', '32');
+      t.setAttribute('y', String(ys[i]));
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('fill', spec.fg);
+      t.setAttribute('font-family', 'system-ui,Segoe UI,Arial,sans-serif');
+      t.setAttribute('font-size', String(fs));
+      t.setAttribute('font-weight', '800');
+      t.textContent = lines[i];
+      svg.appendChild(t);
+    }
+    return svg;
   }
   function render() {
     if (!nowName) return;

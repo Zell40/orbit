@@ -28,11 +28,11 @@ export function hasServiceTag(tags: Record<string, string>): boolean {
   return Object.keys(tags).some((k) => !k.startsWith('+') && k.endsWith('/service'));
 }
 
-// Where a one-to-one PRIVMSG/NOTICE belongs. Neither a NOTICE nor anything to/from
-// a services pseudo-client is a real conversation, so it must never spawn a
-// private query. Channel targets stay on the channel; NickServ / the report
-// service go to Status. Incoming notices are then re-homed (shared channel or
-// the Notices buffer) in the messaging handler.
+// Where a one-to-one PRIVMSG/NOTICE belongs. Notices are not a conversation
+// (they are re-homed to a shared channel or the Notices buffer). NickServ /
+// the report service go to Status. A U-lined HelpServ desk (EcoutE, AideMoi,
+// SignalMoi, …) still sends a real PRIVMSG — that must open a query, even
+// though the ircd tags it `/service`. Channel targets stay on the channel.
 export type ServiceRoute = 'channel' | 'report' | 'active' | 'query';
 export function routeMessage(o: {
   isChannel: boolean;
@@ -43,7 +43,8 @@ export function routeMessage(o: {
 }): ServiceRoute {
   if (o.isChannel) return 'channel';
   if (o.reportService || o.nickServParty) return 'report';
-  if (o.isNotice || o.serviceParty) return 'active';
+  if (o.isNotice) return 'active';
+  void o.serviceParty;
   return 'query';
 }
 

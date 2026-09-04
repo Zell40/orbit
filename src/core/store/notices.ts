@@ -9,6 +9,7 @@ type NoticeBuf = {
   isChannel: boolean;
   joined: boolean;
   members: Record<string, unknown>;
+  name?: string;
   messages?: Array<{ kind: string; from: string; text: string; ts: number }>;
 };
 
@@ -80,6 +81,10 @@ export function resolveNoticeDest(opts: {
     return sender ? noticeBufferName(sender) : NOTICES;
   };
   if (!sender) return orphan();
+  // Already talking to this nick in a query (HelpServ desk sitting in the
+  // lobby, radio → EcoutE, …): keep the notice in that PM, not the salon.
+  const query = opts.buffers[canon(sender)];
+  if (query && query.isChannel === false) return query.name || sender;
   const shared = sharedChannelsWith(sender, opts.buffers || {}, opts.order || []);
   const ctx = opts.channelContext && isChannelName(opts.channelContext)
     ? canon(opts.channelContext) : '';

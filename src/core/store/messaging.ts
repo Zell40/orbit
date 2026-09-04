@@ -144,10 +144,10 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     const svcParty = !isChan && !!otherParty &&
       (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
     const nickServParty = !isChan && isNickServ(self ? chanTarget : (msg.nick || ''));
-    // Neither a NOTICE nor any message exchanged with a services pseudo-client is a
-    // real conversation, so it must never open a PM query. Incoming notices land in
-    // a channel we share with the sender, or in the Notices buffer — never in a
-    // random window just because it happens to be open.
+    // Notices are not a conversation: they land in a channel we share with the
+    // sender, or in the Notices buffer — never in a random window just because
+    // it happens to be open. U-lined HelpServ desks still PRIVMSG; those open
+    // a query (see routeMessage). NickServ is diverted to Status above.
     const route = routeMessage({
       isChannel: isChan, reportService: toReportSvc, nickServParty, serviceParty: svcParty, isNotice: kind === 'notice',
     });
@@ -230,7 +230,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     // 'mentions' (default) only on your nick / a highlight word, 'mute' never.
     // A mention = your nick OR any of your highlight words; PMs always alert.
     if (!self && kind !== 'notice') {
-      const isPM = !isChannelName(chanTarget) && !svcParty;
+      const isPM = !isChannelName(chanTarget) && route === 'query';
       const level = isPM ? 'all' : (get().notifyLevel[canon(bufferName)] || 'mentions');
       const lc = text.toLowerCase();
       const mention = (me.length > 1 && lc.includes(me.toLowerCase()))

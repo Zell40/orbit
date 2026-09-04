@@ -59,6 +59,30 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(added[0].name).toBe('bob'); // PM buffer keyed by sender
   });
 
+  it('opens a query for a U-lined HelpServ PRIVMSG instead of the active channel', () => {
+    const { on, added } = setup({ active: '#entrenous.chat' });
+    on('@entrenous.chat/service :EcoutE!hs@services PRIVMSG me :Le ticket #2 est maintenant ouvert.');
+    expect(added[0].name).toBe('EcoutE');
+    expect(added[0].m).toMatchObject({ from: 'EcoutE', kind: 'privmsg' });
+  });
+
+  it('keeps a HelpServ NOTICE in the existing query, not a lobby they sit in', () => {
+    const { on, added } = setup({
+      active: '#entrenous.chat',
+      order: ['#entrenous.chat', 'ecoute'],
+      buffers: {
+        '#entrenous.chat': {
+          isChannel: true, joined: true,
+          members: { EcoutE: { nick: 'EcoutE' }, Jessie: { nick: 'Jessie' } },
+        },
+        ecoute: { isChannel: false, joined: false, members: {}, name: 'EcoutE' },
+      },
+    });
+    on(':EcoutE!hs@services NOTICE me :Le ticket #2 est maintenant ouvert.');
+    expect(added[0].name).toBe('EcoutE');
+    expect(added[0].m.kind).toBe('notice');
+  });
+
   it('drops a message from an ignored nick', () => {
     const { on, added } = setup({ ignored: ['bad'] });
     on(':bad!u@h PRIVMSG #x :spam');

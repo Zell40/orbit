@@ -88,6 +88,18 @@ describe('resolveNoticeDest', () => {
     })).toBe(noticeBufferName('Bac'));
   });
 
+  it('keeps a notice in an existing query even if the sender also sits in the active channel', () => {
+    expect(dest({
+      sender: 'EcoutE',
+      active: '#entrenous.chat',
+      buffers: {
+        '#entrenous.chat': chan(['Jessie', 'EcoutE']),
+        ecoute: { isChannel: false, joined: false, members: {}, name: 'EcoutE' },
+      },
+      order: ['#entrenous.chat', 'ecoute'],
+    })).toBe('EcoutE');
+  });
+
   it('lands in the current window when the Notices pane is disabled', () => {
     expect(dest({
       sender: 'Operateur',
