@@ -29,7 +29,7 @@ function useMediaQuery(query: string): boolean {
 }
 
 /** Radio / games stay next to Accueil·Amis; helpdesk is always the last tab. */
-function sortNavItems(items: { plugin: string }[]) {
+function sortNavItems<T extends { plugin: string }>(items: T[]): T[] {
   const rank = (p: string) => {
     const n = p.toLowerCase();
     if (n === 'helpdesk' || n.includes('helpdesk')) return 90;
