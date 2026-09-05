@@ -120,7 +120,7 @@ input, textarea { font-family: inherit; }
 .splash__bar { width: min(16rem, 72vw); height: 4px; border-radius: 999px; background: var(--bg-soft-2); overflow: hidden; }
 .splash__bar > i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .28s ease; }
 
-.appupd { position: fixed; z-index: 60; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+.appupd { position: fixed; z-index: 200; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); pointer-events: auto;
   display: flex; align-items: center; gap: .85rem; max-width: min(32rem, calc(100vw - 1.5rem));
   padding: .7rem .85rem .7rem 1rem; border-radius: 14px; background: var(--ink); color: #fff;
   box-shadow: 0 10px 32px -8px rgba(0,0,0,.35); }
