@@ -55,9 +55,10 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   }, [onClose]);
 
   const runReason = () => {
-    const r = reason.trim();
-    if (pending === 'kick') modKick(nick, r || undefined);
-    else if (pending === 'bankick') { modBanOnly(nick); modKick(nick, r || undefined); }
+    if (!pending) return;
+    const r = reason.trim() || t('members.reasonDefault');
+    if (pending === 'kick') modKick(nick, r);
+    else if (pending === 'bankick') { modBanOnly(nick); modKick(nick, r); }
     onClose();
   };
 

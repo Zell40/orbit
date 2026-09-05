@@ -881,7 +881,8 @@
     "banKick": "Ban + kick",
     "kickReasonTitle": "Kick {{nick}}",
     "banKickReasonTitle": "Ban + kick {{nick}}",
-    "reasonPlaceholder": "Reason (optional)",
+    "reasonPlaceholder": "Reason (default: kick reason)",
+    "reasonDefault": "kick reason",
     "cancel": "Cancel"
   },
   "composer": {

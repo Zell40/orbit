@@ -1694,6 +1694,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 .memberrsn__btn { border: 1px solid var(--border-2); background: var(--bg-soft); color: var(--ink); font: inherit; font-weight: 600; padding: .5rem .9rem; border-radius: 9px; cursor: pointer; }
 .memberrsn__btn:hover { border-color: var(--accent); }
 .memberrsn__btn--go { border-color: var(--accent); background: var(--accent); color: #fff; }
+.memberrsn__btn--go:disabled { opacity: .45; cursor: not-allowed; }
 
 /* role groups */
 .mgroup { margin-bottom: .35rem; }
