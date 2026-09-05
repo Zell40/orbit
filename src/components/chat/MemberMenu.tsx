@@ -6,9 +6,10 @@ import { getTheme } from '@/themes';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 
-// Nicklist menu: left-click or right-click. Whois for everyone; plugins may
-// add a "Commandes <bot>" block (ChanServ). Native kick/ban/op/voice remain
-// for channel operators without service access.
+// mIRC-style right-click op menu for a nick in the member list. Whois for
+// everyone; native kick / ban / op / voice when you are a channel operator.
+// Plugins may add a "Commandes <bot>" flyout (ChanServ) alongside those actions.
+// Left-click on the row still opens whois.
 type Pending = 'kick' | 'bankick';
 
 export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; x: number; y: number; onClose: () => void; onNavigate?: () => void }) {
@@ -46,7 +47,7 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   }, [x, y, pending]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const onDown = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.memberctx, .memberrsn')) onClose(); };
+    const onDown = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.memberctx, .memberrsn, .ocs-mm__fly')) onClose(); };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('mousedown', onDown);
     window.addEventListener('keydown', onKey);
@@ -85,10 +86,7 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
     <div ref={menuRef} className="memberctx" role="menu" style={{ left: pos.x, top: pos.y }}>
       <div className="memberctx__nick">{targetMember?.prefix}{nick}</div>
       <button className="memberctx__item" role="menuitem" onClick={() => { if (getTheme().startsWith('yomirc')) whoisText(nick); else openUser(nick); onClose(); onNavigate?.(); }}>{t('members.whoisAction')}</button>
-      {memberMenus.map((u) => (
-        <PluginBoundary key={u.id} render={() => u.render({ nick, close: onClose })} label="member_menu" />
-      ))}
-      {canModerate && memberMenus.length === 0 && (
+      {canModerate && (
         <>
           <div className="memberctx__sep" />
           <button className="memberctx__item" role="menuitem" onClick={() => setPending('kick')}>{t('whois.kick')}</button>
@@ -99,6 +97,10 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
           <button className="memberctx__item" role="menuitem" onClick={() => { modSetMode(nick, 'v', true); onClose(); }}>{t('whois.voice')}</button>
         </>
       )}
+      {memberMenus.length > 0 && <div className="memberctx__sep" />}
+      {memberMenus.map((u) => (
+        <PluginBoundary key={u.id} render={() => u.render({ nick, close: onClose })} label="member_menu" />
+      ))}
     </div>
   );
 }

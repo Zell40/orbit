@@ -49,6 +49,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useTranslation();
   const membersMap = useActiveChat((s) => s.buffers[s.active]?.members);
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
+  const openUser = useActiveChat((s) => s.openUser);
   const prefixOrder = useActiveChat((s) => s.client?.server.prefixModes ?? '~&@%+');
 
   // Classic nicklist by default; ASL browser is a separate Kiwi-style mode.
@@ -179,7 +180,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
                     className={`member member--asl ${m.oper ? 'member--oper' : ''} ${m.away ? 'is-away' : ''} ${profile ? `member--g-${profile.gender}` : ''} ${m.account ? 'member--reg' : ''}`}
                     key={m.nick}
                     title={title}
-                    onClick={(e) => { setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
+                    onClick={() => { openUser(m.nick); onNavigate?.(); }}
                     onContextMenu={(e) => { e.preventDefault(); setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
                   >
                     <span className="member__asl-nick">
@@ -205,7 +206,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
                   className={`member ${m.oper ? 'member--oper' : ''} ${m.away ? 'is-away' : ''} ${profile ? `member--g-${profile.gender}` : ''} ${m.account ? 'member--reg' : ''}`}
                   key={m.nick}
                   title={title}
-                  onClick={(e) => { setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
+                  onClick={() => { openUser(m.nick); onNavigate?.(); }}
                   onContextMenu={(e) => { e.preventDefault(); setMenu({ nick: m.nick, x: e.clientX, y: e.clientY }); }}
                 >
                   <Avatar nick={m.nick} size={30} account={m.account} ring={genderColor} bot={m.bot} />
