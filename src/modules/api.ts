@@ -17,7 +17,7 @@ import { pluginNotify } from '../platform/notify';
 import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../themes';
 import { getConfig, pluginDebug } from '../core/config';
 import { bus } from './bus';
-import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type FilterableMessage } from './registry';
+import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type MemberMenuCtx, type FilterableMessage } from './registry';
 
 const html = htm.bind(React.createElement);
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
@@ -25,7 +25,7 @@ const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomi
 // Plugin API contract version. Bumped on any change to the surface below so
 // plugins can feature-detect (e.g. `if (Orbit.apiVersion >= 6) orbit.server.hasCap(…)`).
 // Still experimental.
-const API_VERSION = 9;
+const API_VERSION = 10;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -120,6 +120,8 @@ export interface OrbitPluginApi {
   addMessageAction: (render: (m: MessageInfo) => ReactNode) => () => void;
   /** Add a button to a user's profile/whois card (gets the target nick + a close()). */
   addUserAction: (render: (ctx: UserActionCtx) => ReactNode) => () => void;
+  /** Add a block to the nicklist click menu (gets the target nick + a close()). */
+  addMemberMenu: (render: (ctx: MemberMenuCtx) => ReactNode) => () => void;
   /** Hide messages from the chat display (return true to suppress). The plugin still
    *  receives them via on('raw'). Use for a service's machine-readable control lines. */
   addMessageFilter: (fn: (m: FilterableMessage) => boolean) => () => void;
@@ -210,6 +212,7 @@ function makeApi(name: string): OrbitPluginApi {
     addMessageDecorator: (render) => usePluginRegistry.getState().addDecorator(name, render),
     addMessageAction: (render) => usePluginRegistry.getState().addAction(name, render),
     addUserAction: (render) => usePluginRegistry.getState().addUserAction(name, render),
+    addMemberMenu: (render) => usePluginRegistry.getState().addMemberMenu(name, render),
     addMessageFilter: (fn) => usePluginRegistry.getState().addMessageFilter(name, fn),
     addCommand: (cmd, spec) => usePluginRegistry.getState().addCommand(name, cmd, spec.run, spec.help),
     notify: (title, body) => pluginNotify(title, body),

@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 
 import { useActiveChat } from '@/core/networks';
 import { getTheme } from '@/themes';
+import { usePluginRegistry } from '@/modules/registry';
+import { PluginBoundary } from '../PluginBoundary';
 
-// mIRC-style right-click op menu for a nick in the member list. Whois for
-// everyone (printed inline to the active window under yomirc, like classic mIRC;
-// panel otherwise); kick / ban / ban+kick (with a reason dialog) + op/voice when
-// the current user is a channel operator. Left-click on the row still opens whois.
+// Nicklist menu: left-click or right-click. Whois for everyone; plugins may
+// add a "Commandes <bot>" block (ChanServ). Native kick/ban/op/voice remain
+// for channel operators without service access.
 type Pending = 'kick' | 'bankick';
 
 export function MemberMenu({ nick, x, y, onClose }: { nick: string; x: number; y: number; onClose: () => void }) {
@@ -21,6 +22,7 @@ export function MemberMenu({ nick, x, y, onClose }: { nick: string; x: number; y
   const modKick = useActiveChat((s) => s.modKick);
   const modBanOnly = useActiveChat((s) => s.modBanOnly);
   const modSetMode = useActiveChat((s) => s.modSetMode);
+  const memberMenus = usePluginRegistry((s) => s.memberMenus);
 
   const amOp = /[~&@%]/.test(myPrefix);
   const isMe = nick === me;
@@ -83,7 +85,10 @@ export function MemberMenu({ nick, x, y, onClose }: { nick: string; x: number; y
     <div ref={menuRef} className="memberctx" role="menu" style={{ left: pos.x, top: pos.y }}>
       <div className="memberctx__nick">{targetMember?.prefix}{nick}</div>
       <button className="memberctx__item" role="menuitem" onClick={() => { if (getTheme().startsWith('yomirc')) whoisText(nick); else openUser(nick); onClose(); }}>{t('members.whoisAction')}</button>
-      {canModerate && (
+      {memberMenus.map((u) => (
+        <PluginBoundary key={u.id} render={() => u.render({ nick, close: onClose })} label="member_menu" />
+      ))}
+      {canModerate && memberMenus.length === 0 && (
         <>
           <div className="memberctx__sep" />
           <button className="memberctx__item" role="menuitem" onClick={() => setPending('kick')}>{t('whois.kick')}</button>

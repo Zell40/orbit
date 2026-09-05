@@ -55,6 +55,14 @@ export interface PluginPerUser {
   render: (ctx: UserActionCtx) => ReactNode;
 }
 
+// Context for a nicklist (member) menu contribution.
+export interface MemberMenuCtx { nick: string; close: () => void }
+export interface PluginMemberMenu {
+  id: string;
+  plugin: string;
+  render: (ctx: MemberMenuCtx) => ReactNode;
+}
+
 // A message offered to plugin filters before it is shown. Returning true from a
 // filter suppresses the message from the chat display (plugins still see it via
 // on('raw')). Used e.g. to hide a service's machine-readable control lines.
@@ -132,6 +140,7 @@ interface RegistryState {
   decorators: PluginPerMessage[];
   actions: PluginPerMessage[];
   userActions: PluginPerUser[];
+  memberMenus: PluginMemberMenu[];
   messageFilters: PluginFilter[];
   commands: PluginCommand[];
   shortcuts: PluginShortcut[];
@@ -141,6 +150,7 @@ interface RegistryState {
   addDecorator: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addAction: (plugin: string, render: (m: MessageInfo) => ReactNode) => () => void;
   addUserAction: (plugin: string, render: (ctx: UserActionCtx) => ReactNode) => () => void;
+  addMemberMenu: (plugin: string, render: (ctx: MemberMenuCtx) => ReactNode) => () => void;
   addMessageFilter: (plugin: string, fn: (m: FilterableMessage) => boolean) => () => void;
   addCommand: (plugin: string, name: string, run: PluginCommand['run'], help?: string) => () => void;
   addShortcut: (plugin: string, combo: string, run: PluginShortcut['run']) => () => void;
@@ -154,6 +164,7 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
   decorators: [],
   actions: [],
   userActions: [],
+  memberMenus: [],
   messageFilters: [],
   commands: [],
   shortcuts: [],
@@ -178,6 +189,11 @@ export const usePluginRegistry = create<RegistryState>((set) => ({
     const id = `${plugin}:usr:${Math.random().toString(36).slice(2, 8)}`;
     set((s) => ({ userActions: [...s.userActions, { id, plugin, render }] }));
     return () => set((s) => ({ userActions: s.userActions.filter((a) => a.id !== id) }));
+  },
+  addMemberMenu: (plugin, render) => {
+    const id = `${plugin}:mm:${Math.random().toString(36).slice(2, 8)}`;
+    set((s) => ({ memberMenus: [...s.memberMenus, { id, plugin, render }] }));
+    return () => set((s) => ({ memberMenus: s.memberMenus.filter((a) => a.id !== id) }));
   },
   addMessageFilter: (plugin, fn) => {
     const id = `${plugin}:flt:${Math.random().toString(36).slice(2, 8)}`;
