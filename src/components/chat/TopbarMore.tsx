@@ -20,6 +20,9 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, onSearch }:
   // array every read → zustand Object.is → infinite re-render / React #185).
   const pluginUi = usePluginRegistry((s) => s.ui);
   const morePlugins = pluginUi.filter((u) => u.slot === 'topbar_more_item');
+  const afterManageNames = new Set(['orbit-chanserv']);
+  const moreAfterManage = morePlugins.filter((u) => afterManageNames.has(u.plugin));
+  const moreRest = morePlugins.filter((u) => !afterManageNames.has(u.plugin));
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -46,7 +49,7 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, onSearch }:
             <span className="nmenu__ic" aria-hidden><Icon name="search" size={18} /></span>
             <span className="nmenu__txt"><b>{t('topbar.search')}</b></span>
           </button>
-          {morePlugins.map((u) => (
+          {moreRest.map((u) => (
             <div key={u.id} role="none" onClick={() => setOpen(false)}>
               <PluginBoundary render={u.render} label="topbar_more_item" />
             </div>
@@ -63,6 +66,11 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, onSearch }:
               <span className="nmenu__txt"><b>{t('topbar.manage')}</b></span>
             </button>
           )}
+          {moreAfterManage.map((u) => (
+            <div key={u.id} role="none" onClick={() => setOpen(false)}>
+              <PluginBoundary render={u.render} label="topbar_more_item" />
+            </div>
+          ))}
           <button className="nmenu__item nmenu__item--danger" role="menuitem" onClick={() => run(() => closeBuffer(bname))}>
             <span className="nmenu__ic" aria-hidden><Icon name="logout" size={18} /></span>
             <span className="nmenu__txt"><b>{isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}</b></span>
