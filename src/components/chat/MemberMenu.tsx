@@ -85,6 +85,10 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   return (
     <div ref={menuRef} className="memberctx" role="menu" style={{ left: pos.x, top: pos.y }}>
       <div className="memberctx__nick">{targetMember?.prefix}{nick}</div>
+      {memberMenus.map((u) => (
+        <PluginBoundary key={u.id} render={() => u.render({ nick, close: onClose })} label="member_menu" />
+      ))}
+      {memberMenus.length > 0 && <div className="memberctx__sep" />}
       <button className="memberctx__item" role="menuitem" onClick={() => { if (getTheme().startsWith('yomirc')) whoisText(nick); else openUser(nick); onClose(); onNavigate?.(); }}>{t('members.whoisAction')}</button>
       {canModerate && (
         <>
@@ -97,10 +101,6 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
           <button className="memberctx__item" role="menuitem" onClick={() => { modSetMode(nick, 'v', true); onClose(); }}>{t('whois.voice')}</button>
         </>
       )}
-      {memberMenus.length > 0 && <div className="memberctx__sep" />}
-      {memberMenus.map((u) => (
-        <PluginBoundary key={u.id} render={() => u.render({ nick, close: onClose })} label="member_menu" />
-      ))}
     </div>
   );
 }

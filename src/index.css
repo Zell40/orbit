@@ -1674,10 +1674,10 @@ html[data-actions="off"] .msg-actions { display: none; }
 }
 
 /* right-click op menu (mIRC-style) + reason dialog */
-.memberctx { position: fixed; z-index: 200; min-width: 168px; max-width: 280px; padding: 4px; border-radius: 10px;
+.memberctx { position: fixed; z-index: 200; min-width: 240px; max-width: 360px; padding: 4px; border-radius: 10px;
   overflow: visible; background: var(--bg); border: 1px solid var(--border-2); box-shadow: var(--shadow-pop); font-size: .86rem; animation: cfaq-fade .1s ease both; }
 .memberctx__nick { padding: .35rem .6rem .3rem; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--border); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.memberctx__item { display: block; width: 100%; text-align: left; border: 0; background: none; color: var(--ink); font: inherit; padding: .42rem .6rem; border-radius: 7px; cursor: pointer; }
+.memberctx__item { display: block; width: 100%; text-align: left; border: 0; background: none; color: var(--ink); font: inherit; padding: .42rem .6rem; border-radius: 7px; cursor: pointer; white-space: nowrap; }
 .memberctx__item:hover { background: var(--accent); color: #fff; }
 .memberctx__item--warn { color: var(--danger); }
 .memberctx__item--warn:hover { background: var(--danger); color: #fff; }
