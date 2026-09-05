@@ -225,7 +225,7 @@ export function MemberList({ onNavigate }: { onNavigate?: () => void }) {
         ))}
         {groups.length === 0 && <div className="rooms-empty">{t('profile.noMembers')}</div>}
       </div>
-      {menu && <MemberMenu nick={menu.nick} x={menu.x} y={menu.y} onClose={() => setMenu(null)} />}
+      {menu && <MemberMenu nick={menu.nick} x={menu.x} y={menu.y} onClose={() => setMenu(null)} onNavigate={onNavigate} />}
     </aside>
   );
 }

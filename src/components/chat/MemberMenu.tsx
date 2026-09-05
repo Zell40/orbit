@@ -11,7 +11,7 @@ import { PluginBoundary } from '../PluginBoundary';
 // for channel operators without service access.
 type Pending = 'kick' | 'bankick';
 
-export function MemberMenu({ nick, x, y, onClose }: { nick: string; x: number; y: number; onClose: () => void }) {
+export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; x: number; y: number; onClose: () => void; onNavigate?: () => void }) {
   const { t } = useTranslation();
   const openUser = useActiveChat((s) => s.openUser);
   const whoisText = useActiveChat((s) => s.whoisText);
@@ -84,7 +84,7 @@ export function MemberMenu({ nick, x, y, onClose }: { nick: string; x: number; y
   return (
     <div ref={menuRef} className="memberctx" role="menu" style={{ left: pos.x, top: pos.y }}>
       <div className="memberctx__nick">{targetMember?.prefix}{nick}</div>
-      <button className="memberctx__item" role="menuitem" onClick={() => { if (getTheme().startsWith('yomirc')) whoisText(nick); else openUser(nick); onClose(); }}>{t('members.whoisAction')}</button>
+      <button className="memberctx__item" role="menuitem" onClick={() => { if (getTheme().startsWith('yomirc')) whoisText(nick); else openUser(nick); onClose(); onNavigate?.(); }}>{t('members.whoisAction')}</button>
       {memberMenus.map((u) => (
         <PluginBoundary key={u.id} render={() => u.render({ nick, close: onClose })} label="member_menu" />
       ))}
