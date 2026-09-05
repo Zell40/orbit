@@ -15,7 +15,7 @@ import { FriendsPanel } from './chat/FriendsPanel';
 import { useActiveChat } from '@/core/networks';
 import { bindMobileNavClose } from '@/lib/mobile-nav';
 
-export function Chat() {
+export function Chat({ locked = false }: { locked?: boolean }) {
   const { t } = useTranslation();
   const [navOpen, setNavOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
@@ -52,7 +52,7 @@ export function Chat() {
     if (!isChannel) setMembersOpen(false);
   }, [isChannel]);
   return (
-    <div className="shell">
+    <div className={`shell${locked ? ' is-booting' : ''}`} inert={locked || undefined} aria-hidden={locked || undefined}>
       {navbar.map((u) => <PluginBoundary key={u.id} render={u.render} label="navbar" />)}
     <div className={`app ${navOpen ? 'nav-open' : ''} ${membersOpen ? 'members-open' : ''} ${isChannel ? '' : 'app--nomembers'}`}>
       <a className="skip-link" href="#orbit-main">{t('a11y.skip')}</a>

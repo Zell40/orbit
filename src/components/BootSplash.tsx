@@ -9,19 +9,22 @@ const PHASE_KEY: Record<BootPhase, string> = {
   almost: 'connect.almostReady',
 };
 
-export function BootSplash({ progress, phase, fading }: {
+export function BootSplash({ progress, phase, fading, peek }: {
   progress: number;
   phase: BootPhase;
   fading: boolean;
+  peek?: boolean;
 }) {
   const { t } = useTranslation();
   const cfg = getConfig();
   return (
-    <div className={`splash${fading ? ' is-out' : ''}`} role="status" aria-live="polite" aria-busy={!fading}>
-      <span className="splash__mark"><img src={cfg.branding.icon} alt="" /></span>
-      <p className="splash__txt">{t(PHASE_KEY[phase])}</p>
-      <div className="splash__bar" aria-hidden="true">
-        <i style={{ width: `${Math.max(6, Math.min(100, progress))}%` }} />
+    <div className={`splash${peek ? ' splash--peek' : ''}${fading ? ' is-out' : ''}`} role="status" aria-live="polite" aria-busy={!fading}>
+      <div className="splash__hud">
+        <span className="splash__mark"><img src={cfg.branding.icon} alt="" /></span>
+        <p className="splash__txt">{t(PHASE_KEY[phase])}</p>
+        <div className="splash__bar" aria-hidden="true">
+          <i style={{ width: `${Math.max(6, Math.min(100, progress))}%` }} />
+        </div>
       </div>
     </div>
   );
