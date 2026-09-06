@@ -29,7 +29,7 @@ export function hasServiceTag(tags: Record<string, string>): boolean {
 }
 
 // Where a one-to-one PRIVMSG/NOTICE belongs. Notices are not a conversation
-// (they are re-homed to a shared channel or the Notices buffer). NickServ /
+// (they are re-homed to a shared channel or the current window). NickServ /
 // the report service go to Status. A U-lined HelpServ desk (EcoutE, AideMoi,
 // SignalMoi, …) still sends a real PRIVMSG — that must open a query, even
 // though the ircd tags it `/service`. Channel targets stay on the channel.

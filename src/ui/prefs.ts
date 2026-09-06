@@ -18,7 +18,7 @@ export interface Prefs {
   topicSetterFull: boolean;
   /** Show the Status (server console) buffer in the room list. Off by default. */
   showStatus: boolean;
-  /** Off-channel NOTICEs in a Notices sidebar block (one buffer per sender). Off = current window. */
+  /** Unused: off-channel NOTICEs now always land in the current window. Kept so old localStorage still parses. */
   noticeInbox: boolean;
   /** DM read receipts (Orbit ↔ Orbit TAGMSG). Off = don't send, don't show "read". */
   readReceipts: boolean;
@@ -35,7 +35,7 @@ function defaults(): Prefs {
   return {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, hideModes: false, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
-    bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: true,
+    bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: false,
     readReceipts: true,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };

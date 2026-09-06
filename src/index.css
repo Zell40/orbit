@@ -879,13 +879,38 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   padding-top: .45rem; border-top: 1px solid rgba(139, 92, 246, .18);
 }
 .noticeline__tag { background: #8b5cf6 !important; color: #fff !important; box-shadow: 0 2px 6px -2px rgba(139,92,246,.6); }
+.noticeline--room {
+  background: #eef8fb;
+  border-color: rgba(8, 145, 178, .28);
+  border-left-color: #0891b2;
+}
+.noticeline--room .noticeline__tag { background: #0891b2 !important; box-shadow: 0 2px 6px -2px rgba(8, 145, 178, .55); }
+.noticeline--room .noticeline__txt { color: #0e7490; }
+.noticeline--room .noticeline__body--stack .noticeline__txt + .noticeline__txt {
+  border-top-color: rgba(8, 145, 178, .18);
+}
+.noticeline--service {
+  background: #f3effe;
+  border-color: rgba(139, 92, 246, .28);
+  border-left-color: #7c3aed;
+}
+.noticeline--direct {
+  background: #fff7ed;
+  border-color: rgba(217, 119, 6, .28);
+  border-left-color: #d97706;
+}
+.noticeline--direct .noticeline__tag { background: #d97706 !important; box-shadow: 0 2px 6px -2px rgba(217, 119, 6, .55); }
+.noticeline--direct .noticeline__txt { color: #b45309; }
+.noticeline--direct .noticeline__body--stack .noticeline__txt + .noticeline__txt {
+  border-top-color: rgba(217, 119, 6, .18);
+}
 .noticeline__txt {
   color: #6d28d9; font-weight: 700; font-size: .9rem;
   overflow-wrap: anywhere; line-height: 1.55;
   white-space: pre-wrap;
 }
 .noticeline__body.is-clamped {
-  max-height: 9.6em; /* ~5–6 lines of notice text, enough to read INFO + URL */
+  max-height: 11.5em;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(#000 78%, transparent);
   mask-image: linear-gradient(#000 78%, transparent);

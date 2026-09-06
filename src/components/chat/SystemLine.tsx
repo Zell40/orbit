@@ -3,6 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
 import { fmtTime, nickColor, formatIrc, splitNoticeLines, formatModeChange, formatModeFlagLine, isNickModeGroup, banTargetLabel, splitModeAndBans, modeStringWithoutBans, type ModeDisplayGroup } from '@/lib/format';
 import { SERVER, isChannelName } from '@/core/store/context';
+import { isService } from '@/core/services';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
@@ -30,8 +31,11 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const setActive = useActiveChat((s) => s.setActive);
   const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
-  const inChannel = useActiveChat((s) => isChannelName(s.active));
   const head = messages[0];
+  const service = !!head.from && isService(head.from);
+  const room = head.noticeScope === 'room' && !service;
+  const tone = room ? 'room' : service ? 'service' : 'direct';
+  const tag = room ? t('modeline.noticeRoomTag') : service ? t('modeline.noticeServiceTag') : t('modeline.noticeTag');
   const showCtx = firstOfRun(msgs, head, (x) => x.channelContext);
   const combined = messages.map((m) => m.text).join('\n');
   const lines = messages.flatMap((m) =>
@@ -43,8 +47,8 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const clipRef = useRef<HTMLDivElement>(null);
-  // Fold only in channels — Status / Notices / PMs keep the full callout.
-  const canClamp = inChannel;
+  const long = lines.length > 4 || combined.length > 280;
+  const canClamp = long;
   useLayoutEffect(() => {
     if (!canClamp) { setOverflows(false); return; }
     const el = clipRef.current;
@@ -55,9 +59,9 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const clamped = canClamp && !expanded;
   const showToggle = canClamp && (overflows || previewUrls.length > 0);
   return (
-    <div className="noticeline">
+    <div className={`noticeline noticeline--${tone}`}>
       <div className="noticeline__head">
-        <span className="modeline__tag noticeline__tag">NOTICE</span>
+        <span className="modeline__tag noticeline__tag">{tag}</span>
         <CalloutTime ts={head.ts} />
         {head.from && <span className="modeline__who" style={{ color: nickColor(head.from) }}>{head.from}</span>}
       </div>

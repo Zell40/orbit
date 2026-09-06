@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeMessaging } from './messaging';
 import { parseLine } from '../irc/parser';
-import { SERVER, noticeBufferName } from './context';
+import { SERVER } from './context';
 import type { ChatMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -66,7 +66,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(added[0].m).toMatchObject({ from: 'EcoutE', kind: 'privmsg' });
   });
 
-  it('keeps a HelpServ NOTICE in the existing query, not a lobby they sit in', () => {
+  it('keeps a HelpServ NOTICE in the salon you are looking at, not a query tab', () => {
     const { on, added } = setup({
       active: '#entrenous.chat',
       order: ['#entrenous.chat', 'ecoute'],
@@ -79,8 +79,8 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       },
     });
     on(':EcoutE!hs@services NOTICE me :Le ticket #2 est maintenant ouvert.');
-    expect(added[0].name).toBe('EcoutE');
-    expect(added[0].m.kind).toBe('notice');
+    expect(added[0].name).toBe('#entrenous.chat');
+    expect(added[0].m).toMatchObject({ from: 'EcoutE', kind: 'notice', noticeScope: 'room' });
   });
 
   it('drops a message from an ignored nick', () => {
@@ -109,10 +109,16 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
   });
 
   it('captures +draft/channel-context off a service notice', () => {
-    const { on, added } = setup();
+    const { on, added } = setup({
+      order: ['#x', '#ops'],
+      buffers: {
+        '#x': { isChannel: true, joined: true, members: {} },
+        '#ops': { isChannel: true, joined: true, members: { ChanServ: { nick: 'ChanServ' } } },
+      },
+    });
     on('@+draft/channel-context=#ops :ChanServ!s@services NOTICE me :bob removed your access to #ops');
     expect(added).toHaveLength(1);
-    expect(added[0].name).toBe(noticeBufferName('ChanServ'));
+    expect(added[0].name).toBe('#ops');
     expect(added[0].m).toMatchObject({ kind: 'notice', channelContext: '#ops' });
   });
 
@@ -136,17 +142,17 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(state.nickServAlert).toBeNull();
   });
 
-  it('dumps an orphan notice into the active window when the Notices pane is off', () => {
-    const { on, added } = setup({ active: '#x', prefs: { sound: false, noticeInbox: false } });
+  it('dumps an orphan notice into the active window', () => {
+    const { on, added } = setup({ active: '#x', prefs: { sound: false } });
     on(':Operateur!o@h NOTICE me :INFO rules');
     expect(added[0].name).toBe('#x');
   });
 
-  it('opens a per-sender Notices buffer for an orphan notice', () => {
+  it('shows a ChanServ notice in the current window instead of a Notices tab', () => {
     const { on, added } = setup();
     on(':ChanServ!s@services NOTICE me :hello');
-    expect(added[0].name).toBe(noticeBufferName('ChanServ'));
-    expect(added[0].m.channelContext).toBeUndefined();
+    expect(added[0].name).toBe('#x');
+    expect(added[0].m).toMatchObject({ kind: 'notice', noticeScope: 'direct' });
   });
 
   it('shows a bot notice in the shared channel, not the unrelated active window', () => {
@@ -160,7 +166,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     });
     on(':Bac!bot@host NOTICE me :Une partie est en cours !');
     expect(added[0].name).toBe('#baccalaureat.chat');
-    expect(added[0].m).toMatchObject({ kind: 'notice', from: 'Bac' });
+    expect(added[0].m).toMatchObject({ kind: 'notice', from: 'Bac', noticeScope: 'room' });
   });
 
   it('drops a user NOTICE that copies a recent channel PRIVMSG from the same nick', () => {

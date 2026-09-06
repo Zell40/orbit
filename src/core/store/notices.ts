@@ -1,9 +1,9 @@
 // Where an incoming user-targeted NOTICE belongs: the channel we share with the
-// sender when that's unambiguous, otherwise the Notices sidebar buffer. Stops a
-// bot on #baccalaureat from dumping notices into whatever window is currently
-// open (#entrenous, a DM, …). Bots like Bac also PRIVMSG the same lines to the
-// channel — those copies must not be re-inserted as NOTICE.
-import { canon, isChannelName, NOTICES, SERVER, noticeBufferName } from './context';
+// sender when that's unambiguous, otherwise the window you are looking at.
+// Notices are not a conversation — they must not open a PM-like tab. Bots like
+// Bac also PRIVMSG the same lines to the channel — those copies must not be
+// re-inserted as NOTICE.
+import { canon, isChannelName, SERVER } from './context';
 
 type NoticeBuf = {
   isChannel: boolean;
@@ -72,19 +72,10 @@ export function resolveNoticeDest(opts: {
   channelContext?: string;
   buffers: Record<string, NoticeBuf | undefined>;
   order: string[];
-  /** When false, orphan notices land in the focused window instead of the Notices pane. */
-  noticeInbox?: boolean;
 }): string {
   const sender = opts.sender || '';
-  const orphan = () => {
-    if (opts.noticeInbox === false) return opts.active || SERVER;
-    return sender ? noticeBufferName(sender) : NOTICES;
-  };
-  if (!sender) return orphan();
-  // Already talking to this nick in a query (HelpServ desk sitting in the
-  // lobby, radio → EcoutE, …): keep the notice in that PM, not the salon.
-  const query = opts.buffers[canon(sender)];
-  if (query && query.isChannel === false) return query.name || sender;
+  const current = () => opts.active || SERVER;
+  if (!sender) return current();
   const shared = sharedChannelsWith(sender, opts.buffers || {}, opts.order || []);
   const ctx = opts.channelContext && isChannelName(opts.channelContext)
     ? canon(opts.channelContext) : '';
@@ -92,5 +83,20 @@ export function resolveNoticeDest(opts: {
   const activeKey = opts.active ? canon(opts.active) : '';
   if (activeKey && shared.includes(activeKey)) return activeKey;
   if (shared.length === 1) return shared[0];
-  return orphan();
+  return current();
+}
+
+/** JOIN/welcome bots share exactly one salon; ChanServ help and other replies do not. */
+export function noticeScopeFor(opts: {
+  sender: string;
+  dest: string;
+  shared: string[];
+  channelTarget: boolean;
+  service: boolean;
+}): 'room' | 'direct' {
+  if (opts.channelTarget) return 'room';
+  if (opts.service) return 'direct';
+  const destKey = canon(opts.dest);
+  if (opts.shared.length === 1 && canon(opts.shared[0]) === destKey) return 'room';
+  return 'direct';
 }

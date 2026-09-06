@@ -12,7 +12,7 @@ import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
-import { resolveNoticeDest, noticeIsChannelEcho } from './notices';
+import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor } from './notices';
 import { rememberQueryAccount } from './helpers';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
@@ -145,9 +145,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
     const nickServParty = !isChan && isNickServ(self ? chanTarget : (msg.nick || ''));
     // Notices are not a conversation: they land in a channel we share with the
-    // sender, or in the Notices buffer — never in a random window just because
-    // it happens to be open. U-lined HelpServ desks still PRIVMSG; those open
-    // a query (see routeMessage). NickServ is diverted to Status above.
+    // sender, or in the window you are looking at — never a PM-like tab.
     const route = routeMessage({
       isChannel: isChan, reportService: toReportSvc, nickServParty, serviceParty: svcParty, isNotice: kind === 'notice',
     });
@@ -160,6 +158,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
         : route === 'active'
           ? (get().active || SERVER)
           : (self ? chanTarget : msg.nick);
+    let noticeScope: ChatMessage['noticeScope'];
     if (kind === 'notice' && !self && !isChan && route === 'active') {
       const s = get();
       const echoOpts = {
@@ -173,14 +172,23 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       // lines. Don't paste the NOTICE copy into the salon — that splits one intro
       // into privmsg + notice bubbles.
       if (noticeIsChannelEcho(echoOpts)) return true;
+      const shared = sharedChannelsWith(echoOpts.sender, echoOpts.buffers, echoOpts.order);
       bufferName = resolveNoticeDest({
         sender: echoOpts.sender,
         active: s.active || '',
         channelContext: chanCtx,
         buffers: echoOpts.buffers,
         order: echoOpts.order,
-        noticeInbox: s.prefs.noticeInbox !== false,
       });
+      noticeScope = noticeScopeFor({
+        sender: echoOpts.sender,
+        dest: bufferName,
+        shared,
+        channelTarget: false,
+        service: svcParty || isService(echoOpts.sender),
+      });
+    } else if (kind === 'notice' && isChan) {
+      noticeScope = 'room';
     }
     // One we send shows the recipient; one we receive shows the sender.
     const noticeText = toActive && self ? `→ ${chanTarget} : ${text}` : statusTag + text;
@@ -193,6 +201,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       text: self && (svcParty || isService(bufferName)) ? maskSecret(noticeText) : noticeText, ts: tsOf(msg), kind, self,
       replyTo: msg.tags['+draft/reply'],
       channelContext: chanCtx,
+      noticeScope,
       tags: clientTagsForPlugins(msg.tags),
     };
     const acct = cm.account || (self ? get().account : undefined);

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { NOTICES, noticeBufferName } from './context';
-import { nickInMembers, resolveNoticeDest, noticeIsChannelEcho } from './notices';
+import { nickInMembers, resolveNoticeDest, noticeIsChannelEcho, noticeScopeFor } from './notices';
 
 const chan = (members: string[], joined = true) => ({
   isChannel: true as const,
@@ -46,15 +45,15 @@ describe('resolveNoticeDest', () => {
     })).toBe('#baccalaureat.chat');
   });
 
-  it('opens a per-sender Notices buffer when no joined channel is shared with the sender', () => {
+  it('lands in the current window when no joined channel is shared with the sender', () => {
     expect(dest({
       sender: 'Bac',
       buffers: { '#entrenous.chat': chan(['Jessie']) },
       order: ['#entrenous.chat'],
-    })).toBe(noticeBufferName('Bac'));
+    })).toBe('#entrenous.chat');
   });
 
-  it('opens a per-sender Notices buffer when the sender is in several channels and the active one is not one of them', () => {
+  it('lands in the current window when the sender is in several channels and the active one is not one of them', () => {
     expect(dest({
       sender: 'Bac',
       active: '#entrenous.chat',
@@ -64,7 +63,7 @@ describe('resolveNoticeDest', () => {
         '#aide.chat': chan(['Bac']),
       },
       order: ['#entrenous.chat', '#baccalaureat.chat', '#aide.chat'],
-    })).toBe(noticeBufferName('Bac'));
+    })).toBe('#entrenous.chat');
   });
 
   it('prefers +draft/channel-context when we share that channel with the sender', () => {
@@ -85,10 +84,10 @@ describe('resolveNoticeDest', () => {
       sender: 'Bac',
       buffers: { '#baccalaureat.chat': chan(['Bac'], false) },
       order: ['#baccalaureat.chat'],
-    })).toBe(noticeBufferName('Bac'));
+    })).toBe('#entrenous.chat');
   });
 
-  it('keeps a notice in an existing query even if the sender also sits in the active channel', () => {
+  it('does not mix a notice into an existing query', () => {
     expect(dest({
       sender: 'EcoutE',
       active: '#entrenous.chat',
@@ -97,24 +96,14 @@ describe('resolveNoticeDest', () => {
         ecoute: { isChannel: false, joined: false, members: {}, name: 'EcoutE' },
       },
       order: ['#entrenous.chat', 'ecoute'],
-    })).toBe('EcoutE');
-  });
-
-  it('lands in the current window when the Notices pane is disabled', () => {
-    expect(dest({
-      sender: 'Operateur',
-      active: '#entrenous.chat',
-      noticeInbox: false,
-      buffers: { '#entrenous.chat': chan(['Jessie']) },
-      order: ['#entrenous.chat'],
     })).toBe('#entrenous.chat');
   });
 
-  it('falls back to the combined Notices log when the sender nick is empty', () => {
+  it('falls back to the current window when the sender nick is empty', () => {
     expect(dest({
       sender: '',
       active: '#entrenous.chat',
-    })).toBe(NOTICES);
+    })).toBe('#entrenous.chat');
   });
 });
 
@@ -147,5 +136,22 @@ describe('noticeIsChannelEcho', () => {
         },
       },
     })).toBe(false);
+  });
+});
+
+describe('noticeScopeFor', () => {
+  it('marks a unique shared salon as a room notice', () => {
+    expect(noticeScopeFor({
+      sender: 'Gardian', dest: '#entrenous.chat', shared: ['#entrenous.chat'],
+      channelTarget: false, service: false,
+    })).toBe('room');
+  });
+
+  it('marks ChanServ help as a direct notice even in a shared salon', () => {
+    expect(noticeScopeFor({
+      sender: 'ChanServ', dest: '#entrenous.chat',
+      shared: ['#entrenous.chat', '#aide.chat'],
+      channelTarget: false, service: true,
+    })).toBe('direct');
   });
 });
