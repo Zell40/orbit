@@ -217,6 +217,10 @@ export interface AppConfig {
     /** Block connect when age is below this number (also requires a filled age). */
     minAge?: number;
   };
+  /** Default kick / kickban reason when the operator leaves the field empty (orbit-chanserv + nicklist). */
+  chanserv?: {
+    kickReason?: string;
+  };
   securityGroups?: string[];
 }
 
@@ -249,6 +253,7 @@ const DEFAULT_CONFIG: AppConfig = {
   filehost: { retentionHours: 24, retentionChoices: [1, 6, 24, 72] },
   plugins: [],
   builtins: [],
+  chanserv: { kickReason: 'Vous n\'êtes pas le bienvenu sur ce salon' },
 };
 
 let cfg: AppConfig = DEFAULT_CONFIG;

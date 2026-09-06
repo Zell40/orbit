@@ -881,8 +881,8 @@
     "banKick": "Ban + kick",
     "kickReasonTitle": "Kick {{nick}}",
     "banKickReasonTitle": "Ban + kick {{nick}}",
-    "reasonPlaceholder": "Reason (default: kick reason)",
-    "reasonDefault": "kick reason",
+    "reasonPlaceholder": "Reason (optional)",
+    "reasonDefault": "You are not welcome in this channel",
     "cancel": "Cancel"
   },
   "composer": {

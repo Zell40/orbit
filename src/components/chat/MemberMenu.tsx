@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useActiveChat } from '@/core/networks';
+import { getConfig } from '@/core/config';
 import { getTheme } from '@/themes';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
@@ -56,7 +57,8 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
 
   const runReason = () => {
     if (!pending) return;
-    const r = reason.trim() || t('members.reasonDefault');
+    const fallback = (getConfig().chanserv?.kickReason || '').trim() || t('members.reasonDefault');
+    const r = reason.trim() || fallback;
     if (pending === 'kick') modKick(nick, r);
     else if (pending === 'bankick') { modBanOnly(nick); modKick(nick, r); }
     onClose();
@@ -69,7 +71,7 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
       <div className="memberrsn-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
         <div className="memberrsn" role="dialog" aria-label={t(pending === 'kick' ? 'members.kickReasonTitle' : 'members.banKickReasonTitle', { nick })}>
           <div className="memberrsn__head">{t(pending === 'kick' ? 'members.kickReasonTitle' : 'members.banKickReasonTitle', { nick })}</div>
-          <input className="memberrsn__in" autoFocus value={reason} placeholder={t('members.reasonPlaceholder')}
+          <input className="memberrsn__in" autoFocus value={reason} placeholder={(getConfig().chanserv?.kickReason || '').trim() || t('members.reasonDefault')}
             onChange={(e) => setReason(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') runReason(); }} />
           <div className="memberrsn__row">

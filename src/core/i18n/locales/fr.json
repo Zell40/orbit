@@ -896,8 +896,8 @@
     "banKick": "Bannir + éjecter",
     "kickReasonTitle": "Éjecter {{nick}}",
     "banKickReasonTitle": "Bannir + éjecter {{nick}}",
-    "reasonPlaceholder": "Raison (sinon : motif de kick)",
-    "reasonDefault": "motif de kick",
+    "reasonPlaceholder": "Raison (facultatif)",
+    "reasonDefault": "Vous n'êtes pas le bienvenu sur ce salon",
     "cancel": "Annuler"
   },
   "composer": {

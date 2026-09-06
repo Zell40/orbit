@@ -282,14 +282,16 @@ export function createChatStore(ns = '') {
       // GECOS may also arrive here (chat_resume prefers WP); resolveRealname below
       // re-fetches profile_gecos so USER always has ASL before NICK/USER.
       if (opts.oauthBearer && !opts.refreshBearer) {
+        let resumeTried = false;
         opts.refreshBearer = async () => {
+          if (resumeTried) return undefined;
           try {
             const ctrl = new AbortController();
             const to = setTimeout(() => ctrl.abort(), 4000);
             const r = await fetch('/accounts/api/chat_resume/', {
               credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal,
             }).finally(() => clearTimeout(to));
-            if (!r.ok) return undefined;
+            if (!r.ok) { resumeTried = true; return undefined; }
             const j = await r.json() as { ok?: boolean; keycard?: string; nick?: string; realname?: string };
             if (j?.ok && j.keycard) {
               if (typeof j.nick === 'string' && j.nick) opts.nick = j.nick;
@@ -298,7 +300,8 @@ export function createChatStore(ns = '') {
               }
               return j.keycard;
             }
-          } catch { /* offline / no endpoint */ }
+            resumeTried = true;
+          } catch { resumeTried = true; }
           return undefined;
         };
       }
