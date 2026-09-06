@@ -26,10 +26,29 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   const modSetMode = useActiveChat((s) => s.modSetMode);
   const memberMenus = usePluginRegistry((s) => s.memberMenus);
 
+  const prefixModes = useActiveChat((s) => s.client?.server.prefixModes || '~&@%+');
+  const prefixModeToChar = useActiveChat((s) => s.client?.server.prefixModeToChar || { q: '~', a: '&', o: '@', h: '%', v: '+' });
   const amOp = /[~&@%]/.test(myPrefix);
   const isMe = nick === me;
-  const targetIsOp = /[~&@]/.test(targetMember?.prefixes || targetMember?.prefix || '');
+  const targetPfx = targetMember?.prefixes || targetMember?.prefix || '';
   const canModerate = !isMe && amOp && !!targetMember && (active.startsWith('#') || active.startsWith('&'));
+
+  const strongest = (p: string) => {
+    let best = 99;
+    for (const ch of p) {
+      const i = prefixModes.indexOf(ch);
+      if (i >= 0 && i < best) best = i;
+    }
+    return best;
+  };
+  const myRank = strongest(myPrefix);
+  const roleBtns: { letter: string; add: string; remove: string }[] = [
+    { letter: 'q', add: 'whois.founderAdd', remove: 'whois.founderRemove' },
+    { letter: 'a', add: 'whois.adminAdd', remove: 'whois.adminRemove' },
+    { letter: 'o', add: 'whois.opAdd', remove: 'whois.opRemove' },
+    { letter: 'h', add: 'whois.halfopAdd', remove: 'whois.halfopRemove' },
+    { letter: 'v', add: 'whois.voice', remove: 'whois.voiceRemove' },
+  ];
 
   const menuRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x, y });
@@ -100,8 +119,18 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
           <button className="memberctx__item memberctx__item--warn" role="menuitem" onClick={() => { modBanOnly(nick); onClose(); }}>{t('whois.ban')}</button>
           <button className="memberctx__item memberctx__item--warn" role="menuitem" onClick={() => setPending('bankick')}>{t('members.banKick')}</button>
           <div className="memberctx__sep" />
-          <button className="memberctx__item" role="menuitem" onClick={() => { modSetMode(nick, 'o', !targetIsOp); onClose(); }}>{targetIsOp ? t('whois.opRemove') : t('whois.opAdd')}</button>
-          <button className="memberctx__item" role="menuitem" onClick={() => { modSetMode(nick, 'v', true); onClose(); }}>{t('whois.voice')}</button>
+          {roleBtns.map((r) => {
+            const sym = prefixModeToChar[r.letter];
+            if (!sym) return null;
+            const need = prefixModes.indexOf(sym);
+            if (need < 0 || myRank > need) return null;
+            const has = targetPfx.includes(sym);
+            return (
+              <button key={r.letter} className="memberctx__item" role="menuitem" onClick={() => { modSetMode(nick, r.letter, !has); onClose(); }}>
+                {t(has ? r.remove : r.add)}
+              </button>
+            );
+          })}
         </>
       )}
     </div>
