@@ -457,6 +457,7 @@ export function ConnectScreen() {
       realname: (passkey || identifying) ? undefined : realname(),
       password: passkey ? undefined : (password || undefined),
       passkey: passkey || undefined,
+      ...(passkey || identifying ? { saslAuthzid: nick.trim() } : {}),
       channels,
     });
     // Drop ?nick=&channel=&age=… so Jitsi external_api.js (which JSON.parse()s
@@ -655,7 +656,7 @@ export function ConnectScreen() {
             setNick(account);
             const channels = parseChannels(chanField);
             if (!channels.length) channels.push(...cfg.startup.channels);
-            connect({ url: cfg.server.url, nick: account, password: pw, channels });
+            connect({ url: cfg.server.url, nick: account, password: pw, saslAuthzid: account, channels });
           }}
         />
       )}
