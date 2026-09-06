@@ -102,6 +102,7 @@ export interface ChatState {
   profileUser: string;
   whois: Record<string, WhoisInfo>;
   modal: Modal;
+  settingsSection: string; // settings pane id ('profil' | 'compte' | …)
   reportSubject: string; // nick/channel prefilled into the report window
   cban: { channel: string; reason: string } | null; // CBANed-join details for the cban window
   kicked: KickInfo | null; // last time we got kicked — drives the dismissible toast
@@ -120,6 +121,7 @@ export interface ChatState {
   whoisText: (nick: string) => void;
   closeProfile: () => void;
   setModal: (m: Modal) => void;
+  openSettings: (section?: string) => void;
   dismissKick: () => void;
   rejoinKicked: () => void;
   dismissNickServAlert: () => void;
@@ -245,6 +247,7 @@ export function createChatStore(ns = '') {
     pmContext: {},
     sidebarOrder: loadSidebarOrder(ns),
     modal: '',
+    settingsSection: 'profil',
     reportSubject: '',
     cban: null,
     kicked: null,
@@ -503,7 +506,14 @@ export function createChatStore(ns = '') {
     },
 
     closeProfile() { set({ profileUser: '' }); },
-    setModal(m) { set({ modal: m }); },
+    setModal(m) {
+      set(m === 'settings'
+        ? { modal: m, settingsSection: 'profil' }
+        : { modal: m });
+    },
+    openSettings(section) {
+      set({ modal: 'settings', settingsSection: section || 'profil' });
+    },
 
     // draft/chathistory: load older messages above what's shown (scroll-up).
     loadMoreHistory(name) {

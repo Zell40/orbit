@@ -28,13 +28,15 @@ function acLabel(pick: string, kind: CompletionKind): string {
 // they type (never the control codes). We only convert to/from IRC formatting
 // codes at the edges: serialize() on send, ircToHtml() when restoring a draft.
 
-export function Composer() {
+export function Composer({ locked = false }: { locked?: boolean }) {
   const { t } = useTranslation();
   // Select the stable array ref (zustand v5 would loop on a new array each render);
   // filter in the body.
   const pluginUi = usePluginRegistry((s) => s.ui);
   const pluginButtons = pluginUi.filter((u) => u.slot === 'composer_button');
   const active = useActiveChat((s) => s.active);
+  const modal = useActiveChat((s) => s.modal);
+  const profileUser = useActiveChat((s) => s.profileUser);
   const send = useActiveChat((s) => s.sendInput);
   const notifyTyping = useActiveChat((s) => s.notifyTyping);
   const uploadImage = useActiveChat((s) => s.uploadImage);
@@ -170,6 +172,26 @@ export function Composer() {
     setFmtMenu(false);
     prevActive.current = active;
   }, [active, setDraft]);
+
+  // After JOIN / salon switch / splash unlock / closing a modal: caret in the message bar.
+  useEffect(() => {
+    if (locked || readOnlyLog || modal || profileUser) return;
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        const st = activeStore().getState();
+        if (st.modal || st.profileUser) return;
+        const root = ed.current;
+        if (!root || root.closest('[inert]')) return;
+        root.focus();
+        caretToEnd(root);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [active, locked, readOnlyLog, modal, profileUser]);
 
   // Re-assert the active formatting onto the (empty) editor so it stays "held down"
   // for the next message — wiping innerHTML clears the browser's pending-style state.

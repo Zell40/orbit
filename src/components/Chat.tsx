@@ -68,7 +68,7 @@ export function Chat({ locked = false }: { locked?: boolean }) {
         {joinDenied ? <JoinDeniedPanel /> : (
           <>
             <MessageList />
-            <Composer />
+            <Composer locked={locked} />
           </>
         )}
       </main>

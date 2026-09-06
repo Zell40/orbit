@@ -74,11 +74,12 @@ export function SettingsModal() {
   const { t } = useTranslation();
   const setModal = useActiveChat((s) => s.setModal);
   const account = useActiveChat((s) => s.account);
+  const startSection = useActiveChat((s) => s.settingsSection) || 'profil';
   // Stable-ref selector (zustand v5 loops on a new array each render); filter in body.
   const pluginUi = usePluginRegistry((s) => s.ui);
   const pluginSections = pluginUi.filter((u) => u.slot === 'settings_section');
-  const [section, setSection] = useState<string>('profil');
-  const [drilled, setDrilled] = useState(false); // mobile: are we inside a section?
+  const [section, setSection] = useState<string>(startSection);
+  const [drilled, setDrilled] = useState(startSection !== 'profil');
   const close = () => setModal('');
 
   useEffect(() => {
