@@ -152,11 +152,11 @@ loadConfig().then(async () => {
     })
     cleanUrl()
   } else if (cfg.features.sessionResume) {
-    // No fresh site entry — resume the last session (opt-in). A still-signed-in
-    // member gets a fresh single-use keycard from the HttpOnly handoff cookie
-    // (localStorage is only extra context: channels, GECOS). A guest just
-    // reconnects under the same nick. No password is ever read from storage.
-    const { loadResume, mintChatResume } = await import('./core/resume')
+    // No fresh site entry — resume the last session (opt-in). MonIdentité
+    // mints a JWT from the handoff cookie; a classic NickServ login reuses
+    // the password parked in sessionStorage (this tab). A guest reconnects
+    // under the same nick.
+    const { loadResume, mintChatResume, loadSaslResume } = await import('./core/resume')
     const { fetchProfileGecos } = await import('./platform/profile-gecos')
     const resume = loadResume()
     if (resume?.bouncer) {
@@ -167,6 +167,7 @@ loadConfig().then(async () => {
       const paramChannels = (params.get('channel') || '')
         .split(',').map((c) => c.trim()).filter(Boolean)
       let password: string | undefined
+      let keycard = false
       let resumeNick = nick || resume?.nick || ''
       let resumeAccount = resume?.account || ''
       let resumeRealname = resume?.realname
@@ -177,12 +178,24 @@ loadConfig().then(async () => {
         const minted = await mintChatResume(ctrl.signal).finally(() => clearTimeout(to))
         if (minted && (!nick || nick.toLowerCase() === minted.nick.toLowerCase())) {
           password = minted.keycard
+          keycard = true
           resumeNick = minted.nick
           if (minted.account) resumeAccount = minted.account
           if (minted.realname) resumeRealname = minted.realname
           go = true
         }
-      } catch { /* offline / timeout / no endpoint → fall through to the connect screen */ }
+      } catch { /* offline / timeout / no endpoint → try classic SASL below */ }
+      if (!password) {
+        const sasl = loadSaslResume()
+        const sameNick = !resumeNick || sasl?.nick.toLowerCase() === resumeNick.toLowerCase()
+        if (sasl && sameNick && (!nick || nick.toLowerCase() === sasl.nick.toLowerCase())) {
+          password = sasl.password
+          keycard = false
+          resumeNick = sasl.nick
+          if (sasl.account) resumeAccount = sasl.account
+          go = true
+        }
+      }
       if (go && resumeNick && password && !resumeRealname) {
         try {
           resumeRealname = await fetchProfileGecos(resumeAccount || resumeNick)
@@ -194,7 +207,7 @@ loadConfig().then(async () => {
           url: resume?.url || cfg.server.url,
           nick: resumeNick,
           password,
-          keycard: !!password,
+          keycard,
           ...(password ? { saslAuthzid: resumeAccount || resumeNick } : {}),
           realname: resumeRealname,
           channels: paramChannels.length

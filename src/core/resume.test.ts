@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { mintChatResume } from './resume';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { mintChatResume, saveSaslResume, loadSaslResume, clearResume } from './resume';
 
 describe('mintChatResume', () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -46,5 +46,32 @@ describe('mintChatResume', () => {
       json: async () => ({ ok: false, error: 'no_session' }),
     })));
     await expect(mintChatResume()).resolves.toBeNull();
+  });
+});
+
+describe('sasl resume (classic NickServ login)', () => {
+  const mem = new Map<string, string>();
+  beforeEach(() => {
+    mem.clear();
+    const stub = {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => { mem.set(k, v); },
+      removeItem: (k: string) => { mem.delete(k); },
+    };
+    (globalThis as unknown as { sessionStorage: typeof stub }).sessionStorage = stub;
+  });
+  afterEach(() => {
+    delete (globalThis as unknown as { sessionStorage?: unknown }).sessionStorage;
+  });
+
+  it('round-trips nick and password in sessionStorage', () => {
+    saveSaslResume({ nick: 'Quen', password: 'secret', account: 'Quen' });
+    expect(loadSaslResume()).toEqual({ nick: 'Quen', password: 'secret', account: 'Quen' });
+  });
+
+  it('is cleared with the rest of the resume state', () => {
+    saveSaslResume({ nick: 'Quen', password: 'secret' });
+    clearResume();
+    expect(loadSaslResume()).toBeNull();
   });
 });

@@ -18,7 +18,7 @@ import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
-import { mintChatResume } from './resume';
+import { mintChatResume, saveSaslResume, clearSaslResume } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
 import { closeMobileNav } from '../lib/mobile-nav';
 
@@ -272,6 +272,17 @@ export function createChatStore(ns = '') {
           && getConfig().features.saslScram) {
         opts.scram = true;
       }
+      // Classic NickServ password: remember it for F5 in this tab (not a JWT
+      // keycard — those stay HttpOnly on the MonIdentité cookie).
+      if (getConfig().features.sessionResume && opts.password && !opts.keycard
+          && !opts.passkey && !opts.serverPassword) {
+        saveSaslResume({
+          nick: opts.nick,
+          password: opts.password,
+          account: opts.saslAuthzid || opts.nick,
+          url: opts.url,
+        });
+      }
       // Site JWT handoff: prefer SASL OAUTHBEARER when the deployment asks for it
       // (EntreNous). Falls back to PLAIN if the ircd does not advertise OAUTHBEARER.
       if (opts.oauthBearer === undefined && opts.password && opts.keycard
@@ -325,6 +336,7 @@ export function createChatStore(ns = '') {
         // a handoff is no longer in flight: drop the splash so failures fall back
         // to the join form (with the nick/channel still prefilled from the URL).
         if (st !== 'connecting') set({ autoConnecting: false });
+        if (st === 'sasl-failed') clearSaslResume();
         // Bouncer: a failed first handshake must not retry — ZNC connection-floods
         // and the join form would keep opening sockets in the background.
         if ((st === 'closed' || st === 'error') && opts.serverPassword && !get().everRegistered) {

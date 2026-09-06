@@ -1,12 +1,10 @@
 // Persistent session resume (opt-in: config.features.sessionResume).
 //
-// We store ONLY non-secret context — the network URL, your nick, your account
-// name (a public label, '' for a guest), open channels, and the EntreNous-style
-// GECOS realname (âge - genre - ville) so reconnect restores ASL. A password is
-// NEVER stored: a logged-in member is re-authenticated on reopen by minting a
-// fresh single-use keycard against the still-live website session cookie
-// (the /accounts/api/chat_resume/ endpoint); a guest just reconnects under the
-// same nick. So an attacker reading localStorage finds nothing reusable.
+// localStorage holds ONLY non-secret context (nick, account label, channels,
+// GECOS). A MonIdentité member is re-authenticated by minting a JWT from the
+// HttpOnly `orbit_en_resume` cookie. A classic NickServ login parks the SASL
+// password in sessionStorage (same tab / F5 only — never localStorage), same
+// pattern as extra networks (`orbit-netpass`). A guest reconnects by nick.
 
 const KEY = 'orbit-resume';
 const MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000; // a fortnight; older sessions aren't auto-resumed
@@ -50,6 +48,49 @@ export function loadResume(): Resume | null {
 
 export function clearResume(): void {
   try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+  clearSaslResume();
+}
+
+/** Classic join-form NickServ password — sessionStorage only (survives F5). */
+const SASL_KEY = 'orbit-sasl';
+
+export interface SaslResume {
+  nick: string;
+  password: string;
+  account?: string;
+  url?: string;
+}
+
+export function saveSaslResume(p: SaslResume): void {
+  try {
+    if (!p.nick || !p.password) return;
+    sessionStorage.setItem(SASL_KEY, JSON.stringify({
+      nick: p.nick,
+      password: p.password,
+      ...(p.account ? { account: p.account } : {}),
+      ...(p.url ? { url: p.url } : {}),
+    }));
+  } catch { /* storage blocked */ }
+}
+
+export function loadSaslResume(): SaslResume | null {
+  try {
+    const raw = sessionStorage.getItem(SASL_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw) as { nick?: unknown; password?: unknown; account?: unknown; url?: unknown };
+    if (typeof o.nick !== 'string' || !o.nick || typeof o.password !== 'string' || !o.password) {
+      clearSaslResume();
+      return null;
+    }
+    const out: SaslResume = { nick: o.nick, password: o.password };
+    if (typeof o.account === 'string' && o.account) out.account = o.account;
+    if (typeof o.url === 'string' && o.url) out.url = o.url;
+    return out;
+  } catch { return null; }
+}
+
+export function clearSaslResume(): void {
+  try { sessionStorage.removeItem(SASL_KEY); } catch { /* ignore */ }
 }
 
 /** Fresh SASL keycard minted from the HttpOnly `orbit_en_resume` cookie. */
