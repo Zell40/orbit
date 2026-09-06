@@ -18,6 +18,7 @@ import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
+import { mintChatResume } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
 import { closeMobileNav } from '../lib/mobile-nav';
 
@@ -282,27 +283,17 @@ export function createChatStore(ns = '') {
       // GECOS may also arrive here (chat_resume prefers WP); resolveRealname below
       // re-fetches profile_gecos so USER always has ASL before NICK/USER.
       if (opts.oauthBearer && !opts.refreshBearer) {
-        let resumeTried = false;
         opts.refreshBearer = async () => {
-          if (resumeTried) return undefined;
           try {
             const ctrl = new AbortController();
             const to = setTimeout(() => ctrl.abort(), 4000);
-            const r = await fetch('/accounts/api/chat_resume/', {
-              credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal,
-            }).finally(() => clearTimeout(to));
-            if (!r.ok) { resumeTried = true; return undefined; }
-            const j = await r.json() as { ok?: boolean; keycard?: string; nick?: string; realname?: string };
-            if (j?.ok && j.keycard) {
-              if (typeof j.nick === 'string' && j.nick) opts.nick = j.nick;
-              if (typeof j.realname === 'string' && j.realname.trim()) {
-                opts.realname = j.realname.trim();
-              }
-              return j.keycard;
-            }
-            resumeTried = true;
-          } catch { resumeTried = true; }
-          return undefined;
+            const minted = await mintChatResume(ctrl.signal).finally(() => clearTimeout(to));
+            if (!minted) return undefined;
+            opts.nick = minted.nick;
+            if (minted.account) opts.saslAuthzid = minted.account;
+            if (minted.realname) opts.realname = minted.realname;
+            return minted.keycard;
+          } catch { return undefined; }
         };
       }
       // WordPress profile = source of truth: resolve âge/genre/ville before USER.

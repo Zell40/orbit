@@ -151,45 +151,49 @@ loadConfig().then(async () => {
       channels,
     })
     cleanUrl()
-  } else if (!nick && cfg.features.sessionResume) {
+  } else if (cfg.features.sessionResume) {
     // No fresh site entry — resume the last session (opt-in). A still-signed-in
-    // member gets a fresh single-use keycard from their website session; a guest
-    // just reconnects under the same nick. No password is ever read from storage.
-    const { loadResume } = await import('./core/resume')
+    // member gets a fresh single-use keycard from the HttpOnly handoff cookie
+    // (localStorage is only extra context: channels, GECOS). A guest just
+    // reconnects under the same nick. No password is ever read from storage.
+    const { loadResume, mintChatResume } = await import('./core/resume')
     const resume = loadResume()
     if (resume?.bouncer) {
       // Never auto-connect a bouncer session: ZNC treats rapid reconnects
       // (reload, failed handshake retry) as connection flood. The join form
       // keeps the nick and the bouncer toggle; the user clicks Connect.
-    } else if (resume) {
+    } else {
+      const paramChannels = (params.get('channel') || '')
+        .split(',').map((c) => c.trim()).filter(Boolean)
       let password: string | undefined
-      let resumeNick = resume.nick
-      let resumeRealname = resume.realname
-      let go = !resume.account // guests reconnect unconditionally
-      if (resume.account) {
-        try {
-          const ctrl = new AbortController()
-          const to = setTimeout(() => ctrl.abort(), 4000) // never let a hung endpoint stall boot
-          const r = await fetch('/accounts/api/chat_resume/', { credentials: 'include', headers: { Accept: 'application/json' }, signal: ctrl.signal }).finally(() => clearTimeout(to))
-          const j = r.ok ? await r.json() as { ok?: boolean; keycard?: string; nick?: string; realname?: string } : null
-          if (j?.ok && j.keycard && j.nick) {
-            password = j.keycard
-            resumeNick = j.nick
-            if (typeof j.realname === 'string' && j.realname.trim()) resumeRealname = j.realname.trim()
-            go = true
-          }
-        } catch { /* offline / timeout / no endpoint → fall through to the connect screen */ }
-      }
-      if (go) {
+      let resumeNick = nick || resume?.nick || ''
+      let resumeAccount = resume?.account || ''
+      let resumeRealname = resume?.realname
+      let go = !!(resume && !resume.account && !nick) // guests reconnect unconditionally
+      try {
+        const ctrl = new AbortController()
+        const to = setTimeout(() => ctrl.abort(), 4000) // never let a hung endpoint stall boot
+        const minted = await mintChatResume(ctrl.signal).finally(() => clearTimeout(to))
+        if (minted && (!nick || nick.toLowerCase() === minted.nick.toLowerCase())) {
+          password = minted.keycard
+          resumeNick = minted.nick
+          if (minted.account) resumeAccount = minted.account
+          if (minted.realname) resumeRealname = minted.realname
+          go = true
+        }
+      } catch { /* offline / timeout / no endpoint → fall through to the connect screen */ }
+      if (go && resumeNick) {
         useChat.setState({ autoConnecting: true })
-        // The resume password (when present) is a single-use keycard → PLAIN.
         useChat.getState().connect({
-          url: resume.url || cfg.server.url,
+          url: resume?.url || cfg.server.url,
           nick: resumeNick,
           password,
           keycard: !!password,
+          ...(password ? { saslAuthzid: resumeAccount || resumeNick } : {}),
           realname: resumeRealname,
-          channels: resume.channels,
+          channels: paramChannels.length
+            ? paramChannels
+            : (resume?.channels?.length ? resume.channels : cfg.startup.channels),
         })
         cleanUrl()
       }

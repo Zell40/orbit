@@ -381,7 +381,10 @@ export function ConnectScreen() {
   const aslOn = pluginListed('orbit-asl');
   const showAsl = aslOn || !!intents;
   const aslFields = { sex, age, city };
-  const aslBlock = (!viaBouncer && aslOn) ? aslGate(cfg.asl, aslFields) : null;
+  // Identified login (NickServ password / passkey): WP profile_gecos fills
+  // âge/genre/ville before USER — don't block on the guest ASL fields.
+  const identifying = password.trim().length > 0;
+  const aslBlock = (!viaBouncer && aslOn && !identifying && !showPw) ? aslGate(cfg.asl, aslFields) : null;
   const aslOk = aslFieldOk(cfg.asl, aslFields);
   const aslMinAge = aslOn && Number(cfg.asl?.minAge) > 0 ? Number(cfg.asl?.minAge) : 13;
   const aslHint = aslBlock === 'gender' ? t('connect.aslNeedGender')
@@ -429,7 +432,8 @@ export function ConnectScreen() {
 
   function go(passkey = false) {
     if (!nickReady || connecting) return;
-    if (aslBlock) { setAslTried(true); return; }
+    if (showPw && !identifying && !passkey) return;
+    if (!passkey && aslBlock) { setAslTried(true); return; }
     const channels = parseChannels(chanField);
     if (viaBouncer) {
       const url = (cfg.server.bouncerUrl || '').trim();
@@ -450,7 +454,7 @@ export function ConnectScreen() {
     connect({
       url: cfg.server.url,
       nick: nick.trim(),
-      realname: realname(),
+      realname: (passkey || identifying) ? undefined : realname(),
       password: passkey ? undefined : (password || undefined),
       passkey: passkey || undefined,
       channels,
@@ -500,7 +504,7 @@ export function ConnectScreen() {
           </div>
           <p className="cjoin__hint">{t('connect.nickHint')}</p>
 
-          {showAsl && !viaBouncer && (
+          {showAsl && !viaBouncer && !identifying && !showPw && (
             <div className="cjoin__me">
               <div className={`cjoin__seg${aslMark(aslOk.gender, !!cfg.asl?.requireGender)}`} role="group" aria-label={t('connect.sexAria')}
                 aria-invalid={aslTried && !aslOk.gender && !!cfg.asl?.requireGender}>
@@ -651,7 +655,7 @@ export function ConnectScreen() {
             setNick(account);
             const channels = parseChannels(chanField);
             if (!channels.length) channels.push(...cfg.startup.channels);
-            connect({ url: cfg.server.url, nick: account, realname: realname(), password: pw, channels });
+            connect({ url: cfg.server.url, nick: account, password: pw, channels });
           }}
         />
       )}

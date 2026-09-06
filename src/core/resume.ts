@@ -51,3 +51,52 @@ export function loadResume(): Resume | null {
 export function clearResume(): void {
   try { localStorage.removeItem(KEY); } catch { /* ignore */ }
 }
+
+/** Fresh SASL keycard minted from the HttpOnly `orbit_en_resume` cookie. */
+export interface ResumeKeycard {
+  keycard: string;
+  nick: string;
+  account?: string;
+  realname?: string;
+}
+
+function resumeMintUrls(): string[] {
+  // EntreNous serves the app under Alias /app → WEBROOT, so the PHP next to
+  // handoff.php is /app/accounts/api/chat_resume/. A host-root rewrite may
+  // also exist at /accounts/api/chat_resume/. Try the Alias path first.
+  return ['/app/accounts/api/chat_resume/', '/accounts/api/chat_resume/'];
+}
+
+function parseResumeKeycard(j: unknown): ResumeKeycard | null {
+  if (!j || typeof j !== 'object') return null;
+  const o = j as { ok?: unknown; keycard?: unknown; nick?: unknown; account?: unknown; realname?: unknown };
+  if (o.ok !== true || typeof o.keycard !== 'string' || !o.keycard
+      || typeof o.nick !== 'string' || !o.nick) return null;
+  const out: ResumeKeycard = { keycard: o.keycard, nick: o.nick };
+  if (typeof o.account === 'string' && o.account) out.account = o.account;
+  if (typeof o.realname === 'string' && o.realname.trim()) out.realname = o.realname.trim();
+  return out;
+}
+
+/**
+ * Mint a one-time JWT from the WordPress handoff cookie.
+ *
+ * Tries `/app/accounts/api/chat_resume/` first (same Apache Alias tree as
+ * handoff.php), then `/accounts/api/chat_resume/`. A cookie Path=/app is only
+ * sent to the first URL; a host-root rewrite may also serve a different copy.
+ */
+export async function mintChatResume(signal?: AbortSignal): Promise<ResumeKeycard | null> {
+  for (const url of resumeMintUrls()) {
+    try {
+      const r = await fetch(url, {
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+        signal,
+      });
+      if (!r.ok) continue;
+      const minted = parseResumeKeycard(await r.json());
+      if (minted) return minted;
+    } catch { /* abort / offline / non-JSON → try the other path */ }
+  }
+  return null;
+}
