@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '@/core/networks';
 import { Avatar } from '@/components/Avatar';
 import { Modal } from '@/components/modals/Modal';
-import { clearResume } from '@/core/resume';
+import { endSession } from '@/core/resume';
 import { ChangeNickField } from '../ChangeNickField';
 
 export function ProfileSection() {
@@ -36,7 +36,12 @@ export function ProfileSection() {
           <p className="modal__sub">{t('settings.account.leaveConfirm')}</p>
           <div className="modal__actions">
             <button className="upbtn" onClick={() => setLeaving(false)}>{t('profile.cancel')}</button>
-            <button className="upbtn upbtn--danger" onClick={() => { clearResume(); client?.disconnect(); location.reload(); }}>{t('settings.account.leaveChat')}</button>
+            <button className="upbtn upbtn--danger" onClick={() => {
+              void endSession().then(() => {
+                client?.disconnect();
+                location.reload();
+              });
+            }}>{t('settings.account.leaveChat')}</button>
           </div>
         </Modal>
       )}

@@ -122,6 +122,14 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         case 'ignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
         case 'unignore': if (arg.trim()) get().toggleIgnore(arg.trim()); break;
         case 'list': get().refreshChannels(); get().setModal('explore'); break; // open the Explore window
+        case 'logout': {
+          void import('../resume').then(async ({ endSession }) => {
+            await endSession();
+            client.disconnect(arg.trim() || 'Au revoir');
+            location.reload();
+          });
+          break;
+        }
         default: {
           const pc = usePluginRegistry.getState().commands.find((c) => c.name === cmd.toLowerCase());
           if (pc) { try { pc.run(rest, arg); } catch (e) { console.error(`[plugins] /${cmd} threw`, e); } }

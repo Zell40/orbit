@@ -125,15 +125,6 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
             const need = prefixModes.indexOf(sym);
             if (need < 0 || myRank > need) return null;
             const has = targetPfx.includes(sym);
-            let strongestSym = '';
-            for (const ch of prefixModes) {
-              if (targetPfx.includes(ch)) { strongestSym = ch; break; }
-            }
-            if (strongestSym) {
-              if (sym !== strongestSym || !has) return null;
-            } else if (r.letter !== 'v' || has) {
-              return null;
-            }
             return (
               <button key={r.letter} className="memberctx__item" role="menuitem" onClick={() => { modSetMode(nick, r.letter, !has); onClose(); }}>
                 {t(has ? r.remove : r.add)}

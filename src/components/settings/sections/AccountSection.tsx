@@ -53,6 +53,7 @@ export function AccountSection() {
     setPhase('pending');
   }
   function logout() {
+    void import('@/core/resume').then(({ clearSaslResume }) => clearSaslResume());
     client?.privmsg('NickServ', 'LOGOUT');
     setPhase('idle');
   }

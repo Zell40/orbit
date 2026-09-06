@@ -49,6 +49,22 @@ export function loadResume(): Resume | null {
 export function clearResume(): void {
   try { localStorage.removeItem(KEY); } catch { /* ignore */ }
   clearSaslResume();
+  void expireResumeCookie();
+}
+
+/** Leave chat / `/logout`: wait until the HttpOnly cookie is expired. */
+export async function endSession(): Promise<void> {
+  try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+  clearSaslResume();
+  await expireResumeCookie();
+}
+
+/** Drop the HttpOnly MonIdentité cookie (JS cannot delete it itself). */
+function expireResumeCookie(): Promise<unknown> {
+  const opts: RequestInit = { method: 'POST', credentials: 'include', cache: 'no-store' };
+  return Promise.allSettled(
+    ['/accounts/api/chat_logout/', '/app/accounts/api/chat_logout/'].map((url) => fetch(url, opts)),
+  );
 }
 
 /** Classic join-form NickServ password — sessionStorage only (survives F5). */

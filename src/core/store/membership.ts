@@ -194,6 +194,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           const prev = get().account;
           const next = account ?? '';
           if (prev && !next && get().client) void unregisterPushOnAccountLogout(get().client!, prev);
+          if (prev && !next) void import('../resume').then((m) => m.clearSaslResume());
           set({ account: next });
         }
         return true;

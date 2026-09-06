@@ -255,6 +255,7 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const prevAccount = get().account;
         set({ account: '' });
         if (prevAccount && get().client) void unregisterPushOnAccountLogout(get().client!, prevAccount);
+        void import('../resume').then((m) => m.clearSaslResume());
         return true;
       }
       case '221': // RPL_UMODEIS: <me> <modestring> — our current user modes
