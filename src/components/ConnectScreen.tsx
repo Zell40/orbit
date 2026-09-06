@@ -8,6 +8,7 @@ import { LANGS, setLang } from '../core/i18n';
 import { useActiveChat } from '../core/networks';
 import { passkeySupported } from '../core/irc/webauthn';
 import { formatProfileGecos } from '../lib/profile-gecos';
+import { fetchProfileGecos } from '../platform/profile-gecos';
 import { bouncerConnectOpts, loadBouncerPrefs, saveBouncerSession, zncPass } from '../core/bouncer';
 import { peekDirectReconnect, clearDirectReconnect } from '../core/direct-reconnect';
 import { loadResume } from '../core/resume';
@@ -331,6 +332,7 @@ export function ConnectScreen() {
   const [nick, setNick] = useState(param('nick', directPref?.nick || bouncerPrefs?.nick || ''));
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [profileBusy, setProfileBusy] = useState(false);
   const [viaBouncer, setViaBouncer] = useState(
     !directPref && (param('bouncer', '') === '1' || (!!cfg.features.bouncer && lastResume?.bouncer === true)),
   );
@@ -375,7 +377,7 @@ export function ConnectScreen() {
     return undefined;
   }
 
-  const connecting = status === 'connecting';
+  const connecting = status === 'connecting' || profileBusy;
   const canBouncer = cfg.features.bouncer && !!(cfg.server.bouncerUrl || '').trim();
   const bouncerReady = bouncerPass.trim().length > 0;
   const aslOn = pluginListed('orbit-asl');
@@ -430,7 +432,7 @@ export function ConnectScreen() {
     }
   }
 
-  function go(passkey = false) {
+  async function go(passkey = false) {
     if (!nickReady || connecting) return;
     if (showPw && !identifying && !passkey) return;
     if (!passkey && aslBlock) { setAslTried(true); return; }
@@ -451,13 +453,23 @@ export function ConnectScreen() {
       return;
     }
     if (!channels.length) channels.push(...cfg.startup.channels);
+    const nk = nick.trim();
+    let rn = (passkey || identifying) ? undefined : realname();
+    if (passkey || identifying) {
+      setProfileBusy(true);
+      try {
+        rn = await fetchProfileGecos(nk);
+      } finally {
+        setProfileBusy(false);
+      }
+    }
     connect({
       url: cfg.server.url,
-      nick: nick.trim(),
-      realname: (passkey || identifying) ? undefined : realname(),
+      nick: nk,
+      realname: rn,
       password: passkey ? undefined : (password || undefined),
       passkey: passkey || undefined,
-      ...(passkey || identifying ? { saslAuthzid: nick.trim() } : {}),
+      ...(passkey || identifying ? { saslAuthzid: nk } : {}),
       channels,
     });
     // Drop ?nick=&channel=&age=… so Jitsi external_api.js (which JSON.parse()s
@@ -650,13 +662,14 @@ export function ConnectScreen() {
       {recover && (
         <RecoverOverlay
           onClose={() => setRecover(false)}
-          onRecovered={(account, pw) => {
-            // Reset succeeded → log straight in with the new password.
+            onRecovered={(account, pw) => {
             setRecover(false);
             setNick(account);
             const channels = parseChannels(chanField);
             if (!channels.length) channels.push(...cfg.startup.channels);
-            connect({ url: cfg.server.url, nick: account, password: pw, saslAuthzid: account, channels });
+            void fetchProfileGecos(account).then((rn) => {
+              connect({ url: cfg.server.url, nick: account, password: pw, saslAuthzid: account, realname: rn, channels });
+            });
           }}
         />
       )}

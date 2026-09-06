@@ -1,6 +1,6 @@
 // Orbit service worker — installable PWA + offline app shell.
-// Scope: /app/. Only handles same-origin /app/ GETs; the IRC websocket and all
-// API calls (cloudflare, change_password, upload) pass straight through.
+// Scope: /app/. Same-origin /app/ GETs only. IRC websocket, POST APIs, and
+// GET /app/accounts/api/* (chat_resume, profile_gecos, unfurl) pass through.
 const CACHE = 'orbit-__SW_BUILD__';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/orbit-icon.svg', '/app/manifest.webmanifest'];
 
@@ -104,6 +104,10 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin || !url.pathname.startsWith('/app/')) return;
+  // PHP APIs under Alias /app (chat_resume, profile_gecos, unfurl, avatars).
+  // Never intercept: a cached 200 {ok:false} would block session resume, and a
+  // SW re-fetch can drop credentials:include cookies.
+  if (url.pathname.includes('/accounts/api/')) return;
 
   // Navigations: network-first so new builds load; fall back to the cached
   // shell when offline.

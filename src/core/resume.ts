@@ -61,10 +61,9 @@ export interface ResumeKeycard {
 }
 
 function resumeMintUrls(): string[] {
-  // EntreNous serves the app under Alias /app → WEBROOT, so the PHP next to
-  // handoff.php is /app/accounts/api/chat_resume/. A host-root rewrite may
-  // also exist at /accounts/api/chat_resume/. Try the Alias path first.
-  return ['/app/accounts/api/chat_resume/', '/accounts/api/chat_resume/'];
+  // Prefer the host-root path: the PWA service worker scopes /app/ and used
+  // to intercept /app/accounts/api/* (dropping cookies → no_session).
+  return ['/accounts/api/chat_resume/', '/app/accounts/api/chat_resume/'];
 }
 
 function parseResumeKeycard(j: unknown): ResumeKeycard | null {
@@ -91,6 +90,7 @@ export async function mintChatResume(signal?: AbortSignal): Promise<ResumeKeycar
       const r = await fetch(url, {
         credentials: 'include',
         headers: { Accept: 'application/json' },
+        cache: 'no-store',
         signal,
       });
       if (!r.ok) continue;

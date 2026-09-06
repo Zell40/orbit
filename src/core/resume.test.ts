@@ -4,9 +4,9 @@ import { mintChatResume } from './resume';
 describe('mintChatResume', () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
-  it('uses the /app/ endpoint when it returns a keycard', async () => {
+  it('uses the host-root endpoint first (outside the PWA /app/ SW scope)', async () => {
     const fetch = vi.fn(async (url: string) => {
-      if (String(url).includes('/app/accounts/api/chat_resume/')) {
+      if (String(url) === '/accounts/api/chat_resume/') {
         return {
           ok: true,
           json: async () => ({ ok: true, keycard: 'jwt', nick: 'Jessie', account: 'Jessie', realname: '40 - Femme - Paris' }),
@@ -22,11 +22,12 @@ describe('mintChatResume', () => {
       realname: '40 - Femme - Paris',
     });
     expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls[0]![0]).toBe('/accounts/api/chat_resume/');
   });
 
-  it('falls back to /accounts/api/chat_resume/ when /app/ has no session', async () => {
+  it('falls back to /app/accounts/api/chat_resume/ when the host-root has no session', async () => {
     const fetch = vi.fn(async (url: string) => {
-      if (String(url).includes('/app/accounts/api/chat_resume/')) {
+      if (String(url) === '/accounts/api/chat_resume/') {
         return { ok: true, json: async () => ({ ok: false, error: 'no_session' }) };
       }
       return {

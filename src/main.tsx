@@ -157,6 +157,7 @@ loadConfig().then(async () => {
     // (localStorage is only extra context: channels, GECOS). A guest just
     // reconnects under the same nick. No password is ever read from storage.
     const { loadResume, mintChatResume } = await import('./core/resume')
+    const { fetchProfileGecos } = await import('./platform/profile-gecos')
     const resume = loadResume()
     if (resume?.bouncer) {
       // Never auto-connect a bouncer session: ZNC treats rapid reconnects
@@ -182,6 +183,11 @@ loadConfig().then(async () => {
           go = true
         }
       } catch { /* offline / timeout / no endpoint → fall through to the connect screen */ }
+      if (go && resumeNick && password && !resumeRealname) {
+        try {
+          resumeRealname = await fetchProfileGecos(resumeAccount || resumeNick)
+        } catch { /* USER still waits on resolveRealname */ }
+      }
       if (go && resumeNick) {
         useChat.setState({ autoConnecting: true })
         useChat.getState().connect({

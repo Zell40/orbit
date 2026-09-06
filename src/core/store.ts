@@ -18,7 +18,6 @@ import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
-import { parseProfileGecos } from '../lib/profile-gecos';
 import { mintChatResume } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
 import { closeMobileNav } from '../lib/mobile-nav';
@@ -373,19 +372,6 @@ export function createChatStore(ns = '') {
               if (b?.isChannel && b.joined) prefetchLatestHistory(get, historyAsked, b.name);
             }
           }, 800);
-          // Password login on the join form skips ASL fields; if USER went out
-          // with only the nick (lookup missed / wrong path), SETNAME the WP GECOS.
-          if (!opts.serverPassword && (opts.password || opts.keycard || opts.passkey)
-              && !parseProfileGecos(opts.realname)) {
-            const acct = (get().account || opts.saslAuthzid || opts.nick).trim();
-            if (acct) {
-              void fetchProfileGecos(acct).then((rn) => {
-                if (!rn || get().client !== client || get().status !== 'registered') return;
-                client.send(`SETNAME :${rn}`);
-                opts.realname = rn;
-              });
-            }
-          }
         }
       });
       client.on('reconnecting', (secs) => {
