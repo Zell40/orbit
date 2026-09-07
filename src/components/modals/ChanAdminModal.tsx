@@ -40,7 +40,9 @@ type Tab = 'overview' | 'modes' | 'bans' | 'extbans';
 // A compact combobox for the extban type: a button + an overlay menu (grouped into
 // restrictions / match-by, filterable). Opening it doesn't push the value input, so
 // picking a type and typing the mask stay on one row — no scrolling.
-function ExtbanSelect({ exts, value, onChange, maskOption }: { exts: ExtBan[]; value: string; onChange: (name: string) => void; maskOption?: boolean }) {
+function ExtbanSelect({ exts, value, onChange, maskOption, matchLabel }: {
+  exts: ExtBan[]; value: string; onChange: (name: string) => void; maskOption?: boolean; matchLabel?: string;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -85,7 +87,7 @@ function ExtbanSelect({ exts, value, onChange, maskOption }: { exts: ExtBan[]; v
               className={`ca-extsel__opt${value === '' ? ' is-on' : ''}`} onClick={() => pick('')}>{t('modals.chanadmin.plainMask')}</button>
           )}
           {group(true, t('modals.chanadmin.extRestrict'))}
-          {group(false, t('modals.chanadmin.extMatch'))}
+          {group(false, matchLabel || t('modals.chanadmin.extMatch'))}
         </div>
       )}
     </div>
@@ -147,23 +149,21 @@ export function ChanAdminModal() {
   };
   // Extended bans the server advertises (core + reputation/securitygroups modules).
   const exts = availableExtbans(client?.server.isupport ?? {});
-  const ebSel = ebType || exts[0]?.name || '';
-  const curExt = exts.find((e) => e.name === ebSel);
-  // Stacking: an acting extban can wrap a matching one (mute:account:baduser). nestExt
-  // is that inner matching extban; the value we type belongs to the innermost extban.
   const matchingExts = exts.filter((e) => !e.acting);
-  const nestExt = curExt?.acting && ebNest ? matchingExts.find((e) => e.name === ebNest) : undefined;
+  // +b ban, +e exempt, +I invex — list modes the server advertises (CHANMODES type A).
+  const ebModes = (['b', 'e', 'I'] as const).filter((m) => m === 'b' || ctx.typeA.has(m));
+  const ebModeSel = ebModes.includes(ebMode) ? ebMode : 'b';
+  const invexMode = ebModeSel === 'I';
+  // Invex matches who may join +i: plain hostmask or a matching extban (account:Sadie),
+  // never an acting restriction (mute, noctcp, …).
+  const ebSel = invexMode
+    ? (matchingExts.some((e) => e.name === ebType) ? ebType : '')
+    : (ebType || exts[0]?.name || '');
+  const curExt = exts.find((e) => e.name === ebSel);
+  const nestExt = !invexMode && curExt?.acting && ebNest ? matchingExts.find((e) => e.name === ebNest) : undefined;
   const valueType = curExt?.acting ? nestExt : curExt;
   const stackMask = (v: string) => (curExt?.acting && nestExt ? `${curExt.name}:${nestExt.name}:${v}` : `${curExt?.name}:${v}`);
-  // +b ban, +e exempt, +I invite exception — but only offer the modes the server
-  // actually has as list modes (CHANMODES type A), and +I only for matching extbans.
-  const ebModes = (['b', 'e', 'I'] as const).filter((m) => {
-    if (m === 'b') return true;
-    if (!ctx.typeA.has(m)) return false;
-    if (m === 'I') return !!curExt && !curExt.acting;
-    return true;
-  });
-  const ebModeSel = ebModes.includes(ebMode) ? ebMode : 'b';
+  const plainMask = (v: string) => (v.includes('@') || v.includes('!') || v.includes(':') ? v : `${v}!*@*`);
   const modeVerb: Record<string, string> = { b: 'modals.chanadmin.ban', e: 'modals.chanadmin.exempt', I: 'modals.chanadmin.allow' };
   // Keep the two lists apart: plain nick!user@host bans on the right, typed extbans
   // in their own tab.
@@ -180,10 +180,14 @@ export function ChanAdminModal() {
     setTimeout(() => loadBanList(chan), 500);
   };
   const addExtban = () => {
-    const v = ebVal.trim(); if (!v || !curExt) return;
-    const mask = stackMask(v);
-    if (ebModeSel === 'b') client?.ban(chan, mask);
-    else setChannelModeParam(chan, ebModeSel, true, mask);
+    const v = ebVal.trim(); if (!v) return;
+    const mask = curExt ? stackMask(v) : plainMask(v);
+    if (ebModeSel === 'b') {
+      if (!curExt) return;
+      client?.ban(chan, mask);
+    } else {
+      setChannelModeParam(chan, ebModeSel, true, mask);
+    }
     setEbVal(''); setTimeout(() => loadBanList(chan), 500);
   };
   const applyKey = () => { const v = keyVal.trim(); if (v) setChannelModeParam(chan, 'k', true, v); };
@@ -298,16 +302,31 @@ export function ChanAdminModal() {
             <div className="ca-extmode">
               {ebModes.map((m) => (
                 <button key={m} type="button" className={ebModeSel === m ? 'is-on' : ''}
-                  title={t(modeVerb[m])} onClick={() => setEbMode(m)}>+{m}</button>
+                  title={t(modeVerb[m])} onClick={() => {
+                    setEbMode(m);
+                    if (m === 'I') {
+                      const keep = matchingExts.some((e) => e.name === ebType);
+                      if (!keep) setEbType(matchingExts[0]?.name || '');
+                      setEbNest('');
+                    }
+                  }}>+{m}</button>
               ))}
             </div>
-            <ExtbanSelect exts={exts} value={ebSel} onChange={setEbType} />
-            {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={setEbNest} maskOption />}
-            <input className="modal__input" value={ebVal} placeholder={valueType?.hint ?? curExt?.hint}
+            <ExtbanSelect
+              exts={invexMode ? matchingExts : exts}
+              value={ebSel}
+              onChange={setEbType}
+              maskOption={invexMode}
+              matchLabel={invexMode ? t('modals.chanadmin.extMatchInvex') : undefined}
+            />
+            {curExt?.acting && !invexMode && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={setEbNest} maskOption />}
+            <input className="modal__input" value={ebVal}
+              placeholder={invexMode && !curExt ? t('modals.chanadmin.invexPlaceholder') : (valueType?.hint ?? curExt?.hint)}
               aria-label={t('modals.chanadmin.extbanType')}
               onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
             <button className="upbtn upbtn--primary" onClick={addExtban}>{t(modeVerb[ebModeSel])}</button>
           </div>
+          {invexMode && <p className="ca-extexample">{t('modals.chanadmin.invexHint')}</p>}
           {/* securitygroup takes a group name the ircd doesn't advertise — click to fill it. */}
           {valueType?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
             <div className="ca-extgroups">
@@ -317,11 +336,15 @@ export function ChanAdminModal() {
             </div>
           )}
           {/* Show the full command for the picked type. */}
-          {curExt && (
+          {curExt ? (
             <div className="ca-extexample">
               {t('modals.chanadmin.example')} <code>+{ebModeSel} {stackMask(ebVal.trim() || valueType?.hint || curExt.hint)}</code>
             </div>
-          )}
+          ) : invexMode ? (
+            <div className="ca-extexample">
+              {t('modals.chanadmin.example')} <code>+I {plainMask(ebVal.trim() || t('modals.chanadmin.invexPlaceholder'))}</code>
+            </div>
+          ) : null}
           <ul className="ca-bans">
             {extEntries.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noExtbans')}</li>}
             {extEntries.map((e) => {

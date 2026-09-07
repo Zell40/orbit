@@ -35,6 +35,7 @@ export const EXTBANS: ExtBan[] = [
   { letter: 'O', name: 'opertype',    acting: false, hint: 'NetAdmin' },
   { letter: 'j', name: 'channel',     acting: false, hint: '#staff' },
   { letter: 'b', name: 'share',       acting: false, hint: '#staff' },
+  { letter: 'B', name: 'bot',         acting: false, hint: '*!*@*' },
   { letter: 'w', name: 'gateway',     acting: false, hint: 'mibbit' },
 ];
 

@@ -3,8 +3,9 @@ import { availableExtbans, matchExtban } from './extbans';
 
 describe('extbans', () => {
   it('parses the ISUPPORT EXTBAN token (<prefix>,<letters>)', () => {
-    const names = availableExtbans({ EXTBAN: ',ACGNOQRSTUabcdgjmnorsuwyz' }).map((e) => e.name);
+    const names = availableExtbans({ EXTBAN: ',ABCGNOQRSTUabcdgjmnorsuwyz' }).map((e) => e.name);
     expect(names).toContain('mute');
+    expect(names).toContain('bot');
     expect(names).toContain('securitygroup'); // custom module (letter g)
     expect(names).toContain('score');         // reputation module (letter y)
   });

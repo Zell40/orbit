@@ -283,10 +283,13 @@
       "filter": "Filter…",
       "extRestrict": "Restrictions",
       "extMatch": "Ban by",
+      "extMatchInvex": "Exempt by",
       "example": "Example:",
       "exempt": "Exempt",
       "allow": "Allow",
-      "plainMask": "(mask)"
+      "plainMask": "(mask)",
+      "invexPlaceholder": "*!*@example.com",
+      "invexHint": "A hostmask or any matching extban (account, country, channel, server, …) bypasses invite-only (+i)."
     }
   },
   "settings": {
@@ -1197,6 +1200,7 @@
     "opertype": "Oper type",
     "channel": "On a channel",
     "share": "Banned elsewhere",
+    "bot": "Bot",
     "gateway": "WebIRC gateway"
   }
 }

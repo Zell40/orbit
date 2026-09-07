@@ -283,10 +283,13 @@
       "filter": "Filtrer…",
       "extRestrict": "Restrictions",
       "extMatch": "Bannir par",
+      "extMatchInvex": "Exempter par",
       "example": "Exemple :",
       "exempt": "Exempter",
       "allow": "Autoriser",
-      "plainMask": "(masque)"
+      "plainMask": "(masque)",
+      "invexPlaceholder": "*!*@example.com",
+      "invexHint": "Masque classique ou n’importe quel ban de correspondance (compte, pays, salon, serveur, …) : ça passe le mode +i."
     }
   },
   "settings": {
@@ -1213,6 +1216,7 @@
     "opertype": "Type d'oper",
     "channel": "Sur un salon",
     "share": "Banni ailleurs",
+    "bot": "Robot",
     "gateway": "Passerelle WebIRC"
   }
 }
