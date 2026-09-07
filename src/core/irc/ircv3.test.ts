@@ -207,10 +207,12 @@ describe('Ircv3 cap-gated commands', () => {
     on.ircv3.webpushRegister('https://push/x', 'p256dh=a;auth=b', 'bob');
     on.ircv3.webpushList();
     on.ircv3.webpushUnregisterTarget('deadbeef01234567', 'bob');
+    on.ircv3.webpushUnregisterTarget('*', 'bob');
     expect(on.sent).toEqual([
       'WEBPUSH REGISTER https://push/x p256dh=a;auth=b',
       'WEBPUSH LIST',
       'WEBPUSH UNREGISTER deadbeef01234567',
+      'WEBPUSH UNREGISTER *',
     ]);
   });
 

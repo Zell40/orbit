@@ -89,19 +89,20 @@ export async function enablePush(client: IrcClient, account: string): Promise<{ 
   }
 }
 
-// Turn push off: tell the ircd to drop it, then unsubscribe in the browser.
+// Turn push off: clear every server registration for this account, then
+// unsubscribe the browser PushManager subscription.
 export async function disablePush(client: IrcClient, account: string): Promise<void> {
   setPref(false);
   pushRegisterPending = false;
-  notifyPushDevices();
+  // Wipe all account endpoints on the server (survives empty/stale device list).
+  client.ircv3.webpushUnregisterTarget('*', account);
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
-    if (sub) {
-      client.ircv3.webpushUnregisterTarget(sub.endpoint, account);
-      await sub.unsubscribe();
-    }
+    if (sub) await sub.unsubscribe();
   } catch { /* ignore */ }
+  pushDevices = [];
+  notifyPushDevices();
 }
 
 /** NickServ LOGOUT: drop this endpoint from the account on the server only — keeps orbit-push=on and the browser subscription so refreshPush re-registers on the next login. */
@@ -233,7 +234,18 @@ export async function removePushDevice(client: IrcClient, account: string, devic
   if (!account) return;
   client.ircv3.webpushUnregisterTarget(device.id, account);
   pushDevices = pushDevices.filter((d) => d.id !== device.id);
-  if (isLocal) setPref(false);
+  if (isLocal) {
+    setPref(false);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        // Endpoint fallback if the server still has a pre-fix device-id row.
+        client.ircv3.webpushUnregisterTarget(sub.endpoint, account);
+        await sub.unsubscribe();
+      }
+    } catch { /* ignore */ }
+  }
   notifyPushDevices();
 }
 
