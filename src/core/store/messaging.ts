@@ -12,7 +12,7 @@ import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
-import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor } from './notices';
+import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
@@ -72,9 +72,9 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
       return true; // swallow all FILEHOST service notices
     }
 
-    // Server-originated NOTICE (no user@host, or to "*") → Server console,
-    // styled as an info callout.
-    if (msg.command === 'NOTICE' && (target === '*' || !msg.user)) {
+    // Server-originated NOTICE (to "*", or a server-name prefix) → console.
+    // A nick-only prefix (ChanServ, Operateur) is a user/service, not the ircd.
+    if (msg.command === 'NOTICE' && noticeIsServerOrigin(msg)) {
       // Cloudflare/Turnstile anti-bot gate during REGISTER → surface it in the
       // account UI instead of dumping the raw challenge link in the console.
       const inReg = get().reg.busy || !!get().reg.challengeUrl;
@@ -144,8 +144,8 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     const svcParty = !isChan && !!otherParty &&
       (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
     const nickServParty = !isChan && isNickServ(self ? chanTarget : (msg.nick || ''));
-    // Notices are not a conversation: they land in a channel we share with the
-    // sender, or in the window you are looking at — never a PM-like tab.
+    // Notices are not a conversation: they land in an open PM with the sender,
+    // a channel we share, or the window you are looking at — never a new tab.
     const route = routeMessage({
       isChannel: isChan, reportService: toReportSvc, nickServParty, serviceParty: svcParty, isNotice: kind === 'notice',
     });

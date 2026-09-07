@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { nickInMembers, resolveNoticeDest, noticeIsChannelEcho, noticeScopeFor } from './notices';
+import { nickInMembers, resolveNoticeDest, noticeIsChannelEcho, noticeScopeFor, noticeIsServerOrigin } from './notices';
 
 const chan = (members: string[], joined = true) => ({
   isChannel: true as const,
@@ -99,6 +99,18 @@ describe('resolveNoticeDest', () => {
     })).toBe('#entrenous.chat');
   });
 
+  it('keeps the notice in the bot PM when that PM is the active window', () => {
+    expect(dest({
+      sender: 'ChanServ',
+      active: 'chanserv',
+      buffers: {
+        '#entrenous.chat': chan(['ChanServ', 'Jessie']),
+        chanserv: { isChannel: false, joined: false, members: {}, name: 'ChanServ' },
+      },
+      order: ['#entrenous.chat', 'chanserv'],
+    })).toBe('chanserv');
+  });
+
   it('falls back to the current window when the sender nick is empty', () => {
     expect(dest({
       sender: '',
@@ -153,5 +165,16 @@ describe('noticeScopeFor', () => {
       shared: ['#entrenous.chat', '#aide.chat'],
       channelTarget: false, service: true,
     })).toBe('direct');
+  });
+});
+
+describe('noticeIsServerOrigin', () => {
+  it('treats NOTICE * and dotted prefixes as the ircd', () => {
+    expect(noticeIsServerOrigin({ nick: 'irc.example.net', params: ['me'] })).toBe(true);
+    expect(noticeIsServerOrigin({ nick: 'ChanServ', user: 's', host: 'services', params: ['*'] })).toBe(true);
+  });
+
+  it('treats a nick-only ChanServ prefix as a user notice', () => {
+    expect(noticeIsServerOrigin({ nick: 'ChanServ', params: ['me'] })).toBe(false);
   });
 });

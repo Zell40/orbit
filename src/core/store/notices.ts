@@ -1,9 +1,9 @@
-// Where an incoming user-targeted NOTICE belongs: the channel we share with the
-// sender when that's unambiguous, otherwise the window you are looking at.
-// Notices are not a conversation — they must not open a PM-like tab. Bots like
-// Bac also PRIVMSG the same lines to the channel — those copies must not be
-// re-inserted as NOTICE.
-import { canon, isChannelName, SERVER } from './context';
+// Where an incoming user-targeted NOTICE belongs: the PM if you are talking to
+// that nick there, else the channel we share with the sender when that's
+// unambiguous, else the window you are looking at. Notices must not *open* a
+// PM tab. Bots like Bac also PRIVMSG the same lines to the channel — those
+// copies must not be re-inserted as NOTICE.
+import { canon, isChannelName, SERVER, isPseudoBuffer } from './context';
 
 type NoticeBuf = {
   isChannel: boolean;
@@ -66,6 +66,19 @@ export function noticeIsChannelEcho(opts: {
   return false;
 }
 
+/** Bare-server NOTICE (MOTD, hostname lookup, NOTICE *) — not ChanServ/BotServ. */
+export function noticeIsServerOrigin(msg: {
+  user?: string;
+  host?: string;
+  nick?: string;
+  params: string[];
+}): boolean {
+  if (msg.params[0] === '*') return true;
+  if (msg.user || msg.host) return false;
+  const src = msg.nick || '';
+  return !src || src.includes('.');
+}
+
 export function resolveNoticeDest(opts: {
   sender: string;
   active: string;
@@ -76,11 +89,20 @@ export function resolveNoticeDest(opts: {
   const sender = opts.sender || '';
   const current = () => opts.active || SERVER;
   if (!sender) return current();
+  const activeKey = opts.active ? canon(opts.active) : '';
+  // Commands typed in the bot's PM must see the NOTICE replies there.
+  if (
+    activeKey
+    && !isChannelName(opts.active)
+    && !isPseudoBuffer(opts.active)
+    && activeKey === canon(sender)
+  ) {
+    return opts.active;
+  }
   const shared = sharedChannelsWith(sender, opts.buffers || {}, opts.order || []);
   const ctx = opts.channelContext && isChannelName(opts.channelContext)
     ? canon(opts.channelContext) : '';
   if (ctx && shared.includes(ctx)) return ctx;
-  const activeKey = opts.active ? canon(opts.active) : '';
   if (activeKey && shared.includes(activeKey)) return activeKey;
   if (shared.length === 1) return shared[0];
   return current();
