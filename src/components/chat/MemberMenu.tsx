@@ -47,7 +47,7 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
     { letter: 'a', add: 'whois.adminAdd', remove: 'whois.adminRemove' },
     { letter: 'o', add: 'whois.opAdd', remove: 'whois.opRemove' },
     { letter: 'h', add: 'whois.halfopAdd', remove: 'whois.halfopRemove' },
-    { letter: 'v', add: 'whois.voice', remove: 'whois.voiceRemove' },
+    { letter: 'v', add: 'whois.voiceAdd', remove: 'whois.voiceRemove' },
   ];
 
   const menuRef = useRef<HTMLDivElement>(null);
