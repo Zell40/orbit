@@ -4,7 +4,7 @@ import { useActiveChat } from '@/core/networks';
 import { formatIrc } from '@/lib/format';
 import { buildModeContext } from '@/core/irc/modes';
 import { setterMask, ago } from '@/lib/topic';
-import { availableExtbans, matchExtban, type ExtBan } from '@/lib/extbans';
+import { availableExtbans, matchExtban, extbanValueHint, type ExtBan } from '@/lib/extbans';
 import { getConfig } from '@/core/config';
 import { Modal } from './Modal';
 
@@ -35,7 +35,7 @@ function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-type Tab = 'overview' | 'modes' | 'bans' | 'extbans';
+type Tab = 'overview' | 'modes' | 'bans' | 'extbans' | 'invex';
 
 // A compact combobox for the extban type: a button + an overlay menu (grouped into
 // restrictions / match-by, filterable). Opening it doesn't push the value input, so
@@ -118,8 +118,10 @@ export function ChanAdminModal() {
   const [newban, setNewban] = useState('');
   const [ebType, setEbType] = useState('');
   const [ebVal, setEbVal] = useState('');
-  const [ebMode, setEbMode] = useState<'b' | 'e' | 'I'>('b');
+  const [ebMode, setEbMode] = useState<'b' | 'e'>('b');
   const [ebNest, setEbNest] = useState(''); // acting extban's nested matching extban (stacking)
+  const [ixType, setIxType] = useState<string | null>(null); // null = first matching type; '' = hostmask
+  const [ixVal, setIxVal] = useState('');
   const [topic, setTopicVal] = useState(buffer?.topic || '');
   const [editingTopic, setEditingTopic] = useState(false);
   const [keyVal, setKeyVal] = useState(curKey);
@@ -150,45 +152,45 @@ export function ChanAdminModal() {
   // Extended bans the server advertises (core + reputation/securitygroups modules).
   const exts = availableExtbans(client?.server.isupport ?? {});
   const matchingExts = exts.filter((e) => !e.acting);
-  // +b ban, +e exempt, +I invex — list modes the server advertises (CHANMODES type A).
-  const ebModes = (['b', 'e', 'I'] as const).filter((m) => m === 'b' || ctx.typeA.has(m));
+  const hasInvex = ctx.typeA.has('I');
+  // +b ban, +e exempt — +I lives in its own tab (it is not a ban).
+  const ebModes = (['b', 'e'] as const).filter((m) => m === 'b' || ctx.typeA.has(m));
   const ebModeSel = ebModes.includes(ebMode) ? ebMode : 'b';
-  const invexMode = ebModeSel === 'I';
-  // Invex matches who may join +i: plain hostmask or a matching extban (account:Sadie),
-  // never an acting restriction (mute, noctcp, …).
-  const ebSel = invexMode
-    ? (matchingExts.some((e) => e.name === ebType) ? ebType : '')
-    : (ebType || exts[0]?.name || '');
+  const ebSel = ebType || exts[0]?.name || '';
   const curExt = exts.find((e) => e.name === ebSel);
-  const nestExt = !invexMode && curExt?.acting && ebNest ? matchingExts.find((e) => e.name === ebNest) : undefined;
+  const nestExt = curExt?.acting && ebNest ? matchingExts.find((e) => e.name === ebNest) : undefined;
   const valueType = curExt?.acting ? nestExt : curExt;
   const stackMask = (v: string) => (curExt?.acting && nestExt ? `${curExt.name}:${nestExt.name}:${v}` : `${curExt?.name}:${v}`);
   const plainMask = (v: string) => (v.includes('@') || v.includes('!') || v.includes(':') ? v : `${v}!*@*`);
-  const modeVerb: Record<string, string> = { b: 'modals.chanadmin.ban', e: 'modals.chanadmin.exempt', I: 'modals.chanadmin.allow' };
+  const modeVerb: Record<string, string> = { b: 'modals.chanadmin.ban', e: 'modals.chanadmin.exempt' };
+  const ixSel = ixType === '' ? '' : (ixType ?? matchingExts[0]?.name ?? '');
+  const ixExt = matchingExts.find((e) => e.name === ixSel);
+  const ixHint = ixExt ? extbanValueHint(ixExt, true) : t('modals.chanadmin.invexPlaceholder');
   // Keep the two lists apart: plain nick!user@host bans on the right, typed extbans
   // in their own tab.
   const plainBans = banlist.filter((b) => !matchExtban(b.mask));
-  // The Extbans tab lists the typed +b extbans plus the whole +e / +I lists, each
-  // tagged with its mode. Plain +b masks stay in the Bans tab.
+  // The Extbans tab lists typed +b extbans plus +e exceptions. Plain +b stays
+  // in the Bans tab; +I invite exceptions have their own tab.
   const extEntries = [
     ...banlist.filter((b) => matchExtban(b.mask)).map((b) => ({ mode: 'b' as const, mask: b.mask, by: b.by })),
     ...exceptlist.map((b) => ({ mode: 'e' as const, mask: b.mask, by: b.by })),
-    ...invexlist.map((b) => ({ mode: 'I' as const, mask: b.mask, by: b.by })),
   ];
   const removeExt = (mode: 'b' | 'e' | 'I', mask: string) => {
     if (mode === 'b') removeBan(chan, mask); else setChannelModeParam(chan, mode, false, mask);
     setTimeout(() => loadBanList(chan), 500);
   };
   const addExtban = () => {
-    const v = ebVal.trim(); if (!v) return;
-    const mask = curExt ? stackMask(v) : plainMask(v);
-    if (ebModeSel === 'b') {
-      if (!curExt) return;
-      client?.ban(chan, mask);
-    } else {
-      setChannelModeParam(chan, ebModeSel, true, mask);
-    }
+    const v = ebVal.trim(); if (!v || !curExt) return;
+    const mask = stackMask(v);
+    if (ebModeSel === 'b') client?.ban(chan, mask);
+    else setChannelModeParam(chan, ebModeSel, true, mask);
     setEbVal(''); setTimeout(() => loadBanList(chan), 500);
+  };
+  const addInvex = () => {
+    const v = ixVal.trim(); if (!v) return;
+    const mask = ixExt ? `${ixExt.name}:${v}` : plainMask(v);
+    setChannelModeParam(chan, 'I', true, mask);
+    setIxVal(''); setTimeout(() => loadBanList(chan), 500);
   };
   const applyKey = () => { const v = keyVal.trim(); if (v) setChannelModeParam(chan, 'k', true, v); };
   const clearKey = () => { setChannelModeParam(chan, 'k', false, curKey || '*'); setKeyVal(''); };
@@ -246,6 +248,7 @@ export function ChanAdminModal() {
             {tabBtn('modes', t('modals.chanadmin.tabModes'))}
             {tabBtn('bans', t('modals.chanadmin.bans', { n: plainBans.length }))}
             {exts.length > 0 && tabBtn('extbans', t('modals.chanadmin.extbans'))}
+            {hasInvex && tabBtn('invex', t('modals.chanadmin.invexTab', { n: invexlist.length }))}
           </div>
 
           {tab === 'overview' && (
@@ -302,32 +305,16 @@ export function ChanAdminModal() {
             <div className="ca-extmode">
               {ebModes.map((m) => (
                 <button key={m} type="button" className={ebModeSel === m ? 'is-on' : ''}
-                  title={t(modeVerb[m])} onClick={() => {
-                    setEbMode(m);
-                    if (m === 'I') {
-                      const keep = matchingExts.some((e) => e.name === ebType);
-                      if (!keep) setEbType(matchingExts[0]?.name || '');
-                      setEbNest('');
-                    }
-                  }}>+{m}</button>
+                  title={t(modeVerb[m])} onClick={() => setEbMode(m)}>+{m}</button>
               ))}
             </div>
-            <ExtbanSelect
-              exts={invexMode ? matchingExts : exts}
-              value={ebSel}
-              onChange={setEbType}
-              maskOption={invexMode}
-              matchLabel={invexMode ? t('modals.chanadmin.extMatchInvex') : undefined}
-            />
-            {curExt?.acting && !invexMode && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={setEbNest} maskOption />}
-            <input className="modal__input" value={ebVal}
-              placeholder={invexMode && !curExt ? t('modals.chanadmin.invexPlaceholder') : (valueType?.hint ?? curExt?.hint)}
+            <ExtbanSelect exts={exts} value={ebSel} onChange={setEbType} />
+            {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={setEbNest} maskOption />}
+            <input className="modal__input" value={ebVal} placeholder={valueType?.hint ?? curExt?.hint}
               aria-label={t('modals.chanadmin.extbanType')}
               onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
             <button className="upbtn upbtn--primary" onClick={addExtban}>{t(modeVerb[ebModeSel])}</button>
           </div>
-          {invexMode && <p className="ca-extexample">{t('modals.chanadmin.invexHint')}</p>}
-          {/* securitygroup takes a group name the ircd doesn't advertise — click to fill it. */}
           {valueType?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
             <div className="ca-extgroups">
               {getConfig().securityGroups!.map((g) => (
@@ -335,16 +322,11 @@ export function ChanAdminModal() {
               ))}
             </div>
           )}
-          {/* Show the full command for the picked type. */}
-          {curExt ? (
+          {curExt && (
             <div className="ca-extexample">
               {t('modals.chanadmin.example')} <code>+{ebModeSel} {stackMask(ebVal.trim() || valueType?.hint || curExt.hint)}</code>
             </div>
-          ) : invexMode ? (
-            <div className="ca-extexample">
-              {t('modals.chanadmin.example')} <code>+I {plainMask(ebVal.trim() || t('modals.chanadmin.invexPlaceholder'))}</code>
-            </div>
-          ) : null}
+          )}
           <ul className="ca-bans">
             {extEntries.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noExtbans')}</li>}
             {extEntries.map((e) => {
@@ -357,6 +339,51 @@ export function ChanAdminModal() {
                   {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
                   <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
                     onClick={() => removeExt(e.mode, e.mask)}>✕</button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {tab === 'invex' && hasInvex && (
+        <div className="ca-pane">
+          <p className="ca-extexample">{t('modals.chanadmin.invexHint')}</p>
+          <div className="ca-param ca-extban-add">
+            <ExtbanSelect
+              exts={matchingExts}
+              value={ixSel}
+              onChange={setIxType}
+              maskOption
+              matchLabel={t('modals.chanadmin.extMatchInvex')}
+            />
+            <input className="modal__input" value={ixVal} placeholder={ixHint}
+              aria-label={t('modals.chanadmin.invexType')}
+              onChange={(e) => setIxVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addInvex()} />
+            <button className="upbtn upbtn--primary" onClick={addInvex}>{t('modals.chanadmin.allow')}</button>
+          </div>
+          {ixExt?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
+            <div className="ca-extgroups">
+              {getConfig().securityGroups!.map((g) => (
+                <button key={g} type="button" className="ca-extgroup" onClick={() => setIxVal(g)}>{g}</button>
+              ))}
+            </div>
+          )}
+          <div className="ca-extexample">
+            {t('modals.chanadmin.example')} <code>+I {ixExt ? `${ixExt.name}:${ixVal.trim() || ixHint}` : plainMask(ixVal.trim() || t('modals.chanadmin.invexPlaceholder'))}</code>
+          </div>
+          <ul className="ca-bans">
+            {invexlist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noInvex')}</li>}
+            {invexlist.map((e) => {
+              const eb = matchExtban(e.mask);
+              return (
+                <li key={'I' + e.mask} className="ca-ban">
+                  <span className="ca-ban__mode ca-ban__mode--I">+I</span>
+                  {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
+                  <span className="ca-ban__mask">{eb ? e.mask.slice(e.mask.indexOf(':') + 1) : e.mask}</span>
+                  {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
+                  <button className="friend__act friend__act--rm" title={t('modals.chanadmin.removeInvex')}
+                    onClick={() => removeExt('I', e.mask)}>✕</button>
                 </li>
               );
             })}

@@ -6,7 +6,7 @@
 // always reflects the modules that are loaded (core + reputation `score` +
 // securitygroups). Labels resolve via i18n (extbans.<name>); `hint` is an example of
 // the value shape. `acting` extbans restrict behaviour; the rest match/ban by a trait.
-export interface ExtBan { letter: string; name: string; acting: boolean; hint: string; }
+export interface ExtBan { letter: string; name: string; acting: boolean; hint: string; invexHint?: string; }
 
 export const EXTBANS: ExtBan[] = [
   // Acting — restrict what matching users may do.
@@ -21,15 +21,15 @@ export const EXTBANS: ExtBan[] = [
   { letter: 'A', name: 'blockinvite', acting: true,  hint: 'test!test@test.test' },
   { letter: 'd', name: 'redirect',    acting: true,  hint: '#offtopic:test!test@test.test' },
   // Matching — ban by a trait.
-  { letter: 'R', name: 'account',     acting: false, hint: 'baduser' },
-  { letter: 'U', name: 'unauthed',    acting: false, hint: 'test!test@test.test' },
+  { letter: 'R', name: 'account',     acting: false, hint: 'baduser', invexHint: 'Jessie' },
+  { letter: 'U', name: 'unauthed',    acting: false, hint: 'test!test@test.test', invexHint: '*!*@*' },
   { letter: 'g', name: 'securitygroup', acting: false, hint: 'registered' },
-  { letter: 'y', name: 'score',       acting: false, hint: '-5' },
-  { letter: 'G', name: 'country',     acting: false, hint: 'RU' },
+  { letter: 'y', name: 'score',       acting: false, hint: '-5', invexHint: '10' },
+  { letter: 'G', name: 'country',     acting: false, hint: 'RU', invexHint: 'FR' },
   { letter: 's', name: 'server',      acting: false, hint: '*.example.net' },
   { letter: 'n', name: 'class',       acting: false, hint: 'main' },
-  { letter: 'r', name: 'realname',    acting: false, hint: 'spam_bot' },
-  { letter: 'a', name: 'realmask',    acting: false, hint: 'test!test@test.test+spam_bot' },
+  { letter: 'r', name: 'realname',    acting: false, hint: 'spam_bot', invexHint: 'Ami' },
+  { letter: 'a', name: 'realmask',    acting: false, hint: 'test!test@test.test+spam_bot', invexHint: 'nick!user@host+Ami' },
   { letter: 'z', name: 'fingerprint', acting: false, hint: 'a1b2c3d4e5f6' },
   { letter: 'o', name: 'oper',        acting: false, hint: 'admin' },
   { letter: 'O', name: 'opertype',    acting: false, hint: 'NetAdmin' },
@@ -54,4 +54,9 @@ export function availableExtbans(isupport: Record<string, string>): ExtBan[] {
 export function matchExtban(mask: string): ExtBan | null {
   const head = mask.replace(/^!/, '').split(':', 1)[0];
   return EXTBANS.find((e) => e.name === head || e.letter === head) || null;
+}
+
+/** Placeholder / example value: a trusted identity for +I, a blocked one for +b. */
+export function extbanValueHint(e: ExtBan, invex: boolean): string {
+  return (invex && e.invexHint) || e.hint;
 }

@@ -280,16 +280,20 @@
       "extbans": "Bans étendus",
       "extbanType": "Type de ban étendu",
       "noExtbans": "Aucun ban étendu",
+      "invexTab": "Invex ({{n}})",
+      "invexType": "Type d'exception",
+      "noInvex": "Aucune exception d'invitation",
+      "removeInvex": "Retirer l'exception",
       "filter": "Filtrer…",
       "extRestrict": "Restrictions",
       "extMatch": "Bannir par",
-      "extMatchInvex": "Exempter par",
+      "extMatchInvex": "Autoriser par",
       "example": "Exemple :",
       "exempt": "Exempter",
       "allow": "Autoriser",
       "plainMask": "(masque)",
       "invexPlaceholder": "*!*@example.com",
-      "invexHint": "Masque classique ou n’importe quel ban de correspondance (compte, pays, salon, serveur, …) : ça passe le mode +i."
+      "invexHint": "Ces personnes peuvent entrer dans un salon +i (sur invitation), sans être invitées. Ce n’est pas un bannissement."
     }
   },
   "settings": {

@@ -280,16 +280,20 @@
       "extbans": "Extended bans",
       "extbanType": "Extban type",
       "noExtbans": "No extended bans yet",
+      "invexTab": "Invex ({{n}})",
+      "invexType": "Exception type",
+      "noInvex": "No invite exceptions yet",
+      "removeInvex": "Remove exception",
       "filter": "Filter…",
       "extRestrict": "Restrictions",
       "extMatch": "Ban by",
-      "extMatchInvex": "Exempt by",
+      "extMatchInvex": "Allow by",
       "example": "Example:",
       "exempt": "Exempt",
       "allow": "Allow",
       "plainMask": "(mask)",
       "invexPlaceholder": "*!*@example.com",
-      "invexHint": "A hostmask or any matching extban (account, country, channel, server, …) bypasses invite-only (+i)."
+      "invexHint": "These people can join an invite-only (+i) channel without an invite. This is not a ban."
     }
   },
   "settings": {

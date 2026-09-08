@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { availableExtbans, matchExtban } from './extbans';
+import { availableExtbans, matchExtban, extbanValueHint } from './extbans';
 
 describe('extbans', () => {
   it('parses the ISUPPORT EXTBAN token (<prefix>,<letters>)', () => {
@@ -19,6 +19,11 @@ describe('extbans', () => {
     expect(matchExtban('m:*!*@x')?.name).toBe('mute');
     expect(matchExtban('!score:-5')?.name).toBe('score');
     expect(matchExtban('*!*@host')).toBeNull();
+  });
+  it('uses a trusted example value for invex, a blocked one for bans', () => {
+    const acc = matchExtban('account:x')!;
+    expect(extbanValueHint(acc, false)).toBe('baduser');
+    expect(extbanValueHint(acc, true)).toBe('Jessie');
   });
   it('is IPv6-mask safe (a colon in the host is not a type prefix)', () => {
     expect(matchExtban('*!*@2001:db8::1')).toBeNull();
