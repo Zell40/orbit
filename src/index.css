@@ -1707,6 +1707,8 @@ html[data-actions="off"] .msg-actions { display: none; }
 .memberctx__item--warn { color: var(--danger); }
 .memberctx__item--warn:hover { background: var(--danger); color: #fff; }
 .memberctx__item--sub { font-weight: 700; }
+.memberctx__sep { height: 1px; margin: 4px 6px; background: var(--border); }
+.memberctx__h { padding: .35rem .6rem .15rem; font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--faint); }
 
 .memberrsn-scrim { position: fixed; inset: 0; z-index: 210; display: grid; place-items: center; padding: 1rem;
   background: rgba(0,0,0,.4); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: cfaq-fade .12s ease both; }

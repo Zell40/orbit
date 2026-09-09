@@ -119,6 +119,7 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
           <button className="memberctx__item memberctx__item--warn" role="menuitem" onClick={() => { modBanOnly(nick); onClose(); }}>{t('whois.ban')}</button>
           <button className="memberctx__item memberctx__item--warn" role="menuitem" onClick={() => setPending('bankick')}>{t('members.banKick')}</button>
           <div className="memberctx__sep" />
+          <div className="memberctx__h">{t('members.sessionModes')}</div>
           {roleBtns.map((r) => {
             const sym = prefixModeToChar[r.letter];
             if (!sym) return null;
