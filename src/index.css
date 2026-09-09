@@ -2808,8 +2808,16 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
    component rules (media queries add no specificity; later rule wins).
    ============================================================================ */
 @media (max-width: 880px) {
-  /* Pin the app to the visual viewport (above the keyboard); --app-h tracks iOS.
-     The .shell > .app selector must match to beat the desktop height:auto rule. */
+  .memberctx {
+    min-width: min(240px, calc(100vw - 16px));
+    max-width: calc(100vw - 16px);
+    max-height: min(80vh, calc(100dvh - 16px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .memberctx__item, .memberctx__item.ocs-mirow, .ocs-mm__trig { white-space: normal; }
+
   .app, .shell > .app {
     position: fixed; left: 0; right: 0;
     top: var(--app-top, 0px);

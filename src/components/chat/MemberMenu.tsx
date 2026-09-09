@@ -55,16 +55,23 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   const [pending, setPending] = useState<Pending | null>(null);
   const [reason, setReason] = useState('');
 
-  // Keep the menu on-screen: shift it left/up if it would overflow the viewport.
+  // Keep the menu on-screen: shift it left/up if it would overflow (also when a
+  // plugin submenu grows the panel, e.g. inline flyouts on a phone).
   useLayoutEffect(() => {
     const el = menuRef.current;
     if (!el) return;
-    const r = el.getBoundingClientRect();
-    let nx = x, ny = y;
-    if (x + r.width > window.innerWidth - 8) nx = Math.max(8, window.innerWidth - r.width - 8);
-    if (y + r.height > window.innerHeight - 8) ny = Math.max(8, window.innerHeight - r.height - 8);
-    if (nx !== pos.x || ny !== pos.y) setPos({ x: nx, y: ny });
-  }, [x, y, pending]); // eslint-disable-line react-hooks/exhaustive-deps
+    const place = () => {
+      const r = el.getBoundingClientRect();
+      let nx = x, ny = y;
+      if (x + r.width > window.innerWidth - 8) nx = Math.max(8, window.innerWidth - r.width - 8);
+      if (y + r.height > window.innerHeight - 8) ny = Math.max(8, window.innerHeight - r.height - 8);
+      setPos((p) => (nx !== p.x || ny !== p.y ? { x: nx, y: ny } : p));
+    };
+    place();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null;
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [x, y, pending]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.memberctx, .memberrsn, .ocs-mm__fly')) onClose(); };
