@@ -66,6 +66,7 @@
     "connecting": "Connecting…",
     "loadingPlugins": "Loading extensions…",
     "joiningRooms": "Opening rooms…",
+    "preparingUi": "Preparing the interface…",
     "almostReady": "Almost ready…",
     "joinHint": "You're joining",
     "registered": "Already have an account?",

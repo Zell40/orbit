@@ -243,4 +243,9 @@ export const Orbit = {
   },
 };
 
+/** Names that have run `Orbit.plugin(...)` (script onload ≠ factory finished). */
+export function registeredPluginIds(): string[] {
+  return [...registered.keys()];
+}
+
 export type OrbitGlobal = typeof Orbit;

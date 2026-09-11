@@ -101,7 +101,7 @@ input, textarea { font-family: inherit; }
 }
 @keyframes cj-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
-/* Boot splash: covers the shell until IRC + plugins + first rooms are ready. */
+/* Boot splash: covers the shell until IRC + plugins + rooms + clickable chrome are ready. */
 .splash { position: fixed; inset: 0; z-index: 180; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .85rem; background: var(--bg-soft); color: var(--ink); transition: opacity .28s ease, background .28s ease; }
 .splash.is-out { opacity: 0; pointer-events: none; }
 .splash--peek { background: color-mix(in srgb, var(--bg-soft) 42%, transparent); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }

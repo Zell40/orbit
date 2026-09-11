@@ -6,6 +6,7 @@ const PHASE_KEY: Record<BootPhase, string> = {
   connecting: 'connect.connecting',
   plugins: 'connect.loadingPlugins',
   rooms: 'connect.joiningRooms',
+  display: 'connect.preparingUi',
   almost: 'connect.almostReady',
 };
 
