@@ -72,6 +72,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const plugAfterNotify = sortByPluginOrder(plug.filter((u) => afterNotifyNames.has(u.plugin)), TOPBAR_AFTER_NOTIFY);
   const plugAfterManage = sortByPluginOrder(plug.filter((u) => afterManageNames.has(u.plugin)), TOPBAR_AFTER_MANAGE);
   const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin) && !afterManageNames.has(u.plugin));
+  const plugEnd = topbarItems.filter((u) => u.slot === 'topbar_end');
   const isServer = bname === SERVER;
   const isNotices = isNoticeBuffer(bname);
   const noticeNick = noticeBufferNick(bname);
@@ -135,6 +136,8 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           <Icon name="user" size={19} />
         </button>
       )}
+      {/* Visio-away alert, etc. — immediately left of leave (desktop) / ⋮ (mobile). */}
+      {plugEnd.map((u) => <PluginBoundary key={u.id} render={u.render} label="topbar_end" />)}
       {!isServer && (
         <button className="topbar__leave topbar__hide-mobile" onClick={() => closeBuffer(bname)}
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
