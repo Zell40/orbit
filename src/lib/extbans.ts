@@ -27,7 +27,7 @@ export const EXTBANS: ExtBan[] = [
   { letter: 'y', name: 'score',       acting: false, hint: '-5', invexHint: '10' },
   { letter: 'G', name: 'country',     acting: false, hint: 'RU', invexHint: 'FR' },
   { letter: 's', name: 'server',      acting: false, hint: '*.example.net' },
-  { letter: 'n', name: 'class',       acting: false, hint: 'main' },
+  { letter: 'n', name: 'class',       acting: false, hint: 'main', invexHint: 'websocket' },
   { letter: 'r', name: 'realname',    acting: false, hint: 'spam_bot', invexHint: 'Ami' },
   { letter: 'a', name: 'realmask',    acting: false, hint: 'test!test@test.test+spam_bot', invexHint: 'nick!user@host+Ami' },
   { letter: 'z', name: 'fingerprint', acting: false, hint: 'a1b2c3d4e5f6' },
@@ -59,4 +59,14 @@ export function matchExtban(mask: string): ExtBan | null {
 /** Placeholder / example value: a trusted identity for +I, a blocked one for +b. */
 export function extbanValueHint(e: ExtBan, invex: boolean): string {
   return (invex && e.invexHint) || e.hint;
+}
+
+/** Invex / matching pickers: keep advertised types, and always offer named extras
+ *  (e.g. connection class) even if that letter is missing from ISUPPORT EXTBAN. */
+export function ensureMatchingExtban(list: ExtBan[], name: string): ExtBan[] {
+  if (list.some((e) => e.name === name)) return list;
+  const extra = EXTBANS.find((e) => e.name === name && !e.acting);
+  if (!extra) return list;
+  const order = EXTBANS.filter((e) => !e.acting).map((e) => e.name);
+  return list.concat(extra).sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
 }

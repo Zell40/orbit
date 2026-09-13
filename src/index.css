@@ -1861,8 +1861,10 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 
 /* consistent setting row: icon · text · control */
 .srow { display: flex; align-items: center; gap: .8rem; padding: .7rem .95rem; border-top: 1px solid var(--border); min-height: 56px; }
+.scard__body .ocid-srow { padding: .7rem .95rem; }
 .scard__body > .srow:first-child, .scard__body > .sfield:first-child { border-top: 0; }
 .srow__ic { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: var(--accent-soft); color: var(--accent-d); font-size: 1.1rem; }
+.srow__ic--mode { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .72rem; font-weight: 800; letter-spacing: .02em; }
 .srow__ic .avatar { box-shadow: none; }
 .srow__txt { flex: 1; min-width: 0; }
 .srow__label { font-size: .94rem; font-weight: 700; color: var(--ink); }
@@ -2092,6 +2094,7 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .switch__dot { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .18s; }
 .switch.is-on { background: var(--accent); }
 .switch.is-on .switch__dot { transform: translateX(18px); }
+.switch.is-locked { opacity: .65; cursor: not-allowed; }
 .seg { display: flex; align-items: center; justify-content: space-between; }
 .seg__lbl { font-size: .9rem; font-weight: 600; color: var(--ink); }
 .seg__opts { display: inline-flex; gap: .25rem; padding: .2rem; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; }
@@ -2686,7 +2689,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-tab.is-on { color: var(--ink); border-bottom-color: var(--accent); }
 /* Both tabs render at the same fixed height so switching never resizes the modal;
    the taller Modes grid scrolls inside instead of growing the dialog. */
-.ca-pane { height: 18.5rem; overflow-y: auto; overflow-x: hidden; animation: caFade .18s ease both; }
+.ca-pane { height: 26rem; overflow-y: auto; overflow-x: hidden; animation: caFade .18s ease both; }
 @keyframes caFade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 .ca-sec { margin-top: 1rem; }
 .ca-sec:first-child { margin-top: .3rem; }
@@ -2716,6 +2719,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-param { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
 .ca-param:last-child { margin-bottom: 0; }
 .ca-param__l { flex: none; width: 6.5rem; font-size: .82rem; font-weight: 600; color: var(--ink); }
+.ca-param__l:has(.ca-flag__m) { width: 9.5rem; display: inline-flex; align-items: center; gap: .35rem; }
 .ca-param .modal__input { flex: 1; min-width: 0; }
 .ca-param .upbtn { flex: none; }
 /* Mode flags — card grid with on-state highlight + mode-letter chip */
@@ -2725,6 +2729,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-flag { display: flex; align-items: center; gap: .5rem; padding: .3rem .55rem; border: 1px solid var(--border-2); border-radius: 9px; background: var(--bg-soft); cursor: pointer; transition: border-color .15s, background .15s; }
 .ca-flag:hover { border-color: var(--accent); }
 .ca-flag.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg-soft)); }
+.ca-flag.is-ro { cursor: default; opacity: .78; }
+.ca-flag.is-ro:hover { border-color: var(--border-2); }
 .ca-flag input { flex: none; width: 15px; height: 15px; accent-color: var(--up-accent, #2a6bff); }
 /* Mode letter leads each row as a monospace badge (+C, +S…); it tints to the accent
    when the mode is active. The label follows for readers who don't know the letters. */

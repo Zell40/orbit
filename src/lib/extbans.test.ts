@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { availableExtbans, matchExtban, extbanValueHint } from './extbans';
+import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban } from './extbans';
 
 describe('extbans', () => {
   it('parses the ISUPPORT EXTBAN token (<prefix>,<letters>)', () => {
@@ -20,7 +20,12 @@ describe('extbans', () => {
     expect(matchExtban('!score:-5')?.name).toBe('score');
     expect(matchExtban('*!*@host')).toBeNull();
   });
-  it('uses a trusted example value for invex, a blocked one for bans', () => {
+  it('always offers connection class for invex even if EXTBAN omits n', () => {
+    const matching = availableExtbans({ EXTBAN: ',RUg' }).filter((e) => !e.acting);
+    expect(matching.map((e) => e.name)).toEqual(['account', 'unauthed', 'securitygroup']);
+    expect(ensureMatchingExtban(matching, 'class').map((e) => e.name))
+      .toEqual(['account', 'unauthed', 'securitygroup', 'class']);
+  });
     const acc = matchExtban('account:x')!;
     expect(extbanValueHint(acc, false)).toBe('baduser');
     expect(extbanValueHint(acc, true)).toBe('Jessie');

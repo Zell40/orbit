@@ -278,6 +278,7 @@
       "topicBy": "Défini par",
       "tabOverview": "Aperçu",
       "tabModes": "Modes",
+      "paramModes": "Limites et protections",
       "extbans": "Bans étendus",
       "extbanType": "Type de ban étendu",
       "noExtbans": "Aucun ban étendu",
@@ -445,8 +446,10 @@
       "modes": "Filtres et protections optionnels"
     },
     "modes": {
-      "intro": "Activez des modes de confidentialité proposés par les plugins installés. Certains modes sont verrouillés sous contrôle parental.",
-      "empty": "Aucun mode optionnel pour le moment."
+      "intro": "Modes de confidentialité et de messages que le serveur propose. Le contrôle parental peut en verrouiller certains.",
+      "empty": "Aucun mode optionnel pour le moment.",
+      "locked": "Imposé par le contrôle parental — non désactivable.",
+      "lockedTitle": "Verrouillé"
     }
   },
   "profile": {
@@ -810,6 +813,46 @@
       "label": "Permanent",
       "brief": "permanent",
       "desc": "Le salon persiste sans membres (+P)"
+    },
+    "allowInvite": {
+      "label": "Invitations libres",
+      "brief": "invitations libres",
+      "desc": "Tout le monde peut inviter (+A)"
+    },
+    "delayJoin": {
+      "label": "Arrivées masquées",
+      "brief": "arrivées masquées",
+      "desc": "Cache les JOIN jusqu’au premier message (+D)"
+    },
+    "censor": {
+      "label": "Censure",
+      "brief": "censure",
+      "desc": "Filtre les mots interdits (+G)"
+    },
+    "noKick": {
+      "label": "Sans expulsion",
+      "brief": "sans expulsion",
+      "desc": "Interdit les KICK (+Q)"
+    },
+    "noNotice": {
+      "label": "Sans notices",
+      "brief": "sans notices",
+      "desc": "Bloque les NOTICE de salon (+T)"
+    },
+    "auditorium": {
+      "label": "Auditorium",
+      "brief": "auditorium",
+      "desc": "Masque la liste des membres (+u)"
+    },
+    "opModerated": {
+      "label": "Modéré vers les ops",
+      "brief": "modéré vers les ops",
+      "desc": "Les messages bloqués vont aux opérateurs (+U)"
+    },
+    "blockHighlight": {
+      "label": "Anti-mentions de masse",
+      "brief": "anti-mentions",
+      "desc": "Sanctionne les mentions de trop de membres (+V)"
     }
   },
   "reg": {
@@ -965,10 +1008,135 @@
     "playVideo": "Lire la vidéo",
     "ytPreview": "Aperçu YouTube"
   },
+  "chanParams": {
+    "anticaps": {
+      "label": "Anti-majuscules",
+      "desc": "Plafond de majuscules, ex. 80:2 (+B)"
+    },
+    "delaymsg": {
+      "label": "Délai de parole",
+      "desc": "Secondes d’attente avant de pouvoir parler (+d)"
+    },
+    "repeat": {
+      "label": "Anti-répétition",
+      "desc": "Limite les messages répétés, ex. 5:5 (+E)"
+    },
+    "flood": {
+      "label": "Anti-flood",
+      "desc": "Seuil de messages, ex. *5:10 (+f)"
+    },
+    "nickflood": {
+      "label": "Flood de pseudos",
+      "desc": "Changements de pseudo, ex. 5:10 (+F)"
+    },
+    "history": {
+      "label": "Historique",
+      "desc": "Lignes et durée, ex. 20:1d (+H)"
+    },
+    "joinflood": {
+      "label": "Flood d’entrées",
+      "desc": "Joins trop rapides, ex. 5:10 (+j)"
+    },
+    "kicknorejoin": {
+      "label": "Anti-rejoin",
+      "desc": "Secondes avant de pouvoir revenir après un kick (+J)"
+    },
+    "redirect": {
+      "label": "Redirection",
+      "desc": "Salon de repli, ex. #accueil (+L)"
+    },
+    "antisnoop": {
+      "label": "Anti-snoop",
+      "desc": "Idle max des observateurs, ex. 5m (+W)"
+    }
+  },
+  "userFlags": {
+    "groups": {
+      "privacy": "Confidentialité",
+      "messages": "Messages",
+      "other": "Autre"
+    },
+    "invisible": {
+      "label": "Invisible",
+      "desc": "Hors des listes WHO/NAMES sauf salons communs (+i)"
+    },
+    "hidechans": {
+      "label": "Salons cachés",
+      "desc": "Ne montre pas tes salons dans un WHOIS (+I)"
+    },
+    "cloak": {
+      "label": "Hôte masqué",
+      "desc": "Cache ton adresse réelle derrière un cloak (+x)"
+    },
+    "hideidle": {
+      "label": "Masquer l’inactivité",
+      "desc": "Cache idle et date de connexion aux non-opers (+a)"
+    },
+    "showwhois": {
+      "label": "Notifier les WHOIS",
+      "desc": "Préviens-toi quand quelqu’un fait /WHOIS sur toi (+W)"
+    },
+    "callerid": {
+      "label": "Filtrer les messages privés",
+      "desc": "Seules les personnes acceptées peuvent t’écrire (+g)"
+    },
+    "commonchans": {
+      "label": "Salon en commun",
+      "desc": "Refuse les MP des gens sans salon commun (+c)"
+    },
+    "regdeaf": {
+      "label": "MP des inscrits seulement",
+      "desc": "Ignore les messages privés des non-enregistrés (+R)"
+    },
+    "deaf": {
+      "label": "Sourd aux salons",
+      "desc": "N’affiche plus les messages de salon (+d)"
+    },
+    "privdeaf": {
+      "label": "Sourd aux privés",
+      "desc": "N’affiche plus les messages privés (+D)"
+    },
+    "noctcp": {
+      "label": "Sans CTCP",
+      "desc": "Bloque les requêtes CTCP en privé (+T)"
+    },
+    "stripcolor": {
+      "label": "Retirer les couleurs",
+      "desc": "Enlève les codes couleur des messages reçus (+S)"
+    },
+    "censor": {
+      "label": "Censure",
+      "desc": "Filtre les phrases interdites en privé (+G)"
+    },
+    "antiredirect": {
+      "label": "Pas de redirection",
+      "desc": "Refuse d’être envoyé vers un autre salon (+L)"
+    },
+    "sslqueries": {
+      "label": "MP chiffrés seulement",
+      "desc": "N’accepte les privés que de clients TLS (+z)"
+    },
+    "nohistory": {
+      "label": "Sans historique de salon",
+      "desc": "Ne reçois pas l’historique à l’entrée d’un salon (+N)"
+    },
+    "wallops": {
+      "label": "Wallops",
+      "desc": "Reçois les annonces opérateurs WALLOPS (+w)"
+    },
+    "geomaxlite": {
+      "label": "Ville et pays dans le WHOIS",
+      "desc": "Affiche ta localisation GeoIP aux autres (+y)"
+    },
+    "bot": {
+      "label": "Marquer comme bot",
+      "desc": "Indique aux autres que ce client est un bot (+B)"
+    }
+  },
   "umodes": {
     "i": "invisible",
     "o": "opérateur",
-    "O": "opérateur local",
+    "O": "override",
     "r": "enregistré",
     "w": "wallops",
     "s": "notices serveur",
@@ -978,9 +1146,19 @@
     "g": "messages filtrés",
     "R": "messages des enregistrés uniquement",
     "d": "sourd",
+    "D": "sourd aux privés",
     "H": "oper masqué",
-    "I": "invisible aux salons",
-    "T": "pas de CTCP"
+    "I": "salons cachés",
+    "T": "pas de CTCP",
+    "a": "inactivité masquée",
+    "c": "salon en commun",
+    "G": "censure",
+    "L": "anti-redirection",
+    "N": "sans historique",
+    "S": "couleurs retirées",
+    "W": "notifier WHOIS",
+    "y": "géolocalisation",
+    "z": "MP TLS uniquement"
   },
   "units": {
     "sec": "{{n}} s",

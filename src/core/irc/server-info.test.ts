@@ -41,6 +41,7 @@ describe('ServerInfo — server info + user counts', () => {
     s.applyMyInfo(parseLine(':srv 004 me irc.example.net ExampleIRCd-4 iowx bklet'));
     expect(s.serverName).toBe('irc.example.net');
     expect(s.serverVersion).toBe('ExampleIRCd-4');
+    expect(s.userModes).toBe('iowx');
   });
 
   it('falls back to RPL_YOURHOST (002) for the version only when unset', () => {

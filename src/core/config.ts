@@ -222,6 +222,12 @@ export interface AppConfig {
     kickReason?: string;
   };
   securityGroups?: string[];
+  /** Parental / callerid package (orbit-callerid). Used to lock umode toggles. */
+  callerid?: {
+    group?: string;
+    modes?: string;
+    autoMode?: boolean;
+  };
 }
 
 /** A plugin to load: a bare URL, or a URL with options.

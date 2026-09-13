@@ -278,6 +278,7 @@
       "topicBy": "Set by",
       "tabOverview": "Overview",
       "tabModes": "Modes",
+      "paramModes": "Limits and protections",
       "extbans": "Extended bans",
       "extbanType": "Extban type",
       "noExtbans": "No extended bans yet",
@@ -445,8 +446,10 @@
       "modes": "Optional filters and protections"
     },
     "modes": {
-      "intro": "Enable optional privacy modes provided by installed plugins. Some modes are locked when parental controls apply.",
-      "empty": "No optional modes available yet."
+      "intro": "Privacy and message modes the server offers. Parental controls may lock some of them.",
+      "empty": "No optional modes available yet.",
+      "locked": "Required by parental controls — cannot be turned off.",
+      "lockedTitle": "Locked"
     }
   },
   "profile": {
@@ -794,6 +797,38 @@
     "permanent": {
       "label": "Permanent",
       "desc": "Channel persists with no members (+P)"
+    },
+    "allowInvite": {
+      "label": "Free invites",
+      "desc": "Anyone can invite (+A)"
+    },
+    "delayJoin": {
+      "label": "Hidden joins",
+      "desc": "Hides JOIN until the first message (+D)"
+    },
+    "censor": {
+      "label": "Censor",
+      "desc": "Filters banned words (+G)"
+    },
+    "noKick": {
+      "label": "No kicks",
+      "desc": "Forbids KICK (+Q)"
+    },
+    "noNotice": {
+      "label": "No notices",
+      "desc": "Blocks channel NOTICE (+T)"
+    },
+    "auditorium": {
+      "label": "Auditorium",
+      "desc": "Hides the member list (+u)"
+    },
+    "opModerated": {
+      "label": "Op-moderated",
+      "desc": "Blocked messages go to operators (+U)"
+    },
+    "blockHighlight": {
+      "label": "Anti mass-highlight",
+      "desc": "Punishes mentioning too many members (+V)"
     }
   },
   "reg": {
@@ -949,10 +984,135 @@
     "playVideo": "Play video",
     "ytPreview": "YouTube preview"
   },
+  "chanParams": {
+    "anticaps": {
+      "label": "Anti-caps",
+      "desc": "Uppercase cap, e.g. 80:2 (+B)"
+    },
+    "delaymsg": {
+      "label": "Talk delay",
+      "desc": "Seconds to wait before speaking (+d)"
+    },
+    "repeat": {
+      "label": "Anti-repeat",
+      "desc": "Limits repeated messages, e.g. 5:5 (+E)"
+    },
+    "flood": {
+      "label": "Anti-flood",
+      "desc": "Message threshold, e.g. *5:10 (+f)"
+    },
+    "nickflood": {
+      "label": "Nick flood",
+      "desc": "Nick changes, e.g. 5:10 (+F)"
+    },
+    "history": {
+      "label": "History",
+      "desc": "Lines and duration, e.g. 20:1d (+H)"
+    },
+    "joinflood": {
+      "label": "Join flood",
+      "desc": "Too-fast joins, e.g. 5:10 (+j)"
+    },
+    "kicknorejoin": {
+      "label": "No rejoin",
+      "desc": "Seconds before rejoining after a kick (+J)"
+    },
+    "redirect": {
+      "label": "Redirect",
+      "desc": "Fallback channel, e.g. #lobby (+L)"
+    },
+    "antisnoop": {
+      "label": "Anti-snoop",
+      "desc": "Max idle for watchers, e.g. 5m (+W)"
+    }
+  },
+  "userFlags": {
+    "groups": {
+      "privacy": "Privacy",
+      "messages": "Messages",
+      "other": "Other"
+    },
+    "invisible": {
+      "label": "Invisible",
+      "desc": "Hidden from WHO/NAMES except shared channels (+i)"
+    },
+    "hidechans": {
+      "label": "Hide channels",
+      "desc": "Do not list your channels in WHOIS (+I)"
+    },
+    "cloak": {
+      "label": "Masked host",
+      "desc": "Hide your real address behind a cloak (+x)"
+    },
+    "hideidle": {
+      "label": "Hide idle time",
+      "desc": "Hide idle and sign-on time from non-opers (+a)"
+    },
+    "showwhois": {
+      "label": "WHOIS notices",
+      "desc": "Notify you when someone WHOISes you (+W)"
+    },
+    "callerid": {
+      "label": "Filter private messages",
+      "desc": "Only accepted people can message you (+g)"
+    },
+    "commonchans": {
+      "label": "Shared channel required",
+      "desc": "Refuse PMs from people with no channel in common (+c)"
+    },
+    "regdeaf": {
+      "label": "Registered PMs only",
+      "desc": "Ignore private messages from unregistered users (+R)"
+    },
+    "deaf": {
+      "label": "Deaf to channels",
+      "desc": "Stop showing channel messages (+d)"
+    },
+    "privdeaf": {
+      "label": "Deaf to privates",
+      "desc": "Stop showing private messages (+D)"
+    },
+    "noctcp": {
+      "label": "No CTCP",
+      "desc": "Block private CTCP requests (+T)"
+    },
+    "stripcolor": {
+      "label": "Strip colours",
+      "desc": "Strip colour codes from incoming messages (+S)"
+    },
+    "censor": {
+      "label": "Censor",
+      "desc": "Filter banned phrases in private (+G)"
+    },
+    "antiredirect": {
+      "label": "No redirect",
+      "desc": "Refuse being sent to another channel (+L)"
+    },
+    "sslqueries": {
+      "label": "TLS PMs only",
+      "desc": "Accept private messages only from TLS clients (+z)"
+    },
+    "nohistory": {
+      "label": "No channel history",
+      "desc": "Do not receive history when joining a channel (+N)"
+    },
+    "wallops": {
+      "label": "Wallops",
+      "desc": "Receive operator WALLOPS announcements (+w)"
+    },
+    "geomaxlite": {
+      "label": "City and country in WHOIS",
+      "desc": "Show your GeoIP location to others (+y)"
+    },
+    "bot": {
+      "label": "Mark as bot",
+      "desc": "Tell others this client is a bot (+B)"
+    }
+  },
   "umodes": {
     "i": "invisible",
     "o": "operator",
-    "O": "local operator",
+    "O": "override",
     "r": "registered",
     "w": "wallops",
     "s": "server notices",
@@ -962,9 +1122,19 @@
     "g": "filtered messages",
     "R": "registered-only messages",
     "d": "deaf",
+    "D": "deaf to privates",
     "H": "hidden oper",
-    "I": "invisible to channels",
-    "T": "no CTCP"
+    "I": "channels hidden",
+    "T": "no CTCP",
+    "a": "idle hidden",
+    "c": "shared channel",
+    "G": "censor",
+    "L": "anti-redirect",
+    "N": "no history",
+    "S": "colours stripped",
+    "W": "WHOIS notices",
+    "y": "geolocation",
+    "z": "TLS PMs only"
   },
   "units": {
     "sec": "{{n}}s",

@@ -17,6 +17,7 @@ export class ServerInfo {
   topiclen = 390;                                 // ISUPPORT TOPICLEN
   serverName = '';                                // RPL_MYINFO (004) — the ircd's own hostname
   serverVersion = '';                             // RPL_MYINFO (004) / RPL_YOURHOST (002) — the ircd version
+  userModes = '';                                 // RPL_MYINFO (004) usermode letters (fallback if no USERMODES)
   users = 0;                                      // RPL_GLOBALUSERS (266) / RPL_LUSERCLIENT (251)
 
   // RPL_ISUPPORT (005): merge the advertised tokens, then refresh the derived
@@ -49,6 +50,7 @@ export class ServerInfo {
   applyMyInfo(msg: IrcMessage): void {
     this.serverName = msg.params[1] || this.serverName;
     this.serverVersion = msg.params[2] || this.serverVersion;
+    if (msg.params[3]) this.userModes = msg.params[3];
   }
 
   // RPL_YOURHOST (002) fallback: "Your host is X, running version Y".

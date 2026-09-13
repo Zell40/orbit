@@ -3,33 +3,49 @@ import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '@/core/networks';
 import { formatIrc } from '@/lib/format';
 import { buildModeContext } from '@/core/irc/modes';
+import {
+  BASE_CHAN_FLAGS,
+  CHAN_FLAGS,
+  CHAN_PARAMS,
+  filterCatalog,
+} from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
-import { availableExtbans, matchExtban, extbanValueHint, type ExtBan } from '@/lib/extbans';
+import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, type ExtBan } from '@/lib/extbans';
 import { getConfig } from '@/core/config';
 import { Modal } from './Modal';
 
-// Curated channel flags (no-parameter, type-D). Only the ones the server advertises
-// in ISUPPORT CHANMODES are shown, so a network only ever sees the modes it supports.
-// Labels/descriptions resolve via i18n (chanFlags.*).
-const CHAN_FLAGS: { m: string; key: string }[] = [
-  { m: 'i', key: 'invite' },
-  { m: 'm', key: 'moderated' },
-  { m: 'n', key: 'noExternal' },
-  { m: 't', key: 'topicLock' },
-  { m: 's', key: 'secret' },
-  { m: 'p', key: 'private' },
-  { m: 'c', key: 'blockColor' },
-  { m: 'C', key: 'noCtcp' },
-  { m: 'S', key: 'stripColor' },
-  { m: 'R', key: 'regOnly' },
-  { m: 'M', key: 'regModerated' },
-  { m: 'O', key: 'operOnly' },
-  { m: 'z', key: 'tlsOnly' },
-  { m: 'N', key: 'noNickChange' },
-  { m: 'K', key: 'noKnock' },
-  { m: 'P', key: 'permanent' },
-];
-const BASE_FLAGS = 'imntsp'; // fallback when the server didn't advertise CHANMODES
+function ChannelParamRow({
+  letter, i18nKey, hint, cur, typeB, onApply, onClear,
+}: {
+  letter: string; i18nKey: string; hint: string; cur: string; typeB: boolean;
+  onApply: (value: string) => void; onClear: (echo: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [val, setVal] = useState(cur);
+  const [prev, setPrev] = useState(cur);
+  if (cur !== prev) { setPrev(cur); setVal(cur); }
+  const on = !!cur;
+  return (
+    <div className="ca-param">
+      <label className="ca-param__l" title={t(`chanParams.${i18nKey}.desc`)}>
+        <code className="ca-flag__m">+{letter}</code>
+        {t(`chanParams.${i18nKey}.label`)}
+      </label>
+      <input className="modal__input" value={val} placeholder={hint}
+        aria-label={t(`chanParams.${i18nKey}.label`)}
+        onChange={(e) => setVal(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') { const v = val.trim(); if (v) onApply(v); } }} />
+      <button type="button" className="upbtn upbtn--primary" onClick={() => { const v = val.trim(); if (v) onApply(v); }}>
+        {t('modals.chanadmin.apply')}
+      </button>
+      {on ? (
+        <button type="button" className="upbtn" onClick={() => onClear(typeB ? (cur || val || '*') : '')}>
+          {t('modals.chanadmin.clear')}
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
@@ -139,7 +155,8 @@ export function ChanAdminModal() {
   const modes = buffer.modes || '';
 
   const ctx = buildModeContext(client?.server.isupport ?? {}, client?.server.prefixModeToChar ?? {});
-  const flags = CHAN_FLAGS.filter((f) => (ctx.typeD.size ? ctx.typeD.has(f.m) : BASE_FLAGS.includes(f.m)));
+  const flags = CHAN_FLAGS.filter((f) => (ctx.typeD.size ? ctx.typeD.has(f.m) : BASE_CHAN_FLAGS.includes(f.m)));
+  const paramModes = filterCatalog(CHAN_PARAMS, new Set([...ctx.typeB, ...ctx.typeC]));
 
   const members = Object.values(buffer.members || {});
   const opCount = members.filter((m) => /[~&@%]/.test(m.prefixes || m.prefix || '')).length;
@@ -152,6 +169,7 @@ export function ChanAdminModal() {
   // Extended bans the server advertises (core + reputation/securitygroups modules).
   const exts = availableExtbans(client?.server.isupport ?? {});
   const matchingExts = exts.filter((e) => !e.acting);
+  const invexExts = ensureMatchingExtban(matchingExts, 'class');
   const hasInvex = ctx.typeA.has('I');
   // +b ban, +e exempt — +I lives in its own tab (it is not a ban).
   const ebModes = (['b', 'e'] as const).filter((m) => m === 'b' || ctx.typeA.has(m));
@@ -163,8 +181,8 @@ export function ChanAdminModal() {
   const stackMask = (v: string) => (curExt?.acting && nestExt ? `${curExt.name}:${nestExt.name}:${v}` : `${curExt?.name}:${v}`);
   const plainMask = (v: string) => (v.includes('@') || v.includes('!') || v.includes(':') ? v : `${v}!*@*`);
   const modeVerb: Record<string, string> = { b: 'modals.chanadmin.ban', e: 'modals.chanadmin.exempt' };
-  const ixSel = ixType === '' ? '' : (ixType ?? matchingExts[0]?.name ?? '');
-  const ixExt = matchingExts.find((e) => e.name === ixSel);
+  const ixSel = ixType === '' ? '' : (ixType ?? invexExts[0]?.name ?? '');
+  const ixExt = invexExts.find((e) => e.name === ixSel);
   const ixHint = ixExt ? extbanValueHint(ixExt, true) : t('modals.chanadmin.invexPlaceholder');
   // Keep the two lists apart: plain nick!user@host bans on the right, typed extbans
   // in their own tab.
@@ -286,16 +304,35 @@ export function ChanAdminModal() {
           <div className="ca-flags">
             {flags.map((f) => {
               const on = modes.includes(f.m);
+              const ro = !!f.readonly;
               return (
-                <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}`}
+                <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}`}
                   title={`+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}`}>
-                  <input type="checkbox" checked={on} onChange={() => setChannelMode(chan, f.m, !on)} />
+                  <input type="checkbox" checked={on} disabled={ro}
+                    onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
                   <code className="ca-flag__m">+{f.m}</code>
                   <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
                 </label>
               );
             })}
           </div>
+          {paramModes.length > 0 && (
+            <div className="ca-sec">
+              <h4 className="ca-h">{t('modals.chanadmin.paramModes')}</h4>
+              {paramModes.map((p) => (
+                <ChannelParamRow
+                  key={p.m}
+                  letter={p.m}
+                  i18nKey={p.key}
+                  hint={p.hint}
+                  cur={modeParams?.[p.m] || ''}
+                  typeB={ctx.typeB.has(p.m)}
+                  onApply={(value) => setChannelModeParam(chan, p.m, true, value)}
+                  onClear={(echo) => setChannelModeParam(chan, p.m, false, echo)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -351,7 +388,7 @@ export function ChanAdminModal() {
           <p className="ca-extexample">{t('modals.chanadmin.invexHint')}</p>
           <div className="ca-param ca-extban-add">
             <ExtbanSelect
-              exts={matchingExts}
+              exts={invexExts}
               value={ixSel}
               onChange={setIxType}
               maskOption
