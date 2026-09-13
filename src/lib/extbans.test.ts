@@ -26,6 +26,7 @@ describe('extbans', () => {
     expect(ensureMatchingExtban(matching, 'class').map((e) => e.name))
       .toEqual(['account', 'unauthed', 'securitygroup', 'class']);
   });
+  it('uses a trusted identity hint for invex', () => {
     const acc = matchExtban('account:x')!;
     expect(extbanValueHint(acc, false)).toBe('baduser');
     expect(extbanValueHint(acc, true)).toBe('Jessie');
