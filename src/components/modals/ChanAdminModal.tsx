@@ -39,12 +39,11 @@ function ChannelParamRow({
         <button type="button" className="ca-prow__go" onClick={() => { const v = val.trim(); if (v) onApply(v); }}>
           {t('modals.chanadmin.apply')}
         </button>
-        {on ? (
-          <button type="button" className="ca-prow__x" title={t('modals.chanadmin.clear')}
-            onClick={() => onClear(typeB ? (cur || val || '*') : '')}>
-            {t('modals.chanadmin.clear')}
-          </button>
-        ) : null}
+        <button type="button" className="ca-prow__x" disabled={!on}
+          title={t('modals.chanadmin.clear')}
+          onClick={() => { if (on) onClear(typeB ? (cur || val || '*') : ''); }}>
+          {t('modals.chanadmin.clear')}
+        </button>
       </div>
     </div>
   );
@@ -61,15 +60,31 @@ function FlagGrid({ flags, modes, chan, setChannelMode, onLockedClick }: {
       {flags.map((f) => {
         const on = modes.includes(f.m);
         const ro = !!f.readonly;
+        const lock = f.lock || (ro ? 'services' : undefined);
         const jump = ro && !!onLockedClick && f.m === 'k';
+        const lockHint = lock === 'overview'
+          ? t('modals.chanadmin.lockedOnOverview')
+          : lock === 'services'
+            ? t('modals.chanadmin.lockedByServices')
+            : '';
+        const title = `+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}${lockHint ? ` · ${lockHint}` : ''}`;
         return (
           <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}${jump ? ' is-jump' : ''}`}
-            title={`+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}`}
+            title={title}
             onClick={jump ? (e) => { e.preventDefault(); onLockedClick(f); } : undefined}>
             <input type="checkbox" checked={on} disabled={ro}
               onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
             <code className="ca-flag__m">+{f.m}</code>
             <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
+            {ro ? (
+              <span className="ca-flag__lock" aria-label={lockHint}>
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V7.5a4 4 0 0 1 8 0V11" />
+                </svg>
+                <span>{lock === 'overview' ? t('modals.chanadmin.lockedTagOverview') : t('modals.chanadmin.lockedTagServices')}</span>
+              </span>
+            ) : null}
           </label>
         );
       })}

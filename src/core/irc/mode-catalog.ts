@@ -20,6 +20,9 @@ export interface UserFlag {
 
 export type ChanFlagGroup = 'classic' | 'extra';
 
+/** Why a channel flag is not toggleable in the Modes tab. */
+export type ChanFlagLock = 'services' | 'overview';
+
 export interface ChanFlag {
   m: string;
   key: string;
@@ -27,6 +30,7 @@ export interface ChanFlag {
   group: ChanFlagGroup;
   /** Services/oper-set; shown when present but not toggleable. */
   readonly?: boolean;
+  lock?: ChanFlagLock;
 }
 
 export interface ChanParam {
@@ -68,11 +72,11 @@ export const CHAN_FLAGS: ChanFlag[] = [
   { m: 't', key: 'topicLock', group: 'classic' },
   { m: 's', key: 'secret', group: 'classic' },
   { m: 'p', key: 'private', group: 'classic' },
-  { m: 'k', key: 'keyed', group: 'classic', readonly: true },
+  { m: 'k', key: 'keyed', group: 'classic', readonly: true, lock: 'overview' },
   { m: 'c', key: 'blockColor', group: 'extra' },
   { m: 'C', key: 'noCtcp', group: 'extra' },
   { m: 'S', key: 'stripColor', group: 'extra' },
-  { m: 'r', key: 'registered', group: 'extra', readonly: true },
+  { m: 'r', key: 'registered', group: 'extra', readonly: true, lock: 'services' },
   { m: 'R', key: 'regOnly', group: 'extra' },
   { m: 'M', key: 'regModerated', group: 'extra' },
   { m: 'O', key: 'operOnly', group: 'extra' },

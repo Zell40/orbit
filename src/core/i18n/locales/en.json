@@ -278,9 +278,13 @@
       "topicBy": "Set by",
       "tabOverview": "Overview",
       "tabModes": "Modes",
-      "classicModes": "IRC modes",
+      "classicModes": "Classic modes",
       "extraModes": "Extra modes",
       "paramModes": "Limits and protections",
+      "lockedByServices": "Locked by services — cannot be turned on or off here.",
+      "lockedOnOverview": "Change the password on the Overview tab.",
+      "lockedTagServices": "Services",
+      "lockedTagOverview": "Overview",
       "extbans": "Extended bans",
       "extbanType": "Extban type",
       "noExtbans": "No extended bans yet",
@@ -801,8 +805,8 @@
       "desc": "No nick changes allowed (+N)"
     },
     "noKnock": {
-      "label": "No knock",
-      "desc": "Disables the KNOCK command (+K)"
+      "label": "No KNOCK",
+      "desc": "Blocks KNOCK requests to join an invite-only channel (+K)"
     },
     "permanent": {
       "label": "Permanent",

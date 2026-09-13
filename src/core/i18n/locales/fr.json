@@ -278,9 +278,13 @@
       "topicBy": "Défini par",
       "tabOverview": "Aperçu",
       "tabModes": "Modes",
-      "classicModes": "Modes IRC",
+      "classicModes": "Modes historiques",
       "extraModes": "Modes complémentaires",
       "paramModes": "Limites et protections",
+      "lockedByServices": "Verrouillé par les services — impossible à activer ou désactiver ici.",
+      "lockedOnOverview": "Le mot de passe se change dans l’onglet Aperçu.",
+      "lockedTagServices": "Services",
+      "lockedTagOverview": "Aperçu",
       "extbans": "Bans étendus",
       "extbanType": "Type de ban étendu",
       "noExtbans": "Aucun ban étendu",
@@ -815,9 +819,9 @@
       "desc": "Interdit de changer de pseudo (+N)"
     },
     "noKnock": {
-      "label": "Sans toc-toc",
-      "brief": "sans toc-toc",
-      "desc": "Désactive la commande KNOCK (+K)"
+      "label": "Pas de KNOCK",
+      "brief": "pas de KNOCK",
+      "desc": "Empêche de demander l’entrée d’un salon +i (commande KNOCK, +K)"
     },
     "permanent": {
       "label": "Permanent",

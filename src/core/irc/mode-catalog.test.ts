@@ -115,6 +115,8 @@ describe('catalogues', () => {
 
   it('marks +r as read-only', () => {
     expect(CHAN_FLAGS.find((f) => f.m === 'r')?.readonly).toBe(true);
+    expect(CHAN_FLAGS.find((f) => f.m === 'r')?.lock).toBe('services');
+    expect(CHAN_FLAGS.find((f) => f.m === 'k')?.lock).toBe('overview');
   });
 
   it('lists RFC channel flags before complementary ones', () => {
