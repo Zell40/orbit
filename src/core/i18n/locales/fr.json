@@ -912,7 +912,8 @@
     "381": "Tu es maintenant opérateur IRC.",
     "491": "Aucun accès opérateur.",
     "524": "Aide introuvable.",
-    "525": "Clé invalide."
+    "525": "Clé invalide.",
+    "742": "Le mode +{{mode}} est verrouillé par les services (MLOCK +{{mlock}})."
   },
   "faq": {
     "title": "Aide & FAQ",

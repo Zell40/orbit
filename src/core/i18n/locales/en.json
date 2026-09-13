@@ -888,7 +888,8 @@
     "381": "You are now an IRC operator.",
     "491": "No operator access.",
     "524": "Help not found.",
-    "525": "Invalid key."
+    "525": "Invalid key.",
+    "742": "Mode +{{mode}} is locked by services (MLOCK +{{mlock}})."
   },
   "faq": {
     "title": "Help & FAQ",

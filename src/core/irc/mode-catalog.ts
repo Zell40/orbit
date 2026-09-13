@@ -110,6 +110,28 @@ export const CHAN_PARAMS: ChanParam[] = [
   { m: 'W', key: 'antisnoop', hint: '5m' },
 ];
 
+/** Letters listed in an MLOCK token (`+PtTVn`, `PtTVn`, `+nt-k`). */
+export function mlockLetters(raw: string): string {
+  const seen = new Set<string>();
+  let out = '';
+  for (const c of raw) {
+    if (((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) && !seen.has(c)) {
+      seen.add(c);
+      out += c;
+    }
+  }
+  return out;
+}
+
+/** True when the token is a mode lock, not a trailing English/French sentence. */
+export function looksLikeMlock(raw: string): boolean {
+  return !!raw && !/\s/.test(raw) && /^[+-]?[A-Za-z][A-Za-z+-]*$/.test(raw);
+}
+
+export function mergeMlock(prev: string | undefined, incoming: string): string {
+  return mlockLetters((prev || '') + incoming);
+}
+
 export function advertisedModeLetters(token: string | undefined): Set<string> {
   if (!token) return new Set();
   return new Set(token.replace(/,/g, '').split('').filter((c) => /[A-Za-z]/.test(c)));

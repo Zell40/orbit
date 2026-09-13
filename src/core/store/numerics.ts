@@ -3,6 +3,7 @@ import { desktopNotify, blip } from '@/platform/notify';
 import { unregisterPushOnAccountLogout } from '@/platform/push';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, umodeLettersFrom221 } from '../irc/modes';
+import { looksLikeMlock, mergeMlock, mlockLetters } from '../irc/mode-catalog';
 import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
 import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
@@ -24,7 +25,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '471', '473', '474', '475', '476', '477', '489', '519', '520']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '471', '473', '474', '475', '476', '477', '489', '519', '520', '742']);
 
 const JOIN_DENIED: Record<string, { flag: string; reasonKey: string }> = {
   '405': { flag: '', reasonKey: 'toomany' },
@@ -62,6 +63,19 @@ function findSelfMember(buf: ChatState['buffers'][string] | undefined, nick: str
 function canSpeak(member: Member | undefined): boolean {
   const p = member?.prefixes || member?.prefix || '';
   return /[~&@%+]/.test(p);
+}
+
+/** InspIRCd/Anope 742: <me> <chan> <letter> <mlock> :Mode cannot be changed… */
+function parseMlockRestricted(params: string[]): { chan: string; letter: string; mlock: string } | null {
+  const chanIdx = params.findIndex((p) => isChannelName(p));
+  if (chanIdx < 0) return null;
+  const chan = params[chanIdx];
+  const after = params.slice(chanIdx + 1);
+  const letter = (after[0] || '').replace(/[^A-Za-z]/g, '').slice(0, 1);
+  const raw = after[1] || '';
+  const mlock = (looksLikeMlock(raw) ? mlockLetters(raw) : '') || letter;
+  if (!mlock) return null;
+  return { chan, letter, mlock };
 }
 
 /** Split ERR_CANNOTSENDTOCHAN into calm +m vs ban/quiet — never conflate the two. */
@@ -191,6 +205,15 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
           // raced ahead of draft/chathistory (or arrived without a self-JOIN).
           prefetchLatestHistory(get, historyAsked, chan);
         }
+        return true;
+      }
+      case '742': { // ERR_MLOCKRESTRICTED: <me> <chan> <letter> <mlock> :<reason>
+        const parsed = parseMlockRestricted(msg.params);
+        if (!parsed) return true;
+        ensureBuffer(parsed.chan);
+        patchBuffer(parsed.chan, (b) => ({ ...b, mlock: mergeMlock(b.mlock, parsed.mlock + parsed.letter) }));
+        const text = i18n.t('numerics.742', { mode: parsed.letter || parsed.mlock[0], mlock: parsed.mlock });
+        sysLine(parsed.chan, `⚠️ ${text}`, 'system');
         return true;
       }
       case '324': { // RPL_CHANNELMODEIS: <me> <chan> <modes> [params…]

@@ -108,6 +108,8 @@ export interface Buffer {
   topic: string;
   modes?: string;        // active channel mode letters, e.g. "+nt" (RPL_CHANNELMODEIS / live MODE)
   modeParams?: Record<string, string>; // type B/C mode params, e.g. { k: 'secret', l: '50' }
+  /** ChanServ/InspIRCd MLOCK letters (from 742) — not toggleable in the Modes tab. */
+  mlock?: string;
   createdAt?: number;    // channel creation unix time (RPL_CREATIONTIME 329)
   topicBy?: string;      // who last set the topic (RPL_TOPICWHOTIME 333 / live TOPIC)
   topicAt?: number;      // when the topic was last set (unix ms)

@@ -7,6 +7,9 @@ import {
   advertisedModeLetters,
   advertisedUserModes,
   filterCatalog,
+  looksLikeMlock,
+  mergeMlock,
+  mlockLetters,
   parentalLockedLetters,
   umodeRowState,
 } from './mode-catalog';
@@ -135,5 +138,17 @@ describe('catalogues', () => {
     const shown = advertisedChanFlags(new Set(['i', 'm', 'n', 't', 's', 'p']), new Set(['k']));
     expect(shown.map((f) => f.m).join('')).toContain('k');
     expect(shown.find((f) => f.m === 'k')?.readonly).toBe(true);
+  });
+});
+
+describe('mlock tokens', () => {
+  it('keeps mode letters and ignores a trailing sentence', () => {
+    expect(mlockLetters('+PtTVn')).toBe('PtTVn');
+    expect(mlockLetters('PtTVn')).toBe('PtTVn');
+    expect(mlockLetters('+nt-k')).toBe('ntk');
+    expect(looksLikeMlock('PtTVn')).toBe(true);
+    expect(looksLikeMlock('+nt-k')).toBe(true);
+    expect(looksLikeMlock('Mode cannot be changed as it has been locked on by services!')).toBe(false);
+    expect(mergeMlock('nt', 'PtTVn')).toBe('ntPTV');
   });
 });

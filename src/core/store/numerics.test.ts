@@ -332,4 +332,17 @@ describe('store numerics handler', () => {
     expect(sys).toContainEqual({ name: '#x', text: 'Jessie', kind: 'invite', from: 'me' });
     expect(server).toEqual([]);
   });
+
+  it('742 stores the MLOCK letters and does not dump the English status line', () => {
+    const { handleNumerics, state, sys, server } = setup({
+      buffers: { '#entrenous.chat': { name: '#EntreNous.chat', joined: true, messages: [] } },
+    });
+    expect(handleNumerics(mk('742', [
+      'me', '#EntreNous.chat', 't', 'PtTVn',
+      'Mode cannot be changed as it has been locked on by services!',
+    ]))).toBe(true);
+    expect(state.buffers['#entrenous.chat']?.mlock).toBe('PtTVn');
+    expect(server).toEqual([]);
+    expect(sys.some((l) => l.name === '#EntreNous.chat' && l.text.includes('MLOCK'))).toBe(true);
+  });
 });

@@ -14,10 +14,24 @@ import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, t
 import { getConfig } from '@/core/config';
 import { Modal } from './Modal';
 
+function LockTag({ kind }: { kind: 'services' | 'overview' }) {
+  const { t } = useTranslation();
+  const hint = kind === 'overview' ? t('modals.chanadmin.lockedOnOverview') : t('modals.chanadmin.lockedByServices');
+  return (
+    <span className="ca-flag__lock" aria-label={hint}>
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="5" y="11" width="14" height="10" rx="2" />
+        <path d="M8 11V7.5a4 4 0 0 1 8 0V11" />
+      </svg>
+      <span>{kind === 'overview' ? t('modals.chanadmin.lockedTagOverview') : t('modals.chanadmin.lockedTagServices')}</span>
+    </span>
+  );
+}
+
 function ChannelParamRow({
-  letter, i18nKey, hint, cur, typeB, onApply, onClear,
+  letter, i18nKey, hint, cur, typeB, locked, onApply, onClear,
 }: {
-  letter: string; i18nKey: string; hint: string; cur: string; typeB: boolean;
+  letter: string; i18nKey: string; hint: string; cur: string; typeB: boolean; locked?: boolean;
   onApply: (value: string) => void; onClear: (echo: string) => void;
 }) {
   const { t } = useTranslation();
@@ -25,23 +39,28 @@ function ChannelParamRow({
   const [prev, setPrev] = useState(cur);
   if (cur !== prev) { setPrev(cur); setVal(cur); }
   const on = !!cur;
+  const lockHint = locked ? t('modals.chanadmin.lockedByServices') : '';
   return (
-    <div className={`ca-prow${on ? ' is-on' : ''}`}>
+    <div className={`ca-prow${on ? ' is-on' : ''}${locked ? ' is-ro' : ''}`}>
       <label className="ca-prow__l" title={t(`chanParams.${i18nKey}.desc`)}>
         <code className="ca-flag__m">+{letter}</code>
         <span className="ca-prow__name">{t(`chanParams.${i18nKey}.label`)}</span>
+        {locked ? <LockTag kind="services" /> : null}
       </label>
       <div className="ca-prow__act">
-        <input className="ca-prow__in" value={val} placeholder={hint}
+        <input className="ca-prow__in" value={val} placeholder={hint} disabled={locked}
           aria-label={t(`chanParams.${i18nKey}.label`)}
+          title={lockHint || undefined}
           onChange={(e) => setVal(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { const v = val.trim(); if (v) onApply(v); } }} />
-        <button type="button" className="ca-prow__go" onClick={() => { const v = val.trim(); if (v) onApply(v); }}>
+          onKeyDown={(e) => { if (e.key === 'Enter' && !locked) { const v = val.trim(); if (v) onApply(v); } }} />
+        <button type="button" className="ca-prow__go" disabled={locked}
+          title={lockHint || undefined}
+          onClick={() => { if (locked) return; const v = val.trim(); if (v) onApply(v); }}>
           {t('modals.chanadmin.apply')}
         </button>
-        <button type="button" className="ca-prow__x" disabled={!on}
+        <button type="button" className="ca-prow__x" disabled={locked || !on}
           title={t('modals.chanadmin.clear')}
-          onClick={() => { if (on) onClear(typeB ? (cur || val || '*') : ''); }}>
+          onClick={() => { if (!locked && on) onClear(typeB ? (cur || val || '*') : ''); }}>
           {t('modals.chanadmin.clear')}
         </button>
       </div>
@@ -49,8 +68,8 @@ function ChannelParamRow({
   );
 }
 
-function FlagGrid({ flags, modes, chan, setChannelMode, onLockedClick }: {
-  flags: ChanFlag[]; modes: string; chan: string;
+function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick }: {
+  flags: ChanFlag[]; modes: string; mlock?: string; chan: string;
   setChannelMode: (chan: string, letter: string, on: boolean) => void;
   onLockedClick?: (f: ChanFlag) => void;
 }) {
@@ -59,8 +78,9 @@ function FlagGrid({ flags, modes, chan, setChannelMode, onLockedClick }: {
     <div className="ca-flags">
       {flags.map((f) => {
         const on = modes.includes(f.m);
-        const ro = !!f.readonly;
-        const lock = f.lock || (ro ? 'services' : undefined);
+        const mlocked = !!(mlock && mlock.includes(f.m));
+        const ro = !!f.readonly || mlocked;
+        const lock = f.lock || (mlocked ? 'services' : (ro ? 'services' : undefined));
         const jump = ro && !!onLockedClick && f.m === 'k';
         const lockHint = lock === 'overview'
           ? t('modals.chanadmin.lockedOnOverview')
@@ -76,15 +96,7 @@ function FlagGrid({ flags, modes, chan, setChannelMode, onLockedClick }: {
               onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
             <code className="ca-flag__m">+{f.m}</code>
             <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
-            {ro ? (
-              <span className="ca-flag__lock" aria-label={lockHint}>
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="5" y="11" width="14" height="10" rx="2" />
-                  <path d="M8 11V7.5a4 4 0 0 1 8 0V11" />
-                </svg>
-                <span>{lock === 'overview' ? t('modals.chanadmin.lockedTagOverview') : t('modals.chanadmin.lockedTagServices')}</span>
-              </span>
-            ) : null}
+            {ro && lock ? <LockTag kind={lock} /> : null}
           </label>
         );
       })}
@@ -172,6 +184,7 @@ export function ChanAdminModal() {
   const client = useActiveChat((s) => s.client);
   const chan = buffer?.name || '';
   const modeParams = buffer?.modeParams;
+  const mlock = buffer?.mlock || '';
   const curKey = modeParams?.k || '';
   const curLimit = modeParams?.l || '';
 
@@ -363,7 +376,7 @@ export function ChanAdminModal() {
                 <h4 className="ca-h">{t('modals.chanadmin.classicModes')}</h4>
                 <FlagGrid
                   flags={flags.filter((f) => f.group === 'classic')}
-                  modes={modes} chan={chan} setChannelMode={setChannelMode}
+                  modes={modes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
                   onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); }}
                 />
               </>
@@ -371,7 +384,7 @@ export function ChanAdminModal() {
             {extraShown.length > 0 && (
               <>
                 <h4 className="ca-h ca-h--next">{t('modals.chanadmin.extraModes')}</h4>
-                <FlagGrid flags={extraShown} modes={modes} chan={chan} setChannelMode={setChannelMode} />
+                <FlagGrid flags={extraShown} modes={modes} mlock={mlock} chan={chan} setChannelMode={setChannelMode} />
               </>
             )}
             {paramsShown.length === 0 && moreBtn}
@@ -388,6 +401,7 @@ export function ChanAdminModal() {
                     hint={p.hint}
                     cur={modeParams?.[p.m] || ''}
                     typeB={ctx.typeB.has(p.m)}
+                    locked={mlock.includes(p.m)}
                     onApply={(value) => setChannelModeParam(chan, p.m, true, value)}
                     onClear={(echo) => setChannelModeParam(chan, p.m, false, echo)}
                   />
