@@ -31,19 +31,21 @@ function ChannelParamRow({
         <code className="ca-flag__m">+{letter}</code>
         <span className="ca-prow__name">{t(`chanParams.${i18nKey}.label`)}</span>
       </label>
-      <input className="ca-prow__in" value={val} placeholder={hint}
-        aria-label={t(`chanParams.${i18nKey}.label`)}
-        onChange={(e) => setVal(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { const v = val.trim(); if (v) onApply(v); } }} />
-      <button type="button" className="ca-prow__go" onClick={() => { const v = val.trim(); if (v) onApply(v); }}>
-        {t('modals.chanadmin.apply')}
-      </button>
-      {on ? (
-        <button type="button" className="ca-prow__x" title={t('modals.chanadmin.clear')}
-          onClick={() => onClear(typeB ? (cur || val || '*') : '')}>
-          {t('modals.chanadmin.clear')}
+      <div className="ca-prow__act">
+        <input className="ca-prow__in" value={val} placeholder={hint}
+          aria-label={t(`chanParams.${i18nKey}.label`)}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { const v = val.trim(); if (v) onApply(v); } }} />
+        <button type="button" className="ca-prow__go" onClick={() => { const v = val.trim(); if (v) onApply(v); }}>
+          {t('modals.chanadmin.apply')}
         </button>
-      ) : null}
+        {on ? (
+          <button type="button" className="ca-prow__x" title={t('modals.chanadmin.clear')}
+            onClick={() => onClear(typeB ? (cur || val || '*') : '')}>
+            {t('modals.chanadmin.clear')}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -362,18 +364,20 @@ export function ChanAdminModal() {
           {paramsShown.length > 0 && (
             <div className="ca-modes__params">
               <h4 className="ca-h">{t('modals.chanadmin.paramModes')}</h4>
-              {paramsShown.map((p) => (
-                <ChannelParamRow
-                  key={p.m}
-                  letter={p.m}
-                  i18nKey={p.key}
-                  hint={p.hint}
-                  cur={modeParams?.[p.m] || ''}
-                  typeB={ctx.typeB.has(p.m)}
-                  onApply={(value) => setChannelModeParam(chan, p.m, true, value)}
-                  onClear={(echo) => setChannelModeParam(chan, p.m, false, echo)}
-                />
-              ))}
+              <div className="ca-prows">
+                {paramsShown.map((p) => (
+                  <ChannelParamRow
+                    key={p.m}
+                    letter={p.m}
+                    i18nKey={p.key}
+                    hint={p.hint}
+                    cur={modeParams?.[p.m] || ''}
+                    typeB={ctx.typeB.has(p.m)}
+                    onApply={(value) => setChannelModeParam(chan, p.m, true, value)}
+                    onClear={(echo) => setChannelModeParam(chan, p.m, false, echo)}
+                  />
+                ))}
+              </div>
               {moreBtn}
             </div>
           )}
