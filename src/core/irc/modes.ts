@@ -89,6 +89,21 @@ export function applyUserModes(current: string, modestring: string): string {
   return [...set].sort().join('');
 }
 
+/** Letters from RPL_UMODEIS (221) or RPL_WHOISMODES (379) trailing text. */
+export function umodeLettersFromSnapshot(raw: string): string {
+  const s = (raw || '').replace(/^.*modes\s+/i, '').trim();
+  if (!s) return '';
+  return applyUserModes('', s);
+}
+
+/** Prefer the modestring token of a 221 (`<me> +ix` or `+ix`). */
+export function umodeLettersFrom221(params: string[]): string {
+  const a = params[1] ?? '';
+  const b = params[0] ?? '';
+  const raw = /^[+-]/.test(a) ? a : (/^[+-]/.test(b) ? b : a);
+  return umodeLettersFromSnapshot(raw);
+}
+
 // Friendly names for the common user modes are resolved via i18n (umodes.*) in
 // lib/format → formatUserModes.
 

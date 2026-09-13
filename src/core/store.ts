@@ -57,6 +57,9 @@ export interface ChatState {
   networkIcon: string;
   account: string; // NickServ account we're logged in as ('' = guest)
   umodes: string;  // our own active user-mode letters, e.g. "iwx" (global, per-user)
+  /** Session is under the callerid parental security group (plugin-driven). */
+  parentalControls: boolean;
+  setParentalControls: (on: boolean) => void;
   serverName: string;    // the ircd's own hostname (RPL_MYINFO / 004), for the Status title
   ircNetwork: string;    // ISUPPORT NETWORK (e.g. EntreNous.chat)
   serverError: string;   // last ERROR reason from the server (for the connect screen)
@@ -214,6 +217,7 @@ export function createChatStore(ns = '') {
     networkIcon: getConfig().branding.icon,
     account: '',
     umodes: '',
+    parentalControls: false,
     serverName: '',
     ircNetwork: '',
     serverError: '',
@@ -328,6 +332,8 @@ export function createChatStore(ns = '') {
         client, nick: opts.nick, status: 'connecting',
         connectUrl: opts.url,
         viaBouncer: !!opts.serverPassword,
+        umodes: '',
+        parentalControls: false,
       });
       // Land on the first requested salon. The ircd auto-joins #EntreNous.chat
       // on connect; without this, that JOIN would steal the active buffer.
@@ -349,14 +355,19 @@ export function createChatStore(ns = '') {
         if (st === 'registered') {
           const wasReconnect = get().everRegistered;
           set({ reconnectIn: 0, serverError: '', everRegistered: true, friendsOnline: {} });
-          // Ask the server for our current user modes (RPL_UMODEIS/221) so the
-          // Status title can show them mIRC-style, even if the ircd didn't
-          // volunteer an initial MODE line. Skip via bouncer: ZNC's local nick
-          // often differs from the ircd nick (`Harry` vs `Harry[bnc]`) and MODE
-          // then comes back as 502 ERR_USERSDONTMATCH in the focused channel.
-          if (!get().viaBouncer) client.queryUserModes();
-          // Bouncer sessions skip SASL: learn the already-identified NickServ account.
+          // Snapshot user modes (RPL_UMODEIS/221). ZNC may answer 502 if the
+          // local nick differs from the ircd nick — that numeric is swallowed.
+          // When the snapshot stays empty (typical bouncer attach, no MODE
+          // replay), WHOIS 379 fills `umodes` so Settings matches the server.
+          client.queryUserModes();
           if (!get().account) client.whois(client.nick);
+          if (get().viaBouncer) {
+            window.setTimeout(() => {
+              if (get().client !== client || get().status !== 'registered') return;
+              if (get().umodes) return;
+              client.whois(client.nick);
+            }, 500);
+          }
           // Watch our friends via MONITOR (server pushes 730/731 on presence change).
           const fr = get().friends;
           if (fr.length) client.ircv3.monitor('+', fr.join(','));
@@ -533,6 +544,10 @@ export function createChatStore(ns = '') {
       client.ircv3.chathistoryBefore(buf.name, new Date(oldest.ts).toISOString(), 50);
       // safety: clear the spinner if the server never answers.
       setTimeout(() => set({ historyLoading: { ...get().historyLoading, [key]: false } }), 8000);
+    },
+
+    setParentalControls(on) {
+      set({ parentalControls: !!on });
     },
 
     setAway(reason) {

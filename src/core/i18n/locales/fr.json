@@ -451,6 +451,9 @@
       "intro": "Modes de confidentialité et de messages que le serveur propose. Le contrôle parental peut en verrouiller certains.",
       "empty": "Aucun mode optionnel pour le moment.",
       "locked": "Imposé par le contrôle parental — non désactivable.",
+      "lockedCloak": "L’hôte masqué ne peut pas être retiré — cela afficherait ton adresse réelle à tout le monde.",
+      "lockedProtect": "Cette protection ne peut pas être désactivée.",
+      "lockedGeo": "Le contrôle parental empêche d’afficher ta localisation.",
       "lockedTitle": "Verrouillé"
     }
   },
@@ -1108,7 +1111,7 @@
     },
     "censor": {
       "label": "Censure",
-      "desc": "Filtre les phrases interdites en privé (+G)"
+      "desc": "Filtre les mots interdits du serveur dans les messages privés que tu reçois (+G)"
     },
     "antiredirect": {
       "label": "Pas de redirection",

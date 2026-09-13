@@ -49,6 +49,14 @@ export function canon(name: string): string {
   return casefold(name, isupport.casemapping);
 }
 
+/** True if `target` is our nick (CASEMAPPING, plus a ZNC `nick[bnc]` suffix). */
+export function isOwnNick(target: string, me: string): boolean {
+  if (!target || !me) return false;
+  if (canon(target) === canon(me)) return true;
+  const strip = (n: string) => n.replace(/\[bnc\]$/i, '');
+  return canon(strip(target)) === canon(strip(me));
+}
+
 // Open IRCv3 BATCHes (ref → info). "quiet" batches (netsplit/netjoin) suppress the
 // per-user join/quit noise; "chathistory" batches collect their PRIVMSGs to be
 // PREPENDED as older history rather than appended live.

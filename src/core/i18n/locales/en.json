@@ -451,6 +451,9 @@
       "intro": "Privacy and message modes the server offers. Parental controls may lock some of them.",
       "empty": "No optional modes available yet.",
       "locked": "Required by parental controls — cannot be turned off.",
+      "lockedCloak": "The masked host cannot be turned off — that would show your real address to everyone.",
+      "lockedProtect": "This protection cannot be turned off.",
+      "lockedGeo": "Parental controls prevent showing your location.",
       "lockedTitle": "Locked"
     }
   },
@@ -1084,7 +1087,7 @@
     },
     "censor": {
       "label": "Censor",
-      "desc": "Filter banned phrases in private (+G)"
+      "desc": "Filter the server’s banned words in private messages sent to you (+G)"
     },
     "antiredirect": {
       "label": "No redirect",

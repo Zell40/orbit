@@ -3,31 +3,35 @@ import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
 import { getConfig } from '@/core/config';
+import { canon } from '@/core/store/context';
 import {
   USER_FLAG_GROUPS,
   advertisedUserModes,
   filterCatalog,
   parentalLockedLetters,
+  umodeLockHintKey,
+  umodeRowState,
   USER_FLAGS,
+  type UmodeLockReason,
   type UserFlag,
 } from '@/core/irc/mode-catalog';
 
 function UmodeRow({
-  flag, on, locked, offline, onToggle,
+  flag, on, locked, reason, offline, onToggle,
 }: {
-  flag: UserFlag; on: boolean; locked: boolean; offline: boolean; onToggle: () => void;
+  flag: UserFlag; on: boolean; locked: boolean; reason: UmodeLockReason;
+  offline: boolean; onToggle: () => void;
 }) {
   const { t } = useTranslation();
   const disabled = locked || offline;
+  const hintKey = umodeLockHintKey(reason);
   return (
     <div className="srow">
       <span className="srow__ic srow__ic--mode" aria-hidden>+{flag.m}</span>
       <div className="srow__txt">
         <div className="srow__label">{t(`userFlags.${flag.key}.label`)}</div>
         <div className="srow__hint">
-          {locked
-            ? t('settings.modes.locked')
-            : t(`userFlags.${flag.key}.desc`)}
+          {hintKey ? t(hintKey) : t(`userFlags.${flag.key}.desc`)}
         </div>
       </div>
       <button
@@ -46,6 +50,18 @@ function UmodeRow({
   );
 }
 
+function whoisLooksParental(
+  nick: string,
+  whois: Record<string, { nick: string; special?: string[] }>,
+  group: string,
+): boolean {
+  const g = group.toLowerCase();
+  if (!g || !nick) return false;
+  const me = canon(nick);
+  const entry = Object.values(whois).find((w) => canon(w.nick) === me);
+  return !!(entry?.special || []).some((s) => s.toLowerCase().includes(g));
+}
+
 /** Hub for user-mode toggles + optional privacy plugins (callerid, etc.). */
 export function ModesSection() {
   const { t } = useTranslation();
@@ -53,21 +69,28 @@ export function ModesSection() {
   const modeItems = pluginUi.filter((u) => u.slot === 'settings_mode');
   const umodes = useActiveChat((s) => s.umodes);
   const client = useActiveChat((s) => s.client);
+  const nick = useActiveChat((s) => s.nick);
+  const whois = useActiveChat((s) => s.whois);
+  const parentalControls = useActiveChat((s) => s.parentalControls);
 
   const advertised = advertisedUserModes(client?.server.isupport ?? {}, client?.server.userModes);
   const skipG = modeItems.length > 0;
-  const flags = filterCatalog(USER_FLAGS, advertised).filter((f) => !(skipG && f.m === 'g'));
-  const pack = getConfig().callerid?.modes || '';
-  const locked = parentalLockedLetters(umodes, pack);
+  const flags = filterCatalog(USER_FLAGS, advertised)
+    .filter((f) => !f.hidden)
+    .filter((f) => !(skipG && f.m === 'g'));
+  const cfg = getConfig().callerid;
+  const pack = cfg?.modes || '';
+  const group = cfg?.group || '';
+  const parental = !!(parentalControls || whoisLooksParental(nick, whois, group));
+  const lockedPack = parentalLockedLetters(umodes, pack, parental);
   const offline = !client;
-  const um = umodes.replace(/^\+/, '');
 
-  const toggle = (m: string, on: boolean) => {
-    client?.setUserModes(`${on ? '+' : '-'}${m}`);
+  const toggle = (m: string, turnOn: boolean) => {
+    client?.setUserModes(`${turnOn ? '+' : '-'}${m}`);
   };
 
   const grouped = USER_FLAG_GROUPS
-    .map((group) => ({ group, flags: flags.filter((f) => f.group === group) }))
+    .map((groupId) => ({ group: groupId, flags: flags.filter((f) => f.group === groupId) }))
     .filter((g) => g.flags.length > 0);
 
   const empty = grouped.length === 0 && modeItems.length === 0;
@@ -82,20 +105,24 @@ export function ModesSection() {
           <p className="srow__hint" style={{ margin: '0.5rem 0 0' }}>{t('settings.modes.empty')}</p>
         ) : (
           <>
-            {grouped.map(({ group, flags: rows }) => (
-              <div key={group}>
-                <div className="scard__h">{t(`userFlags.groups.${group}`)}</div>
-                {rows.map((flag) => (
-                  <UmodeRow
-                    key={flag.m}
-                    flag={flag}
-                    on={um.includes(flag.m)}
-                    locked={locked.has(flag.m)}
-                    offline={offline}
-                    onToggle={() => toggle(flag.m, !um.includes(flag.m))}
-                  />
-                ))}
-                {group === 'messages' && modeItems.map((item) => (
+            {grouped.map(({ group: gname, flags: rows }) => (
+              <div key={gname}>
+                <div className="scard__h">{t(`userFlags.groups.${gname}`)}</div>
+                {rows.map((flag) => {
+                  const row = umodeRowState(flag, umodes, lockedPack, parental);
+                  return (
+                    <UmodeRow
+                      key={flag.m}
+                      flag={flag}
+                      on={row.on}
+                      locked={row.locked}
+                      reason={row.reason}
+                      offline={offline}
+                      onToggle={() => toggle(flag.m, !row.on)}
+                    />
+                  );
+                })}
+                {gname === 'messages' && modeItems.map((item) => (
                   <PluginBoundary key={item.id} render={item.render} label={`settings_mode:${item.plugin}`} />
                 ))}
               </div>

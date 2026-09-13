@@ -10,6 +10,12 @@ export interface UserFlag {
   m: string;
   key: string;
   group: UserFlagGroup;
+  /** Cannot be turned off: disabling would leak the real host / similar. */
+  cannotDisable?: boolean;
+  /** Hidden from Settings → Modes (still tracked in `umodes`). */
+  hidden?: boolean;
+  /** Parental sessions cannot turn this on (e.g. GeoIP in WHOIS). */
+  cannotEnableWhenParental?: boolean;
 }
 
 export type ChanFlagGroup = 'classic' | 'extra';
@@ -33,7 +39,7 @@ export interface ChanParam {
 export const USER_FLAGS: UserFlag[] = [
   { m: 'i', key: 'invisible', group: 'privacy' },
   { m: 'I', key: 'hidechans', group: 'privacy' },
-  { m: 'x', key: 'cloak', group: 'privacy' },
+  { m: 'x', key: 'cloak', group: 'privacy', cannotDisable: true },
   { m: 'a', key: 'hideidle', group: 'privacy' },
   { m: 'W', key: 'showwhois', group: 'privacy' },
   { m: 'g', key: 'callerid', group: 'messages' },
@@ -45,11 +51,11 @@ export const USER_FLAGS: UserFlag[] = [
   { m: 'S', key: 'stripcolor', group: 'messages' },
   { m: 'G', key: 'censor', group: 'messages' },
   { m: 'L', key: 'antiredirect', group: 'messages' },
-  { m: 'z', key: 'sslqueries', group: 'messages' },
+  { m: 'z', key: 'sslqueries', group: 'messages', cannotDisable: true },
   { m: 'N', key: 'nohistory', group: 'messages' },
   { m: 'w', key: 'wallops', group: 'other' },
-  { m: 'y', key: 'geomaxlite', group: 'other' },
-  { m: 'B', key: 'bot', group: 'other' },
+  { m: 'y', key: 'geomaxlite', group: 'other', cannotEnableWhenParental: true },
+  { m: 'B', key: 'bot', group: 'other', hidden: true },
 ];
 
 export const USER_FLAG_GROUPS: UserFlagGroup[] = ['privacy', 'messages', 'other'];
@@ -121,11 +127,51 @@ export function advertisedUserModes(
   return from005.size ? from005 : advertisedModeLetters(myinfoUmodes);
 }
 
-/** Lock the parental package only when every letter of the pack is currently set. */
-export function parentalLockedLetters(umodes: string, pack: string): Set<string> {
-  const letters = pack.replace(/[^A-Za-z]/g, '');
+export function packModeLetters(pack: string): string {
+  return pack.replace(/[^A-Za-z]/g, '');
+}
+
+/**
+ * Lock the parental package when the session is parental, or when every letter
+ * of the pack is already set (fallback if the plugin has not flagged the session).
+ */
+export function parentalLockedLetters(umodes: string, pack: string, parental = false): Set<string> {
+  const letters = packModeLetters(pack);
   if (letters.length < 2) return new Set();
+  if (parental) return new Set(letters.split(''));
   const um = umodes.replace(/^\+/, '');
   if (![...letters].every((c) => um.includes(c))) return new Set();
   return new Set(letters.split(''));
+}
+
+export type UmodeLockReason = 'parental' | 'cloak' | 'protect' | 'geo' | null;
+
+/** Displayed on/locked state for one Settings → Modes row. */
+export function umodeRowState(
+  flag: UserFlag,
+  umodes: string,
+  packLocked: Set<string>,
+  parental: boolean,
+): { on: boolean; locked: boolean; reason: UmodeLockReason } {
+  const um = umodes.replace(/^\+/, '');
+  const inUm = um.includes(flag.m);
+
+  if (parental && flag.cannotEnableWhenParental) {
+    return { on: inUm, locked: true, reason: 'geo' };
+  }
+  if (packLocked.has(flag.m)) {
+    return { on: true, locked: true, reason: 'parental' };
+  }
+  if (flag.cannotDisable && inUm) {
+    return { on: true, locked: true, reason: flag.m === 'x' ? 'cloak' : 'protect' };
+  }
+  return { on: inUm, locked: false, reason: null };
+}
+
+export function umodeLockHintKey(reason: UmodeLockReason): string | null {
+  if (reason === 'parental') return 'settings.modes.locked';
+  if (reason === 'cloak') return 'settings.modes.lockedCloak';
+  if (reason === 'protect') return 'settings.modes.lockedProtect';
+  if (reason === 'geo') return 'settings.modes.lockedGeo';
+  return null;
 }

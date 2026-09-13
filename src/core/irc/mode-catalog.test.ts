@@ -7,6 +7,7 @@ import {
   advertisedUserModes,
   filterCatalog,
   parentalLockedLetters,
+  umodeRowState,
 } from './mode-catalog';
 
 describe('advertisedModeLetters', () => {
@@ -45,13 +46,53 @@ describe('filterCatalog', () => {
 });
 
 describe('parentalLockedLetters', () => {
-  it('locks the pack only when every letter is set', () => {
+  it('locks the pack when every letter is set', () => {
     expect([...parentalLockedLetters('ixIgcRw', '+ixIgcRw')].sort().join('')).toBe('IRcgiwx');
     expect(parentalLockedLetters('igx', '+ixIgcRw').size).toBe(0);
   });
 
+  it('locks the whole pack during a parental session even if umodes lag', () => {
+    expect([...parentalLockedLetters('', '+ixIgcRw', true)].sort().join('')).toBe('IRcgiwx');
+  });
+
   it('ignores a single-letter pack so voluntary +g is not parental', () => {
     expect(parentalLockedLetters('g', '+g').size).toBe(0);
+    expect(parentalLockedLetters('g', '+g', true).size).toBe(0);
+  });
+});
+
+describe('umodeRowState', () => {
+  const cloak = USER_FLAGS.find((f) => f.m === 'x')!;
+  const inv = USER_FLAGS.find((f) => f.m === 'i')!;
+  const geo = USER_FLAGS.find((f) => f.m === 'y')!;
+  const tls = USER_FLAGS.find((f) => f.m === 'z')!;
+
+  it('shows parental pack letters as on and locked even when umodes are empty', () => {
+    const pack = parentalLockedLetters('', '+ixIgcRw', true);
+    const row = umodeRowState(inv, '', pack, true);
+    expect(row).toEqual({ on: true, locked: true, reason: 'parental' });
+  });
+
+  it('locks +x when it is on so the real host cannot be revealed', () => {
+    const row = umodeRowState(cloak, 'x', new Set(), false);
+    expect(row).toEqual({ on: true, locked: true, reason: 'cloak' });
+  });
+
+  it('lets +x be turned on when it is off', () => {
+    const row = umodeRowState(cloak, '', new Set(), false);
+    expect(row).toEqual({ on: false, locked: false, reason: null });
+  });
+
+  it('locks +z when it is on', () => {
+    expect(umodeRowState(tls, 'z', new Set(), false)).toEqual({
+      on: true, locked: true, reason: 'protect',
+    });
+  });
+
+  it('locks GeoIP on a parental session', () => {
+    expect(umodeRowState(geo, '', new Set(), true)).toEqual({
+      on: false, locked: true, reason: 'geo',
+    });
   });
 });
 
@@ -70,5 +111,10 @@ describe('catalogues', () => {
     const extra = CHAN_FLAGS.findIndex((f) => f.group === 'extra');
     const lastClassic = CHAN_FLAGS.map((f) => f.group).lastIndexOf('classic');
     expect(extra).toBeGreaterThan(lastClassic);
+  });
+
+  it('hides +B (bot) from Settings and treats +x as not disableable', () => {
+    expect(USER_FLAGS.find((f) => f.m === 'B')?.hidden).toBe(true);
+    expect(USER_FLAGS.find((f) => f.m === 'x')?.cannotDisable).toBe(true);
   });
 });

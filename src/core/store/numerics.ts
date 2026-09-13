@@ -2,7 +2,7 @@ import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import { unregisterPushOnAccountLogout } from '@/platform/push';
 import type { IrcMessage, Member } from '../irc/types';
-import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
+import { buildModeContext, parseModeChanges, applyChannelFlag, umodeLettersFrom221 } from '../irc/modes';
 import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
 import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
@@ -259,7 +259,7 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         return true;
       }
       case '221': // RPL_UMODEIS: <me> <modestring> — our current user modes
-        set({ umodes: applyUserModes('', msg.params[1] ?? '') });
+        set({ umodes: umodeLettersFrom221(msg.params) });
         return true;
       case '004': // RPL_MYINFO: <me> <servername> … — the ircd's own hostname
         set({ serverName: msg.params[1] || get().serverName });

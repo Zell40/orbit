@@ -6,7 +6,7 @@
 // present members each ban hits). Split out of handler.ts; the dispatcher calls
 // handleMode(msg, me) before its command switch.
 import i18n from '../i18n';
-import { canon, isChannelName } from './context';
+import { canon, isChannelName, isOwnNick } from './context';
 import { maskMatches } from './text';
 import { buildModeContext, parseModeChanges, applyChannelFlag, applyUserModes } from '../irc/modes';
 import { modeStringWithoutBans } from '@/lib/format-text';
@@ -30,8 +30,9 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
     const chan = msg.params[0];
     if (!isChannelName(chan)) {
       // User mode change. User modes are global per-user and take no params;
-      // we only track our own (target === our nick).
-      if (chan === me) {
+      // we only track our own (CASEMAPPING / ZNC nick[bnc] vs ircd nick).
+      const selfNick = get().client?.nick || me;
+      if (isOwnNick(chan, me) || isOwnNick(chan, selfNick)) {
         const change = msg.params[1] ?? '';
         const next = applyUserModes(get().umodes, change);
         set({ umodes: next });

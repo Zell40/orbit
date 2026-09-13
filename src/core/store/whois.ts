@@ -9,7 +9,8 @@
 // it also drives the "user is away" query notice.
 import i18n from '../i18n';
 import { fmtDuration, formatUserModes } from '@/lib/format-text';
-import { canon, takeBufferMuteSync } from './context';
+import { canon, isOwnNick, takeBufferMuteSync } from './context';
+import { umodeLettersFromSnapshot } from '../irc/modes';
 import { saveNotify } from './persistence';
 import type { IrcMessage, WhoisInfo } from '../irc/types';
 import type { StoreApi } from 'zustand';
@@ -161,9 +162,16 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
         patchWhois(inflight.nick, (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), extra] }));
         return true;
       }
-      case '379': // RPL_WHOISMODES: <me> <nick> :is using modes <modes>
-        patchWhois(msg.params[1], (w) => ({ ...w, modes: (msg.params[2] || '').replace(/^.*modes\s*/i, '') }));
+      case '379': { // RPL_WHOISMODES: <me> <nick> :is using modes <modes>
+        const who = msg.params[1] || '';
+        const raw = msg.params[2] || '';
+        const letters = umodeLettersFromSnapshot(raw);
+        patchWhois(who, (w) => ({ ...w, modes: letters || raw.replace(/^.*modes\s*/i, '') }));
+        if (letters && (isOwnNick(who, get().nick) || isOwnNick(who, get().client?.nick || ''))) {
+          set({ umodes: letters });
+        }
         return true;
+      }
       case '314': // RPL_WHOWASUSER: <me> <nick> <user> <host> * :<realname>
         patchWhois(msg.params[1], (w) => ({ ...w, user: msg.params[2], host: msg.params[3], realname: msg.params[5], offline: true }));
         return true;

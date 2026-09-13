@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildModeContext, parseModeChanges, applyUserModes } from './modes';
+import { buildModeContext, parseModeChanges, applyUserModes, umodeLettersFromSnapshot, umodeLettersFrom221 } from './modes';
 
 // CHANMODES "A,B,C,D": A=list (always param), B=param (always), C=setparam
 // (param on set only), D=flag (never). Plus prefix modes o→@, v→+.
@@ -38,5 +38,19 @@ describe('applyUserModes', () => {
     expect(applyUserModes('', '+iw')).toBe('iw');
     expect(applyUserModes('iw', '-w+x')).toBe('ix');
     expect(applyUserModes('+abc', '-b')).toBe('ac');
+  });
+});
+
+describe('umodeLettersFromSnapshot', () => {
+  it('parses RPL_WHOISMODES trailing text without eating words as letters', () => {
+    expect(umodeLettersFromSnapshot('is using modes +ixw')).toBe('iwx');
+    expect(umodeLettersFromSnapshot('+GRi')).toBe('GRi'.split('').sort().join(''));
+  });
+});
+
+describe('umodeLettersFrom221', () => {
+  it('reads +modes from the second param, not the nick', () => {
+    expect(umodeLettersFrom221(['Harry', '+ix'])).toBe('ix');
+    expect(umodeLettersFrom221(['+ix'])).toBe('ix');
   });
 });

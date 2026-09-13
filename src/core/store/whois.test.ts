@@ -8,13 +8,15 @@ import type { ChatState } from '../store';
 function setup(initial: Record<string, WhoisInfo> = {}, nick = 'me') {
   let whois: Record<string, WhoisInfo> = { ...initial };
   let account = '';
+  let umodes = '';
   let notifyLevel: Record<string, string> = {};
   const lines: [string, string][] = [];
   const statusLines: string[] = [];
-  const get = () => ({ whois, nick, account, notifyLevel }) as unknown as ChatState;
+  const get = () => ({ whois, nick, account, notifyLevel, umodes }) as unknown as ChatState;
   const set = (partial: Partial<ChatState>) => {
     if (partial.whois) whois = partial.whois;
     if (typeof partial.account === 'string') account = partial.account;
+    if (typeof partial.umodes === 'string') umodes = partial.umodes;
     if (partial.notifyLevel) notifyLevel = partial.notifyLevel as Record<string, string>;
   };
   const patchWhois = (nickName: string, fn: (w: WhoisInfo) => WhoisInfo) => {
@@ -24,7 +26,7 @@ function setup(initial: Record<string, WhoisInfo> = {}, nick = 'me') {
   const sysLine = (name: string, text: string) => { lines.push([name, text]); };
   const serverLine = (text: string) => { statusLines.push(text); };
   const w = makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs: '' } as Parameters<typeof makeWhois>[0]);
-  return { w, whois: () => whois, account: () => account, lines, statusLines, notifyLevel: () => notifyLevel };
+  return { w, whois: () => whois, account: () => account, umodes: () => umodes, lines, statusLines, notifyLevel: () => notifyLevel };
 }
 
 describe('makeWhois — building the WhoisInfo', () => {
@@ -46,6 +48,12 @@ describe('makeWhois — building the WhoisInfo', () => {
     const { w, account } = setup({}, 'Harry');
     w.handleWhois(parseLine(':srv 330 Harry Harry Harry :is logged in as'));
     expect(account()).toBe('Harry');
+  });
+
+  it('379 on ourselves snapshots umodes for Settings', () => {
+    const { w, umodes } = setup({}, 'Harry');
+    w.handleWhois(parseLine(':srv 379 Harry Harry :is using modes +ixw'));
+    expect(umodes()).toBe('iwx');
   });
 
   it('accumulates + de-dupes channels across multiple 319 lines', () => {

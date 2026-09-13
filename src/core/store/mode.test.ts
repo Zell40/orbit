@@ -41,6 +41,14 @@ describe('MODE handler', () => {
     expect(serverLines[0].kind).toBe('umode');
   });
 
+  it('matches our nick case-insensitively and with a ZNC [bnc] suffix', () => {
+    const { on, state } = setup();
+    on(':srv MODE Harry +x', 'harry');
+    expect(state.umodes).toContain('x');
+    on(':srv MODE Harry +i', 'Harry[bnc]');
+    expect(state.umodes).toContain('i');
+  });
+
   it('applies a +o membership grant to the member prefix', () => {
     const { on, state, seedChan } = setup();
     seedChan('#x', ['bob']);
