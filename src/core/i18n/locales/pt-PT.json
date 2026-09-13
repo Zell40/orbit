@@ -615,6 +615,10 @@
       "label": "Privado",
       "desc": "Fora das listas, /whois oculto (+p)"
     },
+    "keyed": {
+      "label": "Palavra-passe",
+      "desc": "Canal com chave — alterar no separador Resumo (+k)"
+    },
     "blockColor": {
       "label": "Sem cores",
       "desc": "Bloqueia códigos de cor/formato (+c)"

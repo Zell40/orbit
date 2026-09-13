@@ -615,6 +615,10 @@
       "label": "Privato",
       "desc": "Fuori dagli elenchi, /whois nascosto (+p)"
     },
+    "keyed": {
+      "label": "Password",
+      "desc": "Canale con chiave — modificarla in Panoramica (+k)"
+    },
     "blockColor": {
       "label": "Senza colori",
       "desc": "Blocca i codici colore/formato (+c)"

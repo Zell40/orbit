@@ -39,7 +39,7 @@ export interface ChanParam {
 export const USER_FLAGS: UserFlag[] = [
   { m: 'i', key: 'invisible', group: 'privacy' },
   { m: 'I', key: 'hidechans', group: 'privacy' },
-  { m: 'x', key: 'cloak', group: 'privacy', cannotDisable: true },
+  { m: 'x', key: 'cloak', group: 'privacy' },
   { m: 'a', key: 'hideidle', group: 'privacy' },
   { m: 'W', key: 'showwhois', group: 'privacy' },
   { m: 'g', key: 'callerid', group: 'messages' },
@@ -60,7 +60,7 @@ export const USER_FLAGS: UserFlag[] = [
 
 export const USER_FLAG_GROUPS: UserFlagGroup[] = ['privacy', 'messages', 'other'];
 
-/** Type-D channel flags. +k/+l stay on the ChanAdmin overview tab. */
+/** Type-D channel flags. +k is type B (edited on Overview) but listed here read-only. */
 export const CHAN_FLAGS: ChanFlag[] = [
   { m: 'i', key: 'invite', group: 'classic' },
   { m: 'm', key: 'moderated', group: 'classic' },
@@ -68,6 +68,7 @@ export const CHAN_FLAGS: ChanFlag[] = [
   { m: 't', key: 'topicLock', group: 'classic' },
   { m: 's', key: 'secret', group: 'classic' },
   { m: 'p', key: 'private', group: 'classic' },
+  { m: 'k', key: 'keyed', group: 'classic', readonly: true },
   { m: 'c', key: 'blockColor', group: 'extra' },
   { m: 'C', key: 'noCtcp', group: 'extra' },
   { m: 'S', key: 'stripColor', group: 'extra' },
@@ -119,6 +120,14 @@ export function filterCatalog<T extends { m: string }>(
   return items.filter((item) => advertised.has(item.m));
 }
 
+/** Type-D flags the ircd has, plus +k when CHANMODES advertises a key. */
+export function advertisedChanFlags(typeD: Set<string>, typeB: Set<string> = new Set()): ChanFlag[] {
+  return CHAN_FLAGS.filter((f) => {
+    if (f.m === 'k') return typeB.size ? typeB.has('k') : true;
+    return typeD.size ? typeD.has(f.m) : BASE_CHAN_FLAGS.includes(f.m);
+  });
+}
+
 export function advertisedUserModes(
   isupport: Record<string, string>,
   myinfoUmodes?: string,
@@ -160,10 +169,11 @@ export function umodeRowState(
     return { on: inUm, locked: true, reason: 'geo' };
   }
   if (packLocked.has(flag.m)) {
-    return { on: true, locked: true, reason: 'parental' };
+    // +x follows the live umode: an Anope vHost unsets it on purpose.
+    return { on: flag.m === 'x' ? inUm : true, locked: true, reason: 'parental' };
   }
   if (flag.cannotDisable && inUm) {
-    return { on: true, locked: true, reason: flag.m === 'x' ? 'cloak' : 'protect' };
+    return { on: true, locked: true, reason: 'protect' };
   }
   return { on: inUm, locked: false, reason: null };
 }

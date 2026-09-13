@@ -758,6 +758,11 @@
       "label": "Private",
       "desc": "Kept off listings, /whois hidden (+p)"
     },
+    "keyed": {
+      "label": "Password",
+      "brief": "key",
+      "desc": "The channel is locked with a key — change it on the Overview tab (+k)"
+    },
     "blockColor": {
       "label": "No colours",
       "desc": "Blocks colour/format codes (+c)"
@@ -1047,7 +1052,7 @@
     },
     "cloak": {
       "label": "Masked host",
-      "desc": "Hide your real address behind a cloak (+x)"
+      "desc": "Hide your real address behind a cloak (+x). An Anope vHost replaces it and unsets +x."
     },
     "hideidle": {
       "label": "Hide idle time",

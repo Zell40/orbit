@@ -615,6 +615,10 @@
       "label": "Privat",
       "desc": "Nicht in Listen, /whois verborgen (+p)"
     },
+    "keyed": {
+      "label": "Passwort",
+      "desc": "Kanal mit Schlüssel — unter Übersicht ändern (+k)"
+    },
     "blockColor": {
       "label": "Keine Farben",
       "desc": "Blockiert Farb-/Formatcodes (+c)"

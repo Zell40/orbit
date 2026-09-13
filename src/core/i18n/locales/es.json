@@ -615,6 +615,10 @@
       "label": "Privado",
       "desc": "Fuera de las listas, /whois oculto (+p)"
     },
+    "keyed": {
+      "label": "Contraseña",
+      "desc": "Canal con clave — cambiarlo en Resumen (+k)"
+    },
     "blockColor": {
       "label": "Sin colores",
       "desc": "Bloquea los códigos de color/formato (+c)"

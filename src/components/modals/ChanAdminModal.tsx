@@ -4,9 +4,8 @@ import { useActiveChat } from '@/core/networks';
 import { formatIrc } from '@/lib/format';
 import { buildModeContext } from '@/core/irc/modes';
 import {
-  BASE_CHAN_FLAGS,
-  CHAN_FLAGS,
   CHAN_PARAMS,
+  advertisedChanFlags,
   filterCatalog,
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
@@ -49,9 +48,10 @@ function ChannelParamRow({
   );
 }
 
-function FlagGrid({ flags, modes, chan, setChannelMode }: {
+function FlagGrid({ flags, modes, chan, setChannelMode, onLockedClick }: {
   flags: ChanFlag[]; modes: string; chan: string;
   setChannelMode: (chan: string, letter: string, on: boolean) => void;
+  onLockedClick?: (f: ChanFlag) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -59,9 +59,11 @@ function FlagGrid({ flags, modes, chan, setChannelMode }: {
       {flags.map((f) => {
         const on = modes.includes(f.m);
         const ro = !!f.readonly;
+        const jump = ro && !!onLockedClick && f.m === 'k';
         return (
-          <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}`}
-            title={`+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}`}>
+          <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}${jump ? ' is-jump' : ''}`}
+            title={`+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}`}
+            onClick={jump ? (e) => { e.preventDefault(); onLockedClick(f); } : undefined}>
             <input type="checkbox" checked={on} disabled={ro}
               onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
             <code className="ca-flag__m">+{f.m}</code>
@@ -157,6 +159,7 @@ export function ChanAdminModal() {
   const curLimit = modeParams?.l || '';
 
   const [tab, setTab] = useState<Tab>('overview');
+  const [moreModes, setMoreModes] = useState(false);
   const [newban, setNewban] = useState('');
   const [ebType, setEbType] = useState('');
   const [ebVal, setEbVal] = useState('');
@@ -181,8 +184,18 @@ export function ChanAdminModal() {
   const modes = buffer.modes || '';
 
   const ctx = buildModeContext(client?.server.isupport ?? {}, client?.server.prefixModeToChar ?? {});
-  const flags = CHAN_FLAGS.filter((f) => (ctx.typeD.size ? ctx.typeD.has(f.m) : BASE_CHAN_FLAGS.includes(f.m)));
+  const flags = advertisedChanFlags(ctx.typeD, ctx.typeB);
   const paramModes = filterCatalog(CHAN_PARAMS, new Set([...ctx.typeB, ...ctx.typeC]));
+  const extraFlags = flags.filter((f) => f.group === 'extra');
+  const extraShown = extraFlags.filter((f) => moreModes || modes.includes(f.m));
+  const paramsShown = paramModes.filter((p) => moreModes || !!(modeParams?.[p.m]));
+  const canShowMore = extraFlags.some((f) => !modes.includes(f.m))
+    || paramModes.some((p) => !modeParams?.[p.m]);
+  const moreBtn = canShowMore ? (
+    <button type="button" className="ca-modes__more" onClick={() => setMoreModes((v) => !v)}>
+      {moreModes ? t('messages.seeLess') : t('messages.seeMore')}
+    </button>
+  ) : null;
 
   const members = Object.values(buffer.members || {});
   const opCount = members.filter((m) => /[~&@%]/.test(m.prefixes || m.prefix || '')).length;
@@ -331,20 +344,25 @@ export function ChanAdminModal() {
             {flags.some((f) => f.group === 'classic') && (
               <>
                 <h4 className="ca-h">{t('modals.chanadmin.classicModes')}</h4>
-                <FlagGrid flags={flags.filter((f) => f.group === 'classic')} modes={modes} chan={chan} setChannelMode={setChannelMode} />
+                <FlagGrid
+                  flags={flags.filter((f) => f.group === 'classic')}
+                  modes={modes} chan={chan} setChannelMode={setChannelMode}
+                  onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); }}
+                />
               </>
             )}
-            {flags.some((f) => f.group === 'extra') && (
+            {extraShown.length > 0 && (
               <>
                 <h4 className="ca-h ca-h--next">{t('modals.chanadmin.extraModes')}</h4>
-                <FlagGrid flags={flags.filter((f) => f.group === 'extra')} modes={modes} chan={chan} setChannelMode={setChannelMode} />
+                <FlagGrid flags={extraShown} modes={modes} chan={chan} setChannelMode={setChannelMode} />
               </>
             )}
+            {paramsShown.length === 0 && moreBtn}
           </div>
-          {paramModes.length > 0 && (
+          {paramsShown.length > 0 && (
             <div className="ca-modes__params">
               <h4 className="ca-h">{t('modals.chanadmin.paramModes')}</h4>
-              {paramModes.map((p) => (
+              {paramsShown.map((p) => (
                 <ChannelParamRow
                   key={p.m}
                   letter={p.m}
@@ -356,6 +374,7 @@ export function ChanAdminModal() {
                   onClear={(echo) => setChannelModeParam(chan, p.m, false, echo)}
                 />
               ))}
+              {moreBtn}
             </div>
           )}
         </div>

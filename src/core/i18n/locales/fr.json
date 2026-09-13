@@ -764,6 +764,11 @@
       "brief": "privé",
       "desc": "Absent des listes, /whois masqué (+p)"
     },
+    "keyed": {
+      "label": "Mot de passe",
+      "brief": "clé",
+      "desc": "Le salon est verrouillé par une clé — à modifier dans l’onglet Aperçu (+k)"
+    },
     "blockColor": {
       "label": "Sans couleurs",
       "brief": "sans couleurs",
@@ -1071,7 +1076,7 @@
     },
     "cloak": {
       "label": "Hôte masqué",
-      "desc": "Cache ton adresse réelle derrière un cloak (+x)"
+      "desc": "Cache ton adresse réelle derrière un cloak (+x). Un vHost Anope le remplace et retire +x."
     },
     "hideidle": {
       "label": "Masquer l’inactivité",

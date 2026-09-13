@@ -2697,6 +2697,12 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   margin: .15rem -.15rem 0; padding: .45rem .35rem .5rem; border-top: 1px solid var(--border);
   background: var(--bg); }
 .ca-h--next { margin-top: .85rem; }
+.ca-modes__more {
+  display: block; width: 100%; margin: .45rem 0 .1rem; padding: .4rem .5rem;
+  border: 0; background: none; color: var(--accent); font: inherit; font-size: .82rem;
+  font-weight: 700; cursor: pointer; text-align: center;
+}
+.ca-modes__more:hover { text-decoration: underline; }
 @keyframes caFade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 .ca-sec { margin-top: 1rem; }
 .ca-sec:first-child { margin-top: .3rem; }
@@ -2738,6 +2744,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-flag.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg-soft)); }
 .ca-flag.is-ro { cursor: default; opacity: .78; }
 .ca-flag.is-ro:hover { border-color: var(--border-2); }
+.ca-flag.is-ro.is-jump { cursor: pointer; }
+.ca-flag.is-ro.is-jump:hover { border-color: var(--accent); }
 .ca-flag input { flex: none; width: 15px; height: 15px; accent-color: var(--up-accent, #2a6bff); }
 /* Mode letter leads each row as a monospace badge (+C, +S…); it tints to the accent
    when the mode is active. The label follows for readers who don't know the letters. */

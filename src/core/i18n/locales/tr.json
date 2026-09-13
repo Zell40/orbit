@@ -615,6 +615,10 @@
       "label": "Özel",
       "desc": "Listelerde yok, /whois gizli (+p)"
     },
+    "keyed": {
+      "label": "Parola",
+      "desc": "Kanala anahtar — Genel bakış sekmesinden değiştir (+k)"
+    },
     "blockColor": {
       "label": "Renksiz",
       "desc": "Renk/biçim kodlarını engeller (+c)"

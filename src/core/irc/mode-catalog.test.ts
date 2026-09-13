@@ -3,6 +3,7 @@ import {
   USER_FLAGS,
   CHAN_FLAGS,
   CHAN_PARAMS,
+  advertisedChanFlags,
   advertisedModeLetters,
   advertisedUserModes,
   filterCatalog,
@@ -73,14 +74,23 @@ describe('umodeRowState', () => {
     expect(row).toEqual({ on: true, locked: true, reason: 'parental' });
   });
 
-  it('locks +x when it is on so the real host cannot be revealed', () => {
-    const row = umodeRowState(cloak, 'x', new Set(), false);
-    expect(row).toEqual({ on: true, locked: true, reason: 'cloak' });
+  it('lets +x be toggled: a vHost unsets it on purpose', () => {
+    expect(umodeRowState(cloak, 'x', new Set(), false)).toEqual({
+      on: true, locked: false, reason: null,
+    });
+    expect(umodeRowState(cloak, '', new Set(), false)).toEqual({
+      on: false, locked: false, reason: null,
+    });
   });
 
-  it('lets +x be turned on when it is off', () => {
-    const row = umodeRowState(cloak, '', new Set(), false);
-    expect(row).toEqual({ on: false, locked: false, reason: null });
+  it('keeps parental +x in sync with the live umode (vHost may have removed it)', () => {
+    const pack = parentalLockedLetters('', '+ixIgcRw', true);
+    expect(umodeRowState(cloak, '', pack, true)).toEqual({
+      on: false, locked: true, reason: 'parental',
+    });
+    expect(umodeRowState(cloak, 'x', pack, true)).toEqual({
+      on: true, locked: true, reason: 'parental',
+    });
   });
 
   it('locks +z when it is on', () => {
@@ -97,8 +107,9 @@ describe('umodeRowState', () => {
 });
 
 describe('catalogues', () => {
-  it('does not put +k/+l in the flags or extra params lists', () => {
-    expect(CHAN_FLAGS.some((f) => f.m === 'k' || f.m === 'l')).toBe(false);
+  it('lists +k as a read-only classic flag and keeps +l off the lists', () => {
+    expect(CHAN_FLAGS.find((f) => f.m === 'k')?.readonly).toBe(true);
+    expect(CHAN_FLAGS.some((f) => f.m === 'l')).toBe(false);
     expect(CHAN_PARAMS.some((f) => f.m === 'k' || f.m === 'l')).toBe(false);
   });
 
@@ -107,14 +118,20 @@ describe('catalogues', () => {
   });
 
   it('lists RFC channel flags before complementary ones', () => {
-    expect(CHAN_FLAGS.filter((f) => f.group === 'classic').map((f) => f.m).join('')).toBe('imntsp');
+    expect(CHAN_FLAGS.filter((f) => f.group === 'classic').map((f) => f.m).join('')).toBe('imntspk');
     const extra = CHAN_FLAGS.findIndex((f) => f.group === 'extra');
     const lastClassic = CHAN_FLAGS.map((f) => f.group).lastIndexOf('classic');
     expect(extra).toBeGreaterThan(lastClassic);
   });
 
-  it('hides +B (bot) from Settings and treats +x as not disableable', () => {
+  it('hides +B (bot) from Settings; +x stays user-toggleable', () => {
     expect(USER_FLAGS.find((f) => f.m === 'B')?.hidden).toBe(true);
-    expect(USER_FLAGS.find((f) => f.m === 'x')?.cannotDisable).toBe(true);
+    expect(USER_FLAGS.find((f) => f.m === 'x')?.cannotDisable).toBeFalsy();
+  });
+
+  it('includes +k among advertised classic flags when CHANMODES has a key', () => {
+    const shown = advertisedChanFlags(new Set(['i', 'm', 'n', 't', 's', 'p']), new Set(['k']));
+    expect(shown.map((f) => f.m).join('')).toContain('k');
+    expect(shown.find((f) => f.m === 'k')?.readonly).toBe(true);
   });
 });
