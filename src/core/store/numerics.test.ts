@@ -13,8 +13,8 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
   const server: string[] = [];
   const serverKind: string[] = [];
   let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
-  const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[] }> =
-    (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[] }>) || {};
+  const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string }> =
+    (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string }>) || {};
   const state = {
     client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
