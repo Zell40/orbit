@@ -278,6 +278,8 @@
       "topicBy": "Défini par",
       "tabOverview": "Aperçu",
       "tabModes": "Modes",
+      "classicModes": "Modes IRC",
+      "extraModes": "Modes complémentaires",
       "paramModes": "Limites et protections",
       "extbans": "Bans étendus",
       "extbanType": "Type de ban étendu",

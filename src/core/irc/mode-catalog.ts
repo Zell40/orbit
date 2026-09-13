@@ -12,9 +12,13 @@ export interface UserFlag {
   group: UserFlagGroup;
 }
 
+export type ChanFlagGroup = 'classic' | 'extra';
+
 export interface ChanFlag {
   m: string;
   key: string;
+  /** RFC-style channel flags first; Insp/network extras after. */
+  group: ChanFlagGroup;
   /** Services/oper-set; shown when present but not toggleable. */
   readonly?: boolean;
 }
@@ -52,31 +56,31 @@ export const USER_FLAG_GROUPS: UserFlagGroup[] = ['privacy', 'messages', 'other'
 
 /** Type-D channel flags. +k/+l stay on the ChanAdmin overview tab. */
 export const CHAN_FLAGS: ChanFlag[] = [
-  { m: 'i', key: 'invite' },
-  { m: 'm', key: 'moderated' },
-  { m: 'n', key: 'noExternal' },
-  { m: 't', key: 'topicLock' },
-  { m: 's', key: 'secret' },
-  { m: 'p', key: 'private' },
-  { m: 'c', key: 'blockColor' },
-  { m: 'C', key: 'noCtcp' },
-  { m: 'S', key: 'stripColor' },
-  { m: 'r', key: 'registered', readonly: true },
-  { m: 'R', key: 'regOnly' },
-  { m: 'M', key: 'regModerated' },
-  { m: 'O', key: 'operOnly' },
-  { m: 'z', key: 'tlsOnly' },
-  { m: 'N', key: 'noNickChange' },
-  { m: 'K', key: 'noKnock' },
-  { m: 'P', key: 'permanent' },
-  { m: 'A', key: 'allowInvite' },
-  { m: 'D', key: 'delayJoin' },
-  { m: 'G', key: 'censor' },
-  { m: 'Q', key: 'noKick' },
-  { m: 'T', key: 'noNotice' },
-  { m: 'u', key: 'auditorium' },
-  { m: 'U', key: 'opModerated' },
-  { m: 'V', key: 'blockHighlight' },
+  { m: 'i', key: 'invite', group: 'classic' },
+  { m: 'm', key: 'moderated', group: 'classic' },
+  { m: 'n', key: 'noExternal', group: 'classic' },
+  { m: 't', key: 'topicLock', group: 'classic' },
+  { m: 's', key: 'secret', group: 'classic' },
+  { m: 'p', key: 'private', group: 'classic' },
+  { m: 'c', key: 'blockColor', group: 'extra' },
+  { m: 'C', key: 'noCtcp', group: 'extra' },
+  { m: 'S', key: 'stripColor', group: 'extra' },
+  { m: 'r', key: 'registered', group: 'extra', readonly: true },
+  { m: 'R', key: 'regOnly', group: 'extra' },
+  { m: 'M', key: 'regModerated', group: 'extra' },
+  { m: 'O', key: 'operOnly', group: 'extra' },
+  { m: 'z', key: 'tlsOnly', group: 'extra' },
+  { m: 'N', key: 'noNickChange', group: 'extra' },
+  { m: 'K', key: 'noKnock', group: 'extra' },
+  { m: 'P', key: 'permanent', group: 'extra' },
+  { m: 'A', key: 'allowInvite', group: 'extra' },
+  { m: 'D', key: 'delayJoin', group: 'extra' },
+  { m: 'G', key: 'censor', group: 'extra' },
+  { m: 'Q', key: 'noKick', group: 'extra' },
+  { m: 'T', key: 'noNotice', group: 'extra' },
+  { m: 'u', key: 'auditorium', group: 'extra' },
+  { m: 'U', key: 'opModerated', group: 'extra' },
+  { m: 'V', key: 'blockHighlight', group: 'extra' },
 ];
 
 export const BASE_CHAN_FLAGS = 'imntsp';

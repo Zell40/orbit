@@ -64,4 +64,11 @@ describe('catalogues', () => {
   it('marks +r as read-only', () => {
     expect(CHAN_FLAGS.find((f) => f.m === 'r')?.readonly).toBe(true);
   });
+
+  it('lists RFC channel flags before complementary ones', () => {
+    expect(CHAN_FLAGS.filter((f) => f.group === 'classic').map((f) => f.m).join('')).toBe('imntsp');
+    const extra = CHAN_FLAGS.findIndex((f) => f.group === 'extra');
+    const lastClassic = CHAN_FLAGS.map((f) => f.group).lastIndexOf('classic');
+    expect(extra).toBeGreaterThan(lastClassic);
+  });
 });

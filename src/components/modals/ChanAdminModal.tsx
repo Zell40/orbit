@@ -8,6 +8,7 @@ import {
   CHAN_FLAGS,
   CHAN_PARAMS,
   filterCatalog,
+  type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
 import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, type ExtBan } from '@/lib/extbans';
@@ -26,23 +27,48 @@ function ChannelParamRow({
   if (cur !== prev) { setPrev(cur); setVal(cur); }
   const on = !!cur;
   return (
-    <div className="ca-param">
-      <label className="ca-param__l" title={t(`chanParams.${i18nKey}.desc`)}>
+    <div className={`ca-prow${on ? ' is-on' : ''}`}>
+      <label className="ca-prow__l" title={t(`chanParams.${i18nKey}.desc`)}>
         <code className="ca-flag__m">+{letter}</code>
-        {t(`chanParams.${i18nKey}.label`)}
+        <span className="ca-prow__name">{t(`chanParams.${i18nKey}.label`)}</span>
       </label>
-      <input className="modal__input" value={val} placeholder={hint}
+      <input className="ca-prow__in" value={val} placeholder={hint}
         aria-label={t(`chanParams.${i18nKey}.label`)}
         onChange={(e) => setVal(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter') { const v = val.trim(); if (v) onApply(v); } }} />
-      <button type="button" className="upbtn upbtn--primary" onClick={() => { const v = val.trim(); if (v) onApply(v); }}>
+      <button type="button" className="ca-prow__go" onClick={() => { const v = val.trim(); if (v) onApply(v); }}>
         {t('modals.chanadmin.apply')}
       </button>
       {on ? (
-        <button type="button" className="upbtn" onClick={() => onClear(typeB ? (cur || val || '*') : '')}>
+        <button type="button" className="ca-prow__x" title={t('modals.chanadmin.clear')}
+          onClick={() => onClear(typeB ? (cur || val || '*') : '')}>
           {t('modals.chanadmin.clear')}
         </button>
       ) : null}
+    </div>
+  );
+}
+
+function FlagGrid({ flags, modes, chan, setChannelMode }: {
+  flags: ChanFlag[]; modes: string; chan: string;
+  setChannelMode: (chan: string, letter: string, on: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="ca-flags">
+      {flags.map((f) => {
+        const on = modes.includes(f.m);
+        const ro = !!f.readonly;
+        return (
+          <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}`}
+            title={`+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}`}>
+            <input type="checkbox" checked={on} disabled={ro}
+              onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
+            <code className="ca-flag__m">+{f.m}</code>
+            <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -300,24 +326,23 @@ export function ChanAdminModal() {
       )}
 
       {tab === 'modes' && (
-        <div className="ca-pane">
-          <div className="ca-flags">
-            {flags.map((f) => {
-              const on = modes.includes(f.m);
-              const ro = !!f.readonly;
-              return (
-                <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}`}
-                  title={`+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}`}>
-                  <input type="checkbox" checked={on} disabled={ro}
-                    onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
-                  <code className="ca-flag__m">+{f.m}</code>
-                  <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
-                </label>
-              );
-            })}
+        <div className="ca-pane ca-pane--modes">
+          <div className="ca-modes__flags">
+            {flags.some((f) => f.group === 'classic') && (
+              <>
+                <h4 className="ca-h">{t('modals.chanadmin.classicModes')}</h4>
+                <FlagGrid flags={flags.filter((f) => f.group === 'classic')} modes={modes} chan={chan} setChannelMode={setChannelMode} />
+              </>
+            )}
+            {flags.some((f) => f.group === 'extra') && (
+              <>
+                <h4 className="ca-h ca-h--next">{t('modals.chanadmin.extraModes')}</h4>
+                <FlagGrid flags={flags.filter((f) => f.group === 'extra')} modes={modes} chan={chan} setChannelMode={setChannelMode} />
+              </>
+            )}
           </div>
           {paramModes.length > 0 && (
-            <div className="ca-sec">
+            <div className="ca-modes__params">
               <h4 className="ca-h">{t('modals.chanadmin.paramModes')}</h4>
               {paramModes.map((p) => (
                 <ChannelParamRow
