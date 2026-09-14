@@ -20,6 +20,7 @@ import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
 import { mintChatResume, saveSaslResume, clearSaslResume } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
+import { closeMobileNav } from '../lib/mobile-nav';
 import { mergeMlock } from './irc/mode-catalog';
 import { fetchChannelMlock } from './store/mlock-rpc';
 
