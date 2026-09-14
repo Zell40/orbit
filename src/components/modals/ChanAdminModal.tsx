@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '@/core/networks';
 import { formatIrc } from '@/lib/format';
@@ -27,12 +28,32 @@ function LockTag({ kind }: { kind: 'services' | 'overview' }) {
   );
 }
 
+function LockTipBubble({ text, x, y }: { text: string; x: number; y: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [style, setStyle] = useState<CSSProperties>({ left: x, top: y, visibility: 'hidden' });
+  const [below, setBelow] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const { width: w, height: h } = el.getBoundingClientRect();
+    const pad = 10;
+    const gap = 8;
+    const left = Math.min(Math.max(x, pad + w / 2), window.innerWidth - pad - w / 2);
+    const caret = Math.min(Math.max(((x - left) / w) * 100 + 50, 12), 88);
+    setBelow(y - h - gap < pad);
+    setStyle({ left, top: y, visibility: 'visible', ['--caret' as string]: `${caret}%` });
+  }, [x, y, text]);
+  return createPortal(
+    <div ref={ref} className={`ca-locktip${below ? ' is-below' : ''}`} style={style} role="status">{text}</div>,
+    document.body,
+  );
+}
+
 function ChannelParamRow({
-  letter, i18nKey, hint, cur, typeB, locked, tip, onLockedClick, onApply, onClear,
+  letter, i18nKey, hint, cur, typeB, locked, onLockedClick, onApply, onClear,
 }: {
   letter: string; i18nKey: string; hint: string; cur: string; typeB: boolean; locked?: boolean;
-  tip?: string;
-  onLockedClick?: () => void;
+  onLockedClick?: (e: { clientX: number; clientY: number }) => void;
   onApply: (value: string) => void; onClear: (echo: string) => void;
 }) {
   const { t } = useTranslation();
@@ -44,7 +65,7 @@ function ChannelParamRow({
   return (
     <div className={`ca-prow${on ? ' is-on' : ''}${locked ? ' is-ro' : ''}`}>
       <label className="ca-prow__l" title={t(`chanParams.${i18nKey}.desc`)}
-        onClick={locked ? (e) => { e.preventDefault(); onLockedClick?.(); } : undefined}>
+        onClick={locked ? (e) => { e.preventDefault(); onLockedClick?.(e); } : undefined}>
         <code className="ca-flag__m">+{letter}</code>
         <span className="ca-prow__name">{t(`chanParams.${i18nKey}.label`)}</span>
         {locked ? <LockTag kind="services" /> : null}
@@ -57,26 +78,24 @@ function ChannelParamRow({
           onKeyDown={(e) => { if (e.key === 'Enter' && !locked) { const v = val.trim(); if (v) onApply(v); } }} />
         <button type="button" className="ca-prow__go" disabled={locked}
           title={lockHint || undefined}
-          onClick={() => { if (locked) { onLockedClick?.(); return; } const v = val.trim(); if (v) onApply(v); }}>
+          onClick={(e) => { if (locked) { onLockedClick?.(e); return; } const v = val.trim(); if (v) onApply(v); }}>
           {t('modals.chanadmin.apply')}
         </button>
         <button type="button" className="ca-prow__x" disabled={locked || !on}
           title={t('modals.chanadmin.clear')}
-          onClick={() => { if (locked) { onLockedClick?.(); return; } if (on) onClear(typeB ? (cur || val || '*') : ''); }}>
+          onClick={(e) => { if (locked) { onLockedClick?.(e); return; } if (on) onClear(typeB ? (cur || val || '*') : ''); }}>
           {t('modals.chanadmin.clear')}
         </button>
       </div>
-      {tip ? <span className="ca-flag__bubble" role="status">{tip}</span> : null}
     </div>
   );
 }
 
-function FlagGrid({ flags, modes, mlock, chan, tipLetter, tipText, setChannelMode, onLockedClick, onLockTip }: {
+function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, onLockTip }: {
   flags: ChanFlag[]; modes: string; mlock?: string; chan: string;
-  tipLetter?: string; tipText?: string;
   setChannelMode: (chan: string, letter: string, on: boolean) => void;
   onLockedClick?: (f: ChanFlag) => void;
-  onLockTip: (letter: string, lock: 'services' | 'overview') => void;
+  onLockTip: (letter: string, lock: 'services' | 'overview', pt: { clientX: number; clientY: number }) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -99,14 +118,13 @@ function FlagGrid({ flags, modes, mlock, chan, tipLetter, tipText, setChannelMod
             onClick={ro ? (e) => {
               e.preventDefault();
               if (jump) onLockedClick?.(f);
-              else if (lock) onLockTip(f.m, lock);
+              else if (lock) onLockTip(f.m, lock, e);
             } : undefined}>
             <input type="checkbox" checked={on} disabled={ro}
               onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
             <code className="ca-flag__m">+{f.m}</code>
             <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
             {ro && lock ? <LockTag kind={lock} /> : null}
-            {tipLetter === f.m && tipText ? <span className="ca-flag__bubble" role="status">{tipText}</span> : null}
           </label>
         );
       })}
@@ -212,14 +230,14 @@ export function ChanAdminModal() {
   const [editingTopic, setEditingTopic] = useState(false);
   const [keyVal, setKeyVal] = useState(curKey);
   const [limitVal, setLimitVal] = useState(curLimit);
-  const [lockTip, setLockTip] = useState<{ letter: string; text: string } | null>(null);
-  const showLockTip = (letter: string, kind: 'services' | 'overview') => {
+  const [lockTip, setLockTip] = useState<{ letter: string; text: string; x: number; y: number } | null>(null);
+  const showLockTip = (letter: string, kind: 'services' | 'overview', pt: { clientX: number; clientY: number }) => {
     const text = kind === 'overview'
       ? t('modals.chanadmin.lockedOnOverview')
       : (mlock
         ? t('numerics.742', { mode: letter, mlock })
         : t('modals.chanadmin.lockedByServices'));
-    setLockTip({ letter, text });
+    setLockTip({ letter, text, x: pt.clientX, y: pt.clientY });
   };
 
   useEffect(() => {
@@ -321,6 +339,7 @@ export function ChanAdminModal() {
   );
 
   return (
+    <>
     <Modal title={t('modals.chanadmin.manage', { chan })} wide onClose={() => setModal('')}>
       <div className="ca-layout">
         <div className="ca-sec ca-topicrow">
@@ -406,7 +425,6 @@ export function ChanAdminModal() {
                 <FlagGrid
                   flags={flags.filter((f) => f.group === 'classic')}
                   modes={modes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
-                  tipLetter={lockTip?.letter} tipText={lockTip?.text}
                   onLockTip={showLockTip}
                   onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); }}
                 />
@@ -416,7 +434,7 @@ export function ChanAdminModal() {
               <>
                 <h4 className="ca-h ca-h--next">{t('modals.chanadmin.extraModes')}</h4>
                 <FlagGrid flags={extraShown} modes={modes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
-                  tipLetter={lockTip?.letter} tipText={lockTip?.text} onLockTip={showLockTip} />
+                  onLockTip={showLockTip} />
               </>
             )}
             {paramsShown.length === 0 && moreBtn}
@@ -434,8 +452,7 @@ export function ChanAdminModal() {
                     cur={modeParams?.[p.m] || ''}
                     typeB={ctx.typeB.has(p.m)}
                     locked={mlock.includes(p.m)}
-                    tip={lockTip?.letter === p.m ? lockTip.text : undefined}
-                    onLockedClick={() => showLockTip(p.m, 'services')}
+                    onLockedClick={(e) => showLockTip(p.m, 'services', e)}
                     onApply={(value) => setChannelModeParam(chan, p.m, true, value)}
                     onClear={(echo) => setChannelModeParam(chan, p.m, false, echo)}
                   />
@@ -563,5 +580,7 @@ export function ChanAdminModal() {
         </div>
       </div>
     </Modal>
+    {lockTip ? <LockTipBubble text={lockTip.text} x={lockTip.x} y={lockTip.y} /> : null}
+    </>
   );
 }
