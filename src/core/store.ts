@@ -20,7 +20,8 @@ import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
 import { mintChatResume, saveSaslResume, clearSaslResume } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
-import { closeMobileNav } from '../lib/mobile-nav';
+import { mergeMlock } from './irc/mode-catalog';
+import { fetchChannelMlock } from './store/mlock-rpc';
 
 
 
@@ -596,11 +597,14 @@ export function createChatStore(ns = '') {
     },
     loadChannelMlock(channel) {
       if (!isChannelName(channel)) return;
-      const key = canon(channel);
-      const until = mlockAsked.get(key) || 0;
-      if (until > Date.now() && get().buffers[key]?.mlock) return;
-      mlockAsked.set(key, Date.now() + 8000);
-      get().client?.privmsg('ChanServ', `INFO ${channel}`);
+      const account = get().account;
+      if (!account) return;
+      const nick = get().nick || '';
+      void fetchChannelMlock(account, nick, channel).then((mlock) => {
+        if (!mlock || get().client == null) return;
+        helpers.ensureBuffer(channel);
+        helpers.patchBuffer(channel, (b) => ({ ...b, mlock: mergeMlock(b.mlock, mlock) }));
+      });
     },
     setChannelModeParam(channel, mode, add, param) {
       if (isChannelName(channel)) get().client?.setChannelModeParam(channel, mode, add, param);
