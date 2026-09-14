@@ -213,7 +213,7 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         ensureBuffer(parsed.chan);
         patchBuffer(parsed.chan, (b) => ({ ...b, mlock: mergeMlock(b.mlock, parsed.mlock + parsed.letter) }));
         const text = i18n.t('numerics.742', { mode: parsed.letter || parsed.mlock[0], mlock: parsed.mlock });
-        sysLine(parsed.chan, `⚠️ ${text}`, 'system');
+        serverLine(`⚠️ ${text}`, 'system');
         return true;
       }
       case '324': { // RPL_CHANNELMODEIS: <me> <chan> <modes> [params…]

@@ -2739,16 +2739,18 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-flags { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: .3rem; }
 /* Compact single-line rows: label always visible, description trails and truncates
    (full text on hover via title) so all modes fit the fixed pane height. */
-.ca-flag { display: flex; align-items: center; gap: .5rem; padding: .3rem .55rem; border: 1px solid var(--border-2); border-radius: 9px; background: var(--bg-soft); cursor: pointer; transition: border-color .15s, background .15s; }
+.ca-flag { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; padding: .3rem .55rem; border: 1px solid var(--border-2); border-radius: 9px; background: var(--bg-soft); cursor: pointer; transition: border-color .15s, background .15s; }
 .ca-flag:hover { border-color: var(--accent); }
 .ca-flag.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg-soft)); }
-.ca-flag.is-ro { cursor: default; opacity: 1; }
-.ca-flag.is-ro input { opacity: .55; }
+.ca-flag.is-ro { cursor: pointer; opacity: 1; }
+.ca-flag.is-ro input { opacity: .55; pointer-events: none; }
 .ca-flag.is-ro:hover { border-color: var(--border-2); }
 .ca-flag.is-ro.is-jump { cursor: pointer; }
 .ca-flag.is-ro.is-jump:hover { border-color: var(--accent); }
-.ca-flag__lock { display: inline-flex; align-items: center; gap: .22rem; flex: none;
-  font-size: .62rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); line-height: 1; }
+.ca-flag__lock { display: inline-flex; align-items: center; flex: none; color: var(--muted); line-height: 1; }
+.ca-flag__bubble { flex: 1 1 100%; margin: .12rem 0 0; padding: .35rem .45rem; border-radius: 7px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg)); border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+  font-size: .72rem; font-weight: 650; line-height: 1.35; color: var(--ink); white-space: normal; }
 .ca-flag input { flex: none; width: 15px; height: 15px; accent-color: var(--up-accent, #2a6bff); }
 /* Mode letter leads each row as a monospace badge (+C, +S…); it tints to the accent
    when the mode is active. The label follows for readers who don't know the letters. */
@@ -2774,6 +2776,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-prow__x:disabled { opacity: .4; cursor: not-allowed; }
 .ca-prow__go:disabled { opacity: .45; cursor: not-allowed; filter: none; }
 .ca-prow.is-ro .ca-prow__in { opacity: .55; }
+.ca-prow.is-ro { cursor: pointer; }
+.ca-prow .ca-flag__bubble { margin-top: .15rem; }
 /* The composer stays put; the list scrolls inside the fixed-height pane. */
 .ca-bans { list-style: none; margin: .5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .25rem; max-height: 14.5rem; overflow-y: auto; }
 .ca-ban { display: flex; align-items: center; gap: .6rem; padding: .35rem .5rem; border-radius: 9px; background: var(--bg-soft); }

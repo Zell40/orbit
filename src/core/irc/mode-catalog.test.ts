@@ -10,6 +10,7 @@ import {
   looksLikeMlock,
   mergeMlock,
   mlockLetters,
+  parseMlockNotice,
   parentalLockedLetters,
   umodeRowState,
 } from './mode-catalog';
@@ -150,5 +151,18 @@ describe('mlock tokens', () => {
     expect(looksLikeMlock('+nt-k')).toBe(true);
     expect(looksLikeMlock('Mode cannot be changed as it has been locked on by services!')).toBe(false);
     expect(mergeMlock('nt', 'PtTVn')).toBe('ntPTV');
+  });
+
+  it('parses ChanServ INFO/MODE lock lines', () => {
+    expect(parseMlockNotice('Mode lock: +PtTVn')).toEqual({ mlock: 'PtTVn' });
+    expect(parseMlockNotice('MLOCK is +nt-k')).toEqual({ mlock: 'ntk' });
+    expect(parseMlockNotice('Modes verrouillés : +nPtTV')).toEqual({ mlock: 'nPtTV' });
+    expect(parseMlockNotice('Verrouillage des modes de #foo : +nPtTV')).toEqual({
+      chan: '#foo', mlock: 'nPtTV',
+    });
+    expect(parseMlockNotice('Information for channel #EntreNous.chat: Mode lock: +nt')).toEqual({
+      chan: '#EntreNous.chat', mlock: 'nt',
+    });
+    expect(parseMlockNotice('Founder: Zell')).toBeNull();
   });
 });

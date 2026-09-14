@@ -11,6 +11,7 @@ import { desktopNotify, blip } from '@/platform/notify';
 import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
+import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
@@ -40,10 +41,36 @@ interface MessagingDeps {
   knownServices: Set<string>;
   filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
   helpers: StoreHelpers;
+  /** canon channel → expiry ms for a ChanServ INFO/MODE query we issued. */
+  mlockAsked?: Map<string, number>;
 }
 
-export function makeMessaging({ get, set, knownServices, filehost, helpers }: MessagingDeps) {
-  const { addMessage, patchBuffer, serverLine, tsOf } = helpers;
+export function makeMessaging({ get, set, knownServices, filehost, helpers, mlockAsked }: MessagingDeps) {
+  const { addMessage, patchBuffer, ensureBuffer, serverLine, tsOf } = helpers;
+  const asked = mlockAsked ?? new Map<string, number>();
+
+  function mlockQueryActive(): boolean {
+    const now = Date.now();
+    let active = false;
+    for (const [k, exp] of asked) {
+      if (now > exp) asked.delete(k);
+      else active = true;
+    }
+    return active;
+  }
+
+  function applyChanServMlock(text: string): void {
+    const parsed = parseMlockNotice(text);
+    if (!parsed?.mlock) return;
+    let chan = parsed.chan || '';
+    if (!chan) {
+      const pending = [...asked.keys()].filter((k) => (asked.get(k) || 0) > Date.now());
+      if (pending.length === 1) chan = pending[0];
+    }
+    if (!chan || !isChannelName(chan)) return;
+    ensureBuffer(chan);
+    patchBuffer(chan, (b) => ({ ...b, mlock: mergeMlock(b.mlock, parsed.mlock) }));
+  }
 
   // Handle a PRIVMSG/NOTICE. Returns true when it was one (and handled). `me` is
   // the client's current nick.
@@ -94,6 +121,11 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers }: Me
     if (!self && msg.nick) {
       const lc = msg.nick.toLowerCase();
       if (get().ignored.some((n) => n.toLowerCase() === lc)) return true;
+    }
+    // ChanServ INFO/MODE (MLOCK) — capture lock letters before plugin filters hide the line.
+    if (msg.command === 'NOTICE' && /^chanserv$/i.test(msg.nick || '')) {
+      applyChanServMlock(text);
+      if (mlockQueryActive()) return true;
     }
     // Plugin message filters: a plugin can hide a message from the chat
     // display (e.g. a service's machine-readable control lines). The plugin

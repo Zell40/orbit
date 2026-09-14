@@ -342,7 +342,8 @@ describe('store numerics handler', () => {
       'Mode cannot be changed as it has been locked on by services!',
     ]))).toBe(true);
     expect(state.buffers['#entrenous.chat']?.mlock).toBe('PtTVn');
-    expect(server).toEqual([]);
-    expect(sys.some((l) => l.name === '#EntreNous.chat' && l.text.includes('MLOCK'))).toBe(true);
+    expect(sys).toEqual([]);
+    expect(server).toHaveLength(1);
+    expect(server[0]).toContain('⚠️');
   });
 });

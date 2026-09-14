@@ -81,6 +81,7 @@ export interface ChatState {
   exceptlists: Record<string, { mask: string; by: string; ts: number }[]>; // +e ban exceptions
   invexlists: Record<string, { mask: string; by: string; ts: number }[]>;  // +I invite exceptions
   loadBanList: (channel: string) => void;
+  loadChannelMlock: (channel: string) => void;
   setChannelMode: (channel: string, mode: string, add: boolean) => void;
   setChannelModeParam: (channel: string, mode: string, add: boolean, param?: string) => void;
   removeBan: (channel: string, mask: string) => void;
@@ -169,6 +170,7 @@ export function createChatStore(ns = '') {
   const knownServices = new Set<string>(); // canon nicks the server tagged as services
   const namesInFlight = new Set<string>(); // channels currently receiving a NAMES (353…366) burst
   const historyAsked = new Set<string>(); // channels already sent CHATHISTORY LATEST this session
+  const mlockAsked = new Map<string, number>(); // canon channel → ChanServ INFO expiry for MLOCK
   // Soft cache of GECOS/account across reconnect nicklist clears (until WHOX refills).
   const profileCache = new Map<string, { realname?: string; account?: string }>();
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
@@ -201,7 +203,7 @@ export function createChatStore(ns = '') {
     s.client?.ircv3.sendDisplayed(b.name, latestPeer);
   };
 
-  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns });
+  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns, mlockAsked });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
   const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers });
@@ -405,6 +407,7 @@ export function createChatStore(ns = '') {
         knownServices.clear(); // re-learn services after reconnect rather than accrete forever
         namesInFlight.clear();
         historyAsked.clear();
+        mlockAsked.clear();
         // Drop stale nicklists immediately — NAMES on rejoin will refill them.
         // Avoids ghost guests (Harry208 + Harry365) while the socket is down.
         // Keep a short-lived GECOS/account cache so âge/genre/ville flash back
@@ -590,6 +593,14 @@ export function createChatStore(ns = '') {
       c?.modeList(channel, 'b');
       if (typeA.includes('e')) c?.modeList(channel, 'e'); // ban exceptions, if supported
       if (typeA.includes('I')) c?.modeList(channel, 'I'); // invite exceptions, if supported
+    },
+    loadChannelMlock(channel) {
+      if (!isChannelName(channel)) return;
+      const key = canon(channel);
+      const until = mlockAsked.get(key) || 0;
+      if (until > Date.now() && get().buffers[key]?.mlock) return;
+      mlockAsked.set(key, Date.now() + 8000);
+      get().client?.privmsg('ChanServ', `INFO ${channel}`);
     },
     setChannelModeParam(channel, mode, add, param) {
       if (isChannelName(channel)) get().client?.setChannelModeParam(channel, mode, add, param);

@@ -132,6 +132,17 @@ export function mergeMlock(prev: string | undefined, incoming: string): string {
   return mlockLetters((prev || '') + incoming);
 }
 
+/** ChanServ INFO/MODE notice → MLOCK letters (`Mode lock: +nt`, `MLOCK is +PtTVn`). */
+export function parseMlockNotice(text: string): { chan?: string; mlock: string } | null {
+  const plain = text.replace(/\x03\d{0,2}(?:,\d{1,2})?|\x04[0-9A-Fa-f]{0,6}|[\x02\x1d\x1f\x1e\x11\x16\x0f]/g, '');
+  const chan = plain.match(/[#&][^\s,:]+/)?.[0];
+  const m = plain.match(/(?:modes?\s+verrouill[ée]s?|verrouillage des modes|mode lock|\bmlock)(?:\s+(?:de|for|of)\s+\S+)?\s*(?:est|is|:)\s*([+\-A-Za-z]+)/i);
+  if (!m || !looksLikeMlock(m[1])) return null;
+  const mlock = mlockLetters(m[1]);
+  if (!mlock) return null;
+  return chan ? { chan, mlock } : { mlock };
+}
+
 export function advertisedModeLetters(token: string | undefined): Set<string> {
   if (!token) return new Set();
   return new Set(token.replace(/,/g, '').split('').filter((c) => /[A-Za-z]/.test(c)));

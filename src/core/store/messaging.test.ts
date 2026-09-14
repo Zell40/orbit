@@ -6,7 +6,7 @@ import type { ChatMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
 
-function setup(over: Partial<Record<string, unknown>> = {}) {
+function setup(over: Partial<Record<string, unknown>> = {}, mlockAsked?: Map<string, number>) {
   const state = {
     active: '#x', isActive: true, ignored: [] as string[],
     reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
@@ -22,10 +22,14 @@ function setup(over: Partial<Record<string, unknown>> = {}) {
   const set = (p: Partial<typeof state>) => Object.assign(state, p);
   const helpers = {
     addMessage: (name: string, m: ChatMessage) => { added.push({ name, m }); },
-    patchBuffer: (name: string, fn: (b: { peerReadTs?: number }) => { peerReadTs?: number }) => {
+    patchBuffer: (name: string, fn: (b: { peerReadTs?: number; mlock?: string }) => { peerReadTs?: number; mlock?: string }) => {
       const k = name.toLowerCase();
-      const cur = (state.buffers[k] as { peerReadTs?: number } | undefined) ?? { peerReadTs: 0 };
+      const cur = (state.buffers[k] as { peerReadTs?: number; mlock?: string } | undefined) ?? { peerReadTs: 0 };
       state.buffers[k] = { ...cur, ...fn(cur) } as (typeof state.buffers)[string];
+    },
+    ensureBuffer: (name: string) => {
+      const k = name.toLowerCase();
+      if (!state.buffers[k]) state.buffers[k] = { isChannel: true, joined: true, members: {} };
     },
     serverLine: (text: string) => { serverLines.push(text); },
     tsOf: () => 1000,
@@ -33,6 +37,7 @@ function setup(over: Partial<Record<string, unknown>> = {}) {
   const { handleMessaging } = makeMessaging({
     get, set, knownServices: new Set<string>(),
     filehost: { resolve: null, reject: null, timer: null }, helpers,
+    mlockAsked,
   } as Parameters<typeof makeMessaging>[0]);
   const on = (line: string, me = 'me') => handleMessaging(parseLine(line), me);
   return { on, added, serverLines, state };
@@ -153,6 +158,16 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     on(':ChanServ!s@services NOTICE me :hello');
     expect(added[0].name).toBe('#x');
     expect(added[0].m).toMatchObject({ kind: 'notice', noticeScope: 'direct' });
+  });
+
+  it('stores MLOCK from a ChanServ INFO notice and swallows the query reply', () => {
+    const asked = new Map<string, number>([['#entrenous.chat', Date.now() + 8000]]);
+    const { on, added, state } = setup({
+      buffers: { '#entrenous.chat': { isChannel: true, joined: true, members: {} } },
+    }, asked);
+    on(':ChanServ!s@services NOTICE me :Mode lock: +PtTVn');
+    expect(added).toHaveLength(0);
+    expect((state.buffers['#entrenous.chat'] as { mlock?: string }).mlock).toBe('PtTVn');
   });
 
   it('shows a ChanServ notice in the open PM, not a shared salon', () => {

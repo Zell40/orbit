@@ -30,12 +30,13 @@ interface HandlerCtx {
   historyAsked: Set<string>;
   profileCache: Map<string, { realname?: string; account?: string }>;
   persistNs?: string;
+  mlockAsked: Map<string, number>;
 }
 
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
-  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs = '' } = ctx;
+  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs = '', mlockAsked } = ctx;
   const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
@@ -49,7 +50,7 @@ export function makeHandler(ctx: HandlerCtx) {
   // REDACT + MARKREAD: message redaction + read markers. See ./msgstate.
   const { handleMsgState } = makeMsgState({ ensureBuffer, patchBuffer });
   // PRIVMSG/NOTICE hot path (routing, services, notify, batch collection). See ./messaging.
-  const { handleMessaging } = makeMessaging({ get, set, knownServices, filehost, helpers });
+  const { handleMessaging } = makeMessaging({ get, set, knownServices, filehost, helpers, mlockAsked });
   // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
   const { handleMode } = makeMode({ get, set, helpers });
   // Numeric replies (RPL_*/ERR_*) + the generic error/console fallback. See ./numerics.
