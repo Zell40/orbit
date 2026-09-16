@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loosenNoticeText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange, formatModeFlagLine, banTargetLabel, modeStringWithoutBans } from './format-text';
+import { loosenNoticeText, loosenPrivmsgText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange, formatModeFlagLine, banTargetLabel, modeStringWithoutBans } from './format-text';
 
 describe('loosenNoticeText', () => {
   it('splits | INFO | blocks onto separate paragraphs', () => {
@@ -32,6 +32,29 @@ describe('loosenNoticeText', () => {
     )).toBe(
       'Modes disponibles :\n• Facile → 3 catégories.\n• Moyen → 5 catégories.',
     );
+  });
+
+  it('breaks HelpServ command rows onto their own lines', () => {
+    const out = loosenNoticeText(
+      'sur les commandes ANNULER Annuler votre ticket s\'il n\'a pas encore été pris STATUT Afficher l\'état.',
+    );
+    expect(out).toContain('\nANNULER ');
+    expect(out).toContain('\nSTATUT ');
+  });
+
+  it('does not break ordinary acronyms followed by lowercase', () => {
+    expect(loosenNoticeText('voir le HTML dans la page.')).toBe('voir le HTML dans la page.');
+  });
+});
+
+describe('loosenPrivmsgText', () => {
+  it('leaves short chat unchanged', () => {
+    expect(loosenPrivmsgText('Ok. Super !')).toBe('Ok. Super !');
+  });
+
+  it('loosens a long wall of text', () => {
+    const t = `${'Bla. '.repeat(40)}Suite du message ici.`;
+    expect(loosenPrivmsgText(t)).toContain('\n\n');
   });
 });
 

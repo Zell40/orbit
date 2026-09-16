@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChatMessage } from '@/core/irc/types';
-import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, splitActuItems, unwrapActuUrls, actuItemHeadline } from '@/lib/format';
+import { fmtTime, nickColor, IRCOP_COLOR, formatIrc, splitActuItems, unwrapActuUrls, actuItemHeadline, loosenPrivmsgText } from '@/lib/format';
 import { roleForPrefix } from '@/lib/roles';
 import { firstPreviewableUrl, previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
@@ -13,7 +13,7 @@ import { usePluginRegistry, type MessageInfo } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
 import { isChannelName, isPseudoBuffer, isBouncerServiceNick } from '@/core/store/context';
-import { isService } from '@/core/services';
+import { hasServiceTag, isService } from '@/core/services';
 import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage, highlightMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
@@ -88,6 +88,10 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   const pinned = useActiveChat((s) => s.pins[s.active]?.some((p) => p.id === m.id) ?? false);
   const isOper = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.oper);
   const isBot = useActiveChat((s) => !!s.buffers[s.active]?.members[m.from]?.bot);
+  const bodyText = m.redacted ? m.text : loosenPrivmsgText(
+    m.text,
+    !m.self && (isBot || isService(m.from) || hasServiceTag(m.tags || {})),
+  );
   const memberNicks = useActiveChat((s) => {
     const mem = s.buffers[s.active]?.members;
     return (s.nick || '') + '\n' + (mem ? Object.keys(mem).join('\n') : '');
@@ -158,7 +162,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
             {m.kind !== 'action' && '>'}
           </button>{' '}
           <span className="mircline__txt">
-            {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(m.text, m.self, linkPreviews)}
+            {m.redacted ? `⊘ ${t('messages.deleted')}` : formatIrc(bodyText, m.self, linkPreviews)}
             {!m.redacted && <MsgDecorations m={m} />}
           </span>
           {m.reactions && m.reactions.length > 0 && (
@@ -260,7 +264,7 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
         )}
         {quoted && <ReplyQuote quoted={quoted} />}
         <div className={`line ${m.kind === 'action' ? 'line--action' : ''} ${m.kind === 'notice' ? 'line--notice' : ''} ${m.redacted ? 'line--redacted' : ''}`}>
-          {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(m.text, m.self, linkPreviews)}</em> : formatIrc(m.text, m.self, linkPreviews))}
+          {m.redacted ? `⊘ ${t('messages.deleted')}` : (m.kind === 'action' ? <em>{formatIrc(bodyText, m.self, linkPreviews)}</em> : formatIrc(bodyText, m.self, linkPreviews))}
           {!m.redacted && <MsgDecorations m={m} />}
           {m.self && !m.redacted && (m.kind === 'privmsg' || m.kind === 'action')
             && !isPseudoBuffer(m.bufferName)

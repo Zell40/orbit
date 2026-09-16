@@ -193,9 +193,18 @@ export function loosenNoticeText(text: string): string {
     .replace(/\s*(━{3,})\s*/g, '\n$1\n')
     // New paragraph after sentence end when the next clause starts with a capital / quote
     .replace(/([.!?…])\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"(\[])/g, '$1\n\n')
+    // Help desks: "AIDE    description" / "… commandes ANNULER  Annuler …"
+    .replace(/([^\n])[ \t]{2,}([A-ZÉÈÀÂÙÛÇ]{3,20})[ \t]{2,}/g, '$1\n$2  ')
+    .replace(/([a-zà-ÿ.])\s+([A-ZÉÈÀÂÙÛÇ]{4,16})\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ])/g, '$1\n$2 ')
     .replace(/^\s+/, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/** Incoming PRIVMSG: keep short chat intact; loosen bots / long walls of text. */
+export function loosenPrivmsgText(text: string, force = false): string {
+  if (!text || (!force && text.length < 180)) return text;
+  return loosenNoticeText(text);
 }
 
 /** Split a NOTICE bubble into display lines (one readable block each). */
