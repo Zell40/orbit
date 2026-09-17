@@ -106,6 +106,25 @@ describe('addMessage query privmsg coalesce', () => {
     expect(msgs).toHaveLength(1);
     expect(msgs[0].text).toBe('part one of a long line continues here.');
   });
+
+  it('keeps HelpServ LIST tickets and section headers on their own lines', () => {
+    const { helpers, state, pm } = setup();
+    helpers.addMessage('AideMoi', pm('IDEA (3)', 'h1', 1000));
+    helpers.addMessage('AideMoi', pm('#15 IDEA · en cours · Zell — Création d\'un systeme avec multi id', 'h2', 1100));
+    helpers.addMessage('AideMoi', pm('pour les messages enregistré de...', 'h3', 1200));
+    helpers.addMessage('AideMoi', pm('#17 IDEA · à traiter · Jessie — Fermeture de salon', 'h4', 1300));
+    helpers.addMessage('AideMoi', pm('TODO (3)', 'h5', 1400));
+    helpers.addMessage('AideMoi', pm('#20 TODO · à faire · Zell — Gestion du mode +g chanfilter', 'h6', 1500));
+    const msgs = state.buffers.aidemoi.messages;
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0].text).toBe([
+      'IDEA (3)',
+      '#15 IDEA · en cours · Zell — Création d\'un systeme avec multi id pour les messages enregistré de...',
+      '#17 IDEA · à traiter · Jessie — Fermeture de salon',
+      'TODO (3)',
+      '#20 TODO · à faire · Zell — Gestion du mode +g chanfilter',
+    ].join('\n'));
+  });
 });
 
 describe('addMessage replay events', () => {

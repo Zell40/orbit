@@ -176,6 +176,18 @@ export function formatModeChange(g: ModeDisplayGroup): string {
   return i18n.t(g.add ? 'modeline.applied' : 'modeline.removedApplied', { change });
 }
 
+/** True when `#foo` / `&bar` should be a joinable channel, not a ticket or mode. */
+export function looksLikeIrcChannel(name: string): boolean {
+  if (!name || name.length < 2) return false;
+  const p = name[0];
+  if (p !== '#' && p !== '&' && p !== '+' && p !== '!') return false;
+  if (/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(name)) return false;
+  const rest = name.slice(1);
+  if (/^\d+$/.test(rest)) return false; // HelpServ tickets (#15), not #channels
+  if ((p === '+' || p === '!') && /^[A-Za-z]{1,2}$/.test(rest)) return false; // +g umode/cmode
+  return true;
+}
+
 /** Soften dense service NOTICE text for readable callouts (INFO blocks, sentences). */
 export function loosenNoticeText(text: string): string {
   return text
@@ -183,10 +195,10 @@ export function loosenNoticeText(text: string): string {
     .replace(/\s*\|\s*(INFO|WARN(?:ING)?|NOTICE|ALERTE|ERROR|ERR|OK)\s*\|\s*/gi, '\n\n$1 · ')
     // "| Aide au jeu | - … | Aide au jeu | - …" → one block per custom section
     .replace(/\s*\|\s*([^|]+?)\s*\|\s*-\s*/g, '\n\n$1 · ')
-    // Coalesced list notices ("… manches. • Moyen …") → one bullet per line
-    .replace(/([^\n])\s*[•·▪▸►]\s+/g, '$1\n• ')
+    // Real list bullets only — HelpServ uses middle-dot `·` as an inline separator
+    .replace(/([^\n])\s*[•▪▸►]\s+/g, '$1\n• ')
     // Leading/orphan bullets still normalize to "• "
-    .replace(/^[•·▪▸►]\s*/gm, '• ')
+    .replace(/^[•▪▸►]\s*/gm, '• ')
     // Bac / game bot: emoji-led clauses on their own line
     .replace(/\s+(?=[\u{1F300}-\u{1FAFF}])/gu, '\n')
     // Player lines "Nick: …" each on their own line when concatenated

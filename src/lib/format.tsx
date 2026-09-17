@@ -7,6 +7,7 @@ import { canon } from '../core/store/context';
 import { activeStore } from '../core/networks';
 import i18n from '../core/i18n';
 import { isImageUrl, isAudioUrl, youtubeId, ImageAttachment, AudioAttachment, YouTubeEmbed } from './media';
+import { looksLikeIrcChannel } from './format-text';
 
 function openChannel(name: string) {
   const st = activeStore().getState();
@@ -125,7 +126,7 @@ function mentionChannels(text: string, keyPrefix: string): ReactNode[] {
     const chan = raw.replace(/[._-]+$/g, '');
     const absStart = m.index;
     if (absStart > last) nodes.push(text.slice(last, absStart));
-    if (!chan || isHexColorToken(chan)) {
+    if (!chan || isHexColorToken(chan) || !looksLikeIrcChannel(chan)) {
       nodes.push(m[0]);
       last = absStart + m[0].length;
       continue;
@@ -347,5 +348,5 @@ export function formatIrc(text: string, selfMsg: boolean, embeds = true): ReactN
 
 // Pure text formatters live in ./format-text (i18n only, no store/DOM); re-exported
 // here so existing `from '../lib/format'` consumers keep working.
-export { fmtDuration, formatUserModes, groupModeDisplay, isNickModeGroup, isBanModeGroup, banTargetLabel, splitModeAndBans, modeStringWithoutBans, joinModeLabels, formatModeChange, formatModeFlagLine, loosenNoticeText, loosenPrivmsgText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline } from './format-text';
+export { fmtDuration, formatUserModes, groupModeDisplay, isNickModeGroup, isBanModeGroup, banTargetLabel, splitModeAndBans, modeStringWithoutBans, joinModeLabels, formatModeChange, formatModeFlagLine, loosenNoticeText, loosenPrivmsgText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, looksLikeIrcChannel } from './format-text';
 export type { ModeDisplayGroup } from './format-text';

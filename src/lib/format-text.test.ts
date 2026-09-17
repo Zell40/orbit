@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loosenNoticeText, loosenPrivmsgText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange, formatModeFlagLine, banTargetLabel, modeStringWithoutBans } from './format-text';
+import { loosenNoticeText, loosenPrivmsgText, splitNoticeLines, splitActuItems, unwrapActuUrls, actuItemHeadline, groupModeDisplay, formatModeChange, formatModeFlagLine, banTargetLabel, modeStringWithoutBans, looksLikeIrcChannel } from './format-text';
 
 describe('loosenNoticeText', () => {
   it('splits | INFO | blocks onto separate paragraphs', () => {
@@ -31,6 +31,14 @@ describe('loosenNoticeText', () => {
       'Modes disponibles : • Facile → 3 catégories. • Moyen → 5 catégories.',
     )).toBe(
       'Modes disponibles :\n• Facile → 3 catégories.\n• Moyen → 5 catégories.',
+    );
+  });
+
+  it('keeps HelpServ middle-dot field separators on one line', () => {
+    expect(loosenNoticeText(
+      '#15 IDEA · en cours de traitement par Zell · Jessie — Création',
+    )).toBe(
+      '#15 IDEA · en cours de traitement par Zell · Jessie — Création',
     );
   });
 
@@ -162,5 +170,17 @@ describe('modeStringWithoutBans', () => {
     expect(modeStringWithoutBans('+ob', ['bob', 'user!*@*'])).toBe('+o bob');
     expect(modeStringWithoutBans('+b', ['user!*@*'])).toBeNull();
     expect(modeStringWithoutBans('+gm', ['spam*'])).toBe('+gm spam*');
+  });
+});
+
+describe('looksLikeIrcChannel', () => {
+  it('accepts real channel names and rejects tickets and short +modes', () => {
+    expect(looksLikeIrcChannel('#Aide.chat')).toBe(true);
+    expect(looksLikeIrcChannel('#entrenous.chat')).toBe(true);
+    expect(looksLikeIrcChannel('#15')).toBe(false);
+    expect(looksLikeIrcChannel('#20')).toBe(false);
+    expect(looksLikeIrcChannel('+g')).toBe(false);
+    expect(looksLikeIrcChannel('+i')).toBe(false);
+    expect(looksLikeIrcChannel('#fff')).toBe(false);
   });
 });
