@@ -2694,7 +2694,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 /* Both tabs render at the same fixed height so switching never resizes the modal;
    the taller Modes grid scrolls inside instead of growing the dialog. */
 .ca-pane { height: 26rem; overflow-y: auto; overflow-x: hidden; animation: caFade .18s ease both;
-  scrollbar-gutter: stable; padding-bottom: .65rem; }
+  scrollbar-gutter: stable; padding: 3px 4px .65rem; }
 .ca-pane--modes { display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; padding-bottom: .65rem; scrollbar-gutter: auto; }
 .ca-modes__flags { flex: none; min-height: 0; overflow: visible; padding-bottom: 0; }
 .ca-modes__params { flex: none; max-height: none; overflow: visible;
@@ -2737,7 +2737,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-param:last-child { margin-bottom: 0; }
 .ca-param__l { flex: none; width: 6.5rem; font-size: .82rem; font-weight: 600; color: var(--ink); }
 .ca-param__l:has(.ca-flag__m) { width: 9.5rem; display: inline-flex; align-items: center; gap: .35rem; }
-.ca-param .modal__input { flex: 1; min-width: 0; }
+.ca-param .modal__input { flex: 1; min-width: 0; width: auto; }
 .ca-param .upbtn { flex: none; }
 /* Mode flags — card grid with on-state highlight + mode-letter chip */
 .ca-flags { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: .3rem; }
@@ -2800,7 +2800,11 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-ban__mode--I { color: #3b82f6; background: rgba(59,130,246,.14); }
 /* Extbans tab: a compact combobox (button + overlay menu) beside the value input, so
    picking a type and typing the mask stay on one row — no scrolling. */
-.ca-extban-add { margin-bottom: .9rem; align-items: stretch; }
+/* Don’t stretch <input> to the button height: Chrome/Windows clips the first
+   glyph and the caret sits on the placeholder. The combobox still stretches. */
+.ca-extban-add { margin-bottom: .9rem; align-items: center; }
+.ca-extban-add > .modal__input { align-self: center; min-height: 2.55rem; padding: .55rem .95rem; }
+.ca-extban-add .ca-extsel, .ca-extban-add .ca-extmode { align-self: stretch; }
 .ca-extsel { position: relative; flex: 0 0 auto; }
 .ca-extsel__btn { display: inline-flex; align-items: center; justify-content: space-between; gap: .5rem;
   min-width: 11rem; height: 100%; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 9px;
