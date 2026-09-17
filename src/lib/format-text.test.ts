@@ -161,5 +161,6 @@ describe('modeStringWithoutBans', () => {
   it('drops +b/-b and keeps the rest', () => {
     expect(modeStringWithoutBans('+ob', ['bob', 'user!*@*'])).toBe('+o bob');
     expect(modeStringWithoutBans('+b', ['user!*@*'])).toBeNull();
+    expect(modeStringWithoutBans('+gm', ['spam*'])).toBe('+gm spam*');
   });
 });

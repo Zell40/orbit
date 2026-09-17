@@ -95,7 +95,7 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
   flags: ChanFlag[]; modes: string; mlock?: string; chan: string;
   setChannelMode: (chan: string, letter: string, on: boolean) => void;
   onLockedClick?: (f: ChanFlag) => void;
-  onLockTip: (letter: string, lock: 'services' | 'overview', pt: { clientX: number; clientY: number }) => void;
+  onLockTip: (letter: string, lock: 'services' | 'overview' | 'list', pt: { clientX: number; clientY: number }) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -105,12 +105,14 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
         const mlocked = !!(mlock && mlock.includes(f.m));
         const ro = !!f.readonly || mlocked;
         const lock = f.lock || (mlocked ? 'services' : (ro ? 'services' : undefined));
-        const jump = ro && !!onLockedClick && f.m === 'k';
+        const jump = ro && !!onLockedClick && (f.m === 'k' || f.m === 'g');
         const lockHint = lock === 'overview'
           ? t('modals.chanadmin.lockedOnOverview')
-          : lock === 'services'
-            ? t('modals.chanadmin.lockedByServices')
-            : '';
+          : lock === 'list'
+            ? t('modals.chanadmin.lockedOnFilters')
+            : lock === 'services'
+              ? t('modals.chanadmin.lockedByServices')
+              : '';
         const title = `+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}${lockHint ? ` · ${lockHint}` : ''}`;
         return (
           <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}${jump ? ' is-jump' : ''}`}
@@ -124,7 +126,7 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
               onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
             <code className="ca-flag__m">+{f.m}</code>
             <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
-            {ro && lock ? <LockTag kind={lock} /> : null}
+            {ro && lock && lock !== 'list' ? <LockTag kind={lock} /> : null}
           </label>
         );
       })}
@@ -136,7 +138,7 @@ function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-type Tab = 'overview' | 'modes' | 'bans' | 'extbans' | 'invex';
+type Tab = 'overview' | 'modes' | 'bans' | 'extbans' | 'invex' | 'filters';
 
 // A compact combobox for the extban type: a button + an overlay menu (grouped into
 // restrictions / match-by, filterable). Opening it doesn't push the value input, so
@@ -204,6 +206,7 @@ export function ChanAdminModal() {
   const banlist = useActiveChat((s) => s.banlists[s.active] || []);
   const exceptlist = useActiveChat((s) => s.exceptlists[s.active] || []);
   const invexlist = useActiveChat((s) => s.invexlists[s.active] || []);
+  const filterlist = useActiveChat((s) => s.filterlists[s.active] || []);
   const loadBanList = useActiveChat((s) => s.loadBanList);
   const loadChannelMlock = useActiveChat((s) => s.loadChannelMlock);
   const setChannelMode = useActiveChat((s) => s.setChannelMode);
@@ -220,6 +223,7 @@ export function ChanAdminModal() {
   const [tab, setTab] = useState<Tab>('overview');
   const [moreModes, setMoreModes] = useState(false);
   const [newban, setNewban] = useState('');
+  const [newfilter, setNewfilter] = useState('');
   const [ebType, setEbType] = useState('');
   const [ebVal, setEbVal] = useState('');
   const [ebMode, setEbMode] = useState<'b' | 'e'>('b');
@@ -231,12 +235,14 @@ export function ChanAdminModal() {
   const [keyVal, setKeyVal] = useState(curKey);
   const [limitVal, setLimitVal] = useState(curLimit);
   const [lockTip, setLockTip] = useState<{ letter: string; text: string; x: number; y: number } | null>(null);
-  const showLockTip = (letter: string, kind: 'services' | 'overview', pt: { clientX: number; clientY: number }) => {
+  const showLockTip = (letter: string, kind: 'services' | 'overview' | 'list', pt: { clientX: number; clientY: number }) => {
     const text = kind === 'overview'
       ? t('modals.chanadmin.lockedOnOverview')
-      : (mlock
-        ? t('numerics.742', { mode: letter, mlock })
-        : t('modals.chanadmin.lockedByServices'));
+      : kind === 'list'
+        ? t('modals.chanadmin.lockedOnFilters')
+        : (mlock
+          ? t('numerics.742', { mode: letter, mlock })
+          : t('modals.chanadmin.lockedByServices'));
     setLockTip({ letter, text, x: pt.clientX, y: pt.clientY });
   };
 
@@ -261,12 +267,12 @@ export function ChanAdminModal() {
   const modes = buffer.modes || '';
 
   const ctx = buildModeContext(client?.server.isupport ?? {}, client?.server.prefixModeToChar ?? {});
-  const flags = advertisedChanFlags(ctx.typeD, ctx.typeB);
+  const flags = advertisedChanFlags(ctx.typeD, ctx.typeB, ctx.typeA);
   const paramModes = filterCatalog(CHAN_PARAMS, new Set([...ctx.typeB, ...ctx.typeC]));
   const extraFlags = flags.filter((f) => f.group === 'extra');
-  const extraShown = extraFlags.filter((f) => moreModes || modes.includes(f.m));
+  const extraShown = extraFlags.filter((f) => moreModes || modes.includes(f.m) || f.lock === 'list' || (f.m === 'g' && filterlist.length > 0));
   const paramsShown = paramModes.filter((p) => moreModes || !!(modeParams?.[p.m]));
-  const canShowMore = extraFlags.some((f) => !modes.includes(f.m))
+  const canShowMore = extraFlags.some((f) => f.lock !== 'list' && !modes.includes(f.m))
     || paramModes.some((p) => !modeParams?.[p.m]);
   const moreBtn = canShowMore ? (
     <button type="button" className="ca-modes__more" onClick={() => setMoreModes((v) => !v)}>
@@ -287,6 +293,8 @@ export function ChanAdminModal() {
   const matchingExts = exts.filter((e) => !e.acting);
   const invexExts = ensureMatchingExtban(matchingExts, 'class');
   const hasInvex = ctx.typeA.has('I');
+  const hasChanfilter = ctx.typeA.has('g');
+  const flagModes = filterlist.length > 0 && !modes.includes('g') ? `${modes}g` : modes;
   // +b ban, +e exempt — +I lives in its own tab (it is not a ban).
   const ebModes = (['b', 'e'] as const).filter((m) => m === 'b' || ctx.typeA.has(m));
   const ebModeSel = ebModes.includes(ebMode) ? ebMode : 'b';
@@ -325,6 +333,17 @@ export function ChanAdminModal() {
     const mask = ixExt ? `${ixExt.name}:${v}` : plainMask(v);
     setChannelModeParam(chan, 'I', true, mask);
     setIxVal(''); setTimeout(() => loadBanList(chan), 500);
+  };
+  const addFilter = () => {
+    const v = newfilter.trim().replace(/\s+/g, '*');
+    if (!v) return;
+    setChannelModeParam(chan, 'g', true, v);
+    setNewfilter('');
+    setTimeout(() => loadBanList(chan), 500);
+  };
+  const removeFilter = (mask: string) => {
+    setChannelModeParam(chan, 'g', false, mask);
+    setTimeout(() => loadBanList(chan), 500);
   };
   const applyKey = () => { const v = keyVal.trim(); if (v) setChannelModeParam(chan, 'k', true, v); };
   const clearKey = () => { setChannelModeParam(chan, 'k', false, curKey || '*'); setKeyVal(''); };
@@ -384,6 +403,7 @@ export function ChanAdminModal() {
             {tabBtn('bans', t('modals.chanadmin.bans', { n: plainBans.length }))}
             {exts.length > 0 && tabBtn('extbans', t('modals.chanadmin.extbans'))}
             {hasInvex && tabBtn('invex', t('modals.chanadmin.invexTab', { n: invexlist.length }))}
+            {hasChanfilter && tabBtn('filters', t('modals.chanadmin.filtersTab', { n: filterlist.length }))}
           </div>
 
           {tab === 'overview' && (
@@ -424,17 +444,18 @@ export function ChanAdminModal() {
                 <h4 className="ca-h">{t('modals.chanadmin.classicModes')}</h4>
                 <FlagGrid
                   flags={flags.filter((f) => f.group === 'classic')}
-                  modes={modes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
+                  modes={flagModes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
                   onLockTip={showLockTip}
-                  onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); }}
+                  onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); if (f.m === 'g') setTab('filters'); }}
                 />
               </>
             )}
             {extraShown.length > 0 && (
               <>
                 <h4 className="ca-h ca-h--next">{t('modals.chanadmin.extraModes')}</h4>
-                <FlagGrid flags={extraShown} modes={modes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
-                  onLockTip={showLockTip} />
+                <FlagGrid flags={extraShown} modes={flagModes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
+                  onLockTip={showLockTip}
+                  onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); if (f.m === 'g') setTab('filters'); }} />
               </>
             )}
             {paramsShown.length === 0 && moreBtn}
@@ -552,6 +573,33 @@ export function ChanAdminModal() {
                 </li>
               );
             })}
+          </ul>
+        </div>
+      )}
+
+      {tab === 'filters' && (
+        <div className="ca-pane">
+          <p className="ca-extexample">{t('modals.chanadmin.filterHint')}</p>
+          <div className="ca-param ca-extban-add">
+            <input className="modal__input" value={newfilter} placeholder={t('modals.chanadmin.filterPlaceholder')}
+              aria-label={t('modals.chanadmin.filterPlaceholder')}
+              onChange={(e) => setNewfilter(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addFilter()} />
+            <button className="upbtn upbtn--primary" onClick={addFilter}>{t('modals.chanadmin.addFilter')}</button>
+          </div>
+          <div className="ca-extexample">
+            {t('modals.chanadmin.example')} <code>+g {newfilter.trim().replace(/\s+/g, '*') || 'gros*mot'}</code>
+          </div>
+          <ul className="ca-bans">
+            {filterlist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noFilters')}</li>}
+            {filterlist.map((e) => (
+              <li key={'g' + e.mask} className="ca-ban">
+                <span className="ca-ban__mode">+g</span>
+                <span className="ca-ban__mask">{e.mask}</span>
+                {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
+                <button className="friend__act friend__act--rm" title={t('modals.chanadmin.removeFilter')}
+                  onClick={() => removeFilter(e.mask)}>✕</button>
+              </li>
+            ))}
           </ul>
         </div>
       )}

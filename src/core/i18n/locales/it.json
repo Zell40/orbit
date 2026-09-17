@@ -227,6 +227,13 @@
       "topicBy": "Impostato da",
       "tabOverview": "Panoramica",
       "tabModes": "Modalità",
+      "filtersTab": "Filtri ({{n}})",
+      "noFilters": "Nessuna parola filtrata.",
+      "filterPlaceholder": "parola o motivo (* ?)",
+      "filterHint": "I messaggi che corrispondono a questi glob vengono bloccati nel canale. Niente spazi: una frase diventa parolaccia*brutta.",
+      "addFilter": "Aggiungi",
+      "removeFilter": "Rimuovi filtro",
+      "lockedOnFilters": "Le parole filtrate si gestiscono nella scheda Filtri.",
       "extbans": "Ban estesi",
       "extbanType": "Tipo di ban esteso",
       "noExtbans": "Nessun ban esteso",
@@ -658,6 +665,14 @@
     "permanent": {
       "label": "Permanente",
       "desc": "Il canale resta anche senza membri (+P)"
+    },
+    "censor": {
+      "label": "Censura",
+      "desc": "Filtra le parole vietate dal server (+G)"
+    },
+    "chanfilter": {
+      "label": "Filtro canale",
+      "desc": "Blocca i messaggi che corrispondono a un motivo (+g)"
     }
   },
   "reg": {

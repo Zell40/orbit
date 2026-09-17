@@ -227,6 +227,13 @@
       "topicBy": "Festgelegt von",
       "tabOverview": "Übersicht",
       "tabModes": "Modi",
+      "filtersTab": "Filter ({{n}})",
+      "noFilters": "Keine gefilterten Wörter.",
+      "filterPlaceholder": "Wort oder Muster (* ?)",
+      "filterHint": "Passende Glob-Muster werden im Kanal blockiert. Keine Leerzeichen: eine Phrase wird zu schlimm*wort.",
+      "addFilter": "Hinzufügen",
+      "removeFilter": "Filter entfernen",
+      "lockedOnFilters": "Gefilterte Wörter werden im Tab Filter verwaltet.",
       "extbans": "Erweiterte Bans",
       "extbanType": "Extban-Typ",
       "noExtbans": "Noch keine erweiterten Bans",
@@ -658,6 +665,14 @@
     "permanent": {
       "label": "Permanent",
       "desc": "Kanal bleibt auch ohne Mitglieder bestehen (+P)"
+    },
+    "censor": {
+      "label": "Zensur",
+      "desc": "Filtert die vom Server verbotenen Wörter (+G)"
+    },
+    "chanfilter": {
+      "label": "Kanalfilter",
+      "desc": "Blockiert Nachrichten, die zu einem Muster passen (+g)"
     }
   },
   "reg": {

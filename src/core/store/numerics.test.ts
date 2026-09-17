@@ -19,7 +19,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
     nick: 'me',
-    banlists: {}, exceptlists: {}, invexlists: {}, friends: [], friendsOnline: {},
+    banlists: {}, exceptlists: {}, invexlists: {}, filterlists: {}, friends: [], friendsOnline: {},
     prefs: { sound: false }, whois,
     profileUser: '', nickError: null as { nick: string; code: string; text: string } | null,
     ...over,
@@ -330,6 +330,19 @@ describe('store numerics handler', () => {
     });
     expect(handleNumerics(mk('341', ['me', 'Jessie', '#x']))).toBe(true);
     expect(sys).toContainEqual({ name: '#x', text: 'Jessie', kind: 'invite', from: 'me' });
+    expect(server).toEqual([]);
+  });
+
+  it('941 collects chanfilter +g entries and 940 is swallowed', () => {
+    const { handleNumerics, state, sys, server } = setup();
+    expect(handleNumerics(mk('941', ['me', '#x', 'spam*', 'Op', '1710000000']))).toBe(true);
+    expect(state.filterlists['#x']).toEqual([
+      expect.objectContaining({ mask: 'spam*', by: 'Op' }),
+    ]);
+    expect(handleNumerics(mk('941', ['me', '#x', 'spam*', 'Op', '1710000000']))).toBe(true);
+    expect(state.filterlists['#x']).toHaveLength(1);
+    expect(handleNumerics(mk('940', ['me', '#x', 'End of channel spamfilter list']))).toBe(true);
+    expect(sys).toEqual([]);
     expect(server).toEqual([]);
   });
 

@@ -10,6 +10,7 @@ type Buf = { name: string; members: Record<string, Member>; modes?: string; mode
 function setup() {
   const state = {
     umodes: '', account: '',
+    filterlists: {} as Record<string, { mask: string; by: string; ts: number }[]>,
     client: { server: { prefixModes: '~&@%+', isupport: { CHANMODES: 'beI,k,l,imnpst' }, prefixModeToChar: { q: '~', a: '&', o: '@', h: '%', v: '+' } } },
     buffers: {} as Record<string, Buf>,
   };
@@ -99,5 +100,18 @@ describe('MODE handler', () => {
   it('returns false for a non-MODE command', () => {
     const { on } = setup();
     expect(on(':bob!u@h JOIN #x')).toBe(false);
+  });
+
+  it('patches filterlists on live +g/-g when chanfilter is type A', () => {
+    const { on, state, seedChan, lines } = setup();
+    state.client.server.isupport = { CHANMODES: 'begI,k,l,imnpst' };
+    seedChan('#x', []);
+    on(':op!u@h MODE #x +g spam*', 'me');
+    expect(state.filterlists['#x']).toEqual([
+      expect.objectContaining({ mask: 'spam*', by: 'op' }),
+    ]);
+    expect(lines.some((l) => l.kind === 'mode')).toBe(true);
+    on(':op!u@h MODE #x -g spam*', 'me');
+    expect(state.filterlists['#x']).toEqual([]);
   });
 });

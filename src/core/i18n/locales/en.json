@@ -283,6 +283,7 @@
       "paramModes": "Limits and protections",
       "lockedByServices": "Locked by services — cannot be turned on or off here.",
       "lockedOnOverview": "Change the password on the Overview tab.",
+      "lockedOnFilters": "Filtered words are managed on the Filters tab.",
       "lockedTagServices": "Services",
       "lockedTagOverview": "Overview",
       "extbans": "Extended bans",
@@ -301,7 +302,13 @@
       "allow": "Allow",
       "plainMask": "(mask)",
       "invexPlaceholder": "*!*@example.com",
-      "invexHint": "These people can join an invite-only (+i) channel without an invite. This is not a ban."
+      "invexHint": "These people can join an invite-only (+i) channel without an invite. This is not a ban.",
+      "filtersTab": "Filters ({{n}})",
+      "noFilters": "No filtered words yet.",
+      "filterPlaceholder": "word or pattern (* ? wildcards)",
+      "filterHint": "Messages matching these glob patterns are blocked in the channel. No spaces: a phrase becomes bad*word.",
+      "addFilter": "Add",
+      "removeFilter": "Remove filter"
     }
   },
   "settings": {
@@ -675,7 +682,8 @@
     "list": {
       "b": "ban",
       "e": "except",
-      "I": "invite"
+      "I": "invite",
+      "g": "filter"
     },
     "param": {
       "key": "key",
@@ -822,7 +830,12 @@
     },
     "censor": {
       "label": "Censor",
-      "desc": "Filters banned words (+G)"
+      "desc": "Filters the server’s banned words (+G)"
+    },
+    "chanfilter": {
+      "label": "Channel filter",
+      "brief": "filter",
+      "desc": "Blocks messages that match a pattern (+g)"
     },
     "noKick": {
       "label": "No kicks",

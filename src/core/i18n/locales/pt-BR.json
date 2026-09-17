@@ -227,6 +227,13 @@
       "topicBy": "Definido por",
       "tabOverview": "Visão geral",
       "tabModes": "Modos",
+      "filtersTab": "Filtros ({{n}})",
+      "noFilters": "Nenhuma palavra filtrada.",
+      "filterPlaceholder": "palavra ou padrão (* ?)",
+      "filterHint": "Mensagens que coincidem com estes padrões glob são bloqueadas no canal. Sem espaços: uma frase vira palavrão*feio.",
+      "addFilter": "Adicionar",
+      "removeFilter": "Remover filtro",
+      "lockedOnFilters": "As palavras filtradas são gerenciadas na aba Filtros.",
       "extbans": "Bans estendidos",
       "extbanType": "Tipo de extban",
       "noExtbans": "Nenhum ban estendido ainda",
@@ -658,6 +665,14 @@
     "permanent": {
       "label": "Permanente",
       "desc": "O canal persiste sem membros (+P)"
+    },
+    "censor": {
+      "label": "Censura",
+      "desc": "Filtra as palavras proibidas pelo servidor (+G)"
+    },
+    "chanfilter": {
+      "label": "Filtro do canal",
+      "desc": "Bloqueia mensagens que correspondem a um padrão (+g)"
     }
   },
   "reg": {

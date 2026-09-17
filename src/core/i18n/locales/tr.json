@@ -227,6 +227,13 @@
       "topicBy": "Belirleyen",
       "tabOverview": "Genel bakış",
       "tabModes": "Modlar",
+      "filtersTab": "Filtreler ({{n}})",
+      "noFilters": "Filtrelenmiş sözcük yok.",
+      "filterPlaceholder": "sözcük veya kalıp (* ?)",
+      "filterHint": "Bu glob kalıplarına uyan iletiler kanalda engellenir. Boşluk yok: bir ifade kötü*söz olur.",
+      "addFilter": "Ekle",
+      "removeFilter": "Filtreyi kaldır",
+      "lockedOnFilters": "Filtrelenen sözcükler Filtreler sekmesinde yönetilir.",
       "extbans": "Genişletilmiş banlar",
       "extbanType": "Extban türü",
       "noExtbans": "Henüz genişletilmiş ban yok",
@@ -658,6 +665,14 @@
     "permanent": {
       "label": "Kalıcı",
       "desc": "Kanal üyesiz de kalır (+P)"
+    },
+    "censor": {
+      "label": "Sansür",
+      "desc": "Sunucunun yasaklı sözcüklerini süzgeçten geçirir (+G)"
+    },
+    "chanfilter": {
+      "label": "Kanal süzgeci",
+      "desc": "Kalıba uyan iletileri engeller (+g)"
     }
   },
   "reg": {

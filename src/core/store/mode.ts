@@ -75,6 +75,14 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
             .filter((m) => maskMatches(mask, `${m.nick}!${m.user || '*'}@${m.host || '*'}`))
             .map((m) => m.nick);
           banLines.push(`${c.add ? '+' : '-'} ${mask}${hit.length ? `\n${hit.join(', ')}` : ''}`);
+        } else if (c.mode === 'g' && c.param) {
+          const key = canon(chan);
+          const cur = get().filterlists[key] || [];
+          const next = c.add
+            ? (cur.some((e) => e.mask === c.param) ? cur : [...cur, { mask: c.param, by: msg.nick || '', ts: tsOf(msg) }])
+            : cur.filter((e) => e.mask !== c.param);
+          set({ filterlists: { ...get().filterlists, [key]: next } });
+          showCombined = true;
         } else showCombined = true;
       } else {
         // type B/C param mode or type D flag → maintain the channel mode string

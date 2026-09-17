@@ -227,6 +227,13 @@
       "topicBy": "Puesto por",
       "tabOverview": "Resumen",
       "tabModes": "Modos",
+      "filtersTab": "Filtros ({{n}})",
+      "noFilters": "Ninguna palabra filtrada.",
+      "filterPlaceholder": "palabra o patrón (* ?)",
+      "filterHint": "Los mensajes que coinciden con estos patrones glob se bloquean en el canal. Sin espacios: una frase se vuelve palabrota*fea.",
+      "addFilter": "Añadir",
+      "removeFilter": "Quitar filtro",
+      "lockedOnFilters": "Las palabras filtradas se gestionan en la pestaña Filtros.",
       "extbans": "Bans extendidos",
       "extbanType": "Tipo de extban",
       "noExtbans": "Sin bans extendidos",
@@ -658,6 +665,14 @@
     "permanent": {
       "label": "Permanente",
       "desc": "El canal persiste sin miembros (+P)"
+    },
+    "censor": {
+      "label": "Censura",
+      "desc": "Filtra las palabras prohibidas del servidor (+G)"
+    },
+    "chanfilter": {
+      "label": "Filtro del canal",
+      "desc": "Bloquea los mensajes que coinciden con un patrón (+g)"
     }
   },
   "reg": {

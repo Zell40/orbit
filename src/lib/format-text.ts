@@ -19,13 +19,15 @@ export function formatUserModes(modes: string): string {
 }
 
 const PREFIX_MODES = new Set(['q', 'a', 'o', 'h', 'v']);
-const LIST_MODES = new Set(['b', 'e', 'I']);
+const LIST_MODES = new Set(['b', 'e', 'I', 'g']); // g = InspIRCd chanfilter
 const ALWAYS_PARAM = new Set(['k']);
 const SET_PARAM = new Set(['l']);
 const FLAG_LABEL: Record<string, string> = {
   i: 'invite', m: 'moderated', n: 'noExternal', t: 'topicLock', s: 'secret', p: 'private',
   c: 'blockColor', C: 'noCtcp', S: 'stripColor', r: 'registered', R: 'regOnly', M: 'regModerated',
   O: 'operOnly', z: 'tlsOnly', N: 'noNickChange', K: 'noKnock', P: 'permanent',
+  A: 'allowInvite', D: 'delayJoin', g: 'chanfilter', G: 'censor',
+  Q: 'noKick', T: 'noNotice', u: 'auditorium', U: 'opModerated', V: 'blockHighlight',
 };
 
 function modeDisplayLabel(letter: string): string {

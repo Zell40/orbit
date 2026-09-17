@@ -82,6 +82,7 @@ export interface ChatState {
   banlists: Record<string, { mask: string; by: string; ts: number }[]>; // channel key → +b list
   exceptlists: Record<string, { mask: string; by: string; ts: number }[]>; // +e ban exceptions
   invexlists: Record<string, { mask: string; by: string; ts: number }[]>;  // +I invite exceptions
+  filterlists: Record<string, { mask: string; by: string; ts: number }[]>; // +g chanfilter words
   loadBanList: (channel: string) => void;
   loadChannelMlock: (channel: string) => void;
   setChannelMode: (channel: string, mode: string, add: boolean) => void;
@@ -238,6 +239,7 @@ export function createChatStore(ns = '') {
     banlists: {},
     exceptlists: {},
     invexlists: {},
+    filterlists: {},
     notifyLevel: loadNotify(ns),
     highlightWords: loadStr(HIGHLIGHT_KEY),
     drafts: {},
@@ -590,11 +592,13 @@ export function createChatStore(ns = '') {
         banlists: { ...get().banlists, [key]: [] },
         exceptlists: { ...get().exceptlists, [key]: [] },
         invexlists: { ...get().invexlists, [key]: [] },
+        filterlists: { ...get().filterlists, [key]: [] },
       });
       const typeA = (c?.server.isupport.CHANMODES || '').split(',')[0] || 'b';
       c?.modeList(channel, 'b');
       if (typeA.includes('e')) c?.modeList(channel, 'e'); // ban exceptions, if supported
       if (typeA.includes('I')) c?.modeList(channel, 'I'); // invite exceptions, if supported
+      if (typeA.includes('g')) c?.modeList(channel, 'g'); // chanfilter keywords, if supported
     },
     loadChannelMlock(channel) {
       if (!isChannelName(channel)) return;

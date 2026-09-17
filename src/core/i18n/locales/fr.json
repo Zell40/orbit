@@ -283,6 +283,7 @@
       "paramModes": "Limites et protections",
       "lockedByServices": "Verrouillé par les services — impossible à activer ou désactiver ici.",
       "lockedOnOverview": "Le mot de passe se change dans l’onglet Aperçu.",
+      "lockedOnFilters": "Les mots filtrés se gèrent dans l’onglet Filtres.",
       "lockedTagServices": "Services",
       "lockedTagOverview": "Aperçu",
       "extbans": "Bans étendus",
@@ -301,7 +302,13 @@
       "allow": "Autoriser",
       "plainMask": "(masque)",
       "invexPlaceholder": "*!*@example.com",
-      "invexHint": "Ces personnes peuvent entrer dans un salon +i (sur invitation), sans être invitées. Ce n’est pas un bannissement."
+      "invexHint": "Ces personnes peuvent entrer dans un salon +i (sur invitation), sans être invitées. Ce n’est pas un bannissement.",
+      "filtersTab": "Filtres ({{n}})",
+      "noFilters": "Aucun mot filtré.",
+      "filterPlaceholder": "mot ou motif (joker * ?)",
+      "filterHint": "Les messages qui correspondent à ces motifs (glob) sont bloqués dans le salon. Pas d’espaces : une phrase devient gros*mot.",
+      "addFilter": "Ajouter",
+      "removeFilter": "Retirer le filtre"
     }
   },
   "settings": {
@@ -676,7 +683,8 @@
     "list": {
       "b": "bannissement",
       "e": "exception",
-      "I": "invitation"
+      "I": "invitation",
+      "g": "filtre"
     },
     "param": {
       "key": "clé",
@@ -841,7 +849,12 @@
     "censor": {
       "label": "Censure",
       "brief": "censure",
-      "desc": "Filtre les mots interdits (+G)"
+      "desc": "Filtre les mots interdits du serveur (+G)"
+    },
+    "chanfilter": {
+      "label": "Filtre de salon",
+      "brief": "filtre",
+      "desc": "Bloque les messages qui correspondent à un motif (+g)"
     },
     "noKick": {
       "label": "Sans expulsion",

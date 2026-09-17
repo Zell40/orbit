@@ -335,10 +335,24 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         }
         return true;
       }
+      case '941': { // RPL_SPAMFILTER — InspIRCd chanfilter +g list entry
+        const ch = msg.params[1];
+        const mask = msg.params[2];
+        if (isChannelName(ch) && mask) {
+          const key = canon(ch);
+          const entry = { mask, by: (msg.params[3] || '').split('!')[0], ts: Number(msg.params[4]) * 1000 || 0 };
+          const cur = get().filterlists[key] || [];
+          if (cur.length < 5000 && !cur.some((e) => e.mask === mask)) {
+            set({ filterlists: { ...get().filterlists, [key]: [...cur, entry] } });
+          }
+        }
+        return true;
+      }
       case '368': // RPL_ENDOFBANLIST
       case '349': // RPL_ENDOFEXCEPTLIST
       case '347': // RPL_ENDOFINVEXLIST
       case '337': // RPL_ENDOFINVITELIST
+      case '940': // RPL_ENDOFSPAMFILTER — InspIRCd chanfilter +g
         return true; // list terminators — nothing to show
       case '336': // RPL_INVITELIST (a channel you're invited to)
         if (msg.params[1]) serverLine(i18n.t('system.invitePending', { chan: msg.params[1] }));

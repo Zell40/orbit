@@ -140,6 +140,20 @@ describe('catalogues', () => {
     expect(shown.map((f) => f.m).join('')).toContain('k');
     expect(shown.find((f) => f.m === 'k')?.readonly).toBe(true);
   });
+
+  it('lists +g as a complementary list mode and keeps +G off unless type D has it', () => {
+    expect(CHAN_FLAGS.find((f) => f.m === 'g')).toMatchObject({
+      key: 'chanfilter', group: 'extra', readonly: true, lock: 'list',
+    });
+    const noFilter = advertisedChanFlags(new Set(['i', 'm', 'n', 't', 'P', 'T', 'V']), new Set(['k']));
+    expect(noFilter.some((f) => f.m === 'g' || f.m === 'G')).toBe(false);
+    const withG = advertisedChanFlags(new Set(['i', 'G']), new Set(['k']));
+    expect(withG.find((f) => f.m === 'G')?.key).toBe('censor');
+    expect(withG.some((f) => f.m === 'g')).toBe(false);
+    const withg = advertisedChanFlags(new Set(['i']), new Set(['k']), new Set(['g']));
+    expect(withg.find((f) => f.m === 'g')?.lock).toBe('list');
+    expect(withg.some((f) => f.m === 'G')).toBe(false);
+  });
 });
 
 describe('mlock tokens', () => {
