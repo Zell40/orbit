@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { escapeHtml } from '@/lib/escape';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
@@ -6,6 +6,7 @@ import { getTheme } from '@/themes';
 import { Turnstile } from '@/components/Turnstile';
 import { useActiveChat, activeStore } from '@/core/networks';
 import { ChangeNickField } from '../ChangeNickField';
+import { fetchNickServInfo, fetchNickServAlist, type NickServInfo, type NickServAccess } from '@/core/store/nickserv-info';
 
 export function AccountSection() {
   const { t } = useTranslation();
@@ -69,6 +70,8 @@ export function AccountSection() {
           <div className="login-card__title">{t('settings.account.loggedIn')}</div>
           <div className="login-card__sub">{t('settings.account.identifiedPre')} <strong>{account}</strong></div>
         </div>
+        <NickServInfoCard account={account} nick={nick} />
+        <NickServAlistCard account={account} nick={nick} />
         <ChangeNickField hint={t('settings.account.nickHint')} />
         <ChangePassword />
         <button className="set-leave" onClick={logout}>{t('settings.account.logoutAccount')}</button>
@@ -123,6 +126,117 @@ export function AccountSection() {
         <RegisterForm />
       )}
     </>
+  );
+}
+
+function NickServInfoCard({ account, nick }: { account: string; nick: string }) {
+  const { t } = useTranslation();
+  const [phase, setPhase] = useState<'loading' | 'ok' | 'empty'>('loading');
+  const [info, setInfo] = useState<NickServInfo | null>(null);
+  const gen = useRef(0);
+
+  const load = useCallback(() => {
+    const mine = ++gen.current;
+    setPhase('loading');
+    void fetchNickServInfo(account, nick).then((parsed) => {
+      if (mine !== gen.current) return;
+      if (!parsed) { setInfo(null); setPhase('empty'); return; }
+      setInfo(parsed);
+      setPhase('ok');
+    });
+  }, [account, nick]);
+
+  useEffect(() => {
+    load();
+    return () => { gen.current++; };
+  }, [load]);
+
+  return (
+    <div className="scard nsinfo">
+      <div className="scard__h">
+        <span>🪪 {t('settings.account.nickservTitle')}</span>
+        <button className="linkbtn nsinfo__refresh" type="button" onClick={() => load()}
+          disabled={phase === 'loading'}>{t('profile.refresh')}</button>
+      </div>
+      <div className="scard__body">
+        {phase === 'loading' && <div className="sfield"><div className="sfield__intro">{t('settings.account.nickservLoading')}</div></div>}
+        {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.nickservUnavailable')}</div></div>}
+        {phase === 'ok' && info && (
+          <dl className="nsinfo-dl">
+            {info.rows.map((row, i) => (
+              <div className="nsinfo-row" key={`${row.key}-${i}`}>
+                <dt className="nsinfo-row__k">{row.key}</dt>
+                <dd className="nsinfo-row__v">
+                  {row.pills?.length
+                    ? <span className="nsinfo-pills">{row.pills.map((p) => <span className="nsinfo-pill" key={p}>{p}</span>)}</span>
+                    : row.value || '—'}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NickServAlistCard({ account, nick }: { account: string; nick: string }) {
+  const { t } = useTranslation();
+  const client = useActiveChat((s) => s.client);
+  const setActive = useActiveChat((s) => s.setActive);
+  const setModal = useActiveChat((s) => s.setModal);
+  const [phase, setPhase] = useState<'loading' | 'ok' | 'empty' | 'fail'>('loading');
+  const [rows, setRows] = useState<NickServAccess[]>([]);
+  const gen = useRef(0);
+
+  const load = useCallback(() => {
+    const mine = ++gen.current;
+    setPhase('loading');
+    void fetchNickServAlist(account, nick).then((list) => {
+      if (mine !== gen.current) return;
+      if (!list) { setRows([]); setPhase('fail'); return; }
+      setRows(list);
+      setPhase(list.length ? 'ok' : 'empty');
+    });
+  }, [account, nick]);
+
+  useEffect(() => {
+    load();
+    return () => { gen.current++; };
+  }, [load]);
+
+  function openChan(ch: string) {
+    client?.join(ch);
+    setActive(ch);
+    setModal('');
+  }
+
+  return (
+    <div className="scard nsinfo">
+      <div className="scard__h">
+        <span>🏠 {t('settings.account.alistTitle')}</span>
+        <button className="linkbtn nsinfo__refresh" type="button" onClick={() => load()}
+          disabled={phase === 'loading'}>{t('profile.refresh')}</button>
+      </div>
+      <div className="scard__body">
+        {phase === 'loading' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistLoading')}</div></div>}
+        {phase === 'fail' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistUnavailable')}</div></div>}
+        {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistEmpty')}</div></div>}
+        {phase === 'ok' && (
+          <div className="nsaccess">
+            {rows.map((row) => (
+              <div className="nsaccess-row" key={row.channel}>
+                <div className="nsaccess-txt">
+                  <button type="button" className="nsaccess-chan" onClick={() => openChan(row.channel)}>{row.channel}</button>
+                  {row.description ? <div className="nsaccess-desc">{row.description}</div> : null}
+                </div>
+                <span className="nsinfo-pill">{row.access}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

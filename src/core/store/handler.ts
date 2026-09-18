@@ -184,6 +184,10 @@ export function makeHandler(ctx: HandlerCtx) {
           sysLine(SERVER, `\n${chan}`, 'invite', msg.nick);
           desktopNotify(i18n.t('system.inviteTitle'), i18n.t('system.inviteYou', { nick: msg.nick, chan }));
           if (get().prefs.sound) blip();
+          if (get().prefs.joinOnInvite && isChannelName(chan) && !get().buffers[canon(chan)]?.joined) {
+            closedChannels.delete(canon(chan));
+            get().client?.join(chan);
+          }
         } else if (isChannelName(chan) && get().buffers[canon(chan)]) {
           // invite-notify: someone invited another user to a channel we're in.
           sysLine(chan, target, 'invite', msg.nick);

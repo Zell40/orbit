@@ -24,6 +24,8 @@ export interface Prefs {
   readReceipts: boolean;
   /** Hours to keep a shared image/voice file (clamped to filehost.retentionChoices). */
   uploadTtlHours: number;
+  /** JOIN a channel automatically when someone INVITEs you. */
+  joinOnInvite: boolean;
 }
 
 const KEY = 'orbit-prefs';
@@ -36,7 +38,7 @@ function defaults(): Prefs {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, hideModes: false, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: false,
-    readReceipts: true,
+    readReceipts: true, joinOnInvite: false,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };
 }

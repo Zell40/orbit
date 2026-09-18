@@ -376,7 +376,14 @@
       "nickPlaceholder": "Pseudo",
       "emailLabel": "E-mail",
       "loginTitle": "Se connecter",
-      "leaveConfirm": "Vous serez déconnecté du tchat. Quitter maintenant ?"
+      "leaveConfirm": "Vous serez déconnecté du tchat. Quitter maintenant ?",
+      "nickservTitle": "Compte NickServ",
+      "nickservLoading": "Chargement des informations…",
+      "nickservUnavailable": "Impossible de charger les informations NickServ.",
+      "alistTitle": "Accès aux salons",
+      "alistLoading": "Chargement des accès…",
+      "alistUnavailable": "Impossible de charger tes accès ChanServ (ALIST).",
+      "alistEmpty": "Aucun salon avec un accès ChanServ."
     },
     "appearance": {
       "theme": "Thème",
@@ -432,6 +439,8 @@
       "pushDeviceRemove": "Retirer",
       "sounds": "Sons",
       "soundsHint": "Un bip sur mention ou message privé.",
+      "joinOnInvite": "Rejoindre sur invitation",
+      "joinOnInviteHint": "Rejoint automatiquement un salon quand on t’y invite.",
       "hideJoins": "Masquer entrées / sorties",
       "hideJoinsHint": "Cache les « a rejoint / a quitté ».",
       "hideModes": "Masquer les changements de mode",
@@ -455,7 +464,7 @@
       "profile": "Pseudo & avatar",
       "appearance": "Thème & affichage",
       "notifications": "Alertes & sons",
-      "account": "Connexion & sécurité",
+      "account": "Infos NickServ & sécurité",
       "modes": "Filtres et protections optionnels"
     },
     "modes": {

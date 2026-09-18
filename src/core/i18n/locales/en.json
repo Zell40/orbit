@@ -376,7 +376,14 @@
       "nickPlaceholder": "Nickname",
       "emailLabel": "Email",
       "loginTitle": "Log in",
-      "leaveConfirm": "You’ll be disconnected from the chat. Leave now?"
+      "leaveConfirm": "You’ll be disconnected from the chat. Leave now?",
+      "nickservTitle": "NickServ account",
+      "nickservLoading": "Loading account details…",
+      "nickservUnavailable": "Couldn’t load NickServ account details.",
+      "alistTitle": "Channel access",
+      "alistLoading": "Loading channel access…",
+      "alistUnavailable": "Couldn’t load your ChanServ access list (ALIST).",
+      "alistEmpty": "No channels with ChanServ access."
     },
     "appearance": {
       "theme": "Theme",
@@ -432,6 +439,8 @@
       "pushDeviceRemove": "Remove",
       "sounds": "Sounds",
       "soundsHint": "A beep on mention or direct message.",
+      "joinOnInvite": "Join on invite",
+      "joinOnInviteHint": "Automatically join a channel when someone invites you.",
       "hideJoins": "Hide joins / parts",
       "hideJoinsHint": "Hides “joined / left” lines.",
       "hideModes": "Hide mode changes",
@@ -455,7 +464,7 @@
       "profile": "Nickname & avatar",
       "appearance": "Theme & display",
       "notifications": "Alerts & sounds",
-      "account": "Login & security",
+      "account": "NickServ info & security",
       "modes": "Optional filters and protections"
     },
     "modes": {

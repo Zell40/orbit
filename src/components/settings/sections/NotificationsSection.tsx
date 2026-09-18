@@ -163,6 +163,7 @@ export function NotificationsSection() {
         </div>
         {getConfig().features.push && <PushRow />}
         <ToggleRow icon="🔊" label={t('settings.notifications.sounds')} hint={t('settings.notifications.soundsHint')} prefKey="sound" />
+        <ToggleRow icon="📨" label={t('settings.notifications.joinOnInvite')} hint={t('settings.notifications.joinOnInviteHint')} prefKey="joinOnInvite" />
         <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
         <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />
         <ToggleRow icon="✓✓" label={t('settings.notifications.readReceipts')} hint={t('settings.notifications.readReceiptsHint')} prefKey="readReceipts" />

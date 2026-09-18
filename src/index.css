@@ -1862,6 +1862,23 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .scard { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
 .scard__h { display: flex; align-items: center; gap: .45rem; padding: .8rem .95rem .55rem; font-size: .72rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
 .scard__body { display: flex; flex-direction: column; }
+.nsinfo .scard__h { justify-content: space-between; }
+.nsinfo__refresh { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: .72rem; font-weight: 700; }
+.nsinfo__refresh:disabled { opacity: .45; cursor: default; text-decoration: none; }
+.nsinfo-dl { margin: 0; padding: .1rem .95rem .75rem; display: flex; flex-direction: column; }
+.nsinfo-row { display: grid; grid-template-columns: minmax(7.2rem, 9.6rem) minmax(0, 1fr); gap: .35rem .75rem; padding: .42rem 0; border-top: 1px solid var(--border); }
+.nsinfo-row:first-child { border-top: 0; }
+.nsinfo-row__k { margin: 0; font-size: .7rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); align-self: start; padding-top: .12rem; }
+.nsinfo-row__v { margin: 0; font-size: .86rem; line-height: 1.4; color: var(--ink); font-weight: 600; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.nsinfo-pills { display: flex; flex-wrap: wrap; gap: .3rem; }
+.nsinfo-pill { font-size: .72rem; font-weight: 700; padding: .14rem .45rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent-d); }
+.nsaccess { display: flex; flex-direction: column; padding: .1rem .95rem .75rem; }
+.nsaccess-row { display: flex; align-items: center; gap: .75rem; padding: .48rem 0; border-top: 1px solid var(--border); }
+.nsaccess-row:first-child { border-top: 0; }
+.nsaccess-txt { flex: 1; min-width: 0; }
+.nsaccess-chan { display: block; border: 0; background: none; padding: 0; font: inherit; font-size: .9rem; font-weight: 800; color: var(--accent-d); cursor: pointer; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess-chan:hover { text-decoration: underline; }
+.nsaccess-desc { font-size: .76rem; color: var(--muted); margin-top: .12rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* consistent setting row: icon · text · control */
 .srow { display: flex; align-items: center; gap: .8rem; padding: .7rem .95rem; border-top: 1px solid var(--border); min-height: 56px; }

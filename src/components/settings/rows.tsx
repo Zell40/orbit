@@ -1,8 +1,11 @@
 import { useActiveChat } from '@/core/networks';
+import type { Prefs } from '@/ui/prefs';
+
+type BoolPref = { [K in keyof Prefs]: Prefs[K] extends boolean ? K : never }[keyof Prefs];
 
 // One preference toggle row: icon · label/hint · switch. Shared by the
 // Appearance and Notifications sections.
-export function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string; hint?: string; prefKey: 'sound' | 'hideJoinQuit' | 'hideModes' | 'compact' | 'linkPreviews' | 'hoverActions' | 'confirmClose' | 'monoMessages' | 'bubbleMessages' | 'topicSetterFull' | 'showStatus' | 'noticeInbox' | 'readReceipts' }) {
+export function ToggleRow({ icon, label, hint, prefKey }: { icon: string; label: string; hint?: string; prefKey: BoolPref }) {
   const value = useActiveChat((s) => s.prefs[prefKey]);
   const setPref = useActiveChat((s) => s.setPref);
   return (
