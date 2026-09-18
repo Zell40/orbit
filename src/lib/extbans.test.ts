@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban } from './extbans';
+import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban, buildExtbanMask } from './extbans';
 
 describe('extbans', () => {
   it('parses the ISUPPORT EXTBAN token (<prefix>,<letters>)', () => {
     const names = availableExtbans({ EXTBAN: ',ABCGNOQRSTUabcdgjmnorsuwyz' }).map((e) => e.name);
     expect(names).toContain('mute');
+    expect(names).toContain('redirect');
     expect(names).toContain('bot');
     expect(names).toContain('securitygroup'); // custom module (letter g)
     expect(names).toContain('score');         // reputation module (letter y)
@@ -33,5 +34,25 @@ describe('extbans', () => {
   });
   it('is IPv6-mask safe (a colon in the host is not a type prefix)', () => {
     expect(matchExtban('*!*@2001:db8::1')).toBeNull();
+  });
+  it('always offers redirect even if EXTBAN omits d', () => {
+    const names = ensureActingExtban(availableExtbans({ EXTBAN: ',mR' }), 'redirect').map((e) => e.name);
+    expect(names).toContain('mute');
+    expect(names).toContain('redirect');
+  });
+  it('builds redirect masks with a target channel and optional nested match', () => {
+    const redir = matchExtban('redirect:x')!;
+    const acc = matchExtban('account:x')!;
+    expect(buildExtbanMask({ ext: redir, value: 'Pseudo', target: 'poubelle' }))
+      .toBe('redirect:#poubelle:Pseudo!*@*');
+    expect(buildExtbanMask({ ext: redir, value: 'LeCompte', nest: acc, target: '#poubelle' }))
+      .toBe('redirect:#poubelle:account:LeCompte');
+    expect(buildExtbanMask({ ext: redir, value: '*', nest: acc, invert: true, target: '#poubelle' }))
+      .toBe('redirect:#poubelle:!account:*');
+    expect(buildExtbanMask({ ext: redir, value: '*!*@host.fr', target: '#poubelle' }))
+      .toBe('redirect:#poubelle:*!*@host.fr');
+    const mute = matchExtban('mute:x')!;
+    expect(buildExtbanMask({ ext: mute, value: 'nick' })).toBe('mute:nick!*@*');
+    expect(buildExtbanMask({ ext: acc, value: 'LeCompte' })).toBe('account:LeCompte');
   });
 });

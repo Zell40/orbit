@@ -11,7 +11,7 @@ import {
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
-import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, type ExtBan } from '@/lib/extbans';
+import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban, buildExtbanMask, type ExtBan } from '@/lib/extbans';
 import { getConfig } from '@/core/config';
 import { Modal } from './Modal';
 
@@ -226,6 +226,8 @@ export function ChanAdminModal() {
   const [newfilter, setNewfilter] = useState('');
   const [ebType, setEbType] = useState('');
   const [ebVal, setEbVal] = useState('');
+  const [ebDest, setEbDest] = useState('');
+  const [ebInvert, setEbInvert] = useState(false);
   const [ebMode, setEbMode] = useState<'b' | 'e'>('b');
   const [ebNest, setEbNest] = useState(''); // acting extban's nested matching extban (stacking)
   const [ixType, setIxType] = useState<string | null>(null); // null = first matching type; '' = hostmask
@@ -289,7 +291,7 @@ export function ChanAdminModal() {
     setNewban(''); setTimeout(() => loadBanList(chan), 500);
   };
   // Extended bans the server advertises (core + reputation/securitygroups modules).
-  const exts = availableExtbans(client?.server.isupport ?? {});
+  const exts = ensureActingExtban(availableExtbans(client?.server.isupport ?? {}), 'redirect');
   const matchingExts = exts.filter((e) => !e.acting);
   const invexExts = ensureMatchingExtban(matchingExts, 'class');
   const hasInvex = ctx.typeA.has('I');
@@ -302,7 +304,9 @@ export function ChanAdminModal() {
   const curExt = exts.find((e) => e.name === ebSel);
   const nestExt = curExt?.acting && ebNest ? matchingExts.find((e) => e.name === ebNest) : undefined;
   const valueType = curExt?.acting ? nestExt : curExt;
-  const stackMask = (v: string) => (curExt?.acting && nestExt ? `${curExt.name}:${nestExt.name}:${v}` : `${curExt?.name}:${v}`);
+  const stackMask = (v: string) => (curExt
+    ? buildExtbanMask({ ext: curExt, value: v, nest: nestExt, invert: ebInvert && !!nestExt, target: ebDest })
+    : v);
   const plainMask = (v: string) => (v.includes('@') || v.includes('!') || v.includes(':') ? v : `${v}!*@*`);
   const modeVerb: Record<string, string> = { b: 'modals.chanadmin.ban', e: 'modals.chanadmin.exempt' };
   const ixSel = ixType === '' ? '' : (ixType ?? invexExts[0]?.name ?? '');
@@ -323,6 +327,7 @@ export function ChanAdminModal() {
   };
   const addExtban = () => {
     const v = ebVal.trim(); if (!v || !curExt) return;
+    if (curExt.needsTarget && !ebDest.trim()) return;
     const mask = stackMask(v);
     if (ebModeSel === 'b') client?.ban(chan, mask);
     else setChannelModeParam(chan, ebModeSel, true, mask);
@@ -495,12 +500,25 @@ export function ChanAdminModal() {
               ))}
             </div>
             <ExtbanSelect exts={exts} value={ebSel} onChange={setEbType} />
-            {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={setEbNest} maskOption />}
+            {curExt?.needsTarget && (
+              <input className="modal__input ca-extdest" value={ebDest} placeholder={t('modals.chanadmin.redirectDestPlaceholder')}
+                aria-label={t('modals.chanadmin.redirectDestPlaceholder')}
+                onChange={(e) => setEbDest(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
+            )}
+            {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={(name) => { setEbNest(name); if (!name) setEbInvert(false); }} maskOption />}
+            {curExt?.acting && nestExt && (
+              <button type="button" className={`ca-extinv${ebInvert ? ' is-on' : ''}`}
+                title={t('modals.chanadmin.invertMatch')} aria-pressed={ebInvert}
+                onClick={() => setEbInvert((v) => !v)}>!</button>
+            )}
             <input className="modal__input" value={ebVal} placeholder={valueType?.hint ?? curExt?.hint}
               aria-label={t('modals.chanadmin.extbanType')}
               onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
             <button className="upbtn upbtn--primary" onClick={addExtban}>{t(modeVerb[ebModeSel])}</button>
           </div>
+          {curExt?.needsTarget && (
+            <p className="ca-extexample">{t('modals.chanadmin.redirectHint')}</p>
+          )}
           {valueType?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
             <div className="ca-extgroups">
               {getConfig().securityGroups!.map((g) => (
@@ -510,7 +528,13 @@ export function ChanAdminModal() {
           )}
           {curExt && (
             <div className="ca-extexample">
-              {t('modals.chanadmin.example')} <code>+{ebModeSel} {stackMask(ebVal.trim() || valueType?.hint || curExt.hint)}</code>
+              {t('modals.chanadmin.example')} <code>+{ebModeSel} {buildExtbanMask({
+                ext: curExt,
+                value: ebVal.trim() || valueType?.hint || curExt.hint,
+                nest: nestExt,
+                invert: ebInvert && !!nestExt,
+                target: ebDest.trim() || (curExt.needsTarget ? t('modals.chanadmin.redirectDestPlaceholder') : ''),
+              })}</code>
             </div>
           )}
           <ul className="ca-bans">

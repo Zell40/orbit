@@ -2822,6 +2822,11 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-extban-add { margin-bottom: .9rem; align-items: center; }
 .ca-extban-add > .modal__input { align-self: center; min-height: 2.55rem; padding: .55rem .95rem; }
 .ca-extban-add .ca-extsel, .ca-extban-add .ca-extmode { align-self: stretch; }
+.ca-extdest { flex: 0 0 8.2rem; min-width: 0; }
+.ca-extinv { flex: none; min-width: 2.1rem; padding: 0 .45rem; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg-soft); color: var(--muted); font: inherit; font-weight: 800; cursor: pointer; }
+.ca-extinv:hover { color: var(--ink); border-color: var(--accent); }
+.ca-extinv.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ca-extsel { position: relative; flex: 0 0 auto; }
 .ca-extsel__btn { display: inline-flex; align-items: center; justify-content: space-between; gap: .5rem;
   min-width: 11rem; height: 100%; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 9px;
@@ -2858,6 +2863,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .ca-extban-add .ca-extsel { flex: 1 1 auto; min-width: 0; }
   .ca-extban-add .ca-extsel__btn { min-width: 0; width: 100%; }
   .ca-extban-add > .modal__input { flex: 1 1 100%; }
+  .ca-extban-add > .ca-extdest { flex: 1 1 8rem; }
   .ca-extsel__menu { width: min(15rem, calc(100vw - 4rem)); }
   .ca-prows { grid-template-columns: 1fr; }
 }

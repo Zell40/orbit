@@ -6,7 +6,15 @@
 // always reflects the modules that are loaded (core + reputation `score` +
 // securitygroups). Labels resolve via i18n (extbans.<name>); `hint` is an example of
 // the value shape. `acting` extbans restrict behaviour; the rest match/ban by a trait.
-export interface ExtBan { letter: string; name: string; acting: boolean; hint: string; invexHint?: string; }
+export interface ExtBan {
+  letter: string;
+  name: string;
+  acting: boolean;
+  hint: string;
+  invexHint?: string;
+  /** Acting extban whose value starts with a channel (`redirect:#salon:…`). */
+  needsTarget?: boolean;
+}
 
 export const EXTBANS: ExtBan[] = [
   // Acting — restrict what matching users may do.
@@ -19,7 +27,7 @@ export const EXTBANS: ExtBan[] = [
   { letter: 'Q', name: 'nokick',      acting: true,  hint: 'test!test@test.test' },
   { letter: 'u', name: 'opmoderated', acting: true,  hint: 'test!test@test.test' },
   { letter: 'A', name: 'blockinvite', acting: true,  hint: 'test!test@test.test' },
-  { letter: 'd', name: 'redirect',    acting: true,  hint: '#offtopic:test!test@test.test' },
+  { letter: 'd', name: 'redirect',    acting: true,  hint: 'test!test@test.test', needsTarget: true },
   // Matching — ban by a trait.
   { letter: 'R', name: 'account',     acting: false, hint: 'baduser', invexHint: 'Jessie' },
   { letter: 'U', name: 'unauthed',    acting: false, hint: 'test!test@test.test', invexHint: '*!*@*' },
@@ -69,4 +77,41 @@ export function ensureMatchingExtban(list: ExtBan[], name: string): ExtBan[] {
   if (!extra) return list;
   const order = EXTBANS.filter((e) => !e.acting).map((e) => e.name);
   return list.concat(extra).sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+}
+
+/** Same as ensureMatchingExtban, for acting types the ircd may omit from EXTBAN. */
+export function ensureActingExtban(list: ExtBan[], name: string): ExtBan[] {
+  if (list.some((e) => e.name === name)) return list;
+  const extra = EXTBANS.find((e) => e.name === name && e.acting);
+  if (!extra) return list;
+  const order = EXTBANS.map((e) => e.name);
+  return list.concat(extra).sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+}
+
+function asHostmask(v: string): string {
+  return (v.includes('@') || v.includes('!') || v.includes(':')) ? v : `${v}!*@*`;
+}
+
+function asChannel(raw: string): string {
+  const s = raw.trim();
+  if (!s) return '';
+  return /^[#&+!]/.test(s) ? s : `#${s}`;
+}
+
+/** Build `mute:account:x`, `redirect:#poubelle:R:x`, `redirect:#poubelle:nick!*@*`. */
+export function buildExtbanMask(opts: {
+  ext: ExtBan;
+  value: string;
+  nest?: ExtBan | null;
+  invert?: boolean;
+  target?: string;
+}): string {
+  const v = opts.value.trim();
+  const bang = opts.invert ? '!' : '';
+  const inner = opts.nest ? `${bang}${opts.nest.name}:${v}` : (opts.ext.acting ? asHostmask(v) : v);
+  if (opts.ext.needsTarget) {
+    const dest = asChannel(opts.target || '');
+    return dest ? `${opts.ext.name}:${dest}:${inner}` : `${opts.ext.name}:${inner}`;
+  }
+  return `${opts.ext.name}:${inner}`;
 }
