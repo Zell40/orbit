@@ -7,6 +7,7 @@ import { SystemLine, NoticeGroup, InfoGroup, MotdGroup, UmodeGroup, OperGroup, M
 import { EventGroup } from './EventGroup';
 import { SearchResults } from './SearchResults';
 import { useTheme } from '@/themes';
+import type { ChatMessage } from '@/core/irc/types';
 
 // Message kinds rendered as a status line (SystemLine); everything else
 // (privmsg/action, plus any unknown kind) is a grouped message row (MsgRow).
@@ -27,6 +28,11 @@ const dayIndex = (ts: number) => {
   const d = new Date(ts);
   return d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate();
 };
+
+// React key for a row. `id` is swapped for the real msgid when the server echo
+// lands, so keying on it would unmount/remount the line you just sent — the
+// avatar and any link card would reload and the row would visibly blink.
+const rowKey = (m: ChatMessage) => m.rowId ?? m.id;
 
 export function MessageList() {
   const { t, i18n } = useTranslation();
@@ -219,37 +225,37 @@ export function MessageList() {
   const callouts = !mirc; // NOTICE / Info / MOTD / user-mode / OPER infobulles — including Status
   const flush = () => {
     if (!pending.length) return;
-    rows.push(<EventGroup key={`eg-${pending[0].id}`} events={pending} />);
+    rows.push(<EventGroup key={`eg-${rowKey(pending[0])}`} events={pending} />);
     pending = [];
   };
   const flushNotices = () => {
     if (!pendingNotices.length) return;
-    rows.push(<NoticeGroup key={`ng-${pendingNotices[0].id}`} messages={pendingNotices} />);
+    rows.push(<NoticeGroup key={`ng-${rowKey(pendingNotices[0])}`} messages={pendingNotices} />);
     pendingNotices = [];
   };
   const flushInfo = () => {
     if (!pendingInfo.length) return;
-    rows.push(<InfoGroup key={`ig-${pendingInfo[0].id}`} messages={pendingInfo} />);
+    rows.push(<InfoGroup key={`ig-${rowKey(pendingInfo[0])}`} messages={pendingInfo} />);
     pendingInfo = [];
   };
   const flushMotd = () => {
     if (!pendingMotd.length) return;
-    rows.push(<MotdGroup key={`mg-${pendingMotd[0].id}`} messages={pendingMotd} />);
+    rows.push(<MotdGroup key={`mg-${rowKey(pendingMotd[0])}`} messages={pendingMotd} />);
     pendingMotd = [];
   };
   const flushUmode = () => {
     if (!pendingUmode.length) return;
-    rows.push(<UmodeGroup key={`ug-${pendingUmode[0].id}`} messages={pendingUmode} />);
+    rows.push(<UmodeGroup key={`ug-${rowKey(pendingUmode[0])}`} messages={pendingUmode} />);
     pendingUmode = [];
   };
   const flushOper = () => {
     if (!pendingOper.length) return;
-    rows.push(<OperGroup key={`og-${pendingOper[0].id}`} messages={pendingOper} />);
+    rows.push(<OperGroup key={`og-${rowKey(pendingOper[0])}`} messages={pendingOper} />);
     pendingOper = [];
   };
   const flushMode = () => {
     if (!pendingMode.length) return;
-    rows.push(<ModeGroup key={`md-${pendingMode[0].id}`} messages={pendingMode} />);
+    rows.push(<ModeGroup key={`md-${rowKey(pendingMode[0])}`} messages={pendingMode} />);
     pendingMode = [];
   };
   const flushCallouts = () => { flush(); flushNotices(); flushInfo(); flushMotd(); flushUmode(); flushOper(); flushMode(); };
@@ -269,10 +275,10 @@ export function MessageList() {
     if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
     if (hideModes && !isConsole && m.kind === 'mode') continue;
     const day = dayIndex(m.ts);
-    if (day !== lastDay) { flushCallouts(); rows.push(<div key={`d-${m.id}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }
+    if (day !== lastDay) { flushCallouts(); rows.push(<div key={`d-${rowKey(m)}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {
       flushCallouts();
-      rows.push(<div key={`unread-${m.id}`} ref={dividerRef} className="unread-divider"><span>{t('messages.newMessages')}</span></div>);
+      rows.push(<div key={`unread-${rowKey(m)}`} ref={dividerRef} className="unread-divider"><span>{t('messages.newMessages')}</span></div>);
       dividerShown = true; lastFrom = '';
     }
     if (m.ts <= buffer.readTs) hadRead = true;
@@ -322,12 +328,12 @@ export function MessageList() {
     }
     flushCallouts(); // any other line ends the current run
     if (SYSTEM_KINDS.has(m.kind)) {
-      rows.push(<SystemLine key={m.id} m={m} />);
+      rows.push(<SystemLine key={rowKey(m)} m={m} />);
       lastFrom = ''; continue;
     }
     const cont = m.from === lastFrom && m.ts - lastTs < 5 * 60000 && !!lastKind
       && !/^actu$/i.test(m.from);
-    rows.push(<MsgRow key={m.id} m={m} cont={cont} />);
+    rows.push(<MsgRow key={rowKey(m)} m={m} cont={cont} />);
     lastFrom = m.from; lastTs = m.ts; lastKind = m.kind;
   }
   flushCallouts(); // trailing run

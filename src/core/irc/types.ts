@@ -42,6 +42,9 @@ export interface Reaction {
 export interface ChatMessage {
   id: string;            // server msgid when available, else local id
   msgid?: string;        // real server msgid (absent on +H replay / optimistic / system lines)
+  /** First id this row ever had. `id` is swapped for the real msgid once the server
+   *  echo lands; keying the list on this instead keeps the row mounted (no reflow). */
+  rowId?: string;
   bufferName: string;
   from: string;          // nick of sender (empty for system lines)
   account?: string;

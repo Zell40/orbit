@@ -66,7 +66,7 @@ export function makeBatch({ get, set, helpers }: BatchDeps) {
             if (at !== undefined) {
               // Same message already present (other replay source). Upgrade it to
               // the copy that carries the real msgid so REDACT/react target it.
-              if (m.msgid && !base[at].msgid) base[at] = { ...base[at], id: m.id, msgid: m.msgid };
+              if (m.msgid && !base[at].msgid) base[at] = { ...base[at], rowId: base[at].rowId ?? base[at].id, id: m.id, msgid: m.msgid };
               else if (m.ts < base[at].ts) base[at] = { ...base[at], ts: m.ts };
               continue;
             }

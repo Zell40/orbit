@@ -158,7 +158,12 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
         const i = b.messages.findIndex((x) => x.self && x.id.startsWith('local-') && x.kind === m.kind && x.text === m.text);
         if (i !== -1) {
           const msgs = b.messages.slice();
-          msgs[i] = { ...msgs[i], id: m.id, ts: m.ts, reactions: m.reactions ?? msgs[i].reactions };
+          msgs[i] = {
+            ...msgs[i],
+            rowId: msgs[i].rowId ?? msgs[i].id,
+            id: m.id, msgid: m.msgid ?? m.id,
+            ts: m.ts, reactions: m.reactions ?? msgs[i].reactions,
+          };
           return { ...b, messages: msgs };
         }
       }
@@ -174,6 +179,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
             const msgs = b.messages.slice();
             msgs[i] = {
               ...cur,
+              rowId: cur.rowId ?? cur.id,
               id: m.msgid ? m.id : cur.id,
               msgid: m.msgid ?? cur.msgid,
               ts: Math.min(cur.ts, m.ts),
