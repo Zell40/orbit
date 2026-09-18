@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LANGS, setLang, getLang } from '@/core/i18n';
+import { getConfig } from '@/core/config';
 import { getTheme, setTheme, usePluginThemes, type Theme } from '@/themes';
 import { useActiveChat } from '@/core/networks';
 import { ToggleRow } from '../rows';
@@ -60,6 +61,12 @@ export function AppearanceSection() {
         <ToggleRow icon="🏷️" label={t('settings.appearance.topicFull')} hint={t('settings.appearance.topicFullHint')} prefKey="topicSetterFull" />
         <ToggleRow icon="🖱️" label={t('settings.appearance.hoverActions')} hint={t('settings.appearance.hoverActionsHint')} prefKey="hoverActions" />
         <ToggleRow icon="⌨️" label={t('settings.appearance.mono')} hint={t('settings.appearance.monoHint')} prefKey="monoMessages" />
+        <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
+        <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />
+        {getConfig().features.linkPreviews && (
+          <ToggleRow icon="🔗" label={t('settings.notifications.linkPreviews')} hint={t('settings.notifications.linkPreviewsHint')} prefKey="linkPreviews" />
+        )}
+        <ToggleRow icon="✓✓" label={t('settings.notifications.readReceipts')} hint={t('settings.notifications.readReceiptsHint')} prefKey="readReceipts" />
         <div className="srow">
           <span className="srow__ic" aria-hidden>🕓</span>
           <div className="srow__txt"><div className="srow__label">{t('settings.appearance.timeFormat')}</div></div>

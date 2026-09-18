@@ -130,8 +130,9 @@ describe('catalogues', () => {
     expect(extra).toBeGreaterThan(lastClassic);
   });
 
-  it('hides +B (bot) from Settings; +x stays user-toggleable', () => {
+  it('hides +B (bot) and oper-only +W from Settings; +x stays user-toggleable', () => {
     expect(USER_FLAGS.find((f) => f.m === 'B')?.hidden).toBe(true);
+    expect(USER_FLAGS.find((f) => f.m === 'W')?.hidden).toBe(true);
     expect(USER_FLAGS.find((f) => f.m === 'x')?.cannotDisable).toBeFalsy();
   });
 

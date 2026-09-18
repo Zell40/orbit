@@ -39,13 +39,13 @@ export interface ChanParam {
   hint: string;
 }
 
-/** Self-settable umodes. Oper/services-only letters (o s h H O k r) stay out. */
+/** Self-settable umodes. Oper/services-only letters (o s h H O k r W) stay out. */
 export const USER_FLAGS: UserFlag[] = [
   { m: 'i', key: 'invisible', group: 'privacy' },
   { m: 'I', key: 'hidechans', group: 'privacy' },
   { m: 'x', key: 'cloak', group: 'privacy' },
   { m: 'a', key: 'hideidle', group: 'privacy' },
-  { m: 'W', key: 'showwhois', group: 'privacy' },
+  { m: 'W', key: 'showwhois', group: 'privacy', hidden: true },
   { m: 'g', key: 'callerid', group: 'messages' },
   { m: 'c', key: 'commonchans', group: 'messages' },
   { m: 'R', key: 'regdeaf', group: 'messages' },

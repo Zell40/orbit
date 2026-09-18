@@ -475,6 +475,9 @@
       "lockedProtect": "Cette protection ne peut pas être désactivée.",
       "lockedGeo": "Le contrôle parental empêche d’afficher ta localisation.",
       "lockedTitle": "Verrouillé"
+    },
+    "behavior": {
+      "title": "Comportement"
     }
   },
   "profile": {

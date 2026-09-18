@@ -475,6 +475,9 @@
       "lockedProtect": "This protection cannot be turned off.",
       "lockedGeo": "Parental controls prevent showing your location.",
       "lockedTitle": "Locked"
+    },
+    "behavior": {
+      "title": "Behaviour"
     }
   },
   "profile": {
