@@ -92,11 +92,6 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
     m.text,
     !m.self && (isBot || isService(m.from) || hasServiceTag(m.tags || {})),
   );
-  const memberNicks = useActiveChat((s) => {
-    const mem = s.buffers[s.active]?.members;
-    return (s.nick || '') + '\n' + (mem ? Object.keys(mem).join('\n') : '');
-  });
-  void memberNicks;
   const isActu = /^actu$/i.test(m.from);
   // Channel access symbol (@ ~ & % +) of the sender, so ops/voiced are spottable
   // right in the chat, role-coloured to match the member list.
@@ -112,11 +107,15 @@ export const MsgRow = memo(function MsgRow({ m, cont }: { m: ChatMessage; cont: 
   const avatarAccount = m.account || memberAccount || (m.self ? myAccount : undefined);
   const avatarUrl = useAvatarUrl(avatarAccount);
   const mirc = useTheme().startsWith('yomirc');
-  const msgs = useActiveChat((s) => s.buffers[s.active]?.messages);
-  const quoted = m.replyTo ? msgs?.find((x) => x.id === m.replyTo) : undefined;
+  // Select the quoted message / the chip flag, never the whole message array: a
+  // new line changes that array's identity, which would re-render every row in
+  // the salon on each send and defeat this component's memo.
+  const quoted = useActiveChat((s) => (m.replyTo
+    ? s.buffers[s.active]?.messages.find((x) => x.id === m.replyTo)
+    : undefined));
   // +draft/channel-context: badge it only at the head of a run (when the context
   // first appears or changes), so a stream sharing one context isn't chip-spammed.
-  const showCtx = firstOfRun(msgs, m, (x) => x.channelContext);
+  const showCtx = useActiveChat((s) => firstOfRun(s.buffers[s.active]?.messages, m, (x) => x.channelContext));
   const plainText = stripFormatting(m.text).trim();
   const textUrls = m.redacted ? [] : previewableUrls(plainText);
   const urlLead = textUrls.length === 1 ? plainText.replace(textUrls[0], '').trim() : '';

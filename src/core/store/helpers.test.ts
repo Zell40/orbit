@@ -127,6 +127,22 @@ describe('addMessage query privmsg coalesce', () => {
   });
 });
 
+describe('addMessage echo reconcile', () => {
+  it('upgrades the optimistic copy in place and keeps a stable row key', () => {
+    const { helpers, state } = setup();
+    const mine = (id: string, ts: number, msgid?: string): ChatMessage => ({
+      id, msgid, bufferName: '#Aide.chat', from: 'me', text: 'salut', ts, kind: 'privmsg', self: true,
+    });
+    helpers.addMessage('#Aide.chat', mine('local-1', 1000));
+    helpers.addMessage('#Aide.chat', mine('srv-msgid', 1050, 'srv-msgid'));
+    const msgs = state.buffers['#aide.chat'].messages;
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0]).toMatchObject({ id: 'srv-msgid', msgid: 'srv-msgid', ts: 1050 });
+    // The React key must not change when the echo lands, or the row remounts.
+    expect(msgs[0].rowId).toBe('local-1');
+  });
+});
+
 describe('addMessage replay events', () => {
   it('drops a JOIN that matches one already shown with a different timestamp', () => {
     const { helpers, state } = setup();
