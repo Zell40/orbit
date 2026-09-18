@@ -60,8 +60,10 @@ export function MessageList() {
   const count = buffer?.messages.length ?? 0;
   // The buffer is capped (slice(-500)), so once it's full its LENGTH stops changing
   // as new lines arrive. Keying the follow effect on the newest message's id (which
-  // still changes) is what keeps auto-scroll alive in busy channels.
-  const lastId = count ? buffer!.messages[count - 1].id : '';
+  // still changes) is what keeps auto-scroll alive in busy channels. Use the row
+  // key, not `id`: the latter is swapped for the real msgid when our own echo
+  // lands, which would run the whole anchoring pass a second time per send.
+  const lastId = count ? rowKey(buffer!.messages[count - 1]) : '';
 
   // tailOnly: render just the TAIL right after a switch, then fill on idle. Reset
   // to true whenever the active buffer changes (derived during render so the very
