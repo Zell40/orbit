@@ -280,10 +280,20 @@ function deepMerge<T>(base: T, over: unknown): T {
 }
 
 // Fetch and apply config.json. Call ONCE, before rendering the app.
+//
+// public/theme-init.js kicks the request off during HTML parsing and parks the
+// promise on window.__orbitConfig; adopting it here saves a full round-trip,
+// since otherwise this fetch only starts once the whole app chunk has been
+// downloaded and evaluated. Falls back to fetching ourselves (dev, a deployer
+// who dropped the script, a browser that blocked it).
 export async function loadConfig(): Promise<AppConfig> {
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}config.json`, { cache: 'no-cache' });
-    if (res.ok) cfg = deepMerge(DEFAULT_CONFIG, await res.json());
+    const early = (window as unknown as { __orbitConfig?: Promise<unknown> }).__orbitConfig;
+    const json = early
+      ? await early
+      : await fetch(`${import.meta.env.BASE_URL}config.json`, { cache: 'no-cache' })
+        .then((res) => (res.ok ? res.json() : null));
+    if (json) cfg = deepMerge(DEFAULT_CONFIG, json);
   } catch {
     /* no/invalid config.json — run on the built-in defaults */
   }

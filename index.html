@@ -31,7 +31,12 @@
     <meta name="twitter:image" content="/app/screenshot-wide.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600;1,9..144,700&family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <!-- The webfont (Geist Mono, the only family the CSS uses) is injected by
+         theme-init.js as a preload that promotes itself to a stylesheet, so a
+         cross-origin round-trip to Google never delays the first paint. -->
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400..800&display=swap" rel="stylesheet" />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

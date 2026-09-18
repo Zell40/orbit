@@ -83,12 +83,52 @@ const stampServiceWorker: Plugin = {
   },
 }
 
+// main.tsx can only `import('./App.tsx')` once config.json has resolved, so the
+// browser discovers that chunk late and fetches it strictly after the entry one.
+// Advertising it in the HTML makes the two download in parallel instead, which is
+// worth ~150 KB of serialised transfer on a cold load. Vite only emits preload
+// hints for static entry imports, hence doing it here.
+const BASE = '/app/'
+const preloadAppChunk: Plugin = {
+  name: 'preload-app-chunk',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler(html, ctx) {
+      const bundle = ctx.bundle ?? {}
+      const app = Object.values(bundle).find((c) =>
+        c.type === 'chunk' && (c.facadeModuleId || '').replace(/\\/g, '/').endsWith('/src/App.tsx'))
+      if (!app) return html
+      // App's own static imports (the store, IRC layer, …) are only discovered
+      // once App has been parsed, so walk them too — otherwise we'd just move
+      // the waterfall one step down.
+      const files = new Set<string>()
+      const walk = (name: string) => {
+        if (files.has(name)) return
+        files.add(name)
+        const chunk = bundle[name]
+        if (chunk?.type === 'chunk') chunk.imports.forEach(walk)
+      }
+      walk(app.fileName)
+      return {
+        html,
+        // The entry chunk and the runtime are already in the HTML.
+        tags: [...files].filter((f) => !html.includes(f)).map((fileName) => ({
+          tag: 'link',
+          attrs: { rel: 'modulepreload', crossorigin: true, href: BASE + fileName },
+          injectTo: 'head' as const,
+        })),
+      }
+    },
+  },
+}
+
 // Served from /app/ (must be an allowed websocket origin).
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/app/',
+  base: BASE,
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } }, // @/x ÔåÆ src/x
-  plugins: [react(), emitVersion, sandboxGuest, stampServiceWorker],
+  plugins: [react(), emitVersion, sandboxGuest, stampServiceWorker, preloadAppChunk],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),

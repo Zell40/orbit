@@ -3,8 +3,6 @@ import { createRoot } from 'react-dom/client'
 import { getTheme, hydrateTheme, useThemeStore } from './themes'
 import { applyConfigDefaultLang } from './core/i18n'
 import { applySeo } from './core/seo.ts'
-import { initGa } from './core/ga.ts'
-import { initWebMcp } from './core/webmcp.ts'
 import './index.css'
 // Alternate themes, loaded after the base so their [data-theme] rules win.
 import './themes/dark.css'
@@ -14,6 +12,7 @@ import { initViewport } from './ui/viewport.ts'
 import { registerAppUpdates } from './ui/appUpdate.ts'
 import { loadConfig, getConfig } from './core/config.ts'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
+import type { Handoff } from './core/handoff'
 
 // Track the visual viewport so the layout shrinks above the on-screen keyboard.
 initViewport()
@@ -77,42 +76,20 @@ function applyBrandIcon() {
 // Swap the favicon when the theme changes (into or out of yomirc).
 useThemeStore.subscribe((s, prev) => { if (s.theme !== prev.theme) applyBrandIcon() })
 
-// Load runtime config.json FIRST, then import App (so the store initialises with
-// the resolved config). Keeps the client fully re-pointable/re-brandable without
-// a rebuild.
-loadConfig().then(async () => {
-  hydrateTheme() // first-time visitors adopt the config default now config is loaded
-  applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
-  applyBrandIcon()        // browser tab favicon follows config.branding.icon
-  applySeo()              // <head> description + OG/Twitter/canonical/JSON-LD from config
-  const { default: App } = await import('./App.tsx') // also creates the store
-  // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
-  // then load operator-listed plugins from config. After the store exists,
-  // before render (plugin-contributed UI registers reactively).
-  const { initPlugins } = await import('./modules')
-  initPlugins()
-  initGa()                                 // Consent Mode v2: gtag loads denied-by-default; restores a prior grant, banner/settings flip it
-  initWebMcp()                             // expose chat tools to AI agents (WebMCP) where supported
-
-  // Core sandboxed features the app ships itself (isolated + capability-gated),
-  // mounted by core — no config.json entry needed.
-  void import('./modules/sandbox/builtins').then((m) => m.mountBuiltins())
-
-  // Multi-network: reconnect any extra networks the user had before a reload.
-  if (getConfig().features.multiNetwork) {
-    try { (await import('./core/networks')).restoreNetworks() } catch { /* ignore */ }
-  }
-
-  // Site handoff: if the entry form sent us here, auto-connect with the nick and
-  // channels from the URL plus any SASL password parked in sessionStorage, and
-  // mark the store so the first paint is a "connecting" splash, not the join
-  // form. Direct visits (no marker) fall through to the normal join screen.
-  const { takeHandoff } = await import('./core/handoff')
-  const handoff = takeHandoff()
+// Resolve the session (site handoff / resume) and start connecting.
+//
+// This runs AFTER the first render on purpose: it talks to the network (keycard
+// mint, GECOS lookup) and used to sit between config and createRoot, so the page
+// stayed blank for as long as those requests took. The store is already marked
+// `autoConnecting` by the caller when a connect is expected, so the first paint
+// is the boot splash and this just fills it in.
+async function startSession(handoff: Handoff | null): Promise<void> {
   const params = new URLSearchParams(window.location.search)
   const nick = params.get('nick')?.trim()
   const { useChat } = await import('./core/store')
   const cfg = getConfig()
+  // Nothing connected: drop the optimistic splash and show the join form.
+  const giveUp = () => useChat.setState({ autoConnecting: false })
   // After an auto-connect, drop the entry params from the address bar so a later
   // reload/reopen is param-less and resumes cleanly (the branch below).
   const cleanUrl = () => { try { history.replaceState(null, '', window.location.pathname) } catch { /* ignore */ } }
@@ -134,6 +111,8 @@ loadConfig().then(async () => {
         realname: handoff.realname,
       }))
       cleanUrl()
+    } else {
+      giveUp() // bouncer handoff without a password / configured gateway
     }
   } else if (handoff && nick) {
     const channels = (params.get('channel') || cfg.startup.channels.join(','))
@@ -163,6 +142,7 @@ loadConfig().then(async () => {
       // Never auto-connect a bouncer session: ZNC treats rapid reconnects
       // (reload, failed handshake retry) as connection flood. The join form
       // keeps the nick and the bouncer toggle; the user clicks Connect.
+      giveUp()
     } else {
       const paramChannels = (params.get('channel') || '')
         .split(',').map((c) => c.trim()).filter(Boolean)
@@ -215,9 +195,47 @@ loadConfig().then(async () => {
             : (resume?.channels?.length ? resume.channels : cfg.startup.channels),
         })
         cleanUrl()
+      } else {
+        giveUp() // no keycard, no parked SASL password — join form
       }
     }
+  } else {
+    giveUp()
   }
+}
+
+// Load runtime config.json FIRST, then import App (so the store initialises with
+// the resolved config). Keeps the client fully re-pointable/re-brandable without
+// a rebuild.
+loadConfig().then(async () => {
+  hydrateTheme() // first-time visitors adopt the config default now config is loaded
+  applyConfigDefaultLang(getConfig().defaults.lang) // honour a config-pinned default language
+  applyBrandIcon()        // browser tab favicon follows config.branding.icon
+  applySeo()              // <head> description + OG/Twitter/canonical/JSON-LD from config
+  const cfg = getConfig()
+  const { default: App } = await import('./App.tsx') // also creates the store
+  // Plugin subsystem: publish window.Orbit, bridge app/IRC events onto the bus,
+  // then load operator-listed plugins from config. After the store exists,
+  // before render (the boot splash tracks plugin load progress, so the registry
+  // has to know how many are coming).
+  const { initPlugins } = await import('./modules')
+  initPlugins()
+
+  // Decide the first paint BEFORE rendering. Every signal here is synchronous
+  // (session/localStorage), so reading them is free — but knowing a connect is
+  // coming means the first frame is the boot splash instead of a flash of the
+  // join form. startSession() clears the flag if it ends up not connecting.
+  const { useChat } = await import('./core/store')
+  const { takeHandoff } = await import('./core/handoff')
+  const { loadResume, loadSaslResume } = await import('./core/resume')
+  const handoff = takeHandoff() // one-shot marker: read it exactly once
+  // A bouncer session is never auto-reconnected (ZNC treats it as a flood), so
+  // it isn't a reason to hold back the join form.
+  const resume = cfg.features.sessionResume ? loadResume() : null
+  const resumable = cfg.features.sessionResume
+    && (!!loadSaslResume() || (!!resume && !resume.bouncer))
+  const nickParam = new URLSearchParams(window.location.search).get('nick')?.trim()
+  if ((handoff && nickParam) || resumable) useChat.setState({ autoConnecting: true })
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -226,6 +244,22 @@ loadConfig().then(async () => {
       </AppErrorBoundary>
     </StrictMode>,
   )
+
+  // Everything below is deliberately off the first-paint path, so these two load
+  // as their own chunks rather than riding along in the boot bundle.
+  void import('./core/ga.ts').then((m) => m.initGa())        // Consent Mode v2: gtag loads denied-by-default; restores a prior grant, banner/settings flip it
+  void import('./core/webmcp.ts').then((m) => m.initWebMcp()) // expose chat tools to AI agents (WebMCP) where supported
+
+  // Core sandboxed features the app ships itself (isolated + capability-gated),
+  // mounted by core — no config.json entry needed.
+  void import('./modules/sandbox/builtins').then((m) => m.mountBuiltins())
+
+  // Multi-network: reconnect any extra networks the user had before a reload.
+  if (cfg.features.multiNetwork) {
+    void import('./core/networks').then((m) => m.restoreNetworks()).catch(() => { /* ignore */ })
+  }
+
+  void startSession(handoff)
 })
 
 // PWA: register the service worker (installable, offline app shell, web push).

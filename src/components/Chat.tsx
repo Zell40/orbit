@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ProfileModal } from './profile/ProfileModal';
 import { Modals } from './modals/Modals';
 import { MessageList } from './chat/MessageList';
 import { Composer } from './chat/Composer';
@@ -14,6 +13,12 @@ import { PluginBoundary } from './PluginBoundary';
 import { FriendsPanel } from './chat/FriendsPanel';
 import { useActiveChat } from '@/core/networks';
 import { bindMobileNavClose } from '@/lib/mobile-nav';
+
+// Opened by clicking a nick, so it stays out of the boot chunk. It used to be
+// mounted unconditionally and render null without a profileUser — the gate below
+// reproduces that, and its only side effect (an Escape listener) was gated the
+// same way.
+const ProfileModal = lazy(() => import('./profile/ProfileModal').then((m) => ({ default: m.ProfileModal })));
 
 export function Chat({ locked = false }: { locked?: boolean }) {
   const { t } = useTranslation();
@@ -35,6 +40,7 @@ export function Chat({ locked = false }: { locked?: boolean }) {
   });
   const visualPlugins = new Set(visualGames.map((g) => g.plugin));
   const joinDenied = useActiveChat((s) => !!s.buffers[s.active]?.joinDenied);
+  const profileOpen = useActiveChat((s) => !!s.profileUser);
   // Persistent, root-level home for plugin popovers/panels (see UiSlot 'overlay').
   // Conference sits in the main column under the topbar so chrome stays visible.
   const overlays = ui.filter((u) => u.slot === 'overlay');
@@ -77,7 +83,7 @@ export function Chat({ locked = false }: { locked?: boolean }) {
       {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
       {membersOpen && <div className="nav-backdrop" onClick={() => setMembersOpen(false)} />}
       <Modals />
-      <ProfileModal />
+      {profileOpen && <Suspense fallback={null}><ProfileModal /></Suspense>}
       <KickToast />
       <NickServAlert />
       <ReconnectBanner />
