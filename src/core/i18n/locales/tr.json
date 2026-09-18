@@ -571,7 +571,10 @@
     "oper": "Bu kanal IRC operatörlerine ayrılmıştır (+O).",
     "toomany": "Çok fazla kanala girdin.",
     "badmask": "Geçersiz kanal adı.",
-    "fallback": "Bu kanala girilemiyor."
+    "fallback": "Bu kanala girilemiyor.",
+    "redirect": "Bu kanala girilemiyor.",
+    "redirected": "{{channel}} kanalına yönlendirildin.",
+    "closeToRedirect": "{{channel}} kanalına git"
   },
   "banners": {
     "reconnecting": "Yeniden bağlanıyor…",

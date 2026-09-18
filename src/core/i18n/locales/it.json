@@ -571,7 +571,10 @@
     "oper": "Questo canale è riservato agli operatori IRC (+O).",
     "toomany": "Hai raggiunto troppi canali.",
     "badmask": "Nome canale non valido.",
-    "fallback": "Impossibile entrare in questo canale."
+    "fallback": "Impossibile entrare in questo canale.",
+    "redirect": "Impossibile entrare in questo canale.",
+    "redirected": "Sei stato reindirizzato su {{channel}}.",
+    "closeToRedirect": "Vai su {{channel}}"
   },
   "banners": {
     "reconnecting": "Riconnessione…",

@@ -8,6 +8,7 @@ describe('Numerics (client.numerics)', () => {
     expect(n.name('001')).toBe('RPL_WELCOME');
     expect(n.name('322')).toBe('RPL_LIST');
     expect(n.name('433')).toBe('ERR_NICKNAMEINUSE');
+    expect(n.name('470')).toBe('ERR_LINKCHANNEL');
   });
 
   it('returns undefined for an unknown code', () => {

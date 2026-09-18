@@ -114,6 +114,20 @@ describe('membership handler', () => {
     expect((state.buffers['#x'] as { joinDenied?: unknown }).joinDenied).toBeUndefined();
   });
 
+  it('self JOIN to a redirect dest does not steal focus from the denied source', () => {
+    const { on, state } = setup();
+    setExpectedBootChannels(['#poubelle']);
+    state.active = '#tst';
+    state.buffers['#tst'] = {
+      name: '#tst', isChannel: true, joined: false, members: {},
+      joinDenied: { redirectTo: '#poubelle' },
+    } as typeof state.buffers[string];
+    state.order.push('#tst');
+    on(':me!u@h JOIN #poubelle');
+    expect(state.active).toBe('#tst');
+    expect(state.buffers['#poubelle']?.joined).toBe(true);
+  });
+
   it('KICK of someone else drops them; KICK of us closes the buffer', () => {
     const { on, state, seed, closedChannels, k, lines } = setup();
     seed('#x', ['bob', 'me']);

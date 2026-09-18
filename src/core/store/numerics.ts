@@ -25,7 +25,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '471', '473', '474', '475', '476', '477', '489', '519', '520', '742']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '470', '471', '473', '474', '475', '476', '477', '489', '519', '520', '742']);
 
 const JOIN_DENIED: Record<string, { flag: string; reasonKey: string }> = {
   '405': { flag: '', reasonKey: 'toomany' },
@@ -78,6 +78,30 @@ function parseMlockRestricted(params: string[]): { chan: string; letter: string;
   return { chan, letter, mlock };
 }
 
+/** InspIRCd/Unreal 470: <me> <from> <to> :You cannot join #from (…) so you are transferred to #to. */
+function parseLinkChannel(params: string[]): { from: string; to: string; detail: string } | null {
+  const names = params.filter((p) => isChannelName(p));
+  if (!names.length) return null;
+  const from = names[0];
+  let to = names.find((n) => canon(n) !== canon(from)) || '';
+  const last = params[params.length - 1] || '';
+  const detail = isChannelName(last) && names.includes(last) ? '' : last;
+  if (!to) {
+    const m = detail.match(/(?:transferred|redirect(?:ed)?)\s+to\s+([#&]\S+)/i);
+    if (m) to = m[1].replace(/[.,;!?]+$/, '');
+  }
+  return { from, to, detail };
+}
+
+function redirectDeniedMeta(detail: string): { flag: string; reasonKey: string } {
+  const t = detail.toLowerCase();
+  if (/extban|banned/.test(t)) return { flag: '+b', reasonKey: 'banned' };
+  if (/invite/.test(t)) return { flag: '+i', reasonKey: 'invite' };
+  if (/limit/.test(t)) return { flag: '+l', reasonKey: 'full' };
+  if (/\bkey\b/.test(t)) return { flag: '+k', reasonKey: 'key' };
+  return { flag: '+L', reasonKey: 'redirect' };
+}
+
 /** Split ERR_CANNOTSENDTOCHAN into calm +m vs ban/quiet — never conflate the two. */
 function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatState>['getState']): Extract<KickInfo['kind'], 'moderated' | 'mute'> {
   const text = trailing.toLowerCase();
@@ -108,10 +132,10 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
   let listAcc: { name: string; users: number; topic: string }[] | null = null;
   let listLive = false;
 
-  function applyJoinDenied(ch: string, code: string, detail: string): void {
+  function applyJoinDenied(ch: string, code: string, detail: string, extra?: { flag?: string; reasonKey?: string; redirectTo?: string }): void {
     const existing = get().buffers[canon(ch)];
     if (existing?.joined) {
-      const key = JOIN_DENIED[code]?.reasonKey || 'fallback';
+      const key = extra?.reasonKey || JOIN_DENIED[code]?.reasonKey || 'fallback';
       sysLine(ch, `⚠️ ${detail.trim() || i18n.t(`joinDenied.${key}`)}`, 'system');
       if (get().prefs.sound) blip();
       return;
@@ -119,11 +143,18 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
     closedChannels.delete(canon(ch));
     ensureBuffer(ch);
     const meta = JOIN_DENIED[code] || { flag: '', reasonKey: 'fallback' };
+    const flag = extra?.flag ?? meta.flag;
+    const reasonKey = extra?.reasonKey ?? meta.reasonKey;
+    const redirectTo = extra?.redirectTo?.trim();
     patchBuffer(ch, (b) => ({
       ...b,
       joined: false,
-      joinDenied: { code, flag: meta.flag, reasonKey: meta.reasonKey, detail: detail.trim() },
+      joinDenied: {
+        code, flag, reasonKey, detail: detail.trim(),
+        ...(redirectTo && isChannelName(redirectTo) ? { redirectTo } : {}),
+      },
     }));
+    if (get().active !== canon(ch)) set({ active: canon(ch) });
     if (get().prefs.sound) blip();
   }
 
@@ -478,6 +509,18 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         set({
           kicked: { channel: ch, by: '', reason: trailing, kind },
           ...(kind === 'moderated' ? { modal: 'moderated' as const } : {}),
+        });
+        return true;
+      }
+      case '470': { // ERR_LINKCHANNEL — InspIRCd/Unreal redirect (+L or extban d:)
+        const parsed = parseLinkChannel(msg.params);
+        if (!parsed) return true;
+        const failed = /cannot be redirected|circular/i.test(parsed.detail);
+        const meta = redirectDeniedMeta(parsed.detail);
+        applyJoinDenied(parsed.from, '470', parsed.detail, {
+          flag: meta.flag,
+          reasonKey: meta.reasonKey,
+          redirectTo: failed ? undefined : parsed.to || undefined,
         });
         return true;
       }

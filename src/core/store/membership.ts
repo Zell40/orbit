@@ -40,11 +40,13 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         if (self) {
           patchBuffer(ch, (b) => ({ ...b, joined: true, joinDenied: undefined }));
           const want = (getExpectedBootChannels()[0] || '').trim();
+          const denied = get().buffers[get().active]?.joinDenied;
+          const stayOnDenied = !!denied?.redirectTo && canon(denied.redirectTo) === canon(ch);
           if (want) {
             // First URL/startup channel is the one to display. Ignore the
             // network autojoin (#EntreNous.chat) so it doesn't steal focus.
             if (normChan(ch) === normChan(want)) get().setActive(ch);
-          } else if (!isChannelName(get().active) || get().active === '') {
+          } else if (!stayOnDenied && (!isChannelName(get().active) || get().active === '')) {
             get().setActive(ch);
           }
           // Pull full history (messages + JOIN/PART/KICK/MODE/TOPIC events via event-playback)

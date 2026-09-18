@@ -718,7 +718,10 @@
     "oper": "This channel is reserved for IRC operators (+O).",
     "toomany": "You have joined too many channels.",
     "badmask": "Invalid channel name.",
-    "fallback": "Unable to join this channel."
+    "fallback": "Unable to join this channel.",
+    "redirect": "Unable to join this channel.",
+    "redirected": "You have been redirected to {{channel}}.",
+    "closeToRedirect": "Go to {{channel}}"
   },
   "banners": {
     "reconnecting": "Reconnecting…",

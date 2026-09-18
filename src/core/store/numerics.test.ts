@@ -309,6 +309,30 @@ describe('store numerics handler', () => {
     expect(closedChannels.has('#secret')).toBe(false);
   });
 
+  it('470 overlay keeps the source channel and records the redirect target', () => {
+    const { handleNumerics, state } = setup({ active: '#x' });
+    const text = "You cannot join #tst (you're extbanned) so you are being automatically transferred to #poubelle.";
+    expect(handleNumerics(mk('470', ['me', '#tst', '#poubelle', text]))).toBe(true);
+    expect(state.buffers['#tst']?.joinDenied).toMatchObject({
+      code: '470', flag: '+b', reasonKey: 'banned', redirectTo: '#poubelle',
+    });
+    expect(state.buffers['#tst']?.joined).toBe(false);
+    expect(state.active).toBe('#tst');
+  });
+
+  it('470 invite-only +L uses the invite reason', () => {
+    const { handleNumerics, state } = setup();
+    expect(handleNumerics(mk('470', ['me', '#full', '#overflow', 'You cannot join #full (invite only) so you are being automatically transferred to #overflow.']))).toBe(true);
+    expect(state.buffers['#full']?.joinDenied).toMatchObject({ reasonKey: 'invite', flag: '+i', redirectTo: '#overflow' });
+  });
+
+  it('470 circular redirect does not set redirectTo', () => {
+    const { handleNumerics, state } = setup();
+    expect(handleNumerics(mk('470', ['me', '#a', '#b', 'You may not join this channel. A redirect is set, but you cannot be redirected as it is a circular loop.']))).toBe(true);
+    expect(state.buffers['#a']?.joinDenied).toMatchObject({ code: '470' });
+    expect((state.buffers['#a']?.joinDenied as { redirectTo?: string } | undefined)?.redirectTo).toBeUndefined();
+  });
+
   it('520 marks the buffer as oper-only', () => {
     const { handleNumerics, state } = setup();
     expect(handleNumerics(mk('520', ['me', '#opers', 'Need to be opered']))).toBe(true);

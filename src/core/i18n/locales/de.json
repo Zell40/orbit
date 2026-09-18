@@ -571,7 +571,10 @@
     "oper": "Dieser Kanal ist IRC-Operatoren vorbehalten (+O).",
     "toomany": "Du bist in zu vielen Kanälen.",
     "badmask": "Ungültiger Kanalname.",
-    "fallback": "Beitritt zu diesem Kanal nicht möglich."
+    "fallback": "Beitritt zu diesem Kanal nicht möglich.",
+    "redirect": "Beitritt zu diesem Kanal nicht möglich.",
+    "redirected": "Du wurdest nach {{channel}} umgeleitet.",
+    "closeToRedirect": "Zu {{channel}} gehen"
   },
   "banners": {
     "reconnecting": "Verbinde erneut…",

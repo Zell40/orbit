@@ -719,7 +719,10 @@
     "oper": "Ce salon est réservé aux IRCops (+O).",
     "toomany": "Tu as rejoint trop de salons.",
     "badmask": "Nom de salon invalide.",
-    "fallback": "Impossible de rejoindre ce salon."
+    "fallback": "Impossible de rejoindre ce salon.",
+    "redirect": "Impossible de rejoindre ce salon.",
+    "redirected": "Tu as été redirigé vers {{channel}}.",
+    "closeToRedirect": "Aller sur {{channel}}"
   },
   "banners": {
     "reconnecting": "Reconnexion…",
