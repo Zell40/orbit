@@ -574,7 +574,8 @@
     "fallback": "यो च्यानलमा प्रवेश गर्न सकिँदैन।",
     "redirect": "यो च्यानलमा प्रवेश गर्न सकिँदैन।",
     "redirected": "तपाईंलाई {{channel}} मा पुनः निर्देशित गरिएको छ।",
-    "closeToRedirect": "{{channel}} मा जानुहोस्"
+    "closeToRedirect": "{{channel}} मा जानुहोस्",
+    "cban": "यो च्यानल सञ्जालमा उपलब्ध छैन।"
   },
   "banners": {
     "reconnecting": "पुनः जडान हुँदै…",

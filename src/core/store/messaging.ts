@@ -7,6 +7,7 @@
 // collection, and mention/notify. Split out of handler.ts; the dispatcher calls
 // handleMessaging(msg, me) before its command switch.
 import i18n from '../i18n';
+import { translateUmodeNotice } from '../irc/umode-notices';
 import { desktopNotify, blip } from '@/platform/notify';
 import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
@@ -113,6 +114,11 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       }
       if (inReg && /défi anti-robot|code de vérification vous sera envoyé/i.test(text)) {
         return true; // swallow the companion turnstile lines
+      }
+      const umodeNote = translateUmodeNotice(text, get().nick);
+      if (umodeNote) {
+        serverLine(umodeNote, 'info');
+        return true;
       }
       serverLine(text, 'info');
       return true;

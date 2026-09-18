@@ -574,7 +574,8 @@
     "fallback": "Не удалось войти на этот канал.",
     "redirect": "Не удалось войти на этот канал.",
     "redirected": "Вас перенаправили на {{channel}}.",
-    "closeToRedirect": "Перейти в {{channel}}"
+    "closeToRedirect": "Перейти в {{channel}}",
+    "cban": "Этот канал недоступен в сети."
   },
   "banners": {
     "reconnecting": "Переподключение…",

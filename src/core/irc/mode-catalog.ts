@@ -55,7 +55,7 @@ export const USER_FLAGS: UserFlag[] = [
   { m: 'S', key: 'stripcolor', group: 'messages' },
   { m: 'G', key: 'censor', group: 'messages' },
   { m: 'L', key: 'antiredirect', group: 'messages' },
-  { m: 'z', key: 'sslqueries', group: 'messages', cannotDisable: true },
+  { m: 'z', key: 'sslqueries', group: 'messages' },
   { m: 'N', key: 'nohistory', group: 'messages' },
   { m: 'w', key: 'wallops', group: 'other' },
   { m: 'y', key: 'geomaxlite', group: 'other', cannotEnableWhenParental: true },
@@ -196,7 +196,14 @@ export function parentalLockedLetters(umodes: string, pack: string, parental = f
   return new Set(letters.split(''));
 }
 
-export type UmodeLockReason = 'parental' | 'cloak' | 'protect' | 'geo' | null;
+export type UmodeLockReason = 'parental' | 'cloak' | 'protect' | 'geo' | 'vhost' | null;
+
+/** Hidden host without +x is an Anope vHost (cloak always keeps +x). */
+export function looksLikeVhost(host: string, umodes: string): boolean {
+  if (!host) return false;
+  if (umodes.replace(/^\+/, '').includes('x')) return false;
+  return host.includes('/');
+}
 
 /** Displayed on/locked state for one Settings → Modes row. */
 export function umodeRowState(
@@ -204,12 +211,16 @@ export function umodeRowState(
   umodes: string,
   packLocked: Set<string>,
   parental: boolean,
+  vhostOn = false,
 ): { on: boolean; locked: boolean; reason: UmodeLockReason } {
   const um = umodes.replace(/^\+/, '');
   const inUm = um.includes(flag.m);
 
   if (parental && flag.cannotEnableWhenParental) {
     return { on: inUm, locked: true, reason: 'geo' };
+  }
+  if (flag.m === 'x' && vhostOn) {
+    return { on: false, locked: true, reason: 'vhost' };
   }
   if (packLocked.has(flag.m)) {
     // +x follows the live umode: an Anope vHost unsets it on purpose.
@@ -226,5 +237,6 @@ export function umodeLockHintKey(reason: UmodeLockReason): string | null {
   if (reason === 'cloak') return 'settings.modes.lockedCloak';
   if (reason === 'protect') return 'settings.modes.lockedProtect';
   if (reason === 'geo') return 'settings.modes.lockedGeo';
+  if (reason === 'vhost') return 'settings.modes.lockedVhost';
   return null;
 }

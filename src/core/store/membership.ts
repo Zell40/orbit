@@ -160,6 +160,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         }
         // Keep an open WHOIS/profile panel in sync.
         if (get().whois[msg.nick]) patchWhois(msg.nick, (w) => ({ ...w, user: newUser, host: newHost }));
+        if (me && canon(msg.nick) === canon(me)) set({ displayedHost: newHost });
         return true;
       }
       case 'SETNAME': {

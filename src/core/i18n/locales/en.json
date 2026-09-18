@@ -57,7 +57,11 @@
     "userInfo": "About {{nick}}",
     "more": "More",
     "topicExpand": "Show full topic",
-    "topicCollapse": "Collapse topic"
+    "topicCollapse": "Collapse topic",
+    "deafChan": "Deaf to channels (+d)",
+    "deafPriv": "Deaf to privates (+D)",
+    "deafChanTip": "You are deaf to channels (+d): you won’t see channel messages. Click to hear them again.",
+    "deafPrivTip": "You are deaf to privates (+D): you won’t see private messages. Click to hear them again."
   },
   "connect": {
     "onlineBadge": "{{n}} people online",
@@ -386,7 +390,15 @@
       "alistTitle": "Channel access",
       "alistLoading": "Loading channel access…",
       "alistUnavailable": "Couldn’t load your ChanServ access list (ALIST).",
-      "alistEmpty": "No channels with ChanServ access."
+      "alistEmpty": "No channels with ChanServ access.",
+      "alistRole": {
+        "founder": "Founder",
+        "successor": "Successor",
+        "sop": "Administrator",
+        "aop": "Operator",
+        "hop": "Half-op",
+        "vop": "Voice"
+      }
     },
     "appearance": {
       "theme": "Theme",
@@ -477,7 +489,11 @@
       "lockedCloak": "The masked host cannot be turned off — that would show your real address to everyone.",
       "lockedProtect": "This protection cannot be turned off.",
       "lockedGeo": "Parental controls prevent showing your location.",
-      "lockedTitle": "Locked"
+      "lockedTitle": "Locked",
+      "lockedVhost": "An Anope vHost is active — the +x cloak is replaced and cannot be turned on here.",
+      "cloakOffTitle": "Show your real address?",
+      "cloakOffBody": "Turning off the masked host (+x) will show your real IP in channels and WHOIS. The server enables +x by default to protect your connection.",
+      "cloakOffConfirm": "Turn off +x"
     },
     "behavior": {
       "title": "Behaviour"
@@ -645,6 +661,8 @@
     "shareVoice": "voice message: {{url}}",
     "yourModes": "Your modes: +{{modes}} ({{change}})",
     "yourModesNamed": "Your modes: +{{modes}} ({{change}} — {{names}})",
+    "deafOn": "You enabled +d (deaf to channels): you will no longer receive channel messages. Click the icon in the header, or type /mode {{nick}} -d.",
+    "privDeafOn": "You enabled +D (deaf to privates): you will no longer receive private messages. Click the icon in the header, or type /mode {{nick}} -D.",
     "pmNotif": "{{nick}} (private)",
     "userAway": "💤 {{who}} is away{{reason}}",
     "reconnecting": "🔌 Connection lost — reconnecting in {{secs}}s…"
@@ -721,7 +739,8 @@
     "fallback": "Unable to join this channel.",
     "redirect": "Unable to join this channel.",
     "redirected": "You have been redirected to {{channel}}.",
-    "closeToRedirect": "Go to {{channel}}"
+    "closeToRedirect": "Go to {{channel}}",
+    "cban": "This channel is not available on the network."
   },
   "banners": {
     "reconnecting": "Reconnecting…",

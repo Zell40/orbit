@@ -32,7 +32,7 @@ const filehost: { resolve: ((token: string) => void) | null; reject: ((err: Erro
 
 
 
-export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'report' | 'switcher' | 'shortcuts' | 'cban' | 'moderated';
+export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'report' | 'switcher' | 'shortcuts' | 'moderated';
 export interface ChannelInfo { name: string; users: number; topic: string }
 export interface KickInfo {
   channel: string;
@@ -59,6 +59,8 @@ export interface ChatState {
   networkIcon: string;
   account: string; // NickServ account we're logged in as ('' = guest)
   umodes: string;  // our own active user-mode letters, e.g. "iwx" (global, per-user)
+  /** 396 / CHGHOST displayed host (cloak or Anope vHost). */
+  displayedHost: string;
   /** Session is under the callerid parental security group (plugin-driven). */
   parentalControls: boolean;
   setParentalControls: (on: boolean) => void;
@@ -111,7 +113,6 @@ export interface ChatState {
   modal: Modal;
   settingsSection: string; // settings pane id ('profil' | 'compte' | …)
   reportSubject: string; // nick/channel prefilled into the report window
-  cban: { channel: string; reason: string } | null; // CBANed-join details for the cban window
   kicked: KickInfo | null; // last time we got kicked — drives the dismissible toast
   nickServAlert: ServiceAlert | null; // incoming NickServ notice — centered popup
   nickError: { nick: string; code: string; text: string } | null; // 432/433 after a NICK attempt
@@ -222,6 +223,7 @@ export function createChatStore(ns = '') {
     networkIcon: getConfig().branding.icon,
     account: '',
     umodes: '',
+    displayedHost: '',
     parentalControls: false,
     serverName: '',
     ircNetwork: '',
@@ -259,7 +261,6 @@ export function createChatStore(ns = '') {
     modal: '',
     settingsSection: 'profil',
     reportSubject: '',
-    cban: null,
     kicked: null,
     nickServAlert: null,
     nickError: null,
@@ -339,6 +340,7 @@ export function createChatStore(ns = '') {
         connectUrl: opts.url,
         viaBouncer: !!opts.serverPassword,
         umodes: '',
+        displayedHost: '',
         parentalControls: false,
       });
       // Land on the first requested salon. The ircd auto-joins #EntreNous.chat

@@ -1080,10 +1080,6 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .join-denied__redirect {
   margin: .7rem 0 0; font-size: .92rem; line-height: 1.45; color: var(--ink); font-weight: 600;
 }
-.join-denied__detail {
-  margin: .7rem 0 0; font-size: .82rem; line-height: 1.4; color: var(--faint);
-  word-break: break-word;
-}
 .join-denied__close {
   margin-top: 1.1rem; min-height: 38px; padding: .45rem 1.1rem;
   border: 0; border-radius: 10px; cursor: pointer;
@@ -1473,6 +1469,11 @@ html[data-actions="off"] .msg-actions { display: none; }
 /* ---- in-buffer search ---- */
 .topbar--search { gap: .5rem; }
 .topbar__search { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background .13s; }
+.topbar__umodes { display: inline-flex; align-items: center; gap: .15rem; flex: none; }
+.topbar__umode { position: relative; flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: var(--danger-soft, rgba(224,49,80,.14)); color: var(--danger, #d6465f); cursor: pointer; }
+.topbar__umode:hover { background: color-mix(in srgb, var(--danger, #d6465f) 22%, var(--bg)); }
+.topbar__umode-tip { position: absolute; top: calc(100% + 8px); right: 0; z-index: 40; width: max-content; max-width: min(260px, 70vw); padding: .5rem .65rem; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: .75rem; font-weight: 650; line-height: 1.35; text-align: left; box-shadow: 0 8px 22px -8px rgba(20,30,45,.45); pointer-events: none; }
+.topbar__umode-tip::before { content: ''; position: absolute; top: -5px; right: 12px; width: 8px; height: 8px; background: var(--ink); transform: rotate(45deg); }
 .topbar__search:hover { background: var(--bg-soft-2); color: var(--ink); }
 /* Leave/close the current window (parts a channel, closes a DM) — far-right of the header. */
 .topbar__leave { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background .13s, color .13s; }
@@ -1875,13 +1876,21 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nsinfo-row__v { margin: 0; font-size: .86rem; line-height: 1.4; color: var(--ink); font-weight: 600; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 .nsinfo-pills { display: flex; flex-wrap: wrap; gap: .3rem; }
 .nsinfo-pill { font-size: .72rem; font-weight: 700; padding: .14rem .45rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent-d); }
-.nsaccess { display: flex; flex-direction: column; padding: .1rem .95rem .75rem; }
-.nsaccess-row { display: flex; align-items: center; gap: .75rem; padding: .48rem 0; border-top: 1px solid var(--border); }
-.nsaccess-row:first-child { border-top: 0; }
-.nsaccess-txt { flex: 1; min-width: 0; }
-.nsaccess-chan { display: block; border: 0; background: none; padding: 0; font: inherit; font-size: .9rem; font-weight: 800; color: var(--accent-d); cursor: pointer; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.nsaccess-chan:hover { text-decoration: underline; }
-.nsaccess-desc { font-size: .76rem; color: var(--muted); margin-top: .12rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess { display: flex; flex-direction: column; padding: .25rem .55rem .7rem; gap: .28rem; }
+.nsaccess-row { display: flex; align-items: center; gap: .7rem; margin: 0; padding: .55rem .55rem; border: 0; border-radius: 12px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); cursor: pointer; text-align: left; font: inherit; color: inherit; transition: background .12s, box-shadow .12s, transform .12s; }
+.nsaccess-row:hover { background: var(--accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.nsaccess-pfx { flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 9px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .95rem; font-weight: 800; background: var(--accent-soft); color: var(--accent-d); }
+.nsaccess-pfx--founder { background: color-mix(in srgb, #c9a227 22%, var(--bg)); color: #9a7410; }
+.nsaccess-pfx--successor { background: color-mix(in srgb, #7c3aed 18%, var(--bg)); color: #6d28d9; }
+.nsaccess-pfx--sop { background: color-mix(in srgb, #2563eb 18%, var(--bg)); color: #1d4ed8; }
+.nsaccess-pfx--aop { background: var(--accent-soft); color: var(--accent-d); }
+.nsaccess-pfx--hop { background: color-mix(in srgb, #0f766e 18%, var(--bg)); color: #0f766e; }
+.nsaccess-pfx--vop { background: color-mix(in srgb, #64748b 16%, var(--bg)); color: #475569; }
+.nsaccess-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .12rem; }
+.nsaccess-chan { font-size: .92rem; font-weight: 800; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess-desc { font-size: .76rem; color: var(--muted); line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess-role { flex: none; display: inline-flex; align-items: center; gap: .28rem; font-size: .72rem; font-weight: 800; letter-spacing: .01em; color: var(--accent-d); background: var(--accent-soft); border-radius: 999px; padding: .22rem .55rem; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess-role b { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 800; }
 
 /* consistent setting row: icon · text · control */
 .srow { display: flex; align-items: center; gap: .8rem; padding: .7rem .95rem; border-top: 1px solid var(--border); min-height: 56px; }

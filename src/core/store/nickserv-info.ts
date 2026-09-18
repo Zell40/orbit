@@ -104,17 +104,41 @@ export function parseNickServAlist(raw: string): NickServAccess[] {
   for (const line of String(raw || '').split(/\n/)) {
     const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
     if (!s || isAlistNoise(s) || isAlistEmpty(s)) continue;
-    const numbered = s.match(/^\d+\s+([#&+!]\S+)\s+(\S+)(?:\s+(.*))?$/);
-    const simple = numbered ? null : s.match(/^([#&+!]\S+)\s+(\S+)(?:\s+(.*))?$/);
+    const numbered = s.match(/^\d+\s+!?([#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
+    const simple = numbered ? null : s.match(/^!?([#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
     const m = numbered || simple;
     if (!m) continue;
-    const channel = m[1];
+    const channel = m[1].replace(/^!+/, '');
+    const access = m[2].replace(/[,.;]+$/, '');
     const key = channel.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    rows.push({ channel, access: m[2], description: (m[3] || '').trim() });
+    rows.push({ channel, access, description: (m[3] || '').trim() });
   }
   return rows;
+}
+
+export type AlistAccessInfo = {
+  code: string;
+  prefix: string;
+  labelKey: string;
+};
+
+const ACCESS_LABEL: { re: RegExp; prefix: string; labelKey: string }[] = [
+  { re: /fondat|founder/i, prefix: '~', labelKey: 'founder' },
+  { re: /successeur|successor|^qop$|^owner$/i, prefix: '&', labelKey: 'successor' },
+  { re: /^sop$|^10$/i, prefix: '&', labelKey: 'sop' },
+  { re: /^aop$|^5$/i, prefix: '@', labelKey: 'aop' },
+  { re: /^hop$|^4$/i, prefix: '%', labelKey: 'hop' },
+  { re: /^vop$|^3$/i, prefix: '+', labelKey: 'vop' },
+];
+
+/** Map an Anope ALIST access token (AOP, Fondateurice, 5, …) to a role + prefix. */
+export function describeAlistAccess(raw: string): AlistAccessInfo {
+  const code = String(raw || '').replace(/[,.;]+$/g, '').trim();
+  const hit = ACCESS_LABEL.find((r) => r.re.test(code));
+  if (hit) return { code, prefix: hit.prefix, labelKey: hit.labelKey };
+  return { code, prefix: '', labelKey: '' };
 }
 
 /** Read NickServ INFO via Anope JSON-RPC (same path as ChanServ). No IRC PM. */

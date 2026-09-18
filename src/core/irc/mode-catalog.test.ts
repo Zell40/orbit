@@ -13,6 +13,7 @@ import {
   parseMlockNotice,
   parentalLockedLetters,
   umodeRowState,
+  looksLikeVhost,
 } from './mode-catalog';
 
 describe('advertisedModeLetters', () => {
@@ -78,12 +79,18 @@ describe('umodeRowState', () => {
     expect(row).toEqual({ on: true, locked: true, reason: 'parental' });
   });
 
-  it('lets +x be toggled: a vHost unsets it on purpose', () => {
+  it('lets +x be toggled when no vHost is set', () => {
     expect(umodeRowState(cloak, 'x', new Set(), false)).toEqual({
       on: true, locked: false, reason: null,
     });
     expect(umodeRowState(cloak, '', new Set(), false)).toEqual({
       on: false, locked: false, reason: null,
+    });
+  });
+
+  it('locks +x off while an Anope vHost is active', () => {
+    expect(umodeRowState(cloak, '', new Set(), false, true)).toEqual({
+      on: false, locked: true, reason: 'vhost',
     });
   });
 
@@ -97,9 +104,9 @@ describe('umodeRowState', () => {
     });
   });
 
-  it('locks +z when it is on', () => {
+  it('lets +z be turned off', () => {
     expect(umodeRowState(tls, 'z', new Set(), false)).toEqual({
-      on: true, locked: true, reason: 'protect',
+      on: true, locked: false, reason: null,
     });
   });
 
@@ -107,6 +114,15 @@ describe('umodeRowState', () => {
     expect(umodeRowState(geo, '', new Set(), true)).toEqual({
       on: false, locked: true, reason: 'geo',
     });
+  });
+});
+
+describe('looksLikeVhost', () => {
+  it('detects Anope user/nick vHosts when +x is off', () => {
+    expect(looksLikeVhost('user/Harry', '')).toBe(true);
+    expect(looksLikeVhost('user/Harry', 'x')).toBe(false);
+    expect(looksLikeVhost('abc.reseau-entrenous.fr', 'x')).toBe(false);
+    expect(looksLikeVhost('', '')).toBe(false);
   });
 });
 

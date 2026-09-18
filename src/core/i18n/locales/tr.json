@@ -574,7 +574,8 @@
     "fallback": "Bu kanala girilemiyor.",
     "redirect": "Bu kanala girilemiyor.",
     "redirected": "{{channel}} kanalına yönlendirildin.",
-    "closeToRedirect": "{{channel}} kanalına git"
+    "closeToRedirect": "{{channel}} kanalına git",
+    "cban": "Bu kanal ağda kullanılamıyor."
   },
   "banners": {
     "reconnecting": "Yeniden bağlanıyor…",

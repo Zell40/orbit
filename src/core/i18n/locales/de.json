@@ -574,7 +574,8 @@
     "fallback": "Beitritt zu diesem Kanal nicht möglich.",
     "redirect": "Beitritt zu diesem Kanal nicht möglich.",
     "redirected": "Du wurdest nach {{channel}} umgeleitet.",
-    "closeToRedirect": "Zu {{channel}} gehen"
+    "closeToRedirect": "Zu {{channel}} gehen",
+    "cban": "Dieser Kanal ist im Netzwerk nicht verfügbar."
   },
   "banners": {
     "reconnecting": "Verbinde erneut…",

@@ -120,7 +120,7 @@ export interface Buffer {
   peerReadTs: number;              // last ts the DM peer marked displayed (0 = none)
   typing: Record<string, number>;  // nick -> expiry ms (draft/typing)
   /** JOIN refused (banned / +l / +i / +O / …) — overlay in this window until closed. */
-  joinDenied?: { code: string; flag: string; reasonKey: string; detail: string; redirectTo?: string };
+  joinDenied?: { code: string; flag: string; reasonKey: string; detail: string; redirectTo?: string; suggested?: string };
 }
 
 export interface ConnectOptions {

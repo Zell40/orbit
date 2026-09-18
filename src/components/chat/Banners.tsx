@@ -164,12 +164,12 @@ export function JoinDeniedPanel() {
   const denied = useActiveChat((s) => s.buffers[s.active]?.joinDenied);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const setActive = useActiveChat((s) => s.setActive);
+  const client = useActiveChat((s) => s.client);
   const name = useActiveChat((s) => s.buffers[s.active]?.name || s.active);
   if (!denied) return null;
   const reason = t(`joinDenied.${denied.reasonKey}`);
-  const detail = denied.detail;
   const redirectTo = denied.redirectTo;
-  const showDetail = !!detail && denied.code !== '470' && detail.toLowerCase() !== String(reason).toLowerCase();
+  const goTo = redirectTo || denied.suggested;
   return (
     <div className="join-denied" role="alertdialog" aria-labelledby="join-denied-title" aria-describedby="join-denied-reason">
       <div className="join-denied__card">
@@ -177,12 +177,13 @@ export function JoinDeniedPanel() {
         <p id="join-denied-reason" className="join-denied__reason">{reason}</p>
         {denied.flag ? <span className="join-denied__flag">{denied.flag}</span> : null}
         {redirectTo ? <p className="join-denied__redirect">{t('joinDenied.redirected', { channel: redirectTo })}</p> : null}
-        {showDetail ? <p className="join-denied__detail">{detail}</p> : null}
         <button type="button" className="join-denied__close" onClick={() => {
           closeBuffer(name);
-          if (redirectTo) setActive(redirectTo);
+          if (!goTo) return;
+          if (!redirectTo) client?.join(goTo);
+          setActive(goTo);
         }}>
-          {redirectTo ? t('joinDenied.closeToRedirect', { channel: redirectTo }) : t('joinDenied.close')}
+          {goTo ? t('joinDenied.closeToRedirect', { channel: goTo }) : t('joinDenied.close')}
         </button>
       </div>
     </div>

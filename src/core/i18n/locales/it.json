@@ -574,7 +574,8 @@
     "fallback": "Impossibile entrare in questo canale.",
     "redirect": "Impossibile entrare in questo canale.",
     "redirected": "Sei stato reindirizzato su {{channel}}.",
-    "closeToRedirect": "Vai su {{channel}}"
+    "closeToRedirect": "Vai su {{channel}}",
+    "cban": "Questo canale non è disponibile sulla rete."
   },
   "banners": {
     "reconnecting": "Riconnessione…",

@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
 import { getConfig } from '@/core/config';
 import { canon } from '@/core/store/context';
+import { Modal } from '@/components/modals/Modal';
 import {
   USER_FLAG_GROUPS,
   advertisedUserModes,
   filterCatalog,
+  looksLikeVhost,
   parentalLockedLetters,
   umodeLockHintKey,
   umodeRowState,
@@ -68,10 +71,12 @@ export function ModesSection() {
   const pluginUi = usePluginRegistry((s) => s.ui);
   const modeItems = pluginUi.filter((u) => u.slot === 'settings_mode');
   const umodes = useActiveChat((s) => s.umodes);
+  const displayedHost = useActiveChat((s) => s.displayedHost);
   const client = useActiveChat((s) => s.client);
   const nick = useActiveChat((s) => s.nick);
   const whois = useActiveChat((s) => s.whois);
   const parentalControls = useActiveChat((s) => s.parentalControls);
+  const [cloakOff, setCloakOff] = useState(false);
 
   const advertised = advertisedUserModes(client?.server.isupport ?? {}, client?.server.userModes);
   const skipG = modeItems.length > 0;
@@ -83,6 +88,7 @@ export function ModesSection() {
   const group = cfg?.group || '';
   const parental = !!(parentalControls || whoisLooksParental(nick, whois, group));
   const lockedPack = parentalLockedLetters(umodes, pack, parental);
+  const vhostOn = looksLikeVhost(displayedHost, umodes);
   const offline = !client;
 
   const toggle = (m: string, turnOn: boolean) => {
@@ -109,7 +115,7 @@ export function ModesSection() {
               <div key={gname}>
                 <div className="scard__h">{t(`userFlags.groups.${gname}`)}</div>
                 {rows.map((flag) => {
-                  const row = umodeRowState(flag, umodes, lockedPack, parental);
+                  const row = umodeRowState(flag, umodes, lockedPack, parental, vhostOn);
                   return (
                     <UmodeRow
                       key={flag.m}
@@ -118,7 +124,10 @@ export function ModesSection() {
                       locked={row.locked}
                       reason={row.reason}
                       offline={offline}
-                      onToggle={() => toggle(flag.m, !row.on)}
+                      onToggle={() => {
+                        if (flag.m === 'x' && row.on) { setCloakOff(true); return; }
+                        toggle(flag.m, !row.on);
+                      }}
                     />
                   );
                 })}
@@ -133,6 +142,17 @@ export function ModesSection() {
           </>
         )}
       </div>
+      {cloakOff && (
+        <Modal title={t('settings.modes.cloakOffTitle')} onClose={() => setCloakOff(false)} stacked>
+          <p className="modal__sub">{t('settings.modes.cloakOffBody')}</p>
+          <div className="modal__actions">
+            <button type="button" className="upbtn" onClick={() => setCloakOff(false)}>{t('profile.cancel')}</button>
+            <button type="button" className="upbtn upbtn--danger" onClick={() => { setCloakOff(false); toggle('x', false); }}>
+              {t('settings.modes.cloakOffConfirm')}
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

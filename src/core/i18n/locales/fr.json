@@ -57,7 +57,11 @@
     "userInfo": "À propos de {{nick}}",
     "more": "Plus",
     "topicExpand": "Voir le topic entier",
-    "topicCollapse": "Réduire le topic"
+    "topicCollapse": "Réduire le topic",
+    "deafChan": "Sourd aux salons (+d)",
+    "deafPriv": "Sourd aux privés (+D)",
+    "deafChanTip": "Tu es sourd aux salons (+d) : tu n’y reçois plus les messages. Clique pour réentendre.",
+    "deafPrivTip": "Tu es sourd aux privés (+D) : tu ne reçois plus les messages privés. Clique pour réentendre."
   },
   "connect": {
     "onlineBadge": "{{n}} personnes en ligne",
@@ -386,7 +390,15 @@
       "alistTitle": "Accès aux salons",
       "alistLoading": "Chargement des accès…",
       "alistUnavailable": "Impossible de charger tes accès ChanServ (ALIST).",
-      "alistEmpty": "Aucun salon avec un accès ChanServ."
+      "alistEmpty": "Aucun salon avec un accès ChanServ.",
+      "alistRole": {
+        "founder": "Fondateur",
+        "successor": "Successeur",
+        "sop": "Administrateur",
+        "aop": "Opérateur",
+        "hop": "Half-op",
+        "vop": "Voice"
+      }
     },
     "appearance": {
       "theme": "Thème",
@@ -477,7 +489,11 @@
       "lockedCloak": "L’hôte masqué ne peut pas être retiré — cela afficherait ton adresse réelle à tout le monde.",
       "lockedProtect": "Cette protection ne peut pas être désactivée.",
       "lockedGeo": "Le contrôle parental empêche d’afficher ta localisation.",
-      "lockedTitle": "Verrouillé"
+      "lockedTitle": "Verrouillé",
+      "lockedVhost": "Un vHost Anope est actif — le cloak +x est remplacé et ne peut pas être activé ici.",
+      "cloakOffTitle": "Afficher l’adresse réelle ?",
+      "cloakOffBody": "Désactiver l’hôte masqué (+x) rendra ton adresse IP visible dans les salons et les WHOIS. Le serveur active +x par défaut pour protéger ta connexion.",
+      "cloakOffConfirm": "Désactiver +x"
     },
     "behavior": {
       "title": "Comportement"
@@ -645,6 +661,8 @@
     "shareVoice": "message vocal : {{url}}",
     "yourModes": "Tes modes : +{{modes}} ({{change}})",
     "yourModesNamed": "Tes modes : +{{modes}} ({{change}} — {{names}})",
+    "deafOn": "Tu as activé le mode +d (sourd aux salons) : tu ne recevras plus les messages des salons. Clique l’icône en haut de la fenêtre, ou tape /mode {{nick}} -d.",
+    "privDeafOn": "Tu as activé le mode +D (sourd aux privés) : tu ne recevras plus les messages privés. Clique l’icône en haut de la fenêtre, ou tape /mode {{nick}} -D.",
     "pmNotif": "{{nick}} (privé)",
     "userAway": "💤 {{who}} est absent{{reason}}",
     "reconnecting": "🔌 Connexion perdue — nouvelle tentative dans {{secs}}s…"
@@ -722,7 +740,8 @@
     "fallback": "Impossible de rejoindre ce salon.",
     "redirect": "Impossible de rejoindre ce salon.",
     "redirected": "Tu as été redirigé vers {{channel}}.",
-    "closeToRedirect": "Aller sur {{channel}}"
+    "closeToRedirect": "Aller sur {{channel}}",
+    "cban": "Ce salon n'est pas accessible sur le réseau."
   },
   "banners": {
     "reconnecting": "Reconnexion…",
@@ -1112,7 +1131,7 @@
     },
     "cloak": {
       "label": "Hôte masqué",
-      "desc": "Cache ton adresse réelle derrière un cloak (+x). Un vHost Anope le remplace et retire +x."
+      "desc": "Cache ton adresse réelle derrière un cloak (+x). Un vHost Anope le remplace (et retire +x)."
     },
     "hideidle": {
       "label": "Masquer l’inactivité",

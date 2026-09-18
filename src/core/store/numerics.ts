@@ -4,6 +4,7 @@ import { unregisterPushOnAccountLogout } from '@/platform/push';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, umodeLettersFrom221 } from '../irc/modes';
 import { looksLikeMlock, mergeMlock, mlockLetters } from '../irc/mode-catalog';
+import { translateUmodeNotice } from '../irc/umode-notices';
 import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
 import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
@@ -25,7 +26,7 @@ interface NumericsDeps {
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '470', '471', '473', '474', '475', '476', '477', '489', '519', '520', '742']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '470', '471', '473', '474', '475', '476', '477', '489', '519', '520', '742', '926']);
 
 const JOIN_DENIED: Record<string, { flag: string; reasonKey: string }> = {
   '405': { flag: '', reasonKey: 'toomany' },
@@ -38,6 +39,7 @@ const JOIN_DENIED: Record<string, { flag: string; reasonKey: string }> = {
   '489': { flag: '+z', reasonKey: 'tls' },
   '519': { flag: '', reasonKey: 'admin' },
   '520': { flag: '+O', reasonKey: 'oper' },
+  '926': { flag: '', reasonKey: 'cban' },
 };
 
 function findWhois(table: ChatState['whois'], nick: string): ChatState['whois'][string] | undefined {
@@ -102,6 +104,11 @@ function redirectDeniedMeta(detail: string): { flag: string; reasonKey: string }
   return { flag: '+L', reasonKey: 'redirect' };
 }
 
+function suggestedChannel(from: string, text: string): string | undefined {
+  const names = text.match(/[#&][^\s,.:;!?]+/g) || [];
+  return names.find((n) => isChannelName(n) && canon(n) !== canon(from));
+}
+
 /** Split ERR_CANNOTSENDTOCHAN into calm +m vs ban/quiet — never conflate the two. */
 function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatState>['getState']): Extract<KickInfo['kind'], 'moderated' | 'mute'> {
   const text = trailing.toLowerCase();
@@ -125,14 +132,14 @@ function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatStat
 // routed by the generic fallback (errors → a ⚠ line where the user is looking,
 // info → the server console), so nothing is ever dumped unlabelled.
 export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache }: NumericsDeps) {
-  const { ensureBuffer, patchBuffer, dropBuffer, sysLine, serverLine, patchWhois } = helpers;
+  const { ensureBuffer, patchBuffer, sysLine, serverLine, patchWhois } = helpers;
   // LIST: keep the previous catalogue on screen while a refresh is in flight
   // (wiping it on 321 made Explore look empty/stuck). Live-append only when
   // there was nothing to show yet.
   let listAcc: { name: string; users: number; topic: string }[] | null = null;
   let listLive = false;
 
-  function applyJoinDenied(ch: string, code: string, detail: string, extra?: { flag?: string; reasonKey?: string; redirectTo?: string }): void {
+  function applyJoinDenied(ch: string, code: string, detail: string, extra?: { flag?: string; reasonKey?: string; redirectTo?: string; suggested?: string }): void {
     const existing = get().buffers[canon(ch)];
     if (existing?.joined) {
       const key = extra?.reasonKey || JOIN_DENIED[code]?.reasonKey || 'fallback';
@@ -146,12 +153,14 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
     const flag = extra?.flag ?? meta.flag;
     const reasonKey = extra?.reasonKey ?? meta.reasonKey;
     const redirectTo = extra?.redirectTo?.trim();
+    const suggested = extra?.suggested?.trim();
     patchBuffer(ch, (b) => ({
       ...b,
       joined: false,
       joinDenied: {
         code, flag, reasonKey, detail: detail.trim(),
         ...(redirectTo && isChannelName(redirectTo) ? { redirectTo } : {}),
+        ...(suggested && isChannelName(suggested) ? { suggested } : {}),
       },
     }));
     if (get().active !== canon(ch)) set({ active: canon(ch) });
@@ -315,6 +324,11 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '221': // RPL_UMODEIS: <me> <modestring> — our current user modes
         set({ umodes: umodeLettersFrom221(msg.params) });
         return true;
+      case '396': { // RPL_HOSTHIDDEN: <me> <host> :is now your displayed host
+        const host = (msg.params[1] || '').trim();
+        if (host && !host.includes(' ')) set({ displayedHost: host });
+        return true;
+      }
       case '004': // RPL_MYINFO: <me> <servername> … — the ircd's own hostname
         set({ serverName: msg.params[1] || get().serverName });
         return true;
@@ -541,12 +555,10 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       }
       case '926': { // ERR_BADCHANNEL (m_cban): join refused — channel is CBANed network-wide
         const ch = msg.params[1] || '';
+        if (!isChannelName(ch)) return true;
         const full = msg.params.length > 1 ? msg.params[msg.params.length - 1] : '';
-        // Message is "Channel #x is CBANed: <reason>" — keep just the reason.
         const reason = full.replace(/^Channel\s+\S+\s+is\s+CBANed:\s*/i, '').trim() || full;
-        if (isChannelName(ch)) { closedChannels.add(canon(ch)); dropBuffer(ch); }
-        if (get().prefs.sound) blip();
-        set({ cban: { channel: ch, reason }, modal: 'cban' });
+        applyJoinDenied(ch, '926', reason, { suggested: suggestedChannel(ch, reason) });
         return true;
       }
       case '375': // RPL_MOTDSTART — keep the server's ":- <server> Message of the day -" line
@@ -592,7 +604,8 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       // Informational numeric → console as Info (LUSERS, VERSION leftovers, …).
       // Tag unknown ones with their RPL name so it's recognised rather than a bare number.
       const label = numerics?.name(code);
-      serverLine(label && !serverText ? `[${label}]` : msg.params.slice(1).join(' '), 'info');
+      const umodeNote = translateUmodeNotice(serverText, get().nick);
+      serverLine(umodeNote || (label && !serverText ? `[${label}]` : msg.params.slice(1).join(' ')), 'info');
       return true;
     }
 

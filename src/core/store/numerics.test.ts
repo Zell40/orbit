@@ -339,6 +339,16 @@ describe('store numerics handler', () => {
     expect(state.buffers['#opers']?.joinDenied).toMatchObject({ code: '520', flag: '+O', reasonKey: 'oper' });
   });
 
+  it('926 CBAN keeps the buffer as joinDenied and offers a suggested salon', () => {
+    const { handleNumerics, state } = setup();
+    expect(handleNumerics(mk('926', ['me', '#_logs', 'Channel #_logs is CBANed: please use #accueil']))).toBe(true);
+    expect(state.buffers['#_logs']?.joinDenied).toMatchObject({
+      code: '926', reasonKey: 'cban', suggested: '#accueil',
+    });
+    expect(state.buffers['#_logs']?.joined).toBe(false);
+    expect(state.active).toBe('#_logs');
+  });
+
   it('477 while already joined does not overlay', () => {
     const { handleNumerics, state, sys } = setup({
       buffers: { '#x': { name: '#x', joined: true, messages: [] } },

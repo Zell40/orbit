@@ -9,6 +9,7 @@ import { usePluginRegistry, type PluginUi } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
+import { UmodeBadges } from './UmodeBadges';
 
 /** Preferred order for left-cluster topbar plugins (invite → clock). */
 const TOPBAR_LEAD = ['invite', 'orbit-clock'] as const;
@@ -121,6 +122,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       </div>
       {/* invite → clock → search → notifications → camera → pin / manage / ChanServ / … */}
       {plugLead.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugLead)}</span>}
+      <UmodeBadges />
       {!isServer && <button className="topbar__search topbar__hide-mobile" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
       {isChannel && <NotifyMenu />}
       {/* Camera: desktop topbar only — mobile uses the ⋮ menu (topbar_more_item). */}

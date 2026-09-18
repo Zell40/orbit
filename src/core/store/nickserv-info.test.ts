@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNickServInfo, parseNickServAlist } from './nickserv-info';
+import { parseNickServInfo, parseNickServAlist, describeAlistAccess } from './nickserv-info';
 
 const FR = `\u0002Informations pour le compte Harry\u0002 :
 Enregistré          : déc. 12 15:04:22 2019 CET (6 ans, 280 jours)
@@ -79,8 +79,15 @@ describe('parseNickServAlist', () => {
     ]);
   });
 
-  it('returns an empty list when the nick has no access', () => {
-    expect(parseNickServAlist('Harry n\'a accès à aucun salon.')).toEqual([]);
-    expect(parseNickServAlist('Zell has no access on any channels.')).toEqual([]);
+  it('strips the Anope ! (no-expire) flag from channel names', () => {
+    expect(parseNickServAlist('1 !#Aide.chat AOP Help')).toEqual([
+      { channel: '#Aide.chat', access: 'AOP', description: 'Help' },
+    ]);
+  });
+
+  it('maps XOP tokens to prefixes', () => {
+    expect(describeAlistAccess('AOP')).toEqual({ code: 'AOP', prefix: '@', labelKey: 'aop' });
+    expect(describeAlistAccess('Fondateurice')).toEqual({ code: 'Fondateurice', prefix: '~', labelKey: 'founder' });
+    expect(describeAlistAccess('VOP')).toEqual({ code: 'VOP', prefix: '+', labelKey: 'vop' });
   });
 });

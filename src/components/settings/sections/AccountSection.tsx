@@ -6,7 +6,7 @@ import { getTheme } from '@/themes';
 import { Turnstile } from '@/components/Turnstile';
 import { useActiveChat, activeStore } from '@/core/networks';
 import { ChangeNickField } from '../ChangeNickField';
-import { fetchNickServInfo, fetchNickServAlist, type NickServInfo, type NickServAccess } from '@/core/store/nickserv-info';
+import { fetchNickServInfo, fetchNickServAlist, describeAlistAccess, type NickServInfo, type NickServAccess } from '@/core/store/nickserv-info';
 
 export function AccountSection() {
   const { t } = useTranslation();
@@ -70,10 +70,10 @@ export function AccountSection() {
           <div className="login-card__title">{t('settings.account.loggedIn')}</div>
           <div className="login-card__sub">{t('settings.account.identifiedPre')} <strong>{account}</strong></div>
         </div>
-        <NickServInfoCard account={account} nick={nick} />
-        <NickServAlistCard account={account} nick={nick} />
         <ChangeNickField hint={t('settings.account.nickHint')} />
         <ChangePassword />
+        <NickServInfoCard account={account} nick={nick} />
+        <NickServAlistCard account={account} nick={nick} />
         <button className="set-leave" onClick={logout}>{t('settings.account.logoutAccount')}</button>
       </>
     );
@@ -224,15 +224,23 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
         {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistEmpty')}</div></div>}
         {phase === 'ok' && (
           <div className="nsaccess">
-            {rows.map((row) => (
-              <div className="nsaccess-row" key={row.channel}>
-                <div className="nsaccess-txt">
-                  <button type="button" className="nsaccess-chan" onClick={() => openChan(row.channel)}>{row.channel}</button>
-                  {row.description ? <div className="nsaccess-desc">{row.description}</div> : null}
-                </div>
-                <span className="nsinfo-pill">{row.access}</span>
-              </div>
-            ))}
+            {rows.map((row) => {
+              const acc = describeAlistAccess(row.access);
+              const role = acc.labelKey ? t(`settings.account.alistRole.${acc.labelKey}`) : acc.code;
+              return (
+                <button type="button" className="nsaccess-row" key={row.channel} onClick={() => openChan(row.channel)}>
+                  <span className={`nsaccess-pfx nsaccess-pfx--${acc.labelKey || 'other'}`} aria-hidden>{acc.prefix || '#'}</span>
+                  <span className="nsaccess-txt">
+                    <span className="nsaccess-chan">{row.channel}</span>
+                    {row.description ? <span className="nsaccess-desc">{row.description}</span> : null}
+                  </span>
+                  <span className="nsaccess-role">
+                    {acc.prefix ? <b>{acc.prefix}</b> : null}
+                    {role}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
