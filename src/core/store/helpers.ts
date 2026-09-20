@@ -32,14 +32,15 @@ export function rememberQueryAccount(
 
 
 /** Join LineWrapper fragments; keep list/notice items on their own line. */
-function joinCoalescedText(prev: string, next: string, kind?: MessageKind): string {
+function joinCoalescedText(prev: string, next: string): string {
   if (!prev) return next;
   if (!next) return prev;
   const b = next.replace(/^\s+/, '');
   const plain = stripFormatting(b).replace(/^\s+/, '');
   const nl = () => `${prev.replace(/\s+$/, '')}\n${b}`;
-  // Each coalesced NOTICE frame → its own line (Bac, Operateur, …)
-  if (kind === 'notice') return nl();
+  // A NOTICE frame gets its own line only when it reads as a structured item
+  // (the checks below). Blanket-breaking every frame would also break a sentence
+  // the server merely wrapped across two lines, which is what coalescing is for.
   // HelpServ LIST: category header `IDEA (3)` / ticket `#15 …`
   if (/^[A-ZÉÈÀÂÙÛÇ]{2,16}\s*\(\d+\)\s*$/.test(plain)) return nl();
   if (/^#\d+\b/.test(plain)) return nl();
@@ -49,7 +50,7 @@ function joinCoalescedText(prev: string, next: string, kind?: MessageKind): stri
   if (/^[^\s:]{1,32}:\s/.test(plain) && !/^(https?|ftp):/i.test(plain)) return nl();
   if (/^━{3,}/.test(plain)) return nl();
   if (/[:：]\s*$/.test(prev) && b.length > 0) return nl();
-  if (/[.!?…]$/.test(prev.trim()) && /^[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ0-9(\[]/.test(plain)) return nl();
+  if (/[.!?…]$/.test(prev.trim()) && /^[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ0-9([]/.test(plain)) return nl();
   if (/\s$/.test(prev) || /^\s/.test(next)) return prev + next;
   return `${prev} ${next}`;
 }
@@ -203,7 +204,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
           && Math.abs(m.ts - last.ts) <= 2500
         ) {
           const msgs = b.messages.slice();
-          const joined = joinCoalescedText(last.text, m.text, m.kind);
+          const joined = joinCoalescedText(last.text, m.text);
           msgs[msgs.length - 1] = { ...last, text: joined, ts: m.ts };
           return { ...b, messages: msgs };
         }

@@ -190,7 +190,7 @@ export function looksLikeIrcChannel(name: string): boolean {
 
 /** Soften dense service NOTICE text for readable callouts (INFO blocks, sentences). */
 export function loosenNoticeText(text: string): string {
-  return text
+  const bulleted = text
     // "| INFO | a | INFO | b" → one block per marker
     .replace(/\s*\|\s*(INFO|WARN(?:ING)?|NOTICE|ALERTE|ERROR|ERR|OK)\s*\|\s*/gi, '\n\n$1 · ')
     // "| Aide au jeu | - … | Aide au jeu | - …" → one block per custom section
@@ -198,15 +198,18 @@ export function loosenNoticeText(text: string): string {
     // Real list bullets only — HelpServ uses middle-dot `·` as an inline separator
     .replace(/([^\n])\s*[•▪▸►]\s+/g, '$1\n• ')
     // Leading/orphan bullets still normalize to "• "
-    .replace(/^[•▪▸►]\s*/gm, '• ')
-    // Bac / game bot: emoji-led clauses on their own line
-    .replace(/\s+(?=[\u{1F300}-\u{1FAFF}])/gu, '\n')
+    .replace(/^[•▪▸►]\s*/gm, '• ');
+  // Bac / game bot: emoji-led clauses on their own line — but never inside a list
+  // item, where an emoji (🔒, 🏆…) is part of the item's own text, not a new clause.
+  return bulleted.split('\n')
+    .map((l) => l.startsWith('• ') ? l : l.replace(/\s+(?=[\u{1F300}-\u{1FAFF}])/gu, '\n'))
+    .join('\n')
     // Player lines "Nick: …" each on their own line when concatenated
-    .replace(/([^\n])\s+([A-Za-z0-9_\[\]\\^{}|`-]{1,32}:\s)/g, '$1\n$2')
+    .replace(/([^\n])\s+([A-Za-z0-9_[\]\\^{}|`-]{1,32}:\s)/g, '$1\n$2')
     // Separator bars
     .replace(/\s*(━{3,})\s*/g, '\n$1\n')
     // New paragraph after sentence end when the next clause starts with a capital / quote
-    .replace(/([.!?…])\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"(\[])/g, '$1\n\n')
+    .replace(/([.!?…])\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"([])/g, '$1\n\n')
     // Help desks: "AIDE    description" / "… commandes ANNULER  Annuler …"
     .replace(/([^\n])[ \t]{2,}([A-ZÉÈÀÂÙÛÇ]{3,20})[ \t]{2,}/g, '$1\n$2  ')
     .replace(/([a-zà-ÿ.])\s+([A-ZÉÈÀÂÙÛÇ]{4,16})\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ])/g, '$1\n$2 ')

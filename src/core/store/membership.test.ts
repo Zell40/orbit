@@ -39,6 +39,7 @@ function setup(historyAsked = new Set<string>()) {
       state.whois = { ...state.whois, [nick]: fn(state.whois[nick] ?? { nick, loading: true }) };
     },
     sysLine: (name: string, text: string, kind: string, from?: string) => { lines.push({ name, text, kind, from }); },
+    tsOf: () => 1000, // sysLine's ts argument; the stub above ignores it
   } as unknown as StoreHelpers;
   const seed = (chan: string, members: string[]) => {
     state.buffers[k(chan)] = { name: chan, isChannel: true, joined: true, members: Object.fromEntries(members.map((n) => [n, { nick: n }])) };

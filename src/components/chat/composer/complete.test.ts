@@ -49,7 +49,7 @@ describe('completeToken', () => {
   });
 
   it('keeps one channel when LIST and the buffer key differ only by case', () => {
-    expect(completeToken('/join #edf', 11, ctx({
+    expect(completeToken('/join #edf', 10, ctx({
       channels: ['#edfgdf.chat', '#EDFGDF.chat', '#edf-other'],
     }))).toEqual({
       start: 6, candidates: ['#edf-other ', '#EDFGDF.chat '], kind: 'channel',

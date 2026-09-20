@@ -41,13 +41,19 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           patchBuffer(ch, (b) => ({ ...b, joined: true, joinDenied: undefined }));
           const want = (getExpectedBootChannels()[0] || '').trim();
           const denied = get().buffers[get().active]?.joinDenied;
+          // Redirect ban (+b d:#dest:…): we do land in the destination, but focus
+          // stays on the refused channel so its panel can say why — it carries the
+          // button to jump here. This outranks the boot-channel rule below, which
+          // would otherwise pull focus when the destination IS the asked-for channel.
           const stayOnDenied = !!denied?.redirectTo && canon(denied.redirectTo) === canon(ch);
-          if (want) {
-            // First URL/startup channel is the one to display. Ignore the
-            // network autojoin (#EntreNous.chat) so it doesn't steal focus.
-            if (normChan(ch) === normChan(want)) get().setActive(ch);
-          } else if (!stayOnDenied && (!isChannelName(get().active) || get().active === '')) {
-            get().setActive(ch);
+          if (!stayOnDenied) {
+            if (want) {
+              // First URL/startup channel is the one to display. Ignore the
+              // network autojoin (#EntreNous.chat) so it doesn't steal focus.
+              if (normChan(ch) === normChan(want)) get().setActive(ch);
+            } else if (!isChannelName(get().active) || get().active === '') {
+              get().setActive(ch);
+            }
           }
           // Pull full history (messages + JOIN/PART/KICK/MODE/TOPIC events via event-playback)
           // from m_ircv3_chathistory — the +H auto-replay only carries messages. Deduped by id.

@@ -23,6 +23,7 @@ function setup() {
     patchBuffer: (name: string, fn: (b: Buf) => Buf) => { if (state.buffers[k(name)]) state.buffers[k(name)] = fn(state.buffers[k(name)]); },
     sysLine: (name: string, text: string, kind: string, from?: string) => { lines.push({ name, text, kind, from }); },
     serverLine: (text: string, kind?: string) => { serverLines.push({ text, kind }); },
+    tsOf: () => 1000, // sysLine's ts argument; the stub above ignores it
   } as unknown as StoreHelpers;
   const seedChan = (chan: string, members: string[]) => {
     state.buffers[k(chan)] = { name: chan, modes: '', modeParams: {}, members: Object.fromEntries(members.map((n) => [n, { nick: n, user: 'u', host: 'h', prefix: '' }])) };

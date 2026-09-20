@@ -16,7 +16,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
   const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string }> =
     (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string }>) || {};
   const state = {
-    client: { numerics: new Numerics(), whowas: (_nk: string) => {} },
+    client: { numerics: new Numerics(), whowas: (_nk: string) => {}, setRealname: () => {} },
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
     nick: 'me',
     banlists: {}, exceptlists: {}, invexlists: {},
@@ -49,6 +49,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
       whois = { ...whois, [nick]: fn(cur) };
       state.whois = whois;
     },
+    tsOf: () => 1000, // sysLine's ts argument; the stub above ignores it
   } as unknown as StoreHelpers;
   const closedChannels = new Set<string>();
   const { handleNumerics } = makeNumerics({
@@ -177,7 +178,7 @@ describe('store numerics handler', () => {
       buffers: { bob: { name: 'bob' } },
     });
     expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
-    expect(sys).toEqual([{ name: 'bob', text: expect.stringContaining('⚠️') }]);
+    expect(sys).toEqual([{ name: 'bob', text: expect.stringContaining('⚠️'), kind: 'system' }]);
   });
 
   it('401 for a $notice: inbox is swallowed (local buffer, not a nick)', () => {
