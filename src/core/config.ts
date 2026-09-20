@@ -287,12 +287,18 @@ function deepMerge<T>(base: T, over: unknown): T {
 // downloaded and evaluated. Falls back to fetching ourselves (dev, a deployer
 // who dropped the script, a browser that blocked it).
 export async function loadConfig(): Promise<AppConfig> {
+  const ownFetch = () => fetch(`${import.meta.env.BASE_URL}config.json`, { cache: 'no-cache' })
+    .then((res) => (res.ok ? res.json() : null));
   try {
     const early = (window as unknown as { __orbitConfig?: Promise<unknown> }).__orbitConfig;
-    const json = early
-      ? await early
-      : await fetch(`${import.meta.env.BASE_URL}config.json`, { cache: 'no-cache' })
-        .then((res) => (res.ok ? res.json() : null));
+    // The early fetch resolves to null when it failed. Retry here instead of
+    // settling for the built-in defaults: it flies from <head>, before the
+    // service worker has necessarily woken up and while a cold PWA launch is
+    // still bringing the network up, so it is the request most likely to lose.
+    // Running the session on DEFAULT_CONFIG silently drops the deployment's
+    // branding AND every opt-in feature flag, session resume included.
+    let json = early ? await early.catch(() => null) : null;
+    if (!json) json = await ownFetch();
     if (json) cfg = deepMerge(DEFAULT_CONFIG, json);
   } catch {
     /* no/invalid config.json — run on the built-in defaults */

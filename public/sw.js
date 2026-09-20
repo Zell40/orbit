@@ -43,13 +43,19 @@ function parseIrcLine(line) {
   return { nick, command, target, text, msgid };
 }
 
-// Brand name/icon for notifications — read from config.json (network-first, cache
-// fallback) so a re-branded deployment's push notifications match its identity.
+// The deployment's own config.json (network-first, cache fallback) — the single
+// source of truth for branding on every surface this worker owns.
+async function configJson() {
+  let r;
+  try { r = await fetch('/app/config.json', { cache: 'no-store' }); } catch { r = await caches.match('/app/config.json'); }
+  return r && r.ok ? r.json() : null;
+}
+
+// Brand name/icon for notifications, so a re-branded deployment's push
+// notifications match its identity.
 async function brand() {
   try {
-    let r;
-    try { r = await fetch('/app/config.json', { cache: 'no-store' }); } catch { r = await caches.match('/app/config.json'); }
-    const b = (await r.json()).branding || {};
+    const b = ((await configJson()) || {}).branding || {};
     return { name: b.name || 'Orbit', icon: b.icon || '/app/favicon.svg' };
   } catch { return { name: 'Orbit', icon: '/app/favicon.svg' }; }
 }
@@ -99,6 +105,41 @@ self.addEventListener('notificationclick', (e) => {
   })());
 });
 
+// config.branding.icon values that mean "the deployer never picked one" — the
+// bundled PNGs in the static manifest are purpose-built app icons and beat a
+// bare logo mark, so leave the manifest untouched for those.
+const STOCK_ICONS = ['/app/orbit-icon.svg', '/app/favicon.svg'];
+const ICON_TYPES = [[/\.svg(\?|$)/i, 'image/svg+xml'], [/\.png(\?|$)/i, 'image/png'],
+  [/\.jpe?g(\?|$)/i, 'image/jpeg'], [/\.webp(\?|$)/i, 'image/webp']];
+
+// Static manifest + the deployment's icon on top. Returns the untouched response
+// whenever anything is off, so a missing/odd config.json can never cost the app
+// its manifest (and with it, installability).
+async function brandedManifest(req) {
+  const res = await fetch(req).then((r) => {
+    if (r.ok && r.type === 'basic') { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+    return r;
+  }).catch(() => caches.match(req));
+  if (!res || !res.ok) return res || Response.error();
+  try {
+    const manifest = await res.clone().json();
+    const icon = (((await configJson()) || {}).branding || {}).icon;
+    if (!icon || STOCK_ICONS.includes(icon)) return res;
+    const type = (ICON_TYPES.find(([re]) => re.test(icon)) || [])[1];
+    // `any` rather than a made-up pixel size: we cannot measure the image (it is
+    // usually cross-origin, so createImageBitmap has nothing to decode). Listed
+    // first so it wins the slot, with the bundled icons kept behind it as the
+    // fallback if it turns out unfetchable or undecodable.
+    manifest.icons = [
+      Object.assign({ src: icon, sizes: 'any', purpose: 'any' }, type ? { type } : null),
+      ...(Array.isArray(manifest.icons) ? manifest.icons : []),
+    ];
+    return new Response(JSON.stringify(manifest), {
+      headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'no-cache' },
+    });
+  } catch { return res; }
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
@@ -129,6 +170,13 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
+  // manifest.webmanifest: the install icon has to follow config.branding.icon
+  // like every other surface (tab favicon, notifications), but the page cannot
+  // build a manifest itself — scope/start_url must resolve under the manifest's
+  // own directory, which a blob: URL has not got. Serving it from here keeps the
+  // real /app/ URL and one source of truth. A first, uncontrolled load still gets
+  // the static file, so this is never worse than shipping it alone.
+  if (url.pathname === '/app/manifest.webmanifest') { e.respondWith(brandedManifest(req)); return; }
   // /app/assets/ is content-hashed → immutable, so cache-first (fast; a new build
   // ships new filenames, so this never goes stale).
   if (url.pathname.startsWith('/app/assets/')) {
