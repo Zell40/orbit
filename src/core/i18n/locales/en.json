@@ -284,6 +284,12 @@
       "tabModes": "Modes",
       "classicModes": "Classic modes",
       "extraModes": "Extra modes",
+      "simple": {
+        "access": "Who can join",
+        "speech": "Who can talk",
+        "protect": "Channel protection",
+        "hint": "Simplified view: only the everyday settings are offered. For the advanced modes, turn off “Simplified channel panel” in Settings → Appearance."
+      },
       "paramModes": "Limits and protections",
       "lockedByServices": "Locked by services — cannot be turned on or off here.",
       "lockedOnOverview": "Change the password on the Overview tab.",
@@ -409,6 +415,8 @@
       "compactHint": "Denser messages, more on screen.",
       "hoverActions": "Hover actions",
       "hoverActionsHint": "Quick react, reply and pin buttons when you hover a message.",
+      "simpleModes": "Simplified channel panel",
+      "simpleModesHint": "In “Manage channel”, show only the everyday settings, spelled out and without mode codes.",
       "mono": "Monospace messages",
       "monoHint": "Fixed-width font so ASCII art and tables line up.",
       "bubbles": "Bubble messages",

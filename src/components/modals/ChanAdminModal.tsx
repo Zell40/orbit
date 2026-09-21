@@ -6,8 +6,11 @@ import { formatIrc } from '@/lib/format';
 import { buildModeContext } from '@/core/irc/modes';
 import {
   CHAN_PARAMS,
+  SIMPLE_CHAN_GROUPS,
   advertisedChanFlags,
   filterCatalog,
+  plainDesc,
+  simpleChanFlags,
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
@@ -91,15 +94,17 @@ function ChannelParamRow({
   );
 }
 
-function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, onLockTip }: {
+function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, onLockTip, plain }: {
   flags: ChanFlag[]; modes: string; mlock?: string; chan: string;
   setChannelMode: (chan: string, letter: string, on: boolean) => void;
   onLockedClick?: (f: ChanFlag) => void;
   onLockTip: (letter: string, lock: 'services' | 'overview' | 'list', pt: { clientX: number; clientY: number }) => void;
+  /** Simplified panel: drop the mode letter and spell the effect out instead. */
+  plain?: boolean;
 }) {
   const { t } = useTranslation();
   return (
-    <div className="ca-flags">
+    <div className={`ca-flags${plain ? ' ca-flags--plain' : ''}`}>
       {flags.map((f) => {
         const on = modes.includes(f.m);
         const mlocked = !!(mlock && mlock.includes(f.m));
@@ -113,7 +118,9 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
             : lock === 'services'
               ? t('modals.chanadmin.lockedByServices')
               : '';
-        const title = `+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}${lockHint ? ` · ${lockHint}` : ''}`;
+        const title = plain
+          ? `${t(`chanFlags.${f.key}.label`)}${lockHint ? ` · ${lockHint}` : ''}`
+          : `+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}${lockHint ? ` · ${lockHint}` : ''}`;
         return (
           <label key={f.m} className={`ca-flag${on ? ' is-on' : ''}${ro ? ' is-ro' : ''}${jump ? ' is-jump' : ''}`}
             title={title}
@@ -124,8 +131,17 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
             } : undefined}>
             <input type="checkbox" checked={on} disabled={ro}
               onChange={() => { if (!ro) setChannelMode(chan, f.m, !on); }} />
-            <code className="ca-flag__m">+{f.m}</code>
-            <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
+            {plain ? (
+              <span className="ca-flag__txt">
+                <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
+                <span className="ca-flag__desc">{plainDesc(t(`chanFlags.${f.key}.desc`))}</span>
+              </span>
+            ) : (
+              <>
+                <code className="ca-flag__m">+{f.m}</code>
+                <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
+              </>
+            )}
             {ro && lock && lock !== 'list' ? <LockTag kind={lock} /> : null}
           </label>
         );
@@ -214,6 +230,7 @@ export function ChanAdminModal() {
   const removeBan = useActiveChat((s) => s.removeBan);
   const modTopic = useActiveChat((s) => s.modTopic);
   const client = useActiveChat((s) => s.client);
+  const simpleModes = useActiveChat((s) => s.prefs.simpleModes);
   const chan = buffer?.name || '';
   const modeParams = buffer?.modeParams;
   const mlock = buffer?.mlock || '';
@@ -441,7 +458,25 @@ export function ChanAdminModal() {
         </div>
       )}
 
-      {tab === 'modes' && (
+      {tab === 'modes' && simpleModes && (
+        <div className="ca-pane ca-pane--simple">
+          {SIMPLE_CHAN_GROUPS.map(({ group, letters }) => {
+            const groupFlags = simpleChanFlags(flags, letters);
+            if (!groupFlags.length) return null;
+            return (
+              <div key={group} className="ca-simple__grp">
+                <h4 className="ca-h">{t(`modals.chanadmin.simple.${group}`)}</h4>
+                <FlagGrid plain flags={groupFlags} modes={flagModes} mlock={mlock} chan={chan}
+                  setChannelMode={setChannelMode} onLockTip={showLockTip} />
+              </div>
+            );
+          })}
+          {/* Without this the advanced flags look gone rather than hidden. */}
+          <p className="ca-simple__hint">{t('modals.chanadmin.simple.hint')}</p>
+        </div>
+      )}
+
+      {tab === 'modes' && !simpleModes && (
         <div className="ca-pane ca-pane--modes">
           <div className="ca-modes__flags">
             {flags.some((f) => f.group === 'classic') && (

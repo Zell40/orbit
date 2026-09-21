@@ -26,6 +26,8 @@ export interface Prefs {
   uploadTtlHours: number;
   /** JOIN a channel automatically when someone INVITEs you. */
   joinOnInvite: boolean;
+  /** Plain-language channel Modes tab: no mode letters, only the common flags. */
+  simpleModes: boolean;
 }
 
 const KEY = 'orbit-prefs';
@@ -38,7 +40,7 @@ function defaults(): Prefs {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, hideModes: false, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: false,
-    readReceipts: true, joinOnInvite: false,
+    readReceipts: true, joinOnInvite: false, simpleModes: false,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };
 }

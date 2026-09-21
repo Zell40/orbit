@@ -284,6 +284,12 @@
       "tabModes": "Modes",
       "classicModes": "Modes historiques",
       "extraModes": "Modes complémentaires",
+      "simple": {
+        "access": "Qui peut entrer",
+        "speech": "Qui peut écrire",
+        "protect": "Protection du salon",
+        "hint": "Affichage simplifié : seuls les réglages courants sont proposés. Pour les modes avancés, désactivez « Panneau de salon simplifié » dans Réglages → Apparence."
+      },
       "paramModes": "Limites et protections",
       "lockedByServices": "Verrouillé par les services — impossible à activer ou désactiver ici.",
       "lockedOnOverview": "Le mot de passe se change dans l’onglet Aperçu.",
@@ -409,6 +415,8 @@
       "compactHint": "Messages plus denses, plus d’infos à l’écran.",
       "hoverActions": "Actions au survol",
       "hoverActionsHint": "Boutons de réaction, réponse et épingle au survol d'un message.",
+      "simpleModes": "Panneau de salon simplifié",
+      "simpleModesHint": "Dans « Gérer le salon », n'affiche que les réglages courants, en toutes lettres et sans codes de modes.",
       "mono": "Messages à chasse fixe",
       "monoHint": "Police à largeur fixe pour aligner l'art ASCII et les tableaux.",
       "bubbles": "Messages en bulles",

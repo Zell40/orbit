@@ -60,6 +60,7 @@ export function AppearanceSection() {
         <ToggleRow icon="📟" label={t('settings.appearance.showStatus')} hint={t('settings.appearance.showStatusHint')} prefKey="showStatus" />
         <ToggleRow icon="🏷️" label={t('settings.appearance.topicFull')} hint={t('settings.appearance.topicFullHint')} prefKey="topicSetterFull" />
         <ToggleRow icon="🖱️" label={t('settings.appearance.hoverActions')} hint={t('settings.appearance.hoverActionsHint')} prefKey="hoverActions" />
+        <ToggleRow icon="🎛️" label={t('settings.appearance.simpleModes')} hint={t('settings.appearance.simpleModesHint')} prefKey="simpleModes" />
         <ToggleRow icon="⌨️" label={t('settings.appearance.mono')} hint={t('settings.appearance.monoHint')} prefKey="monoMessages" />
         <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
         <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />

@@ -97,6 +97,38 @@ export const CHAN_FLAGS: ChanFlag[] = [
 
 export const BASE_CHAN_FLAGS = 'imntsp';
 
+/**
+ * The simplified channel panel (prefs.simpleModes): the handful of flags a
+ * channel owner actually reaches for, grouped by what they do rather than by
+ * how old they are. Mode letters never surface there — the label and the
+ * description carry the whole meaning — so anything whose point IS the letter
+ * (value modes, +k, the filter list) stays out of it.
+ */
+export type SimpleChanGroup = 'access' | 'speech' | 'protect';
+
+export const SIMPLE_CHAN_GROUPS: Array<{ group: SimpleChanGroup; letters: string }> = [
+  { group: 'access', letters: 'isR' },
+  { group: 'speech', letters: 'nmM' },
+  { group: 'protect', letters: 'tcCT' },
+];
+
+/** One simplified group, in the group's own order, minus what the ircd lacks. */
+export function simpleChanFlags(flags: ChanFlag[], letters: string): ChanFlag[] {
+  return [...letters]
+    .map((m) => flags.find((f) => f.m === m))
+    .filter((f): f is ChanFlag => !!f);
+}
+
+/**
+ * Every `chanFlags.*.desc` ends with the letter it documents — "Il faut être
+ * invité pour entrer (+i)". The simplified panel is defined by not showing
+ * letters, so strip that tag here rather than duplicate all the descriptions
+ * across the ten locales.
+ */
+export function plainDesc(desc: string): string {
+  return desc.replace(/\s*\([+-][A-Za-z]\)\s*$/, '');
+}
+
 /** Type B/C channel modes with a value. +k/+l are edited on the overview tab. */
 export const CHAN_PARAMS: ChanParam[] = [
   { m: 'B', key: 'anticaps', hint: '80:2' },

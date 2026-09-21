@@ -12,9 +12,35 @@ import {
   mlockLetters,
   parseMlockNotice,
   parentalLockedLetters,
+  plainDesc,
+  simpleChanFlags,
   umodeRowState,
   looksLikeVhost,
+  SIMPLE_CHAN_GROUPS,
 } from './mode-catalog';
+
+describe('simplified channel panel', () => {
+  it('keeps the group order and drops letters the ircd never advertised', () => {
+    const flags = CHAN_FLAGS.filter((f) => 'isnmt'.includes(f.m));
+    expect(simpleChanFlags(flags, 'isR').map((f) => f.m)).toEqual(['i', 's']);
+    expect(simpleChanFlags(flags, 'nmM').map((f) => f.m)).toEqual(['n', 'm']);
+  });
+
+  it('only lists flags the catalogue actually defines', () => {
+    const known = new Set(CHAN_FLAGS.map((f) => f.m));
+    for (const { letters } of SIMPLE_CHAN_GROUPS) {
+      for (const m of letters) expect(known.has(m)).toBe(true);
+    }
+  });
+
+  it('strips the trailing mode letter from a description', () => {
+    expect(plainDesc('Il faut être invité pour entrer (+i)')).toBe('Il faut être invité pour entrer');
+    expect(plainDesc('Bloque les requêtes CTCP (+C)')).toBe('Bloque les requêtes CTCP');
+    // Nothing to strip, and a parenthesis that is not a mode tag stays put.
+    expect(plainDesc('Salon permanent')).toBe('Salon permanent');
+    expect(plainDesc('Limite (10 personnes)')).toBe('Limite (10 personnes)');
+  });
+});
 
 describe('advertisedModeLetters', () => {
   it('splits an ISUPPORT USERMODES/CHANMODES token into letters', () => {
