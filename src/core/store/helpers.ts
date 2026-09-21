@@ -31,28 +31,24 @@ export function rememberQueryAccount(
 }
 
 
-/** Join LineWrapper fragments; keep list/notice items on their own line. */
+/** Join LineWrapper fragments; keep every other frame on its own line. */
 function joinCoalescedText(prev: string, next: string): string {
   if (!prev) return next;
   if (!next) return prev;
   const b = next.replace(/^\s+/, '');
   const plain = stripFormatting(b).replace(/^\s+/, '');
-  const nl = () => `${prev.replace(/\s+$/, '')}\n${b}`;
-  // A NOTICE frame gets its own line only when it reads as a structured item
-  // (the checks below). Blanket-breaking every frame would also break a sentence
-  // the server merely wrapped across two lines, which is what coalescing is for.
-  // HelpServ LIST: category header `IDEA (3)` / ticket `#15 …`
-  if (/^[A-ZÉÈÀÂÙÛÇ]{2,16}\s*\(\d+\)\s*$/.test(plain)) return nl();
-  if (/^#\d+\b/.test(plain)) return nl();
-  // Bullet / section lines from bots (Petit Bac !jeu liste, …)
-  if (/^[•·▪▸►*]\s/.test(plain) || /^[\u{1F300}-\u{1FAFF}]/u.test(plain)) return nl();
-  // Bac-style player feedback "Nick: …"
-  if (/^[^\s:]{1,32}:\s/.test(plain) && !/^(https?|ftp):/i.test(plain)) return nl();
-  if (/^━{3,}/.test(plain)) return nl();
-  if (/[:：]\s*$/.test(prev) && b.length > 0) return nl();
-  if (/[.!?…]$/.test(prev.trim()) && /^[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ0-9([]/.test(plain)) return nl();
-  if (/\s$/.test(prev) || /^\s/.test(next)) return prev + next;
-  return `${prev} ${next}`;
+  // One frame, one line — the way a classic client shows a bot's output. The sole
+  // exception is what this function exists for: Anope's LineWrapper cutting ONE
+  // long sentence across frames. Such a fragment reads as mid-sentence, so it
+  // starts lowercase and the frame before it stopped without closing anything.
+  //
+  // Listing the structures worth breaking on instead (bullets, `#15 …`, section
+  // headers, `Nick: …`) is the wrong way round: every bot invents its own layout,
+  // and the ones we failed to guess — HelpServ's `LIST — lister les tickets` rows
+  // among them — came out as one run-on paragraph.
+  const wrapped = /^\p{Ll}/u.test(plain) && !/[.!?:;…]$/.test(prev.trim());
+  if (!wrapped) return `${prev.replace(/[^\S\n]+$/, '')}\n${b}`;
+  return /\s$/.test(prev) ? prev + b : `${prev} ${b}`;
 }
 
 /** JOIN/TOPIC/… replayed by event-playback after the live line already landed. */

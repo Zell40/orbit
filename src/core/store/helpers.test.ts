@@ -66,6 +66,21 @@ describe('addMessage notice coalesce', () => {
     );
   });
 
+  it('keeps a bot help screen line-per-frame instead of one paragraph', () => {
+    const { helpers, state, notice } = setup();
+    const frames = [
+      'Tickets',
+      'LIST — lister tickets ouverts + TODO/PROJET',
+      'SHOW — ticket complet (#id), messages #id.n',
+      'RESPONSE — réponse de clôture, puis fermeture auto',
+      'CLOSE — fermer un ticket, TODO ou PROJET',
+    ];
+    frames.forEach((text, i) => helpers.addMessage('#Aide.chat', notice(text, `f${i}`, 1000 + i * 100)));
+    const msgs = state.buffers['#aide.chat'].messages;
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0].text).toBe(frames.join('\n'));
+  });
+
   it('does not merge notices from different nicks or after a gap', () => {
     const { helpers, state, notice } = setup();
     helpers.addMessage('#Aide.chat', notice('first', 'a', 1000));

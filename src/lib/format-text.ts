@@ -204,15 +204,20 @@ export function loosenNoticeText(text: string): string {
   return bulleted.split('\n')
     .map((l) => l.startsWith('• ') ? l : l.replace(/\s+(?=[\u{1F300}-\u{1FAFF}])/gu, '\n'))
     .join('\n')
+    // The rules below split a run-on line; they must never match ACROSS a newline,
+    // or they move a break that is already right. The frames a bot sent arrive here
+    // separated by \n (see joinCoalescedText) and that split is authoritative —
+    // `\s` would have re-flowed "…TODO ou PROJET / ADDNOTE — note" into
+    // "…TODO ou / PROJET ADDNOTE — note".
     // Player lines "Nick: …" each on their own line when concatenated
-    .replace(/([^\n])\s+([A-Za-z0-9_[\]\\^{}|`-]{1,32}:\s)/g, '$1\n$2')
+    .replace(/([^\n])[^\S\n]+([A-Za-z0-9_[\]\\^{}|`-]{1,32}:\s)/g, '$1\n$2')
     // Separator bars
     .replace(/\s*(━{3,})\s*/g, '\n$1\n')
     // New paragraph after sentence end when the next clause starts with a capital / quote
-    .replace(/([.!?…])\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"([])/g, '$1\n\n')
+    .replace(/([.!?…])[^\S\n]+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ«"([])/g, '$1\n\n')
     // Help desks: "AIDE    description" / "… commandes ANNULER  Annuler …"
     .replace(/([^\n])[ \t]{2,}([A-ZÉÈÀÂÙÛÇ]{3,20})[ \t]{2,}/g, '$1\n$2  ')
-    .replace(/([a-zà-ÿ.])\s+([A-ZÉÈÀÂÙÛÇ]{4,16})\s+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ])/g, '$1\n$2 ')
+    .replace(/([a-zà-ÿ.])[^\S\n]+([A-ZÉÈÀÂÙÛÇ]{4,16})[^\S\n]+(?=[A-ZÀÂÄÆÇÉÈÊËÏÎÔŒÙÛÜŸ])/g, '$1\n$2 ')
     .replace(/^\s+/, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
