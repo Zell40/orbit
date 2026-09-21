@@ -222,6 +222,16 @@ export interface AppConfig {
     kickReason?: string;
   };
   securityGroups?: string[];
+  /** Channel moderation policy for this deployment. EntreNous routes bans on its
+   *  official `.chat` channels to a second-chance channel instead of a flat
+   *  refusal, so the channel panel offers that first. */
+  moderation?: {
+    /** Channel the redirect ban points at, e.g. "#Bannis.chat". */
+    redirectChannel?: string;
+    /** Only apply to channels whose name ends with this, e.g. ".chat". Omit to
+     *  apply everywhere. */
+    redirectSuffix?: string;
+  };
   /** Parental / callerid package (orbit-callerid). Used to lock umode toggles. */
   callerid?: {
     group?: string;

@@ -314,6 +314,16 @@
       "exempt": "Exempt",
       "allow": "Allow",
       "plainMask": "(mask)",
+      "byNick": "Nickname",
+      "nickPlaceholder": "Pick a channel member…",
+      "hostUnknown": "host unknown",
+      "maskShape": "Ban",
+      "shape": {
+        "host": "the host",
+        "nick": "the nickname",
+        "ident": "ident + host",
+        "exact": "exactly"
+      },
       "invexPlaceholder": "*!*@example.com",
       "invexHint": "These people can join an invite-only (+i) channel without an invite. This is not a ban.",
       "filtersTab": "Filters ({{n}})",

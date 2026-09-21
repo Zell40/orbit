@@ -314,6 +314,16 @@
       "exempt": "Exempter",
       "allow": "Autoriser",
       "plainMask": "(masque)",
+      "byNick": "Pseudo",
+      "nickPlaceholder": "Choisir un membre du salon…",
+      "hostUnknown": "hôte inconnu",
+      "maskShape": "Bannir",
+      "shape": {
+        "host": "l’hôte",
+        "nick": "le pseudo",
+        "ident": "l’ident + l’hôte",
+        "exact": "exactement"
+      },
       "invexPlaceholder": "*!*@example.com",
       "invexHint": "Ces personnes peuvent entrer dans un salon +i (sur invitation), sans être invitées. Ce n’est pas un bannissement.",
       "filtersTab": "Filtres ({{n}})",

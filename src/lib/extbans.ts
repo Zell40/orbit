@@ -88,6 +88,36 @@ export function ensureActingExtban(list: ExtBan[], name: string): ExtBan[] {
   return list.concat(extra).sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
 }
 
+/**
+ * Not an extban letter: the picker's "by nick" entry. It resolves to a plain
+ * nick!user@host mask through `nickMask`, so it is never nested into
+ * `buildExtbanMask` — the mask it produces goes in as an ordinary hostmask.
+ * `nick` is free: no EXTBANS entry uses that name.
+ */
+export const NICK_PICK = 'nick';
+
+/** How to turn a member into a ban mask. */
+export type NickMaskShape = 'host' | 'nick' | 'ident' | 'exact';
+
+export const NICK_MASK_SHAPES: NickMaskShape[] = ['host', 'nick', 'ident', 'exact'];
+
+/**
+ * Ban mask for a member. `host` is the default because it is what an operator
+ * means by "ban this person": it survives a nick change, which `nick!*@*` does
+ * not. Unknown ident/host (no WHO reply yet) fall back to `*`, which widens the
+ * mask rather than banning nobody.
+ */
+export function nickMask(m: { nick: string; user?: string; host?: string }, shape: NickMaskShape): string {
+  const user = m.user || '*';
+  const host = m.host || '*';
+  switch (shape) {
+    case 'nick': return `${m.nick}!*@*`;
+    case 'ident': return `*!${user}@${host}`;
+    case 'exact': return `${m.nick}!${user}@${host}`;
+    default: return `*!*@${host}`;
+  }
+}
+
 function asHostmask(v: string): string {
   return (v.includes('@') || v.includes('!') || v.includes(':')) ? v : `${v}!*@*`;
 }

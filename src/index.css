@@ -2842,10 +2842,15 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
    picking a type and typing the mask stay on one row — no scrolling. */
 /* Don’t stretch <input> to the button height: Chrome/Windows clips the first
    glyph and the caret sits on the placeholder. The combobox still stretches. */
-.ca-extban-add { margin-bottom: .9rem; align-items: center; }
+/* Six controls (mode, type, destination, nested type, value, action) do not fit
+   one row at every width — wrap instead of squeezing one of them to nothing. */
+.ca-extban-add { margin-bottom: .9rem; align-items: center; flex-wrap: wrap; }
 .ca-extban-add > .modal__input { align-self: center; min-height: 2.55rem; padding: .55rem .95rem; }
 .ca-extban-add .ca-extsel, .ca-extban-add .ca-extmode { align-self: stretch; }
-.ca-extdest { flex: 0 0 8.2rem; min-width: 0; }
+/* Descendant selectors: `.ca-param .modal__input` (flex: 1, basis 0) would
+   otherwise collapse the destination to its padding. */
+.ca-param .ca-extdest { flex: 0 1 9.5rem; min-width: 6rem; }
+.ca-param .ca-maskf { flex: 1 1 11rem; }
 .ca-extinv { flex: none; min-width: 2.1rem; padding: 0 .45rem; border: 1px solid var(--border); border-radius: 8px;
   background: var(--bg-soft); color: var(--muted); font: inherit; font-weight: 800; cursor: pointer; }
 .ca-extinv:hover { color: var(--ink); border-color: var(--accent); }
@@ -2866,6 +2871,26 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   background: transparent; color: var(--ink); font: inherit; font-size: .85rem; cursor: pointer; }
 .ca-extsel__opt:hover { background: var(--bg-soft); }
 .ca-extsel__opt.is-on { background: var(--accent-soft); color: var(--accent-d, var(--accent)); font-weight: 600; }
+/* Mask field: a text input that also autocompletes the channel's members, so an
+   operator can ban "Jessie" without knowing her cloak. The dropdown reuses the
+   extban combobox's menu styling. */
+.ca-maskf { position: relative; flex: 1 1 12rem; min-width: 0; display: flex; }
+.ca-maskf .modal__input { flex: 1; min-width: 0; }
+/* Descendant selector on purpose: it has to outrank the phone override on
+   .ca-extsel__menu, which would otherwise clamp this one to 15rem. */
+.ca-maskf .ca-extsel__menu { width: 100%; min-width: 14rem; }
+.ca-maskf__opt { display: flex; align-items: baseline; gap: .5rem; }
+.ca-maskf__nick { flex: none; font-weight: 650; }
+.ca-maskf__host { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: ui-monospace, Menlo, monospace; font-size: .72rem; color: var(--muted); }
+/* Which mask to derive from the picked member. Only shown once someone is
+   picked — there is nothing to reshape otherwise. */
+.ca-shapes { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin: -.5rem 0 .9rem; }
+.ca-shapes__l { font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.ca-shape { border: 1px solid var(--border); background: var(--bg-soft); color: var(--muted);
+  border-radius: 999px; padding: .2rem .6rem; font: inherit; font-size: .76rem; font-weight: 650; cursor: pointer; }
+.ca-shape:hover { border-color: var(--accent); color: var(--ink); }
+.ca-shape.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ca-extexample { margin: -.35rem 0 1rem; font-size: .8rem; color: var(--muted); }
 .ca-extexample code { font-family: ui-monospace, Menlo, monospace; color: var(--ink);
   background: var(--bg-soft); padding: .12rem .4rem; border-radius: 6px; }
@@ -2879,16 +2904,44 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-extmode button:last-child { border-right: 0; }
 .ca-extmode button:hover { color: var(--ink); }
 .ca-extmode button.is-on { background: var(--accent); color: #fff; }
-/* Phone: the extban composer wraps, and the value input takes its own row. */
+/* Phone: the panel becomes a full-screen sheet and the extban composer wraps. */
 @media (max-width: 560px) {
-  .modal:has(.ca-layout) { width: 100vw; height: var(--app-h, 100dvh); max-height: none; border-radius: 0; }
+  /* The backdrop centres its grid item inside its own padding box, so a 100vw
+     card sat 1.2rem off to the side AND could not be reached. The sheet owns the
+     whole screen instead, and nothing inside it may push past that width. */
+  .modal-backdrop:has(.ca-layout) { padding: 0; }
+  .modal:has(.ca-layout) {
+    width: 100%; max-width: 100%; height: var(--app-h, 100dvh); max-height: none;
+    border: 0; border-radius: 0; overflow: hidden;
+    padding: .85rem .8rem calc(.85rem + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column;
+  }
+  /* Column chain down to the pane, so the sheet scrolls in ONE place (the pane)
+     instead of the card growing and the tabs scrolling out of reach. */
+  .modal:has(.ca-layout) .ca-layout,
+  .modal:has(.ca-layout) .ca-main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .ca-topicrow { flex: none; margin-bottom: .7rem; }
+  /* Six tabs never fit on a phone: scroll them sideways rather than let them
+     stretch the sheet. */
+  .ca-tabs { flex: none; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
+    scrollbar-width: none; margin-bottom: .7rem; }
+  .ca-tabs::-webkit-scrollbar { display: none; }
+  .ca-tab { flex: none; padding: .5rem .55rem; font-size: .8rem; white-space: nowrap; }
+  /* The fixed 26rem pane either clipped the sheet or left dead space under it. */
+  .ca-pane { height: auto; flex: 1; min-height: 0; }
+  .ca-bans { max-height: none; }
   .ca-extban-add { flex-wrap: wrap; }
   .ca-extban-add .ca-extsel { flex: 1 1 auto; min-width: 0; }
   .ca-extban-add .ca-extsel__btn { min-width: 0; width: 100%; }
-  .ca-extban-add > .modal__input { flex: 1 1 100%; }
+  .ca-extban-add > .modal__input, .ca-extban-add > .ca-maskf { flex: 1 1 100%; }
   .ca-extban-add > .ca-extdest { flex: 1 1 8rem; }
-  .ca-extsel__menu { width: min(15rem, calc(100vw - 4rem)); }
+  .ca-extban-add > .upbtn { flex: 1 1 100%; }
+  .ca-extsel__menu { width: min(15rem, calc(100vw - 2.5rem)); }
   .ca-prows { grid-template-columns: 1fr; }
+  /* Label above the field: side by side they leave ~5rem for the input. */
+  .ca-param:not(.ca-extban-add) { flex-wrap: wrap; }
+  .ca-param__l { width: 100%; }
+  .ca-stat { flex: 1 1 6.5rem; }
 }
 .ca-bans__empty { font-size: .82rem; color: var(--muted); padding: .3rem; }
 

@@ -14,8 +14,12 @@ import {
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
-import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban, buildExtbanMask, type ExtBan } from '@/lib/extbans';
+import {
+  availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban,
+  buildExtbanMask, nickMask, NICK_PICK, NICK_MASK_SHAPES, type ExtBan, type NickMaskShape,
+} from '@/lib/extbans';
 import { getConfig } from '@/core/config';
+import type { Member } from '@/core/irc/types';
 import { Modal } from './Modal';
 
 function LockTag({ kind }: { kind: 'services' | 'overview' }) {
@@ -159,8 +163,12 @@ type Tab = 'overview' | 'modes' | 'bans' | 'extbans' | 'invex' | 'filters';
 // A compact combobox for the extban type: a button + an overlay menu (grouped into
 // restrictions / match-by, filterable). Opening it doesn't push the value input, so
 // picking a type and typing the mask stay on one row — no scrolling.
-function ExtbanSelect({ exts, value, onChange, maskOption, matchLabel }: {
-  exts: ExtBan[]; value: string; onChange: (name: string) => void; maskOption?: boolean; matchLabel?: string;
+function ExtbanSelect({ exts, value, onChange, maskOption, nickOption, matchLabel }: {
+  exts: ExtBan[]; value: string; onChange: (name: string) => void;
+  maskOption?: boolean;
+  /** Offer "by nick" — a member picker that resolves to a plain hostmask. */
+  nickOption?: boolean;
+  matchLabel?: string;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -174,19 +182,25 @@ function ExtbanSelect({ exts, value, onChange, maskOption, matchLabel }: {
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
   const f = filter.trim().toLowerCase();
+  const nickLabel = t('modals.chanadmin.byNick');
   const label = (e: ExtBan) => t(`extbans.${e.name}`, e.name);
   const hit = (e: ExtBan) => !f || label(e).toLowerCase().includes(f) || e.name.includes(f);
   const pick = (name: string) => { onChange(name); setOpen(false); setFilter(''); };
+  const opt = (name: string, text: string) => (
+    <button key={name} type="button" role="option" aria-selected={name === value}
+      className={`ca-extsel__opt${name === value ? ' is-on' : ''}`} onClick={() => pick(name)}>{text}</button>
+  );
   const group = (acting: boolean, head: string) => {
     const list = exts.filter((e) => e.acting === acting && hit(e));
-    if (!list.length) return null;
+    // "By nick" belongs with the other ways of designating someone, and leads
+    // them: it is the one an operator reaches for most.
+    const nick = !acting && nickOption && (!f || nickLabel.toLowerCase().includes(f));
+    if (!list.length && !nick) return null;
     return (
       <>
         <div className="ca-extsel__grp">{head}</div>
-        {list.map((e) => (
-          <button key={e.letter} type="button" role="option" aria-selected={e.name === value}
-            className={`ca-extsel__opt${e.name === value ? ' is-on' : ''}`} onClick={() => pick(e.name)}>{label(e)}</button>
-        ))}
+        {nick && opt(NICK_PICK, nickLabel)}
+        {list.map((e) => opt(e.name, label(e)))}
       </>
     );
   };
@@ -194,7 +208,9 @@ function ExtbanSelect({ exts, value, onChange, maskOption, matchLabel }: {
     <div className="ca-extsel" ref={ref}>
       <button type="button" className="ca-extsel__btn" aria-haspopup="listbox" aria-expanded={open}
         onClick={() => setOpen((o) => !o)}>
-        <span>{cur ? label(cur) : (maskOption ? t('modals.chanadmin.plainMask') : '—')}</span>
+        <span>{cur ? label(cur)
+          : value === NICK_PICK ? nickLabel
+            : (maskOption ? t('modals.chanadmin.plainMask') : '—')}</span>
         <span className="ca-extsel__chev" aria-hidden>▾</span>
       </button>
       {open && (
@@ -209,6 +225,103 @@ function ExtbanSelect({ exts, value, onChange, maskOption, matchLabel }: {
           {group(false, matchLabel || t('modals.chanadmin.extMatch'))}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * A ban-mask field's state. Operators think in nicks, not in `*!*@cloak.fr`, so
+ * the mask can be produced by picking a member — and the picked member is kept
+ * so the shape chips (`*!*@host`, `pseudo!*@*`, …) can rewrite it. Typing by
+ * hand drops the member: the text is then no longer "that person in shape X"
+ * and there would be nothing to rewrite from.
+ */
+interface MaskField {
+  text: string;
+  pick: Member | null;
+  shape: NickMaskShape;
+  set: (v: string) => void;
+  choose: (m: Member) => void;
+  reshape: (s: NickMaskShape) => void;
+  clear: () => void;
+}
+
+function useMaskField(): MaskField {
+  const [text, setText] = useState('');
+  const [pick, setPick] = useState<Member | null>(null);
+  const [shape, setShape] = useState<NickMaskShape>('host');
+  return {
+    text,
+    pick,
+    shape,
+    set: (v) => { setText(v); setPick(null); },
+    choose: (m) => { setPick(m); setText(nickMask(m, shape)); },
+    reshape: (s) => { setShape(s); if (pick) setText(nickMask(pick, s)); },
+    clear: () => { setText(''); setPick(null); },
+  };
+}
+
+/** Mask input with a member-autocomplete dropdown. */
+function MaskInput({ field, members, placeholder, ariaLabel, onSubmit }: {
+  field: MaskField; members: Member[]; placeholder: string; ariaLabel: string; onSubmit: () => void;
+}) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+  // Once a member is picked the text is a mask, not a search term — filtering on
+  // it would leave the list showing only that one person.
+  const q = field.pick ? '' : field.text.trim().toLowerCase();
+  const hits = members
+    .filter((m) => !q || m.nick.toLowerCase().includes(q))
+    .sort((a, b) => a.nick.localeCompare(b.nick))
+    .slice(0, 50);
+  return (
+    <div className="ca-maskf" ref={ref}>
+      <input className="modal__input" value={field.text} placeholder={placeholder} aria-label={ariaLabel}
+        autoComplete="off" role="combobox" aria-expanded={open} aria-autocomplete="list"
+        onFocus={() => setOpen(true)}
+        onChange={(e) => { field.set(e.target.value); setOpen(true); }}
+        onKeyDown={(e) => {
+          // Escape closes the list first; the modal's own handler would otherwise
+          // shut the whole panel on the first press.
+          if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); }
+          if (e.key === 'Enter') { setOpen(false); onSubmit(); }
+        }} />
+      {open && hits.length > 0 && (
+        <div className="ca-extsel__menu ca-maskf__menu" role="listbox">
+          {hits.map((m) => (
+            <button key={m.nick} type="button" role="option" aria-selected={field.pick?.nick === m.nick}
+              className={`ca-extsel__opt ca-maskf__opt${field.pick?.nick === m.nick ? ' is-on' : ''}`}
+              onClick={() => { field.choose(m); setOpen(false); }}>
+              <span className="ca-maskf__nick">{m.prefix}{m.nick}</span>
+              <span className="ca-maskf__host">{m.host ? `@${m.host}` : t('modals.chanadmin.hostUnknown')}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Shape chips — only meaningful once a member has been picked. */
+function MaskShapes({ field }: { field: MaskField }) {
+  const { t } = useTranslation();
+  if (!field.pick) return null;
+  return (
+    <div className="ca-shapes" role="group" aria-label={t('modals.chanadmin.maskShape')}>
+      <span className="ca-shapes__l">{t('modals.chanadmin.maskShape')}</span>
+      {NICK_MASK_SHAPES.map((s) => (
+        <button key={s} type="button" className={`ca-shape${field.shape === s ? ' is-on' : ''}`}
+          title={nickMask(field.pick!, s)} onClick={() => field.reshape(s)}>
+          {t(`modals.chanadmin.shape.${s}`)}
+        </button>
+      ))}
     </div>
   );
 }
@@ -237,13 +350,22 @@ export function ChanAdminModal() {
   const curKey = modeParams?.k || '';
   const curLimit = modeParams?.l || '';
 
+  // Deployment moderation policy: on channels it covers (EntreNous' official
+  // `.chat` ones), a ban redirects to a second-chance channel rather than
+  // refusing outright — so the redirect flow leads the list and the destination
+  // is already filled in. The panel itself is op-only (Topbar gates it).
+  const mod = getConfig().moderation;
+  const redirectPolicy = !!mod?.redirectChannel
+    && (!mod.redirectSuffix || chan.toLowerCase().endsWith(mod.redirectSuffix.toLowerCase()));
+  const policyDest = redirectPolicy ? mod!.redirectChannel! : '';
+
   const [tab, setTab] = useState<Tab>('overview');
   const [moreModes, setMoreModes] = useState(false);
-  const [newban, setNewban] = useState('');
+  const banField = useMaskField();
+  const ebField = useMaskField();
   const [newfilter, setNewfilter] = useState('');
   const [ebType, setEbType] = useState('');
-  const [ebVal, setEbVal] = useState('');
-  const [ebDest, setEbDest] = useState('');
+  const [ebDest, setEbDest] = useState(policyDest);
   const [ebInvert, setEbInvert] = useState(false);
   const [ebMode, setEbMode] = useState<'b' | 'e'>('b');
   const [ebNest, setEbNest] = useState(''); // acting extban's nested matching extban (stacking)
@@ -279,8 +401,12 @@ export function ChanAdminModal() {
   // +k/+l) — derive during render, no effect setState.
   const [prevKey, setPrevKey] = useState(curKey);
   const [prevLimit, setPrevLimit] = useState(curLimit);
+  const [prevDest, setPrevDest] = useState(policyDest);
   if (curKey !== prevKey) { setPrevKey(curKey); setKeyVal(curKey); }
   if (curLimit !== prevLimit) { setPrevLimit(curLimit); setLimitVal(curLimit); }
+  // Switching to a channel the policy covers (or stops covering) re-applies the
+  // default destination.
+  if (policyDest !== prevDest) { setPrevDest(policyDest); setEbDest(policyDest); }
 
   if (!buffer || !buffer.isChannel) return null;
   const modes = buffer.modes || '';
@@ -303,12 +429,17 @@ export function ChanAdminModal() {
   const opCount = members.filter((m) => /[~&@%]/.test(m.prefixes || m.prefix || '')).length;
 
   const addBan = () => {
-    const v = newban.trim(); if (!v) return;
+    const v = banField.text.trim(); if (!v) return;
     client?.ban(chan, v.includes('@') || v.includes('!') ? v : `${v}!*@*`);
-    setNewban(''); setTimeout(() => loadBanList(chan), 500);
+    banField.clear(); setTimeout(() => loadBanList(chan), 500);
   };
   // Extended bans the server advertises (core + reputation/securitygroups modules).
-  const exts = ensureActingExtban(availableExtbans(client?.server.isupport ?? {}), 'redirect');
+  const allExts = ensureActingExtban(availableExtbans(client?.server.isupport ?? {}), 'redirect');
+  // sort() is stable, so this only lifts redirect and leaves the rest in
+  // catalogue order.
+  const exts = redirectPolicy
+    ? [...allExts].sort((a, b) => Number(b.name === 'redirect') - Number(a.name === 'redirect'))
+    : allExts;
   const matchingExts = exts.filter((e) => !e.acting);
   const invexExts = ensureMatchingExtban(matchingExts, 'class');
   const hasInvex = ctx.typeA.has('I');
@@ -319,7 +450,12 @@ export function ChanAdminModal() {
   const ebModeSel = ebModes.includes(ebMode) ? ebMode : 'b';
   const ebSel = ebType || exts[0]?.name || '';
   const curExt = exts.find((e) => e.name === ebSel);
-  const nestExt = curExt?.acting && ebNest ? matchingExts.find((e) => e.name === ebNest) : undefined;
+  // NICK_PICK is not an extban: it feeds the member picker, whose output is a
+  // plain hostmask, so there is no nested type to stack.
+  const pickingNick = !!curExt?.acting && ebNest === NICK_PICK;
+  const nestExt = curExt?.acting && ebNest && !pickingNick
+    ? matchingExts.find((e) => e.name === ebNest)
+    : undefined;
   const valueType = curExt?.acting ? nestExt : curExt;
   const stackMask = (v: string) => (curExt
     ? buildExtbanMask({ ext: curExt, value: v, nest: nestExt, invert: ebInvert && !!nestExt, target: ebDest })
@@ -343,12 +479,12 @@ export function ChanAdminModal() {
     setTimeout(() => loadBanList(chan), 500);
   };
   const addExtban = () => {
-    const v = ebVal.trim(); if (!v || !curExt) return;
+    const v = ebField.text.trim(); if (!v || !curExt) return;
     if (curExt.needsTarget && !ebDest.trim()) return;
     const mask = stackMask(v);
     if (ebModeSel === 'b') client?.ban(chan, mask);
     else setChannelModeParam(chan, ebModeSel, true, mask);
-    setEbVal(''); setTimeout(() => loadBanList(chan), 500);
+    ebField.clear(); setTimeout(() => loadBanList(chan), 500);
   };
   const addInvex = () => {
     const v = ixVal.trim(); if (!v) return;
@@ -540,24 +676,31 @@ export function ChanAdminModal() {
                 aria-label={t('modals.chanadmin.redirectDestPlaceholder')}
                 onChange={(e) => setEbDest(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
             )}
-            {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={(name) => { setEbNest(name); if (!name) setEbInvert(false); }} maskOption />}
+            {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={(name) => { setEbNest(name); if (!name || name === NICK_PICK) setEbInvert(false); }} maskOption nickOption />}
             {curExt?.acting && nestExt && (
               <button type="button" className={`ca-extinv${ebInvert ? ' is-on' : ''}`}
                 title={t('modals.chanadmin.invertMatch')} aria-pressed={ebInvert}
                 onClick={() => setEbInvert((v) => !v)}>!</button>
             )}
-            <input className="modal__input" value={ebVal} placeholder={valueType?.hint ?? curExt?.hint}
-              aria-label={t('modals.chanadmin.extbanType')}
-              onChange={(e) => setEbVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
+            {pickingNick ? (
+              <MaskInput field={ebField} members={members} onSubmit={addExtban}
+                placeholder={t('modals.chanadmin.nickPlaceholder')}
+                ariaLabel={t('modals.chanadmin.byNick')} />
+            ) : (
+              <input className="modal__input" value={ebField.text} placeholder={valueType?.hint ?? curExt?.hint}
+                aria-label={t('modals.chanadmin.extbanType')}
+                onChange={(e) => ebField.set(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
+            )}
             <button className="upbtn upbtn--primary" onClick={addExtban}>{t(modeVerb[ebModeSel])}</button>
           </div>
+          {pickingNick && <MaskShapes field={ebField} />}
           {curExt?.needsTarget && (
             <p className="ca-extexample">{t('modals.chanadmin.redirectHint')}</p>
           )}
           {valueType?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
             <div className="ca-extgroups">
               {getConfig().securityGroups!.map((g) => (
-                <button key={g} type="button" className="ca-extgroup" onClick={() => setEbVal(g)}>{g}</button>
+                <button key={g} type="button" className="ca-extgroup" onClick={() => ebField.set(g)}>{g}</button>
               ))}
             </div>
           )}
@@ -565,7 +708,7 @@ export function ChanAdminModal() {
             <div className="ca-extexample">
               {t('modals.chanadmin.example')} <code>+{ebModeSel} {buildExtbanMask({
                 ext: curExt,
-                value: ebVal.trim() || valueType?.hint || curExt.hint,
+                value: ebField.text.trim() || valueType?.hint || curExt.hint,
                 nest: nestExt,
                 invert: ebInvert && !!nestExt,
                 target: ebDest.trim() || (curExt.needsTarget ? t('modals.chanadmin.redirectDestPlaceholder') : ''),
@@ -666,10 +809,12 @@ export function ChanAdminModal() {
       {tab === 'bans' && (
         <div className="ca-pane">
           <div className="ca-param ca-extban-add">
-            <input className="modal__input" value={newban} placeholder={t('modals.chanadmin.maskPlaceholder')}
-              onChange={(e) => setNewban(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addBan()} />
+            <MaskInput field={banField} members={members} onSubmit={addBan}
+              placeholder={t('modals.chanadmin.maskPlaceholder')}
+              ariaLabel={t('modals.chanadmin.maskPlaceholder')} />
             <button className="upbtn upbtn--primary" onClick={addBan}>{t('modals.chanadmin.ban')}</button>
           </div>
+          <MaskShapes field={banField} />
           <ul className="ca-bans">
             {plainBans.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noBans')}</li>}
             {plainBans.map((b) => (

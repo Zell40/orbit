@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban, buildExtbanMask } from './extbans';
+import { availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban, buildExtbanMask, nickMask, EXTBANS, NICK_PICK } from './extbans';
 
 describe('extbans', () => {
   it('parses the ISUPPORT EXTBAN token (<prefix>,<letters>)', () => {
@@ -54,5 +54,33 @@ describe('extbans', () => {
     const mute = matchExtban('mute:x')!;
     expect(buildExtbanMask({ ext: mute, value: 'nick' })).toBe('mute:nick!*@*');
     expect(buildExtbanMask({ ext: acc, value: 'LeCompte' })).toBe('account:LeCompte');
+  });
+});
+
+describe('nickMask', () => {
+  const jessie = { nick: 'Jessie417', user: 'jessie', host: 'ipv6-ff12.entrenous.chat' };
+
+  it('derives each mask shape from a member', () => {
+    expect(nickMask(jessie, 'host')).toBe('*!*@ipv6-ff12.entrenous.chat');
+    expect(nickMask(jessie, 'nick')).toBe('Jessie417!*@*');
+    expect(nickMask(jessie, 'ident')).toBe('*!jessie@ipv6-ff12.entrenous.chat');
+    expect(nickMask(jessie, 'exact')).toBe('Jessie417!jessie@ipv6-ff12.entrenous.chat');
+  });
+
+  it('widens to * rather than producing a mask that matches nobody', () => {
+    expect(nickMask({ nick: 'Kevin' }, 'host')).toBe('*!*@*');
+    expect(nickMask({ nick: 'Kevin' }, 'exact')).toBe('Kevin!*@*');
+    // The nick is always known, so this shape never degrades.
+    expect(nickMask({ nick: 'Kevin' }, 'nick')).toBe('Kevin!*@*');
+  });
+
+  it('feeds a redirect ban as a plain hostmask, not a nested extban', () => {
+    const redir = matchExtban('redirect:x')!;
+    expect(buildExtbanMask({ ext: redir, value: nickMask(jessie, 'host'), target: '#Bannis.chat' }))
+      .toBe('redirect:#Bannis.chat:*!*@ipv6-ff12.entrenous.chat');
+  });
+
+  it('never collides with a catalogue extban name', () => {
+    expect(EXTBANS.some((e) => e.name === NICK_PICK)).toBe(false);
   });
 });
