@@ -102,19 +102,20 @@ export type NickMaskShape = 'host' | 'nick' | 'ident' | 'exact';
 export const NICK_MASK_SHAPES: NickMaskShape[] = ['host', 'nick', 'ident', 'exact'];
 
 /**
- * Ban mask for a member. `host` is the default because it is what an operator
- * means by "ban this person": it survives a nick change, which `nick!*@*` does
- * not. Unknown ident/host (no WHO reply yet) fall back to `*`, which widens the
- * mask rather than banning nobody.
+ * Ban mask for a member, or null when a part the shape needs is still unknown.
+ * `host` is the default because it is what an operator means by "ban this
+ * person": it survives a nick change, which `nick!*@*` does not. A missing
+ * ident or host (no WHO reply yet) must not widen to `*` — that turns "ban
+ * Kevin" into `*!*@*`, the whole channel. Only the nick is always known, so
+ * that shape never fails.
  */
-export function nickMask(m: { nick: string; user?: string; host?: string }, shape: NickMaskShape): string {
-  const user = m.user || '*';
-  const host = m.host || '*';
+export function nickMask(m: { nick: string; user?: string; host?: string }, shape: NickMaskShape): string | null {
+  const { nick, user, host } = m;
   switch (shape) {
-    case 'nick': return `${m.nick}!*@*`;
-    case 'ident': return `*!${user}@${host}`;
-    case 'exact': return `${m.nick}!${user}@${host}`;
-    default: return `*!*@${host}`;
+    case 'nick': return `${nick}!*@*`;
+    case 'ident': return user && host ? `*!${user}@${host}` : null;
+    case 'exact': return user && host ? `${nick}!${user}@${host}` : null;
+    default: return host ? `*!*@${host}` : null;
   }
 }
 

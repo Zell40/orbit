@@ -2838,6 +2838,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-ban__mode--b { color: #d6465f; background: rgba(214,70,95,.13); }
 .ca-ban__mode--e { color: #2ea043; background: rgba(46,160,67,.13); }
 .ca-ban__mode--I { color: #3b82f6; background: rgba(59,130,246,.14); }
+/* Simplified panel: the badge spells the mode out, so it is no longer a code. */
+.ca-ban__mode--word { font-family: inherit; font-size: .62rem; text-transform: uppercase; letter-spacing: .03em; }
 /* Extbans tab: a compact combobox (button + overlay menu) beside the value input, so
    picking a type and typing the mask stay on one row — no scrolling. */
 /* Don’t stretch <input> to the button height: Chrome/Windows clips the first
@@ -2880,6 +2882,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
    .ca-extsel__menu, which would otherwise clamp this one to 15rem. */
 .ca-maskf .ca-extsel__menu { width: 100%; min-width: 14rem; }
 .ca-maskf__opt { display: flex; align-items: baseline; gap: .5rem; }
+/* A member whose host the client doesn't know yet: the mask would widen to
+   *!*@*, so the row stays visible (you can see who is there) but inert. */
+.ca-maskf__opt:disabled, .ca-shape:disabled { opacity: .45; cursor: not-allowed; }
+.ca-maskf__opt:disabled:hover, .ca-shape:disabled:hover { background: none; border-color: var(--border); color: var(--muted); }
 .ca-maskf__nick { flex: none; font-weight: 650; }
 .ca-maskf__host { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   font-family: ui-monospace, Menlo, monospace; font-size: .72rem; color: var(--muted); }

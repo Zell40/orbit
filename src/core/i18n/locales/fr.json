@@ -288,7 +288,17 @@
         "access": "Qui peut entrer",
         "speech": "Qui peut écrire",
         "protect": "Protection du salon",
-        "hint": "Affichage simplifié : seuls les réglages courants sont proposés. Pour les modes avancés, désactivez « Panneau de salon simplifié » dans Réglages → Apparence."
+        "hint": "Affichage simplifié : seuls les réglages courants sont proposés. Pour les modes avancés, désactivez « Panneau de salon simplifié » dans Réglages → Apparence.",
+        "tabModes": "Réglages",
+        "tabExtbans": "Sanctions",
+        "tabInvex": "Invitations ({{n}})",
+        "tabFilters": "Mots interdits ({{n}})",
+        "extbansHint": "Ces sanctions visent une personne en particulier : la rendre muette, l’envoyer dans un autre salon, l’empêcher de changer de pseudo…",
+        "redirectHint": "Le salon d’accueil doit déjà exister, et tu dois y être opérateur.",
+        "banned": "Banni",
+        "exempted": "Exempté",
+        "allowed": "Autorisé",
+        "filtered": "Interdit"
       },
       "paramModes": "Limites et protections",
       "lockedByServices": "Verrouillé par les services — impossible à activer ou désactiver ici.",
@@ -317,6 +327,7 @@
       "byNick": "Pseudo",
       "nickPlaceholder": "Choisir un membre du salon…",
       "hostUnknown": "hôte inconnu",
+      "hostUnknownHint": "Orbit ne connaît pas encore toute l’adresse de cette personne : ce masque serait beaucoup trop large.",
       "maskShape": "Bannir",
       "shape": {
         "host": "l’hôte",

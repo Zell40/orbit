@@ -288,7 +288,17 @@
         "access": "Who can join",
         "speech": "Who can talk",
         "protect": "Channel protection",
-        "hint": "Simplified view: only the everyday settings are offered. For the advanced modes, turn off “Simplified channel panel” in Settings → Appearance."
+        "hint": "Simplified view: only the everyday settings are offered. For the advanced modes, turn off “Simplified channel panel” in Settings → Appearance.",
+        "tabModes": "Settings",
+        "tabExtbans": "Sanctions",
+        "tabInvex": "Invites ({{n}})",
+        "tabFilters": "Blocked words ({{n}})",
+        "extbansHint": "These sanctions target one person in particular: mute them, send them to another channel, stop them changing nick…",
+        "redirectHint": "The destination channel must already exist, and you must be an operator there.",
+        "banned": "Banned",
+        "exempted": "Exempt",
+        "allowed": "Allowed",
+        "filtered": "Blocked"
       },
       "paramModes": "Limits and protections",
       "lockedByServices": "Locked by services — cannot be turned on or off here.",
@@ -317,6 +327,7 @@
       "byNick": "Nickname",
       "nickPlaceholder": "Pick a channel member…",
       "hostUnknown": "host unknown",
+      "hostUnknownHint": "Orbit doesn't know this person's full address yet, so this mask would be far too broad.",
       "maskShape": "Ban",
       "shape": {
         "host": "the host",

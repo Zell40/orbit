@@ -255,8 +255,14 @@ function useMaskField(): MaskField {
     pick,
     shape,
     set: (v) => { setText(v); setPick(null); },
-    choose: (m) => { setPick(m); setText(nickMask(m, shape)); },
-    reshape: (s) => { setShape(s); if (pick) setText(nickMask(pick, s)); },
+    // The picker greys out what it cannot build, so these guards only catch a
+    // host that vanished between render and click — never widen instead.
+    choose: (m) => { const v = nickMask(m, shape); if (!v) return; setPick(m); setText(v); },
+    reshape: (s) => {
+      if (!pick) { setShape(s); return; }
+      const v = nickMask(pick, s);
+      if (v) { setShape(s); setText(v); }
+    },
     clear: () => { setText(''); setPick(null); },
   };
 }
@@ -295,14 +301,22 @@ function MaskInput({ field, members, placeholder, ariaLabel, onSubmit }: {
         }} />
       {open && hits.length > 0 && (
         <div className="ca-extsel__menu ca-maskf__menu" role="listbox">
-          {hits.map((m) => (
-            <button key={m.nick} type="button" role="option" aria-selected={field.pick?.nick === m.nick}
-              className={`ca-extsel__opt ca-maskf__opt${field.pick?.nick === m.nick ? ' is-on' : ''}`}
-              onClick={() => { field.choose(m); setOpen(false); }}>
-              <span className="ca-maskf__nick">{m.prefix}{m.nick}</span>
-              <span className="ca-maskf__host">{m.host ? `@${m.host}` : t('modals.chanadmin.hostUnknown')}</span>
-            </button>
-          ))}
+          {hits.map((m) => {
+            // Until WHO answers we don't know the host, and the mask for the
+            // current shape would have to widen to `*!*@*` — the whole channel.
+            // Offer the member greyed out rather than a mask that bans everyone.
+            const mask = nickMask(m, field.shape);
+            return (
+              <button key={m.nick} type="button" role="option" disabled={!mask}
+                aria-selected={field.pick?.nick === m.nick}
+                title={mask || t('modals.chanadmin.hostUnknownHint')}
+                className={`ca-extsel__opt ca-maskf__opt${field.pick?.nick === m.nick ? ' is-on' : ''}`}
+                onClick={() => { field.choose(m); setOpen(false); }}>
+                <span className="ca-maskf__nick">{m.prefix}{m.nick}</span>
+                <span className="ca-maskf__host">{m.host ? `@${m.host}` : t('modals.chanadmin.hostUnknown')}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
@@ -316,12 +330,16 @@ function MaskShapes({ field }: { field: MaskField }) {
   return (
     <div className="ca-shapes" role="group" aria-label={t('modals.chanadmin.maskShape')}>
       <span className="ca-shapes__l">{t('modals.chanadmin.maskShape')}</span>
-      {NICK_MASK_SHAPES.map((s) => (
-        <button key={s} type="button" className={`ca-shape${field.shape === s ? ' is-on' : ''}`}
-          title={nickMask(field.pick!, s)} onClick={() => field.reshape(s)}>
-          {t(`modals.chanadmin.shape.${s}`)}
-        </button>
-      ))}
+      {NICK_MASK_SHAPES.map((s) => {
+        const mask = nickMask(field.pick!, s);
+        return (
+          <button key={s} type="button" disabled={!mask}
+            className={`ca-shape${field.shape === s ? ' is-on' : ''}`}
+            title={mask || t('modals.chanadmin.hostUnknownHint')} onClick={() => field.reshape(s)}>
+            {t(`modals.chanadmin.shape.${s}`)}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -447,7 +465,9 @@ export function ChanAdminModal() {
   const flagModes = filterlist.length > 0 && !modes.includes('g') ? `${modes}g` : modes;
   // +b ban, +e exempt — +I lives in its own tab (it is not a ban).
   const ebModes = (['b', 'e'] as const).filter((m) => m === 'b' || ctx.typeA.has(m));
-  const ebModeSel = ebModes.includes(ebMode) ? ebMode : 'b';
+  // The simplified panel never shows the +b/+e switch: an exception only makes
+  // sense once you reason in mode letters. It always bans.
+  const ebModeSel = simpleModes ? 'b' : (ebModes.includes(ebMode) ? ebMode : 'b');
   const ebSel = ebType || exts[0]?.name || '';
   const curExt = exts.find((e) => e.name === ebSel);
   // NICK_PICK is not an extban: it feeds the member picker, whose output is a
@@ -557,11 +577,13 @@ export function ChanAdminModal() {
         <div className="ca-main">
           <div className="ca-tabs" role="tablist">
             {tabBtn('overview', t('modals.chanadmin.tabOverview'))}
-            {tabBtn('modes', t('modals.chanadmin.tabModes'))}
+            {/* "Modes", "bans étendus" and "invex" are the vocabulary of the
+                mode letters the simplified panel exists to hide. */}
+            {tabBtn('modes', t(simpleModes ? 'modals.chanadmin.simple.tabModes' : 'modals.chanadmin.tabModes'))}
             {tabBtn('bans', t('modals.chanadmin.bans', { n: plainBans.length }))}
-            {exts.length > 0 && tabBtn('extbans', t('modals.chanadmin.extbans'))}
-            {hasInvex && tabBtn('invex', t('modals.chanadmin.invexTab', { n: invexlist.length }))}
-            {hasChanfilter && tabBtn('filters', t('modals.chanadmin.filtersTab', { n: filterlist.length }))}
+            {exts.length > 0 && tabBtn('extbans', t(simpleModes ? 'modals.chanadmin.simple.tabExtbans' : 'modals.chanadmin.extbans'))}
+            {hasInvex && tabBtn('invex', t(simpleModes ? 'modals.chanadmin.simple.tabInvex' : 'modals.chanadmin.invexTab', { n: invexlist.length }))}
+            {hasChanfilter && tabBtn('filters', t(simpleModes ? 'modals.chanadmin.simple.tabFilters' : 'modals.chanadmin.filtersTab', { n: filterlist.length }))}
           </div>
 
           {tab === 'overview' && (
@@ -663,13 +685,16 @@ export function ChanAdminModal() {
 
       {tab === 'extbans' && (
         <div className="ca-pane">
+          {simpleModes && <p className="ca-extexample">{t('modals.chanadmin.simple.extbansHint')}</p>}
           <div className="ca-param ca-extban-add">
-            <div className="ca-extmode">
-              {ebModes.map((m) => (
-                <button key={m} type="button" className={ebModeSel === m ? 'is-on' : ''}
-                  title={t(modeVerb[m])} onClick={() => setEbMode(m)}>+{m}</button>
-              ))}
-            </div>
+            {!simpleModes && (
+              <div className="ca-extmode">
+                {ebModes.map((m) => (
+                  <button key={m} type="button" className={ebModeSel === m ? 'is-on' : ''}
+                    title={t(modeVerb[m])} onClick={() => setEbMode(m)}>+{m}</button>
+                ))}
+              </div>
+            )}
             <ExtbanSelect exts={exts} value={ebSel} onChange={setEbType} />
             {curExt?.needsTarget && (
               <input className="modal__input ca-extdest" value={ebDest} placeholder={t('modals.chanadmin.redirectDestPlaceholder')}
@@ -677,7 +702,7 @@ export function ChanAdminModal() {
                 onChange={(e) => setEbDest(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
             )}
             {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={(name) => { setEbNest(name); if (!name || name === NICK_PICK) setEbInvert(false); }} maskOption nickOption />}
-            {curExt?.acting && nestExt && (
+            {curExt?.acting && nestExt && !simpleModes && (
               <button type="button" className={`ca-extinv${ebInvert ? ' is-on' : ''}`}
                 title={t('modals.chanadmin.invertMatch')} aria-pressed={ebInvert}
                 onClick={() => setEbInvert((v) => !v)}>!</button>
@@ -695,7 +720,9 @@ export function ChanAdminModal() {
           </div>
           {pickingNick && <MaskShapes field={ebField} />}
           {curExt?.needsTarget && (
-            <p className="ca-extexample">{t('modals.chanadmin.redirectHint')}</p>
+            // The full hint ends on how to word the matching +e exception —
+            // useful, and meaningless without the mode letters.
+            <p className="ca-extexample">{t(simpleModes ? 'modals.chanadmin.simple.redirectHint' : 'modals.chanadmin.redirectHint')}</p>
           )}
           {valueType?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
             <div className="ca-extgroups">
@@ -704,7 +731,9 @@ export function ChanAdminModal() {
               ))}
             </div>
           )}
-          {curExt && (
+          {/* The example is the raw `+b redirect:#x:*!*@y` the panel is meant to
+              spare a non-expert; it stays for whoever reads mode letters. */}
+          {curExt && !simpleModes && (
             <div className="ca-extexample">
               {t('modals.chanadmin.example')} <code>+{ebModeSel} {buildExtbanMask({
                 ext: curExt,
@@ -721,7 +750,9 @@ export function ChanAdminModal() {
               const eb = matchExtban(e.mask);
               return (
                 <li key={e.mode + e.mask} className="ca-ban">
-                  <span className={`ca-ban__mode ca-ban__mode--${e.mode}`}>+{e.mode}</span>
+                  <span className={`ca-ban__mode ca-ban__mode--${e.mode}${simpleModes ? ' ca-ban__mode--word' : ''}`}>
+                    {simpleModes ? t(`modals.chanadmin.simple.${e.mode === 'b' ? 'banned' : 'exempted'}`) : `+${e.mode}`}
+                  </span>
                   {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
                   <span className="ca-ban__mask">{eb ? e.mask.slice(e.mask.indexOf(':') + 1) : e.mask}</span>
                   {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
@@ -757,16 +788,20 @@ export function ChanAdminModal() {
               ))}
             </div>
           )}
-          <div className="ca-extexample">
-            {t('modals.chanadmin.example')} <code>+I {ixExt ? `${ixExt.name}:${ixVal.trim() || ixHint}` : plainMask(ixVal.trim() || t('modals.chanadmin.invexPlaceholder'))}</code>
-          </div>
+          {!simpleModes && (
+            <div className="ca-extexample">
+              {t('modals.chanadmin.example')} <code>+I {ixExt ? `${ixExt.name}:${ixVal.trim() || ixHint}` : plainMask(ixVal.trim() || t('modals.chanadmin.invexPlaceholder'))}</code>
+            </div>
+          )}
           <ul className="ca-bans">
             {invexlist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noInvex')}</li>}
             {invexlist.map((e) => {
               const eb = matchExtban(e.mask);
               return (
                 <li key={'I' + e.mask} className="ca-ban">
-                  <span className="ca-ban__mode ca-ban__mode--I">+I</span>
+                  <span className={`ca-ban__mode ca-ban__mode--I${simpleModes ? ' ca-ban__mode--word' : ''}`}>
+                    {simpleModes ? t('modals.chanadmin.simple.allowed') : '+I'}
+                  </span>
                   {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
                   <span className="ca-ban__mask">{eb ? e.mask.slice(e.mask.indexOf(':') + 1) : e.mask}</span>
                   {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
@@ -788,14 +823,18 @@ export function ChanAdminModal() {
               onChange={(e) => setNewfilter(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addFilter()} />
             <button className="upbtn upbtn--primary" onClick={addFilter}>{t('modals.chanadmin.addFilter')}</button>
           </div>
-          <div className="ca-extexample">
-            {t('modals.chanadmin.example')} <code>+g {newfilter.trim().replace(/\s+/g, '*') || 'gros*mot'}</code>
-          </div>
+          {!simpleModes && (
+            <div className="ca-extexample">
+              {t('modals.chanadmin.example')} <code>+g {newfilter.trim().replace(/\s+/g, '*') || 'gros*mot'}</code>
+            </div>
+          )}
           <ul className="ca-bans">
             {filterlist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noFilters')}</li>}
             {filterlist.map((e) => (
               <li key={'g' + e.mask} className="ca-ban">
-                <span className="ca-ban__mode">+g</span>
+                <span className={`ca-ban__mode${simpleModes ? ' ca-ban__mode--word' : ''}`}>
+                  {simpleModes ? t('modals.chanadmin.simple.filtered') : '+g'}
+                </span>
                 <span className="ca-ban__mask">{e.mask}</span>
                 {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
                 <button className="friend__act friend__act--rm" title={t('modals.chanadmin.removeFilter')}
@@ -809,9 +848,11 @@ export function ChanAdminModal() {
       {tab === 'bans' && (
         <div className="ca-pane">
           <div className="ca-param ca-extban-add">
+            {/* "*!*@masque" is exactly the notation the simplified panel drops;
+                there, the field reads as what it now mostly is — a member list. */}
             <MaskInput field={banField} members={members} onSubmit={addBan}
-              placeholder={t('modals.chanadmin.maskPlaceholder')}
-              ariaLabel={t('modals.chanadmin.maskPlaceholder')} />
+              placeholder={t(simpleModes ? 'modals.chanadmin.nickPlaceholder' : 'modals.chanadmin.maskPlaceholder')}
+              ariaLabel={t(simpleModes ? 'modals.chanadmin.nickPlaceholder' : 'modals.chanadmin.maskPlaceholder')} />
             <button className="upbtn upbtn--primary" onClick={addBan}>{t('modals.chanadmin.ban')}</button>
           </div>
           <MaskShapes field={banField} />

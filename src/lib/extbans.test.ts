@@ -67,16 +67,20 @@ describe('nickMask', () => {
     expect(nickMask(jessie, 'exact')).toBe('Jessie417!jessie@ipv6-ff12.entrenous.chat');
   });
 
-  it('widens to * rather than producing a mask that matches nobody', () => {
-    expect(nickMask({ nick: 'Kevin' }, 'host')).toBe('*!*@*');
-    expect(nickMask({ nick: 'Kevin' }, 'exact')).toBe('Kevin!*@*');
-    // The nick is always known, so this shape never degrades.
+  it('refuses a shape whose parts are unknown instead of widening it', () => {
+    // No WHO reply yet: widening these to `*` would ban the whole channel.
+    expect(nickMask({ nick: 'Kevin' }, 'host')).toBeNull();
+    expect(nickMask({ nick: 'Kevin' }, 'ident')).toBeNull();
+    expect(nickMask({ nick: 'Kevin' }, 'exact')).toBeNull();
+    expect(nickMask({ nick: 'Kevin', host: 'cloak.fr' }, 'ident')).toBeNull();
+    // The nick is always known, so this shape never fails.
     expect(nickMask({ nick: 'Kevin' }, 'nick')).toBe('Kevin!*@*');
+    expect(nickMask({ nick: 'Kevin', host: 'cloak.fr' }, 'host')).toBe('*!*@cloak.fr');
   });
 
   it('feeds a redirect ban as a plain hostmask, not a nested extban', () => {
     const redir = matchExtban('redirect:x')!;
-    expect(buildExtbanMask({ ext: redir, value: nickMask(jessie, 'host'), target: '#Bannis.chat' }))
+    expect(buildExtbanMask({ ext: redir, value: nickMask(jessie, 'host')!, target: '#Bannis.chat' }))
       .toBe('redirect:#Bannis.chat:*!*@ipv6-ff12.entrenous.chat');
   });
 
