@@ -40,7 +40,7 @@ function defaults(): Prefs {
     sound: d.sound, hideJoinQuit: d.hideJoinQuit, hideModes: false, compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: false,
-    readReceipts: true, joinOnInvite: false, simpleModes: false,
+    readReceipts: true, joinOnInvite: false, simpleModes: true,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };
 }
