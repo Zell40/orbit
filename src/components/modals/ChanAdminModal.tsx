@@ -158,7 +158,7 @@ function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-type Tab = 'overview' | 'modes' | 'bans' | 'extbans' | 'invex' | 'filters';
+type Tab = 'overview' | 'modes' | 'bans' | 'invex' | 'filters';
 
 // A compact combobox for the extban type: a button + an overlay menu (grouped into
 // restrictions / match-by, filterable). Opening it doesn't push the value input, so
@@ -378,6 +378,9 @@ export function ChanAdminModal() {
   const policyDest = redirectPolicy ? mod!.redirectChannel! : '';
 
   const [tab, setTab] = useState<Tab>('overview');
+  // The ban tab's two methods. A deployment that routes bans to a second-chance
+  // channel wants that one in front, which is the whole point of the policy.
+  const [banMethod, setBanMethod] = useState<'mask' | 'ext'>(redirectPolicy ? 'ext' : 'mask');
   const [moreModes, setMoreModes] = useState(false);
   const banField = useMaskField();
   const ebField = useMaskField();
@@ -485,13 +488,11 @@ export function ChanAdminModal() {
   const ixSel = ixType === '' ? '' : (ixType ?? invexExts[0]?.name ?? '');
   const ixExt = invexExts.find((e) => e.name === ixSel);
   const ixHint = ixExt ? extbanValueHint(ixExt, true) : t('modals.chanadmin.invexPlaceholder');
-  // Keep the two lists apart: plain nick!user@host bans on the right, typed extbans
-  // in their own tab.
-  const plainBans = banlist.filter((b) => !matchExtban(b.mask));
-  // The Extbans tab lists typed +b extbans plus +e exceptions. Plain +b stays
-  // in the Bans tab; +I invite exceptions have their own tab.
-  const extEntries = [
-    ...banlist.filter((b) => matchExtban(b.mask)).map((b) => ({ mode: 'b' as const, mask: b.mask, by: b.by })),
+  // Everything the ban tab lists: plain +b masks, typed +b extbans and the +e
+  // exceptions that lift them. (+I invite exceptions are not bans and keep
+  // their own tab.)
+  const banRows = [
+    ...banlist.map((b) => ({ mode: 'b' as const, mask: b.mask, by: b.by })),
     ...exceptlist.map((b) => ({ mode: 'e' as const, mask: b.mask, by: b.by })),
   ];
   const removeExt = (mode: 'b' | 'e' | 'I', mask: string) => {
@@ -580,8 +581,7 @@ export function ChanAdminModal() {
             {/* "Modes", "bans étendus" and "invex" are the vocabulary of the
                 mode letters the simplified panel exists to hide. */}
             {tabBtn('modes', t(simpleModes ? 'modals.chanadmin.simple.tabModes' : 'modals.chanadmin.tabModes'))}
-            {tabBtn('bans', t('modals.chanadmin.bans', { n: plainBans.length }))}
-            {exts.length > 0 && tabBtn('extbans', t(simpleModes ? 'modals.chanadmin.simple.tabExtbans' : 'modals.chanadmin.extbans'))}
+            {tabBtn('bans', t('modals.chanadmin.bans', { n: banRows.length }))}
             {hasInvex && tabBtn('invex', t(simpleModes ? 'modals.chanadmin.simple.tabInvex' : 'modals.chanadmin.invexTab', { n: invexlist.length }))}
             {hasChanfilter && tabBtn('filters', t(simpleModes ? 'modals.chanadmin.simple.tabFilters' : 'modals.chanadmin.filtersTab', { n: filterlist.length }))}
           </div>
@@ -683,88 +683,6 @@ export function ChanAdminModal() {
         </div>
       )}
 
-      {tab === 'extbans' && (
-        <div className="ca-pane">
-          {simpleModes && <p className="ca-extexample">{t('modals.chanadmin.simple.extbansHint')}</p>}
-          <div className="ca-param ca-extban-add">
-            {!simpleModes && (
-              <div className="ca-extmode">
-                {ebModes.map((m) => (
-                  <button key={m} type="button" className={ebModeSel === m ? 'is-on' : ''}
-                    title={t(modeVerb[m])} onClick={() => setEbMode(m)}>+{m}</button>
-                ))}
-              </div>
-            )}
-            <ExtbanSelect exts={exts} value={ebSel} onChange={setEbType} />
-            {curExt?.needsTarget && (
-              <input className="modal__input ca-extdest" value={ebDest} placeholder={t('modals.chanadmin.redirectDestPlaceholder')}
-                aria-label={t('modals.chanadmin.redirectDestPlaceholder')}
-                onChange={(e) => setEbDest(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
-            )}
-            {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={(name) => { setEbNest(name); if (!name || name === NICK_PICK) setEbInvert(false); }} maskOption nickOption />}
-            {curExt?.acting && nestExt && !simpleModes && (
-              <button type="button" className={`ca-extinv${ebInvert ? ' is-on' : ''}`}
-                title={t('modals.chanadmin.invertMatch')} aria-pressed={ebInvert}
-                onClick={() => setEbInvert((v) => !v)}>!</button>
-            )}
-            {pickingNick ? (
-              <MaskInput field={ebField} members={members} onSubmit={addExtban}
-                placeholder={t('modals.chanadmin.nickPlaceholder')}
-                ariaLabel={t('modals.chanadmin.byNick')} />
-            ) : (
-              <input className="modal__input" value={ebField.text} placeholder={valueType?.hint ?? curExt?.hint}
-                aria-label={t('modals.chanadmin.extbanType')}
-                onChange={(e) => ebField.set(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
-            )}
-            <button className="upbtn upbtn--primary" onClick={addExtban}>{t(modeVerb[ebModeSel])}</button>
-          </div>
-          {pickingNick && <MaskShapes field={ebField} />}
-          {curExt?.needsTarget && (
-            // The full hint ends on how to word the matching +e exception —
-            // useful, and meaningless without the mode letters.
-            <p className="ca-extexample">{t(simpleModes ? 'modals.chanadmin.simple.redirectHint' : 'modals.chanadmin.redirectHint')}</p>
-          )}
-          {valueType?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
-            <div className="ca-extgroups">
-              {getConfig().securityGroups!.map((g) => (
-                <button key={g} type="button" className="ca-extgroup" onClick={() => ebField.set(g)}>{g}</button>
-              ))}
-            </div>
-          )}
-          {/* The example is the raw `+b redirect:#x:*!*@y` the panel is meant to
-              spare a non-expert; it stays for whoever reads mode letters. */}
-          {curExt && !simpleModes && (
-            <div className="ca-extexample">
-              {t('modals.chanadmin.example')} <code>+{ebModeSel} {buildExtbanMask({
-                ext: curExt,
-                value: ebField.text.trim() || valueType?.hint || curExt.hint,
-                nest: nestExt,
-                invert: ebInvert && !!nestExt,
-                target: ebDest.trim() || (curExt.needsTarget ? t('modals.chanadmin.redirectDestPlaceholder') : ''),
-              })}</code>
-            </div>
-          )}
-          <ul className="ca-bans">
-            {extEntries.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noExtbans')}</li>}
-            {extEntries.map((e) => {
-              const eb = matchExtban(e.mask);
-              return (
-                <li key={e.mode + e.mask} className="ca-ban">
-                  <span className={`ca-ban__mode ca-ban__mode--${e.mode}${simpleModes ? ' ca-ban__mode--word' : ''}`}>
-                    {simpleModes ? t(`modals.chanadmin.simple.${e.mode === 'b' ? 'banned' : 'exempted'}`) : `+${e.mode}`}
-                  </span>
-                  {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
-                  <span className="ca-ban__mask">{eb ? e.mask.slice(e.mask.indexOf(':') + 1) : e.mask}</span>
-                  {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
-                  <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
-                    onClick={() => removeExt(e.mode, e.mask)}>✕</button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
       {tab === 'invex' && hasInvex && (
         <div className="ca-pane">
           <p className="ca-extexample">{t('modals.chanadmin.invexHint')}</p>
@@ -847,25 +765,114 @@ export function ChanAdminModal() {
 
       {tab === 'bans' && (
         <div className="ca-pane">
-          <div className="ca-param ca-extban-add">
-            {/* "*!*@masque" is exactly the notation the simplified panel drops;
-                there, the field reads as what it now mostly is — a member list. */}
-            <MaskInput field={banField} members={members} onSubmit={addBan}
-              placeholder={t(simpleModes ? 'modals.chanadmin.nickPlaceholder' : 'modals.chanadmin.maskPlaceholder')}
-              ariaLabel={t(simpleModes ? 'modals.chanadmin.nickPlaceholder' : 'modals.chanadmin.maskPlaceholder')} />
-            <button className="upbtn upbtn--primary" onClick={addBan}>{t('modals.chanadmin.ban')}</button>
-          </div>
-          <MaskShapes field={banField} />
+          {/* One tab, two ways of banning the same person: a plain mask, or a
+              typed extban that restricts instead of shutting the door. They
+              used to be two tabs, which read as two unrelated features. */}
+          {exts.length > 0 && (
+            <div className="ca-method" role="group" aria-label={t('modals.chanadmin.banMethod')}>
+              <button type="button" className={banMethod === 'mask' ? 'is-on' : ''} aria-pressed={banMethod === 'mask'}
+                onClick={() => setBanMethod('mask')}>{t(simpleModes ? 'modals.chanadmin.simple.methodMask' : 'modals.chanadmin.methodMask')}</button>
+              <button type="button" className={banMethod === 'ext' ? 'is-on' : ''} aria-pressed={banMethod === 'ext'}
+                onClick={() => setBanMethod('ext')}>{t('modals.chanadmin.methodExt')}</button>
+            </div>
+          )}
+
+          {banMethod === 'mask' || exts.length === 0 ? (
+            <>
+              <div className="ca-param ca-extban-add">
+                {/* "*!*@masque" is exactly the notation the simplified panel drops;
+                    there, the field reads as what it now mostly is — a member list. */}
+                <MaskInput field={banField} members={members} onSubmit={addBan}
+                  placeholder={t(simpleModes ? 'modals.chanadmin.nickPlaceholder' : 'modals.chanadmin.maskPlaceholder')}
+                  ariaLabel={t(simpleModes ? 'modals.chanadmin.nickPlaceholder' : 'modals.chanadmin.maskPlaceholder')} />
+                <button className="upbtn upbtn--primary" onClick={addBan}>{t('modals.chanadmin.ban')}</button>
+              </div>
+              <MaskShapes field={banField} />
+            </>
+          ) : (
+            <>
+              {simpleModes && <p className="ca-extexample">{t('modals.chanadmin.simple.extbansHint')}</p>}
+              <div className="ca-param ca-extban-add">
+                {!simpleModes && (
+                  <div className="ca-extmode">
+                    {ebModes.map((m) => (
+                      <button key={m} type="button" className={ebModeSel === m ? 'is-on' : ''}
+                        title={t(modeVerb[m])} onClick={() => setEbMode(m)}>+{m}</button>
+                    ))}
+                  </div>
+                )}
+                <ExtbanSelect exts={exts} value={ebSel} onChange={setEbType} />
+                {curExt?.needsTarget && (
+                  <input className="modal__input ca-extdest" value={ebDest} placeholder={t('modals.chanadmin.redirectDestPlaceholder')}
+                    aria-label={t('modals.chanadmin.redirectDestPlaceholder')}
+                    onChange={(e) => setEbDest(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
+                )}
+                {curExt?.acting && <ExtbanSelect exts={matchingExts} value={ebNest} onChange={(name) => { setEbNest(name); if (!name || name === NICK_PICK) setEbInvert(false); }} maskOption nickOption />}
+                {curExt?.acting && nestExt && !simpleModes && (
+                  <button type="button" className={`ca-extinv${ebInvert ? ' is-on' : ''}`}
+                    title={t('modals.chanadmin.invertMatch')} aria-pressed={ebInvert}
+                    onClick={() => setEbInvert((v) => !v)}>!</button>
+                )}
+                {pickingNick ? (
+                  <MaskInput field={ebField} members={members} onSubmit={addExtban}
+                    placeholder={t('modals.chanadmin.nickPlaceholder')}
+                    ariaLabel={t('modals.chanadmin.byNick')} />
+                ) : (
+                  <input className="modal__input" value={ebField.text} placeholder={valueType?.hint ?? curExt?.hint}
+                    aria-label={t('modals.chanadmin.extbanType')}
+                    onChange={(e) => ebField.set(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addExtban()} />
+                )}
+                <button className="upbtn upbtn--primary" onClick={addExtban}>{t(modeVerb[ebModeSel])}</button>
+              </div>
+              {pickingNick && <MaskShapes field={ebField} />}
+              {curExt?.needsTarget && (
+                // The full hint ends on how to word the matching +e exception —
+                // useful, and meaningless without the mode letters.
+                <p className="ca-extexample">{t(simpleModes ? 'modals.chanadmin.simple.redirectHint' : 'modals.chanadmin.redirectHint')}</p>
+              )}
+              {valueType?.name === 'securitygroup' && (getConfig().securityGroups?.length ?? 0) > 0 && (
+                <div className="ca-extgroups">
+                  {getConfig().securityGroups!.map((g) => (
+                    <button key={g} type="button" className="ca-extgroup" onClick={() => ebField.set(g)}>{g}</button>
+                  ))}
+                </div>
+              )}
+              {/* The example is the raw `+b redirect:#x:*!*@y` the panel is meant to
+                  spare a non-expert; it stays for whoever reads mode letters. */}
+              {curExt && !simpleModes && (
+                <div className="ca-extexample">
+                  {t('modals.chanadmin.example')} <code>+{ebModeSel} {buildExtbanMask({
+                    ext: curExt,
+                    value: ebField.text.trim() || valueType?.hint || curExt.hint,
+                    nest: nestExt,
+                    invert: ebInvert && !!nestExt,
+                    target: ebDest.trim() || (curExt.needsTarget ? t('modals.chanadmin.redirectDestPlaceholder') : ''),
+                  })}</code>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Both methods write to the same channel lists, so they read back as
+              one list — hiding the extbans behind their own tab made a ban look
+              gone when it had only been set the other way. */}
           <ul className="ca-bans">
-            {plainBans.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noBans')}</li>}
-            {plainBans.map((b) => (
-              <li key={b.mask} className="ca-ban">
-                <span className="ca-ban__mask">{b.mask}</span>
-                {b.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: b.by })}</span>}
-                <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
-                  onClick={() => { removeBan(chan, b.mask); setTimeout(() => loadBanList(chan), 500); }}>✕</button>
-              </li>
-            ))}
+            {banRows.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noBans')}</li>}
+            {banRows.map((e) => {
+              const eb = matchExtban(e.mask);
+              return (
+                <li key={e.mode + e.mask} className="ca-ban">
+                  <span className={`ca-ban__mode ca-ban__mode--${e.mode}${simpleModes ? ' ca-ban__mode--word' : ''}`}>
+                    {simpleModes ? t(`modals.chanadmin.simple.${e.mode === 'b' ? 'banned' : 'exempted'}`) : `+${e.mode}`}
+                  </span>
+                  {eb && <span className="ca-ban__type" title={eb.name}>{t(`extbans.${eb.name}`, eb.name)}</span>}
+                  <span className="ca-ban__mask">{eb ? e.mask.slice(e.mask.indexOf(':') + 1) : e.mask}</span>
+                  {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
+                  <button className="friend__act friend__act--rm" title={t('modals.chanadmin.unban')}
+                    onClick={() => removeExt(e.mode, e.mask)}>✕</button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

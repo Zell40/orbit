@@ -2840,19 +2840,45 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-ban__mode--I { color: #3b82f6; background: rgba(59,130,246,.14); }
 /* Simplified panel: the badge spells the mode out, so it is no longer a code. */
 .ca-ban__mode--word { font-family: inherit; font-size: .62rem; text-transform: uppercase; letter-spacing: .03em; }
-/* Extbans tab: a compact combobox (button + overlay menu) beside the value input, so
-   picking a type and typing the mask stay on one row — no scrolling. */
-/* Don’t stretch <input> to the button height: Chrome/Windows clips the first
-   glyph and the caret sits on the placeholder. The combobox still stretches. */
-/* Six controls (mode, type, destination, nested type, value, action) do not fit
-   one row at every width — wrap instead of squeezing one of them to nothing. */
-.ca-extban-add { margin-bottom: .9rem; align-items: center; flex-wrap: wrap; }
-.ca-extban-add > .modal__input { align-self: center; min-height: 2.55rem; padding: .55rem .95rem; }
-.ca-extban-add .ca-extsel, .ca-extban-add .ca-extmode { align-self: stretch; }
+/* Ban composer: one row on desktop. Its controls (mode, type, destination,
+   nested type, value, action) describe a single sentence — split over two lines
+   they read as two unrelated forms — so their bases are cut small enough that
+   even the widest variant fits the 800px dialog. Wrapping stays allowed for the
+   in-between widths (a narrow window, a tablet), where a rigid row would run
+   past the pane and be clipped instead. */
+.ca-extban-add { --ca-ctl-h: 2.5rem; margin-bottom: .9rem; align-items: center; flex-wrap: wrap; gap: .4rem; }
+/* One height and one radius for every control on the row, whatever its tag. */
+.ca-extban-add .modal__input,
+.ca-extban-add .ca-extsel__btn,
+.ca-extban-add .upbtn,
+.ca-extban-add .ca-extmode,
+.ca-extban-add .ca-extinv {
+  height: var(--ca-ctl-h); min-height: var(--ca-ctl-h); box-sizing: border-box;
+  border-radius: 9px; font-size: .85rem;
+}
+/* Two families, deliberately unlike each other: a tinted field closed by a
+   chevron is a list you pick from; a plain field in monospace is a mask you
+   type. Within a family they are identical, so the row stays readable. */
+.ca-extban-add .modal__input { padding: 0 .7rem; background: var(--bg); border: 1px solid var(--border-2);
+  font-family: ui-monospace, Menlo, Consolas, monospace; }
+.ca-extban-add .ca-extsel__btn { width: 100%; min-width: 0; padding: 0 .5rem 0 .7rem;
+  background: var(--bg-soft); border: 1px solid var(--border); font-weight: 650; }
+.ca-extban-add .ca-extsel__btn > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ca-extban-add .upbtn { flex: none; padding: 0 .95rem; }
 /* Descendant selectors: `.ca-param .modal__input` (flex: 1, basis 0) would
-   otherwise collapse the destination to its padding. */
-.ca-param .ca-extdest { flex: 0 1 9.5rem; min-width: 6rem; }
-.ca-param .ca-maskf { flex: 1 1 11rem; }
+   otherwise collapse the destination to its padding. The value field is the one
+   that grows, since it holds the longest text. */
+.ca-param .ca-extsel { flex: 1 1 7rem; min-width: 5.5rem; }
+.ca-param .ca-extdest { flex: 1 1 6rem; min-width: 5rem; }
+.ca-param .ca-maskf { flex: 1.6 1 8rem; min-width: 6rem; }
+.ca-extban-add > .modal__input:not(.ca-extdest) { flex: 1.6 1 8rem; min-width: 6rem; }
+/* The ban tab's two methods (plain mask / typed sanction). */
+.ca-method { display: inline-flex; gap: .2rem; margin: .1rem 0 .8rem; padding: .2rem;
+  border: 1px solid var(--border); border-radius: 11px; background: var(--bg-soft); }
+.ca-method button { border: 0; background: none; color: var(--muted); font: inherit; font-size: .82rem;
+  font-weight: 650; padding: .38rem .85rem; border-radius: 9px; cursor: pointer; white-space: nowrap; }
+.ca-method button:hover { color: var(--ink); }
+.ca-method button.is-on { background: var(--bg); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
 .ca-extinv { flex: none; min-width: 2.1rem; padding: 0 .45rem; border: 1px solid var(--border); border-radius: 8px;
   background: var(--bg-soft); color: var(--muted); font: inherit; font-weight: 800; cursor: pointer; }
 .ca-extinv:hover { color: var(--ink); border-color: var(--accent); }
@@ -2927,21 +2953,24 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .modal:has(.ca-layout) .ca-layout,
   .modal:has(.ca-layout) .ca-main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
   .ca-topicrow { flex: none; margin-bottom: .7rem; }
-  /* Six tabs never fit on a phone: scroll them sideways rather than let them
-     stretch the sheet. */
-  .ca-tabs { flex: none; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain;
-    scrollbar-width: none; margin-bottom: .7rem; }
-  .ca-tabs::-webkit-scrollbar { display: none; }
-  .ca-tab { flex: none; padding: .5rem .55rem; font-size: .8rem; white-space: nowrap; }
+  /* The tabs wrap onto as many lines as they need. Scrolling them sideways kept
+     the sheet narrow but hid the last entries behind a drag nobody makes: the
+     row has to be readable in one glance. */
+  .ca-tabs { flex: none; flex-wrap: wrap; gap: .1rem .15rem; margin-bottom: .7rem; overflow: visible; }
+  .ca-tab { flex: none; padding: .45rem .5rem; font-size: .84rem; white-space: nowrap; }
   /* The fixed 26rem pane either clipped the sheet or left dead space under it. */
   .ca-pane { height: auto; flex: 1; min-height: 0; }
   .ca-bans { max-height: none; }
-  .ca-extban-add { flex-wrap: wrap; }
-  .ca-extban-add .ca-extsel { flex: 1 1 auto; min-width: 0; }
-  .ca-extban-add .ca-extsel__btn { min-width: 0; width: 100%; }
-  .ca-extban-add > .modal__input, .ca-extban-add > .ca-maskf { flex: 1 1 100%; }
-  .ca-extban-add > .ca-extdest { flex: 1 1 8rem; }
-  .ca-extban-add > .upbtn { flex: 1 1 100%; }
+  /* No phone fits six controls side by side, so the row becomes a column: one
+     full-width control per line, in the order they are read. */
+  .ca-extban-add { flex-wrap: wrap; gap: .45rem; }
+  /* Two class names on purpose: the desktop widths are set through
+     `.ca-param .ca-extsel` and would otherwise outrank a one-class selector. */
+  .ca-param.ca-extban-add > * { flex: 1 1 100%; min-width: 0; }
+  .ca-param.ca-extban-add > .ca-extinv { flex: none; }
+  .ca-extban-add .ca-extmode button { flex: 1; }
+  .ca-method { display: flex; width: 100%; }
+  .ca-method button { flex: 1; }
   .ca-extsel__menu { width: min(15rem, calc(100vw - 2.5rem)); }
   .ca-prows { grid-template-columns: 1fr; }
   /* Label above the field: side by side they leave ~5rem for the input. */
