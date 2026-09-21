@@ -125,15 +125,23 @@ async function brandedManifest(req) {
     const manifest = await res.clone().json();
     const icon = (((await configJson()) || {}).branding || {}).icon;
     if (!icon || STOCK_ICONS.includes(icon)) return res;
+    if (!Array.isArray(manifest.icons)) return res;
     const type = (ICON_TYPES.find(([re]) => re.test(icon)) || [])[1];
-    // `any` rather than a made-up pixel size: we cannot measure the image (it is
-    // usually cross-origin, so createImageBitmap has nothing to decode). Listed
-    // first so it wins the slot, with the bundled icons kept behind it as the
-    // fallback if it turns out unfetchable or undecodable.
-    manifest.icons = [
-      Object.assign({ src: icon, sizes: 'any', purpose: 'any' }, type ? { type } : null),
-      ...(Array.isArray(manifest.icons) ? manifest.icons : []),
-    ];
+    // Swap the source of the declared `any` entries rather than prepend a new
+    // one: we cannot measure the image (it is usually cross-origin, so
+    // createImageBitmap has nothing to decode) and a `sizes: "any"` entry parses
+    // to 0x0, which Android's icon picker scores poorly. Reusing the sizes the
+    // deployer already declared keeps selection predictable.
+    //
+    // `maskable` is left alone on purpose. It is a different kind of asset — it
+    // needs a bled-out background and a 40% safe zone — and a logo stretched
+    // into that role gets its edges cropped. A deployment that wants its own
+    // adaptive icon ships one as a maskable entry in the static manifest.
+    manifest.icons = manifest.icons.map((i) => {
+      const purpose = (i.purpose || 'any').split(/\s+/);
+      if (!purpose.includes('any')) return i;
+      return Object.assign({}, i, { src: icon, purpose: 'any' }, type ? { type } : null);
+    });
     return new Response(JSON.stringify(manifest), {
       headers: { 'Content-Type': 'application/manifest+json', 'Cache-Control': 'no-cache' },
     });
