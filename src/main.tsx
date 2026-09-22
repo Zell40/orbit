@@ -135,7 +135,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
     // mints a JWT from the handoff cookie; a classic NickServ login reuses
     // the password parked in sessionStorage (this tab). A guest reconnects
     // under the same nick.
-    const { loadResume, mintChatResumeRetry, loadSaslResume } = await import('./core/resume')
+    const { loadResume, mintChatResumeRetry, loadSaslResume, saslMatchesResume } = await import('./core/resume')
     const { fetchProfileGecos } = await import('./platform/profile-gecos')
     const resume = loadResume()
     if (resume?.bouncer) {
@@ -153,31 +153,30 @@ async function startSession(handoff: Handoff | null): Promise<void> {
       let resumeRealname = resume?.realname
       const sasl = loadSaslResume()
       let go = !!(resume && !resume.account && !nick) // guests reconnect unconditionally
-      try {
-        // A member's only credential is the keycard minted from the HttpOnly cookie.
-        // With no parked password to fall back on, an unreachable endpoint (phone
-        // waking with the radio still down, tab discarded and reloaded) must not
-        // drop a live session on the join form — retry while it stays unreachable.
-        // A site that answers "no session" is final and falls through below.
-        const mint = await mintChatResumeRetry({ attempts: resume?.account && !sasl ? 3 : 1 })
-        if (mint.ok && (!nick || nick.toLowerCase() === mint.card.nick.toLowerCase())) {
-          password = mint.card.keycard
-          keycard = true
-          resumeNick = mint.card.nick
-          if (mint.card.account) resumeAccount = mint.card.account
-          if (mint.card.realname) resumeRealname = mint.card.realname
-          go = true
-        }
-      } catch { /* offline / timeout / no endpoint → try classic SASL below */ }
-      if (!password) {
-        const sameNick = !resumeNick || sasl?.nick.toLowerCase() === resumeNick.toLowerCase()
-        if (sasl && sameNick && (!nick || nick.toLowerCase() === sasl.nick.toLowerCase())) {
-          password = sasl.password
-          keycard = false
-          resumeNick = sasl.nick
-          if (sasl.account) resumeAccount = sasl.account
-          go = true
-        }
+      // Classic Orbit join-form password first: it lives in this tab's
+      // sessionStorage, so a MonIdentité mint (which answers no_session here)
+      // must not block it — and a nick that drifted after connect must not
+      // either (see saslMatchesResume).
+      if (sasl && saslMatchesResume(sasl, resume, nick)) {
+        password = sasl.password
+        keycard = false
+        resumeNick = resumeNick || sasl.nick
+        resumeAccount = resumeAccount || sasl.account || sasl.nick
+        go = true
+      } else {
+        try {
+          // Site keycard: only path for a member with no parked password.
+          // Retry while unreachable; a firm no_session falls through to the join form.
+          const mint = await mintChatResumeRetry({ attempts: resume?.account ? 3 : 1 })
+          if (mint.ok && (!nick || nick.toLowerCase() === mint.card.nick.toLowerCase())) {
+            password = mint.card.keycard
+            keycard = true
+            resumeNick = mint.card.nick
+            if (mint.card.account) resumeAccount = mint.card.account
+            if (mint.card.realname) resumeRealname = mint.card.realname
+            go = true
+          }
+        } catch { /* offline / timeout / no endpoint → join form below */ }
       }
       if (go && resumeNick && password && !resumeRealname) {
         try {

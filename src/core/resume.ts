@@ -109,6 +109,37 @@ export function clearSaslResume(): void {
   try { sessionStorage.removeItem(SASL_KEY); } catch { /* ignore */ }
 }
 
+/**
+ * True when a classic NickServ password parked in this tab is safe to reuse for
+ * the session we're about to resume.
+ *
+ * The live nick may have drifted from the one saved at connect (ERR_NICKNAMEINUSE
+ * suffix, a later /nick) while the account stayed the same — matching only on
+ * nick would then drop a perfectly good password on the join form. A `?nick=`
+ * that names someone else is still a hard no.
+ */
+export function saslMatchesResume(
+  sasl: SaslResume,
+  resume: Pick<Resume, 'nick' | 'account'> | null,
+  nickParam?: string | null,
+): boolean {
+  const fold = (s: string) => s.toLowerCase();
+  const param = (nickParam || '').trim();
+  if (param) {
+    const p = fold(param);
+    return fold(sasl.nick) === p || (!!sasl.account && fold(sasl.account) === p);
+  }
+  if (!resume) return true; // password was parked in this tab; nothing else to check
+  const resumeIds = [resume.nick, resume.account]
+    .filter((s): s is string => typeof s === 'string' && !!s)
+    .map(fold);
+  if (!resumeIds.length) return true;
+  const saslIds = [sasl.nick, sasl.account]
+    .filter((s): s is string => typeof s === 'string' && !!s)
+    .map(fold);
+  return saslIds.some((id) => resumeIds.includes(id));
+}
+
 /** Fresh SASL keycard minted from the HttpOnly `orbit_en_resume` cookie. */
 export interface ResumeKeycard {
   keycard: string;

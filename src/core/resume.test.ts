@@ -129,3 +129,27 @@ describe('sasl resume (classic NickServ login)', () => {
     expect(loadSaslResume()).toBeNull();
   });
 });
+
+describe('saslMatchesResume', () => {
+  it('accepts a parked password when the live nick was suffix-mangled after connect', async () => {
+    const { saslMatchesResume } = await import('./resume');
+    expect(saslMatchesResume(
+      { nick: 'Zell', password: 'pw', account: 'Zell' },
+      { nick: 'Zell742', account: 'Zell' },
+    )).toBe(true);
+  });
+
+  it('rejects a parked password for a different ?nick=', async () => {
+    const { saslMatchesResume } = await import('./resume');
+    expect(saslMatchesResume(
+      { nick: 'Zell', password: 'pw', account: 'Zell' },
+      { nick: 'Zell', account: 'Zell' },
+      'Other',
+    )).toBe(false);
+  });
+
+  it('accepts a parked password with no local resume (same-tab F5 before saveResume)', async () => {
+    const { saslMatchesResume } = await import('./resume');
+    expect(saslMatchesResume({ nick: 'Zell', password: 'pw' }, null)).toBe(true);
+  });
+});

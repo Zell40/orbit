@@ -372,6 +372,17 @@ export function createChatStore(ns = '') {
         if (st === 'registered') {
           const wasReconnect = get().everRegistered;
           set({ reconnectIn: 0, serverError: '', everRegistered: true, friendsOnline: {} });
+          // Keep the parked password aligned with the nick we actually registered
+          // under (433 may have suffix-mangled it), so a later F5 still matches.
+          if (getConfig().features.sessionResume && opts.password && !opts.keycard
+              && !opts.passkey && !opts.serverPassword) {
+            saveSaslResume({
+              nick: client.nick,
+              password: opts.password,
+              account: opts.saslAuthzid || get().account || client.nick,
+              url: opts.url,
+            });
+          }
           // Snapshot user modes (RPL_UMODEIS/221). ZNC may answer 502 if the
           // local nick differs from the ircd nick — that numeric is swallowed.
           // When the snapshot stays empty (typical bouncer attach, no MODE

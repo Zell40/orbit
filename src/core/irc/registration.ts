@@ -239,14 +239,17 @@ export class Registration {
     if (msg.params[0] !== '+') return;
     const o = this.host.opts();
     this.credentialOffered = true; // a single-use keycard is spent from here on
+    // Prefer the NickServ account over the live nick: after a 433 suffix the nick
+    // is no longer the account name, and Anope must see the account as authcid.
+    const authcid = o.saslAuthzid || o.nick;
     if (this.mech === 'OAUTHBEARER') {
       // RFC 7628: n,a=<authzid>,\x01auth=Bearer <token>\x01\x01
-      const authzid = o.saslAuthzid || o.nick;
       const token = o.password ?? '';
-      this.sendSaslData(b64utf8(`n,a=${authzid},\x01auth=Bearer ${token}\x01\x01`));
+      this.sendSaslData(b64utf8(`n,a=${authcid},\x01auth=Bearer ${token}\x01\x01`));
       return;
     }
-    this.sendSaslData(b64utf8(`\0${o.nick}\0${o.password ?? ''}`));
+    // RFC 4616: authzid \0 authcid \0 password — empty authzid ⇒ authorize as authcid.
+    this.sendSaslData(b64utf8(`\0${authcid}\0${o.password ?? ''}`));
   }
 
   // SCRAM-SHA-256 is a multi-step challenge-response (server '+' → client-first →
@@ -260,7 +263,8 @@ export class Registration {
     const payload = msg.params[0] ?? '';
     if (!scram.started) {
       // Server sent '+' (ready) → send client-first.
-      this.sendSaslData(scram.clientFirst(this.host.opts().nick));
+      const o = this.host.opts();
+      this.sendSaslData(scram.clientFirst(o.saslAuthzid || o.nick));
       return;
     }
     if (!scram.sentClientFinal) {

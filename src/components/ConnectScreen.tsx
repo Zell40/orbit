@@ -329,7 +329,7 @@ export function ConnectScreen() {
   const bouncerPrefs = loadBouncerPrefs();
   const lastResume = loadResume();
   const directPref = peekDirectReconnect();
-  const [nick, setNick] = useState(param('nick', directPref?.nick || bouncerPrefs?.nick || ''));
+  const [nick, setNick] = useState(param('nick', directPref?.nick || lastResume?.nick || bouncerPrefs?.nick || ''));
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [profileBusy, setProfileBusy] = useState(false);
