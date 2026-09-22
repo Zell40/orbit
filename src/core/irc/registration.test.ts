@@ -9,7 +9,7 @@ function make(opts: Partial<ConnectOptions> = {}, passkeyAssertion: (c: Uint8Arr
   const sent: string[] = [];
   const statuses: string[] = [];
   const challenges: Uint8Array[] = [];
-  const state = { nick: '', registered: false, backoffResets: 0, away: '', aborts: 0 };
+  const state = { nick: '', registered: false, backoffResets: 0, away: '', aborts: 0, retries: 0 };
   const ircv3 = new Ircv3({ send: () => {}, lowSend: () => {}, isupport: () => ({}) });
   const full: ConnectOptions = { url: 'ws://x', nick: 'bob', channels: [], ...opts };
   const reg = new Registration({
@@ -17,6 +17,7 @@ function make(opts: Partial<ConnectOptions> = {}, passkeyAssertion: (c: Uint8Arr
     setStatus: (s) => statuses.push(s),
     forward: () => {},
     abort: () => { state.aborts++; },
+    retryLater: () => { state.retries++; },
     ircv3,
     opts: () => full,
     getNick: () => state.nick,
@@ -67,6 +68,78 @@ describe('Registration handshake', () => {
     await flush();
     expect(order).toEqual(['bearer', 'gecos']);
     expect(sent).toEqual(['CAP LS 302', 'NICK bob', 'USER guest 0 * :40 - Homme - Paris']);
+  });
+
+  it('still offers the keycard the site just handed us when the mint is unreachable', async () => {
+    const { reg, sent, state } = make({
+      nick: 'bob',
+      password: 'fresh-from-handoff',
+      keycard: true,
+      oauthBearer: true,
+      refreshBearer: async () => 'retry',
+    });
+    reg.start();
+    await flush();
+    expect(sent).toContain('NICK bob'); // never used, so it's still worth a try
+    expect(state.retries).toBe(0);
+  });
+
+  // A keycard is single-use: once a handshake has offered it, only a freshly minted
+  // one can register again. These two cover the reconnect after a backgrounded tab.
+  it('retries later rather than re-offering a spent keycard when the mint is unreachable', async () => {
+    const { reg, sent, state, statuses } = make({
+      nick: 'bob',
+      password: 'keycard',
+      keycard: true,
+      oauthBearer: true,
+      refreshBearer: async () => 'retry',
+    });
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    reg.handle(parseLine('AUTHENTICATE +')); // keycard spent on this handshake
+    sent.length = 0;
+    reg.start();                             // socket dropped — reconnect, no fresh keycard
+    await flush();
+    expect(sent).toEqual([]);                // nothing on the wire — the session is kept
+    expect(state.retries).toBe(1);
+    expect(state.aborts).toBe(0);
+    expect(statuses).not.toContain('sasl-failed');
+  });
+
+  it('fails the session when the site says there is nothing left to mint from', async () => {
+    const { reg, sent, state, statuses } = make({
+      nick: 'bob',
+      password: 'keycard',
+      keycard: true,
+      oauthBearer: true,
+      refreshBearer: async () => undefined,
+    });
+    reg.handle(parseLine('CAP * ACK :sasl'));
+    reg.handle(parseLine('AUTHENTICATE +'));
+    sent.length = 0;
+    reg.start();
+    await flush();
+    expect(sent).toEqual([]);
+    expect(statuses).toContain('sasl-failed');
+    expect(state.aborts).toBe(1);
+    expect(state.retries).toBe(0);
+  });
+
+  it('re-mints a keycard the ircd refused, then gives up after a couple of tries', () => {
+    const { reg, state, statuses } = make({
+      nick: 'bob',
+      password: 'keycard',
+      keycard: true,
+      oauthBearer: true,
+      refreshBearer: async () => 'fresh-jwt',
+    });
+    const fail = () => reg.handle(parseLine('904 bob :SASL authentication failed'));
+    fail(); fail();
+    expect(state.retries).toBe(2);     // reconnect and mint a fresh keycard
+    expect(statuses).not.toContain('sasl-failed');
+    fail();
+    expect(state.retries).toBe(2);     // the handoff really is dead — report it
+    expect(statuses).toContain('sasl-failed');
+    expect(state.aborts).toBe(1);
   });
 
   it('includes PASS when a server password is set', () => {

@@ -101,6 +101,22 @@ export class Transport {
   /** A healthy registration (001) — clear the reconnect backoff. */
   resetBackoff(): void { this.reconnectAttempts = 0; }
 
+  /**
+   * The handshake can't go ahead on this socket yet (no fresh keycard to
+   * authenticate with). Drop it and come back on the normal backoff: the session
+   * stays alive, and we keep reporting 'connecting' so the UI shows a reconnect
+   * rather than flashing the join form.
+   */
+  retryLater(): void {
+    if (!this.wantConnected) return;
+    this.teardown(this.ws);
+    this.ws = undefined;
+    this.stopKeepalive();
+    this.clearConnectTimer();
+    this.hooks.onStatus('connecting');
+    this.scheduleReconnect();
+  }
+
   // Detach a socket's handlers and close it. Idempotent and safe on any
   // readyState — used everywhere a socket must stop influencing us (replace
   // on reconnect, intentional disconnect, stuck-handshake timeout).

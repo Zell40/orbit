@@ -9,6 +9,11 @@ import type { ConnectOptions, ConnectionStatus, IrcMessage } from './types';
 import type { Ircv3 } from './ircv3';
 import { ScramClient } from './scram';
 
+// How many freshly minted keycards the ircd may refuse before we stop re-minting
+// and report the failure. Covers a token that expired in flight; a handoff that is
+// really dead fails after a couple of quick tries.
+const MAX_KEYCARD_TRIES = 2;
+
 // SASL PLAIN payload is base64 of "\0<authzid>\0<passwd>", UTF-8. Also used to
 // base64 the (ASCII) WebAuthn assertion JSON for the WEBAUTHN mechanism.
 function b64utf8(input: string): string {
@@ -33,6 +38,7 @@ export interface RegistrationHost {
   setStatus(status: ConnectionStatus): void; // emit the 'status' event
   forward(msg: IrcMessage): void;            // re-emit a message (post-registration manual `cap ls`)
   abort(): void;                             // give up the connection (failed SASL) with no auto-reconnect
+  retryLater(): void;                        // transport: drop this socket, come back on the backoff (session kept)
   readonly ircv3: Ircv3;
   opts(): ConnectOptions;
   getNick(): string;
@@ -51,6 +57,8 @@ export class Registration {
   private mech = 'PLAIN'; // the SASL mechanism chosen at CAP ACK (routes AUTHENTICATE)
   private scram: ScramClient | null = null; // live SCRAM exchange, when mech is SCRAM-SHA-256
   private scramFellBack = false;            // SCRAM failed → already retried with PLAIN (don't loop)
+  private keycardTries = 0;                 // minted keycards refused so far (survives start(), reset on 001)
+  private credentialOffered = false;        // the token we hold has already gone to a server (spent, if single-use)
   private readonly host: RegistrationHost;
   constructor(host: RegistrationHost) { this.host = host; }
 
@@ -84,10 +92,20 @@ export class Registration {
     }
     void (async () => {
       if (o.oauthBearer && o.refreshBearer) {
-        try {
-          const token = await o.refreshBearer();
-          if (token) o.password = token;
-        } catch { /* keep existing password */ }
+        let fresh: string | 'retry' | undefined;
+        try { fresh = await o.refreshBearer(); } catch { fresh = 'retry'; }
+        if (fresh && fresh !== 'retry') { o.password = fresh; this.credentialOffered = false; }
+        else if (o.keycard && this.credentialOffered) {
+          // The token we hold is single-use and a previous handshake already spent
+          // it, so registering with it can only fail SASL — which would end the
+          // session for good. When the mint endpoint was merely unreachable (waking
+          // phone, flaky link), keep the session and come back on the transport's
+          // backoff instead. (A keycard that has never been offered — the one the
+          // site just handed us — is still worth trying below.)
+          if (fresh === 'retry') this.host.retryLater();
+          else { this.host.setStatus('sasl-failed'); this.host.abort(); }
+          return false;
+        }
       }
       if (o.resolveRealname) {
         try {
@@ -95,7 +113,8 @@ export class Registration {
           if (typeof rn === 'string' && rn.trim()) o.realname = rn.trim();
         } catch { /* keep existing realname */ }
       }
-    })().finally(begin);
+      return true;
+    })().then((go) => { if (go) begin(); }, begin);
   }
 
   // Handle a registration-relevant line: CAP, AUTHENTICATE, the SASL result
@@ -124,6 +143,16 @@ export class Registration {
           this.host.send('AUTHENTICATE PLAIN');
           return;
         }
+        // A minted keycard is disposable: when the ircd refuses one (it expired in
+        // flight, or a socket died after spending it), mint another on a fresh
+        // connection rather than ending the session. Bounded, so a handoff that is
+        // genuinely dead still surfaces as a failure instead of looping.
+        if (this.host.opts().keycard && this.host.opts().refreshBearer
+            && this.keycardTries < MAX_KEYCARD_TRIES) {
+          this.keycardTries++;
+          this.host.retryLater();
+          return;
+        }
         // Authentication failed with no fallback left. Do NOT finish registration
         // as a guest — the member asked to log in. Abort the connection (no
         // auto-reconnect) so a wrong password/expired keycard surfaces as a failure
@@ -145,6 +174,7 @@ export class Registration {
         return;
       case '001': // RPL_WELCOME — we're registered
         this.host.setRegistered(true);
+        this.keycardTries = 0;
         this.host.resetBackoff(); // healthy connection — clear the backoff
         this.host.setNick(msg.params[0] ?? this.host.getNick());
         this.host.setStatus('registered');
@@ -182,6 +212,7 @@ export class Registration {
     // PLAIN / OAUTHBEARER: the server sends a bare '+' when it's ready for client-first data.
     if (msg.params[0] !== '+') return;
     const o = this.host.opts();
+    this.credentialOffered = true; // a single-use keycard is spent from here on
     if (this.mech === 'OAUTHBEARER') {
       // RFC 7628: n,a=<authzid>,\x01auth=Bearer <token>\x01\x01
       const authzid = o.saslAuthzid || o.nick;

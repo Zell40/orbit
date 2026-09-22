@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { mintChatResume, saveSaslResume, loadSaslResume, clearResume } from './resume';
+import {
+  mintChatResume, mintChatResumeResult, mintChatResumeRetry,
+  saveSaslResume, loadSaslResume, clearResume,
+} from './resume';
 
 describe('mintChatResume', () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -46,6 +49,57 @@ describe('mintChatResume', () => {
       json: async () => ({ ok: false, error: 'no_session' }),
     })));
     await expect(mintChatResume()).resolves.toBeNull();
+  });
+});
+
+describe('mintChatResumeResult — why the mint failed', () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+  it('reports no_session when the site answers that the cookie is gone', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ ok: false, error: 'no_session' }),
+    })));
+    await expect(mintChatResumeResult()).resolves.toEqual({ ok: false, reason: 'no_session' });
+  });
+
+  it('reports unreachable when nothing answers (offline / aborted)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
+    await expect(mintChatResumeResult()).resolves.toEqual({ ok: false, reason: 'unreachable' });
+  });
+
+  it('treats a 5xx as unreachable, not as a signed-out session', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 502, json: async () => ({}) })));
+    await expect(mintChatResumeResult()).resolves.toEqual({ ok: false, reason: 'unreachable' });
+  });
+});
+
+describe('mintChatResumeRetry', () => {
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+  it('retries an unreachable endpoint and succeeds once the network is back', async () => {
+    let calls = 0;
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      calls++;
+      if (calls <= 2) throw new TypeError('Failed to fetch'); // two mint URLs, first attempt
+      return { ok: true, status: 200, json: async () => ({ ok: true, keycard: 'jwt', nick: 'Jessie' }) };
+    }));
+    await expect(mintChatResumeRetry({ attempts: 3, gapMs: 1 })).resolves.toEqual({
+      ok: true,
+      card: { keycard: 'jwt', nick: 'Jessie' },
+    });
+  });
+
+  it('does not retry once the site has answered that there is no session', async () => {
+    const fetch = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: false, error: 'no_session' }),
+    }));
+    vi.stubGlobal('fetch', fetch);
+    await expect(mintChatResumeRetry({ attempts: 3, gapMs: 1 })).resolves
+      .toEqual({ ok: false, reason: 'no_session' });
+    expect(fetch).toHaveBeenCalledTimes(2); // both paths tried once — final, no second attempt
   });
 });
 

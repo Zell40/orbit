@@ -56,6 +56,7 @@ export class IrcClient {
     setStatus: (s) => this.emit('status', s),
     forward: (m) => this.emit('message', m),
     abort: () => this.transport.disconnect('SASL authentication failed'),
+    retryLater: () => this.transport.retryLater(),
     ircv3: this.ircv3,
     opts: () => this.opts,
     getNick: () => this.nick,

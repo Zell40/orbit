@@ -135,7 +135,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
     // mints a JWT from the handoff cookie; a classic NickServ login reuses
     // the password parked in sessionStorage (this tab). A guest reconnects
     // under the same nick.
-    const { loadResume, mintChatResume, loadSaslResume } = await import('./core/resume')
+    const { loadResume, mintChatResumeRetry, loadSaslResume } = await import('./core/resume')
     const { fetchProfileGecos } = await import('./platform/profile-gecos')
     const resume = loadResume()
     if (resume?.bouncer) {
@@ -151,22 +151,25 @@ async function startSession(handoff: Handoff | null): Promise<void> {
       let resumeNick = nick || resume?.nick || ''
       let resumeAccount = resume?.account || ''
       let resumeRealname = resume?.realname
+      const sasl = loadSaslResume()
       let go = !!(resume && !resume.account && !nick) // guests reconnect unconditionally
       try {
-        const ctrl = new AbortController()
-        const to = setTimeout(() => ctrl.abort(), 4000) // never let a hung endpoint stall boot
-        const minted = await mintChatResume(ctrl.signal).finally(() => clearTimeout(to))
-        if (minted && (!nick || nick.toLowerCase() === minted.nick.toLowerCase())) {
-          password = minted.keycard
+        // A member's only credential is the keycard minted from the HttpOnly cookie.
+        // With no parked password to fall back on, an unreachable endpoint (phone
+        // waking with the radio still down, tab discarded and reloaded) must not
+        // drop a live session on the join form — retry while it stays unreachable.
+        // A site that answers "no session" is final and falls through below.
+        const mint = await mintChatResumeRetry({ attempts: resume?.account && !sasl ? 3 : 1 })
+        if (mint.ok && (!nick || nick.toLowerCase() === mint.card.nick.toLowerCase())) {
+          password = mint.card.keycard
           keycard = true
-          resumeNick = minted.nick
-          if (minted.account) resumeAccount = minted.account
-          if (minted.realname) resumeRealname = minted.realname
+          resumeNick = mint.card.nick
+          if (mint.card.account) resumeAccount = mint.card.account
+          if (mint.card.realname) resumeRealname = mint.card.realname
           go = true
         }
       } catch { /* offline / timeout / no endpoint → try classic SASL below */ }
       if (!password) {
-        const sasl = loadSaslResume()
         const sameNick = !resumeNick || sasl?.nick.toLowerCase() === resumeNick.toLowerCase()
         if (sasl && sameNick && (!nick || nick.toLowerCase() === sasl.nick.toLowerCase())) {
           password = sasl.password

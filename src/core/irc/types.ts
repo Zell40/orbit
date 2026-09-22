@@ -136,8 +136,13 @@ export interface ConnectOptions {
   scram?: boolean;         // prefer SASL SCRAM-SHA-256 for this password (falls back to PLAIN); set by the store
   keycard?: boolean;       // the password is a single-use keycard/token, not an account password → no SCRAM
   oauthBearer?: boolean;   // prefer SASL OAUTHBEARER (RFC 7628) with password as Bearer token — for site JWT handoff
-  /** Before (re)registration, mint a fresh Bearer token (e.g. /accounts/api/chat_resume/). */
-  refreshBearer?: () => Promise<string | undefined>;
+  /**
+   * Before (re)registration, mint a fresh Bearer token (e.g. /accounts/api/chat_resume/).
+   * `'retry'` means the mint endpoint could not be reached (offline, timeout): the
+   * session may well still be valid, so the handshake backs off instead of failing
+   * SASL. `undefined` means there is no session left to mint from.
+   */
+  refreshBearer?: () => Promise<string | 'retry' | undefined>;
   /**
    * Before NICK/USER, resolve IRC GECOS (e.g. WordPress âge-genre-ville).
    * Applied to `realname` so registration never needs a post-connect SETNAME.

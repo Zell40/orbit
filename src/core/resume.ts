@@ -135,13 +135,24 @@ function parseResumeKeycard(j: unknown): ResumeKeycard | null {
 }
 
 /**
+ * Why a mint attempt produced no keycard. The distinction matters: `no_session`
+ * is the site telling us the handoff cookie is gone (nothing left to resume),
+ * while `unreachable` means nobody answered — it says nothing about the session,
+ * so it must never be treated as a reason to end one.
+ */
+export type MintResult =
+  | { ok: true; card: ResumeKeycard }
+  | { ok: false; reason: 'no_session' | 'unreachable' };
+
+/**
  * Mint a one-time JWT from the WordPress handoff cookie.
  *
  * Tries `/app/accounts/api/chat_resume/` first (same Apache Alias tree as
  * handoff.php), then `/accounts/api/chat_resume/`. A cookie Path=/app is only
  * sent to the first URL; a host-root rewrite may also serve a different copy.
  */
-export async function mintChatResume(signal?: AbortSignal): Promise<ResumeKeycard | null> {
+export async function mintChatResumeResult(signal?: AbortSignal): Promise<MintResult> {
+  let answered = false; // at least one endpoint spoke about the session itself
   for (const url of resumeMintUrls()) {
     try {
       const r = await fetch(url, {
@@ -150,10 +161,69 @@ export async function mintChatResume(signal?: AbortSignal): Promise<ResumeKeycar
         cache: 'no-store',
         signal,
       });
-      if (!r.ok) continue;
+      // 404 (wrong path for this deployment), 429 and 5xx (proxy/site hiccup)
+      // tell us nothing about whether the cookie is still good.
+      if (r.status === 404 || r.status === 429 || r.status >= 500) continue;
+      if (!r.ok) { answered = true; continue; } // 401/403 — signed out
       const minted = parseResumeKeycard(await r.json());
-      if (minted) return minted;
+      if (minted) return { ok: true, card: minted };
+      answered = true; // answered `ok: false` — no session on this path
     } catch { /* abort / offline / non-JSON → try the other path */ }
   }
-  return null;
+  return { ok: false, reason: answered ? 'no_session' : 'unreachable' };
+}
+
+export async function mintChatResume(signal?: AbortSignal): Promise<ResumeKeycard | null> {
+  const r = await mintChatResumeResult(signal);
+  return r.ok ? r.card : null;
+}
+
+export interface MintRetryOptions {
+  /** Total attempts, first one included (default 1 — no retry). */
+  attempts?: number;
+  /** Abort budget for a single attempt, so a hung endpoint can't stall boot. */
+  perTryMs?: number;
+  /** Wait before the next attempt, doubling each time. */
+  gapMs?: number;
+}
+
+/** Wait `ms`, or resolve as soon as the browser reports the network is back. */
+function waitOrOnline(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    const w = typeof window === 'undefined' ? null : window;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      w?.removeEventListener('online', finish);
+      resolve();
+    };
+    const timer = setTimeout(finish, ms);
+    w?.addEventListener('online', finish);
+  });
+}
+
+/**
+ * Mint a keycard, retrying only while the failure stays transient.
+ *
+ * A phone coming out of standby — or a tab the browser discarded and reloaded —
+ * runs this with the radio still down, so the first fetch fails instantly.
+ * Giving up there would drop a perfectly good session on the join form. A site
+ * that answers "no session" is final: retrying cannot change that.
+ */
+export async function mintChatResumeRetry(o: MintRetryOptions = {}): Promise<MintResult> {
+  const attempts = Math.max(1, o.attempts ?? 1);
+  const perTryMs = o.perTryMs ?? 4000;
+  let gap = o.gapMs ?? 800;
+  let last: MintResult = { ok: false, reason: 'unreachable' };
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) { await waitOrOnline(gap); gap *= 2; }
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), perTryMs);
+    try { last = await mintChatResumeResult(ctrl.signal); }
+    finally { clearTimeout(to); }
+    if (last.ok || last.reason === 'no_session') return last;
+  }
+  return last;
 }

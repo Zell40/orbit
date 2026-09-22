@@ -18,7 +18,8 @@ import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
-import { mintChatResume, saveSaslResume, clearSaslResume } from './resume';
+import { mintChatResumeResult, saveSaslResume, clearSaslResume } from './resume';
+import type { MintResult } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
 import { closeMobileNav } from '../lib/mobile-nav';
 import { mergeMlock } from './irc/mode-catalog';
@@ -309,16 +310,20 @@ export function createChatStore(ns = '') {
       // re-fetches profile_gecos so USER always has ASL before NICK/USER.
       if (opts.oauthBearer && !opts.refreshBearer) {
         opts.refreshBearer = async () => {
-          try {
-            const ctrl = new AbortController();
-            const to = setTimeout(() => ctrl.abort(), 4000);
-            const minted = await mintChatResume(ctrl.signal).finally(() => clearTimeout(to));
-            if (!minted) return undefined;
-            opts.nick = minted.nick;
-            if (minted.account) opts.saslAuthzid = minted.account;
-            if (minted.realname) opts.realname = minted.realname;
-            return minted.keycard;
-          } catch { return undefined; }
+          const ctrl = new AbortController();
+          const to = setTimeout(() => ctrl.abort(), 4000);
+          let mint: MintResult;
+          try { mint = await mintChatResumeResult(ctrl.signal); }
+          catch { mint = { ok: false, reason: 'unreachable' }; }
+          finally { clearTimeout(to); }
+          // Only one try here: the socket is already open and the ircd won't wait
+          // forever for NICK/USER, so the retry loop belongs to the transport's
+          // backoff ('retry'), not to this handshake.
+          if (!mint.ok) return mint.reason === 'unreachable' ? 'retry' : undefined;
+          opts.nick = mint.card.nick;
+          if (mint.card.account) opts.saslAuthzid = mint.card.account;
+          if (mint.card.realname) opts.realname = mint.card.realname;
+          return mint.card.keycard;
         };
       }
       // WordPress profile = source of truth: resolve âge/genre/ville before USER.
@@ -353,7 +358,9 @@ export function createChatStore(ns = '') {
         // a handoff is no longer in flight: drop the splash so failures fall back
         // to the join form (with the nick/channel still prefilled from the URL).
         if (st !== 'connecting') set({ autoConnecting: false });
-        if (st === 'sasl-failed') clearSaslResume();
+        // A refused keycard says nothing about the account password parked for this
+        // tab — keep it, so a reload can still resume the session with it.
+        if (st === 'sasl-failed' && !opts.keycard) clearSaslResume();
         // Bouncer: a failed first handshake must not retry — ZNC connection-floods
         // and the join form would keep opening sockets in the background.
         if ((st === 'closed' || st === 'error') && opts.serverPassword && !get().everRegistered) {

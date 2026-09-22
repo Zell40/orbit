@@ -214,6 +214,26 @@ describe('Transport — reconnect', () => {
     expect(rec.reconnecting).toEqual([1]);
   });
 
+  it('retryLater drops the socket and reconnects without reporting a lost session', () => {
+    const { t, rec } = setup();
+    t.connect('ws://x'); last()._open();
+    rec.status.length = 0;
+    t.retryLater();
+    expect(rec.status).toEqual(['connecting']); // no 'closed' → no join-form flash
+    expect(rec.reconnecting).toEqual([1]);
+    vi.advanceTimersByTime(1000);
+    expect(FakeWebSocket.instances).toHaveLength(2);
+  });
+
+  it('retryLater does nothing after an intentional disconnect', () => {
+    const { t } = setup();
+    t.connect('ws://x'); last()._open();
+    t.disconnect('bye');
+    t.retryLater();
+    vi.advanceTimersByTime(60_000);
+    expect(FakeWebSocket.instances).toHaveLength(1);
+  });
+
   it('recycles a dead socket when no data arrives (watchdog)', () => {
     const { t, rec } = setup();
     t.connect('ws://x'); const dead = last(); dead._open();
