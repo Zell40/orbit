@@ -487,8 +487,12 @@ export function ConnectScreen() {
       </div>
       <section className="cjoin">
         <div className="cjoin__brand">
-          <span className="cjoin__mark"><img src={cfg.branding.icon} alt="" /></span>
-          <span className="cjoin__name"><span className="at">@</span>{cfg.branding.name}</span>
+          {cfg.branding.logo
+            ? <img className="cjoin__logo" src={cfg.branding.logo} alt={cfg.branding.name} />
+            : <>
+                <span className="cjoin__mark"><img src={cfg.branding.icon} alt="" /></span>
+                <span className="cjoin__name"><span className="at">@</span>{cfg.branding.name}</span>
+              </>}
         </div>
 
         <h1 className="cjoin__title">

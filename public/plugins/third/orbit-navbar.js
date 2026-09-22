@@ -26,10 +26,11 @@ Orbit.plugin('orbit-navbar', (orbit, log) => {
 
   orbit.addUi('navbar', () => {
     // Prefer what's set explicitly, then fall back to the app branding: explicit
-    // logo, else explicit text, else branding icon, else branding name.
+    // logo, else explicit text, else the branding wordmark, else its icon, else name.
     let inner;
     if (brand.logo) inner = orbit.html`<img class="onav__logo" src=${brand.logo} alt=${brand.text || 'home'} />`;
     else if (brand.text != null) inner = orbit.html`<span class="onav__name">${brand.text}</span>`;
+    else if (b.logo) inner = orbit.html`<img class="onav__logo" src=${b.logo} alt=${b.name || 'home'} />`;
     else if (b.icon) inner = orbit.html`<img class="onav__logo" src=${b.icon} alt=${b.name || 'home'} />`;
     else inner = orbit.html`<span class="onav__name">${b.name || ''}</span>`;
     return orbit.html`

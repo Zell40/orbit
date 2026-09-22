@@ -37,7 +37,11 @@ export interface AppConfig {
   };
   branding: {
     name: string;       // app/network name shown in the UI
-    icon: string;       // logo / favicon URL
+    icon: string;       // square mark: favicon, notifications, splash, connect screen
+    /** Wide wordmark shown instead of the icon+name pair on the connect screen and
+     *  the navbar. Must NOT be used as an app icon (see public/sw.js): the installed
+     *  PWA icon comes from manifest.webmanifest, which needs square same-origin PNGs. */
+    logo?: string;
     url: string;        // homepage (used by CTCP VERSION/SOURCE too)
     tagline: string;    // connect screen — first title line
     taglineEm: string;  // connect screen — emphasised second line

@@ -112,6 +112,23 @@ const STOCK_ICONS = ['/app/orbit-icon.svg', '/app/favicon.svg'];
 const ICON_TYPES = [[/\.svg(\?|$)/i, 'image/svg+xml'], [/\.png(\?|$)/i, 'image/png'],
   [/\.jpe?g(\?|$)/i, 'image/jpeg'], [/\.webp(\?|$)/i, 'image/webp']];
 
+// True when the manifest ships a maskable asset that is a SEPARATE file from its
+// `any` icons. Only a deployment that generated a real icon set does that — an
+// adaptive icon needs a bled-out background and a 40% safe zone, so it cannot be
+// the same PNG. Orbit's stock manifest reuses one square for both, so this never
+// matches the bundled default; it matches exactly the deployments where swapping
+// in the config icon would replace purpose-built icons with a website logo.
+function hasOwnIconSet(icons) {
+  const any = new Set();
+  const maskable = [];
+  for (const i of icons) {
+    const purpose = (i.purpose || 'any').split(/\s+/);
+    if (purpose.includes('any')) any.add(i.src);
+    if (purpose.includes('maskable')) maskable.push(i.src);
+  }
+  return maskable.some((src) => !any.has(src));
+}
+
 // Static manifest + the deployment's icon on top. Returns the untouched response
 // whenever anything is off, so a missing/odd config.json can never cost the app
 // its manifest (and with it, installability).
@@ -126,6 +143,7 @@ async function brandedManifest(req) {
     const icon = (((await configJson()) || {}).branding || {}).icon;
     if (!icon || STOCK_ICONS.includes(icon)) return res;
     if (!Array.isArray(manifest.icons)) return res;
+    if (hasOwnIconSet(manifest.icons)) return res;
     const type = (ICON_TYPES.find(([re]) => re.test(icon)) || [])[1];
     // Swap the source of the declared `any` entries rather than prepend a new
     // one: we cannot measure the image (it is usually cross-origin, so
@@ -135,8 +153,8 @@ async function brandedManifest(req) {
     //
     // `maskable` is left alone on purpose. It is a different kind of asset — it
     // needs a bled-out background and a 40% safe zone — and a logo stretched
-    // into that role gets its edges cropped. A deployment that wants its own
-    // adaptive icon ships one as a maskable entry in the static manifest.
+    // into that role gets its edges cropped. Reaching here at all means the
+    // maskable entry reuses an `any` square (see hasOwnIconSet).
     manifest.icons = manifest.icons.map((i) => {
       const purpose = (i.purpose || 'any').split(/\s+/);
       if (!purpose.includes('any')) return i;
