@@ -581,6 +581,8 @@
     "reconnecting": "पुनः जडान हुँदै…",
     "lostRetry": "जडान टुट्यो — {{n}}से मा पुनः प्रयास",
     "lostReconnecting": "जडान टुट्यो — पुनः जडान हुँदै…",
+    "sessionExpired": "सत्र समाप्त भयो — तपाईं अब जडान हुनुहुन्न।",
+    "sessionExpiredAction": "पुनः साइन इन गर्नुहोस्",
     "kickedTitle": "तपाईंलाई {{channel}} बाट निकालियो",
     "bannedTitle": "तपाईं {{channel}} मा प्रतिबन्धित हुनुहुन्छ",
     "cantWriteTitle": "तपाईं {{channel}} मा लेख्न सक्नुहुन्न",

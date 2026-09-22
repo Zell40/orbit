@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Registration } from './registration';
 import { Ircv3 } from './ircv3';
 import { parseLine } from './parser';
@@ -140,6 +140,27 @@ describe('Registration handshake', () => {
     expect(state.retries).toBe(2);     // the handoff really is dead — report it
     expect(statuses).toContain('sasl-failed');
     expect(state.aborts).toBe(1);
+  });
+
+  // A password that already registered is known good, so a later refusal is a
+  // services hiccup: keep the session rather than sending the member back to the
+  // join form — but stop eventually, in case the account password really changed.
+  it('retries a refused SASL on a credential that had already registered, then gives up', () => {
+    vi.useFakeTimers();
+    try {
+      const { reg, state, statuses } = make({ nick: 'bob', password: 'pw' });
+      reg.handle(parseLine('001 bob :Welcome'));
+      reg.handle(parseLine('904 bob :SASL authentication failed'));
+      expect(state.retries).toBe(1);
+      expect(statuses).not.toContain('sasl-failed');
+      vi.advanceTimersByTime(121_000); // services never came back
+      reg.handle(parseLine('904 bob :SASL authentication failed'));
+      expect(state.retries).toBe(1);
+      expect(statuses).toContain('sasl-failed');
+      expect(state.aborts).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('includes PASS when a server password is set', () => {

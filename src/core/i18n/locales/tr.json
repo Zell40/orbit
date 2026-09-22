@@ -581,6 +581,8 @@
     "reconnecting": "Yeniden bağlanıyor…",
     "lostRetry": "Bağlantı koptu — {{n}}sn içinde yeniden denenecek",
     "lostReconnecting": "Bağlantı koptu — yeniden bağlanıyor…",
+    "sessionExpired": "Oturum süresi doldu — artık bağlı değilsin.",
+    "sessionExpiredAction": "Yeniden giriş yap",
     "kickedTitle": "{{channel}} kanalından atıldın",
     "bannedTitle": "{{channel}} kanalından yasaklandın",
     "cantWriteTitle": "{{channel}} kanalına yazamazsın",

@@ -581,6 +581,8 @@
     "reconnecting": "Переподключение…",
     "lostRetry": "Соединение потеряно — повтор через {{n}} с",
     "lostReconnecting": "Соединение потеряно — переподключение…",
+    "sessionExpired": "Сессия истекла — вы больше не подключены.",
+    "sessionExpiredAction": "Войти снова",
     "kickedTitle": "Вас кикнули из {{channel}}",
     "bannedTitle": "Вы забанены в {{channel}}",
     "cantWriteTitle": "Вы не можете писать в {{channel}}",

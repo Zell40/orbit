@@ -581,6 +581,8 @@
     "reconnecting": "Verbinde erneut…",
     "lostRetry": "Verbindung verloren — neuer Versuch in {{n}}s",
     "lostReconnecting": "Verbindung verloren — verbinde erneut…",
+    "sessionExpired": "Sitzung abgelaufen — du bist nicht mehr verbunden.",
+    "sessionExpiredAction": "Neu anmelden",
     "kickedTitle": "Du wurdest aus {{channel}} geworfen",
     "bannedTitle": "Du bist aus {{channel}} gebannt",
     "cantWriteTitle": "Du kannst in {{channel}} nicht schreiben",

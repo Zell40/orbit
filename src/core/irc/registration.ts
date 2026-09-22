@@ -14,6 +14,12 @@ import { ScramClient } from './scram';
 // really dead fails after a couple of quick tries.
 const MAX_KEYCARD_TRIES = 2;
 
+// How long we keep retrying SASL for a credential that has already registered once
+// on this session. Long enough for services to come back from a restart or a split,
+// short enough to stop if the account password really did change elsewhere (every
+// attempt counts against the services' bad-password limit).
+const SASL_RETRY_WINDOW_MS = 120_000;
+
 // SASL PLAIN payload is base64 of "\0<authzid>\0<passwd>", UTF-8. Also used to
 // base64 the (ASCII) WebAuthn assertion JSON for the WEBAUTHN mechanism.
 function b64utf8(input: string): string {
@@ -59,6 +65,8 @@ export class Registration {
   private scramFellBack = false;            // SCRAM failed → already retried with PLAIN (don't loop)
   private keycardTries = 0;                 // minted keycards refused so far (survives start(), reset on 001)
   private credentialOffered = false;        // the token we hold has already gone to a server (spent, if single-use)
+  private everRegistered = false;           // this session registered at least once, so its credential is known good
+  private saslRetryUntil = 0;               // deadline for retrying a refused SASL on a known-good credential
   private readonly host: RegistrationHost;
   constructor(host: RegistrationHost) { this.host = host; }
 
@@ -143,13 +151,8 @@ export class Registration {
           this.host.send('AUTHENTICATE PLAIN');
           return;
         }
-        // A minted keycard is disposable: when the ircd refuses one (it expired in
-        // flight, or a socket died after spending it), mint another on a fresh
-        // connection rather than ending the session. Bounded, so a handoff that is
-        // genuinely dead still surfaces as a failure instead of looping.
-        if (this.host.opts().keycard && this.host.opts().refreshBearer
-            && this.keycardTries < MAX_KEYCARD_TRIES) {
-          this.keycardTries++;
+        // Worth another connection? (Services hiccup, keycard expired in flight…)
+        if (this.shouldRetrySasl()) {
           this.host.retryLater();
           return;
         }
@@ -174,13 +177,36 @@ export class Registration {
         return;
       case '001': // RPL_WELCOME — we're registered
         this.host.setRegistered(true);
+        this.everRegistered = true;
         this.keycardTries = 0;
+        this.saslRetryUntil = 0;
         this.host.resetBackoff(); // healthy connection — clear the backoff
         this.host.setNick(msg.params[0] ?? this.host.getNick());
         this.host.setStatus('registered');
         for (const ch of this.host.opts().channels ?? []) this.host.send(`JOIN ${ch}`);
         return;
     }
+  }
+
+  // Whether a refused SASL exchange deserves another connection rather than ending
+  // the session.
+  //
+  // Once a credential has registered on this session it is known good, so a later
+  // refusal is far more likely a services hiccup — a split, an expired SASL session,
+  // a throttle — than a bad password. Keep the session and retry for a couple of
+  // minutes. Before that first registration only a minted keycard is worth retrying
+  // (it may have expired in flight) and only a couple of times, so a typed password
+  // that is simply wrong still fails straight away.
+  private shouldRetrySasl(): boolean {
+    if (this.everRegistered) {
+      const now = Date.now();
+      if (!this.saslRetryUntil) this.saslRetryUntil = now + SASL_RETRY_WINDOW_MS;
+      return now < this.saslRetryUntil;
+    }
+    const o = this.host.opts();
+    if (!o.keycard || !o.refreshBearer || this.keycardTries >= MAX_KEYCARD_TRIES) return false;
+    this.keycardTries++;
+    return true;
   }
 
   private handleCap(msg: IrcMessage): void {

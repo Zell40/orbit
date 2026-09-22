@@ -358,9 +358,11 @@ export function createChatStore(ns = '') {
         // a handoff is no longer in flight: drop the splash so failures fall back
         // to the join form (with the nick/channel still prefilled from the URL).
         if (st !== 'connecting') set({ autoConnecting: false });
-        // A refused keycard says nothing about the account password parked for this
-        // tab — keep it, so a reload can still resume the session with it.
-        if (st === 'sasl-failed' && !opts.keycard) clearSaslResume();
+        // Only forget the password parked for this tab when it's the thing that was
+        // actually refused and never worked: a keycard failure says nothing about it,
+        // and a password that already registered on this session is known good (a
+        // services hiccup, not a typo), so a reload should still be able to retry.
+        if (st === 'sasl-failed' && !opts.keycard && !get().everRegistered) clearSaslResume();
         // Bouncer: a failed first handshake must not retry — ZNC connection-floods
         // and the join form would keep opening sockets in the background.
         if ((st === 'closed' || st === 'error') && opts.serverPassword && !get().everRegistered) {

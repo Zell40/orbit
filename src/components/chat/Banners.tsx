@@ -6,11 +6,45 @@ import { matchingVisualGames, usePluginRegistry } from '@/modules/registry';
 import { saveDirectReconnect, siteLoginHref, armLeaveWithoutPrompt } from '@/core/direct-reconnect';
 import { clearResume } from '@/core/resume';
 
+/** Channels still open in this session, the active window first. */
+function openChannelNames(): string[] {
+  const s = activeStore().getState();
+  const names = s.order
+    .filter((k) => s.buffers[k]?.isChannel && s.buffers[k]?.joined)
+    .map((k) => s.buffers[k].name);
+  const { active } = s;
+  if (active && !names.some((c) => c.toLowerCase() === active.toLowerCase())) {
+    names.unshift(s.buffers[active]?.name || active);
+  }
+  return names;
+}
+
 export function ReconnectBanner() {
   const { t } = useTranslation();
   const status = useActiveChat((s) => s.status);
   const reconnectIn = useActiveChat((s) => s.reconnectIn);
+  const nick = useActiveChat((s) => s.nick);
   if (status === 'registered') return null;
+  // A failed SASL ends the session for good — the client stops reconnecting on
+  // purpose rather than landing a member in an unauthenticated session. Saying
+  // "reconnecting…" here would be a lie, so name what happened and offer the way
+  // back in: signing in again is what re-issues the keycard.
+  if (status === 'sasl-failed') {
+    const signIn = () => {
+      const loginUrl = (getConfig().branding.loginUrl || '').trim();
+      armLeaveWithoutPrompt();
+      if (loginUrl) location.assign(siteLoginHref(loginUrl, { nick, channels: openChannelNames() }));
+      else location.reload();
+    };
+    return (
+      <div className="reconnect-banner reconnect-banner--dead" role="alert">
+        <span className="reconnect-banner__dot" /> {t('banners.sessionExpired')}
+        <button type="button" className="reconnect-banner__act" onClick={signIn}>
+          {t('banners.sessionExpiredAction')}
+        </button>
+      </div>
+    );
+  }
   const label = status === 'connecting' ? t('banners.reconnecting')
     : reconnectIn > 0 ? t('banners.lostRetry', { n: reconnectIn })
     : t('banners.lostReconnecting');
@@ -115,12 +149,7 @@ export function BouncerVisualBanner() {
 
   const reconnectDirect = () => {
     const s = activeStore().getState();
-    const channels = s.order
-      .filter((k) => s.buffers[k]?.isChannel && s.buffers[k]?.joined)
-      .map((k) => s.buffers[k].name);
-    if (active && !channels.some((c) => c.toLowerCase() === active.toLowerCase())) {
-      channels.unshift(s.buffers[active]?.name || active);
-    }
+    const channels = openChannelNames();
     const chans = channels.length ? channels : [active];
     clearResume();
     const loginUrl = (getConfig().branding.loginUrl || '').trim();

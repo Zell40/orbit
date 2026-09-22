@@ -778,6 +778,8 @@
     "reconnecting": "Reconnecting…",
     "lostRetry": "Connection lost — retrying in {{n}}s",
     "lostReconnecting": "Connection lost — reconnecting…",
+    "sessionExpired": "Session expired — you are no longer connected.",
+    "sessionExpiredAction": "Sign in again",
     "kickedTitle": "You were kicked from {{channel}}",
     "bannedTitle": "You are banned from {{channel}}",
     "cantWriteTitle": "You can't write in {{channel}}",
