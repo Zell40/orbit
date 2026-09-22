@@ -915,8 +915,6 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .noticeline__body.is-clamped {
   max-height: 22em;
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(#000 88%, transparent);
-  mask-image: linear-gradient(#000 88%, transparent);
 }
 .noticeline__more {
   align-self: flex-end;

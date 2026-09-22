@@ -47,16 +47,29 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
   const clipRef = useRef<HTMLDivElement>(null);
-  const long = lines.length > 4 || combined.length > 280;
+  // Only consider clamping for quite long walls of text; typical ChanServ
+  // multi-line notices should show in full without a fade/cut at the bottom.
+  const long = lines.length > 8 || combined.length > 600;
   const canClamp = long;
   useLayoutEffect(() => {
     if (!canClamp) { setOverflows(false); return; }
     const el = clipRef.current;
     if (!el) return;
     if (expanded) { setOverflows(true); return; }
-    setOverflows(el.scrollHeight > el.clientHeight + 1 || previewUrls.length > 0);
+    // Measure natural height against the CSS cap so we only clamp when needed
+    // (avoids fading/cutting the last line of notices that already fit).
+    const prevMax = el.style.maxHeight;
+    const prevOverflow = el.style.overflow;
+    el.style.maxHeight = 'none';
+    el.style.overflow = 'visible';
+    const full = el.scrollHeight;
+    el.style.maxHeight = '22em';
+    const capped = el.clientHeight;
+    el.style.maxHeight = prevMax;
+    el.style.overflow = prevOverflow;
+    setOverflows(full > capped + 1 || previewUrls.length > 0);
   }, [canClamp, combined, expanded, lines.length, previewUrls.length]);
-  const clamped = canClamp && !expanded;
+  const clamped = canClamp && !expanded && overflows;
   const showToggle = canClamp && (overflows || previewUrls.length > 0);
   return (
     <div className={`noticeline noticeline--${tone}`}>
