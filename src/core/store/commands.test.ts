@@ -18,11 +18,14 @@ function fakeClient(hasCap = false) {
 
 function setup(over: Record<string, unknown> = {}) {
   const client = fakeClient();
+  const whoisCalls: { whoisText: string[]; openUser: string[] } = { whoisText: [], openUser: [] };
   const state = {
     nick: 'me', active: '#x', replyTarget: null as unknown, pmContext: {} as Record<string, string>,
     client,
     setActive(n: string) { this.active = n; },
-    whoisText() {}, openUser() {}, toggleIgnore() {}, refreshChannels() {}, setModal() {},
+    whoisText(n: string) { whoisCalls.whoisText.push(n); },
+    openUser(n: string) { whoisCalls.openUser.push(n); },
+    toggleIgnore() {}, refreshChannels() {}, setModal() {},
     ...over,
   };
   const added: { name: string; m: { self?: boolean; text: string; kind: string } }[] = [];
@@ -35,7 +38,7 @@ function setup(over: Record<string, unknown> = {}) {
     ensureBuffer: () => {},
   } as unknown as StoreHelpers;
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { typingReset++; } } as Parameters<typeof makeCommands>[0]);
-  return { sendInput, client, state, added, typing: () => typingReset };
+  return { sendInput, client, state, added, typing: () => typingReset, whoisCalls };
 }
 
 const calledWith = (c: ReturnType<typeof fakeClient>, name: string) => c.calls.filter(([n]) => n === name).map(([, a]) => a);
@@ -80,6 +83,13 @@ describe('sendInput — slash commands', () => {
     const { sendInput, client } = setup();
     sendInput('/quote SOMETHING x');
     expect(calledWith(client, 'send')).toEqual([['quote SOMETHING x']]);
+  });
+
+  it('/whois from the status console prints classic text WHOIS there', () => {
+    const { sendInput, whoisCalls } = setup({ active: SERVER });
+    sendInput('/whois alice');
+    expect(whoisCalls.whoisText).toEqual(['alice']);
+    expect(whoisCalls.openUser).toEqual([]);
   });
 });
 

@@ -83,8 +83,10 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         case 'whois': {
           const who = arg.trim().split(' ')[0] || (active === SERVER ? get().nick : active);
           if (!who) break;
-          // yomirc mimics classic mIRC: print WHOIS to the active window as text.
-          if (getTheme().startsWith('yomirc')) get().whoisText(who); else get().openUser(who);
+          // Status console (and yomirc): classic mIRC text WHOIS in the active
+          // window. Elsewhere the modern profile panel.
+          if (active === SERVER || getTheme().startsWith('yomirc')) get().whoisText(who);
+          else get().openUser(who);
           break;
         }
         case 'msg': {
