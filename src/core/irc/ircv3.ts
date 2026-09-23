@@ -242,21 +242,27 @@ export class Ircv3 {
   // draft/webpush: register/remove a Web Push subscription. Gated on the VAPID
   // ISUPPORT key (where the server advertises its Web Push public key) so a server
   // without Web Push never sees a 421. <keys> is "p256dh=<b64url>;auth=<b64url>".
-  webpushRegister(endpoint: string, keys: string, account: string): void {
-    if (!account || this.tx.isupport()['VAPID'] === undefined) return;
+  // Each returns false when the guard refused to send, so a user-initiated action can
+  // report that instead of looking like a click that did nothing.
+  webpushRegister(endpoint: string, keys: string, account: string): boolean {
+    if (!account || this.tx.isupport()['VAPID'] === undefined) return false;
     this.tx.send(`WEBPUSH REGISTER ${endpoint} ${keys}`);
+    return true;
   }
-  webpushList(): void {
-    if (this.tx.isupport()['VAPID'] === undefined) return;
+  webpushList(): boolean {
+    if (this.tx.isupport()['VAPID'] === undefined) return false;
     this.tx.send('WEBPUSH LIST');
+    return true;
   }
-  webpushUnregister(endpoint: string, account: string): void {
-    if (!account || this.tx.isupport()['VAPID'] === undefined) return;
+  webpushUnregister(endpoint: string, account: string): boolean {
+    if (!account || this.tx.isupport()['VAPID'] === undefined) return false;
     this.tx.send(`WEBPUSH UNREGISTER ${endpoint}`);
+    return true;
   }
   /** Unregister by 16-hex device id (from WEBPUSH LIST) or full https endpoint. */
-  webpushUnregisterTarget(target: string, account: string): void {
-    if (!account || !target || this.tx.isupport()['VAPID'] === undefined) return;
+  webpushUnregisterTarget(target: string, account: string): boolean {
+    if (!account || !target || this.tx.isupport()['VAPID'] === undefined) return false;
     this.tx.send(`WEBPUSH UNREGISTER ${target}`);
+    return true;
   }
 }

@@ -231,7 +231,14 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
                 <button type="button" className="nsaccess-row" key={row.channel} onClick={() => openChan(row.channel)}>
                   <span className={`nsaccess-pfx nsaccess-pfx--${acc.labelKey || 'other'}`} aria-hidden>{acc.prefix || '#'}</span>
                   <span className="nsaccess-txt">
-                    <span className="nsaccess-chan">{row.channel}</span>
+                    <span className="nsaccess-chanline">
+                      <span className="nsaccess-chan">{row.channel}</span>
+                      {row.noExpire ? (
+                        <span className="nsaccess-keep" title={t('settings.account.alistNoExpireHint')}>
+                          {t('settings.account.alistNoExpire')}
+                        </span>
+                      ) : null}
+                    </span>
                     {row.description ? <span className="nsaccess-desc">{row.description}</span> : null}
                   </span>
                   <span className="nsaccess-role">

@@ -67,22 +67,59 @@ End of channel access list.`;
 describe('parseNickServAlist', () => {
   it('parses a French numbered ALIST table', () => {
     expect(parseNickServAlist(ALIST_FR)).toEqual([
-      { channel: '#EntreNous', access: 'FONDATEUR', description: '' },
-      { channel: '#help', access: 'AOP', description: "Salon d'aide" },
+      { channel: '#EntreNous', access: 'FONDATEUR', description: '', noExpire: false },
+      { channel: '#help', access: 'AOP', description: "Salon d'aide", noExpire: false },
     ]);
   });
 
   it('parses an English numbered ALIST table', () => {
     expect(parseNickServAlist(ALIST_EN)).toEqual([
-      { channel: '#orbit', access: 'Founder', description: '' },
-      { channel: '#dev', access: 'SOP', description: 'Builders' },
+      { channel: '#orbit', access: 'Founder', description: '', noExpire: false },
+      { channel: '#dev', access: 'SOP', description: 'Builders', noExpire: false },
     ]);
   });
 
-  it('strips the Anope ! (no-expire) flag from channel names', () => {
+  it('keeps Anope ! as no-expire, not as part of the channel name', () => {
     expect(parseNickServAlist('1 !#Aide.chat AOP Help')).toEqual([
-      { channel: '#Aide.chat', access: 'AOP', description: 'Help' },
+      { channel: '#Aide.chat', access: 'AOP', description: 'Help', noExpire: true },
     ]);
+    expect(parseNickServAlist('2: !#Aide.chat = AOP')).toEqual([
+      { channel: '#Aide.chat', access: 'AOP', description: '', noExpire: true },
+    ]);
+    expect(parseNickServAlist('3: #edfgdf.chat = Fondateurice')).toEqual([
+      { channel: '#edfgdf.chat', access: 'Fondateurice', description: '', noExpire: false },
+    ]);
+  });
+
+  it('parses Entre Nous numbered colon-equals ALIST lines', () => {
+    const raw = `Liste des canaux auxquels Zell a accès :
+1: # = Fondateurice
+2: !#1000Bornes.chat = Fondateurice
+3: !#Aide.chat = Fondateurice, QOP
+5: !#Bannis.chat = Fondateurice, QOP (Salon des utilisateurs bannis d'un salon officiel
+EntreNous.chat)
+7: !#Echecs.chat = VOP
+8: #edfgdf.chat = Fondateurice
+10: !#EntreJeunes.chat = QOP (Salon des ados sur serveur EntreNous.chat)
+Fin de la liste d'accès aux salons.`;
+    const rows = parseNickServAlist(raw);
+    expect(rows.map((r) => r.channel)).toEqual([
+      '#',
+      '#1000Bornes.chat',
+      '#Aide.chat',
+      '#Bannis.chat',
+      '#Echecs.chat',
+      '#edfgdf.chat',
+      '#EntreJeunes.chat',
+    ]);
+    expect(rows[0].noExpire).toBe(false);
+    expect(rows[1].noExpire).toBe(true);
+    expect(rows[2].access).toBe('Fondateurice, QOP');
+    expect(rows[3].description).toBe("Salon des utilisateurs bannis d'un salon officiel EntreNous.chat");
+    expect(rows[4].access).toBe('VOP');
+    expect(rows[5].noExpire).toBe(false);
+    expect(rows[6].access).toBe('QOP');
+    expect(rows[6].description).toBe('Salon des ados sur serveur EntreNous.chat');
   });
 
   it('maps XOP tokens to prefixes', () => {

@@ -86,34 +86,75 @@ export type NickServAccess = {
   channel: string;
   access: string;
   description: string;
+  noExpire: boolean;
 };
 
 function isAlistNoise(s: string): boolean {
   return /^(fin\s+de|end of|num[eé]ro|number\s+channel|n[°º]\b)/i.test(s)
-    || /a acc[eè]s|has access on|access list|liste d['’]acc[eè]s|salons auxquels/i.test(s);
+    || /a acc[eè]s|has access on|access list|liste d['’]acc[eè]s|salons auxquels|canaux auxquels/i.test(s);
 }
 
 function isAlistEmpty(s: string): boolean {
   return /aucun salon|n['’]a acc[eè]s [àa] aucun|has no access|no access (?:on|to) any/i.test(s);
 }
 
+function splitAccessDesc(rest: string): { access: string; description: string } {
+  const closed = rest.match(/^(.*?)\s+\((.*)\)\s*$/);
+  if (closed) return { access: closed[1].trim(), description: closed[2].trim() };
+  const open = rest.match(/^(.*?)\s+\((.*)$/);
+  if (open) return { access: open[1].trim(), description: open[2].trim() };
+  return { access: rest.replace(/[,.;]+$/, '').trim(), description: '' };
+}
+
+function splitChanFlag(raw: string): { channel: string; noExpire: boolean } {
+  const noExpire = raw.startsWith('!');
+  return { channel: raw.replace(/^!+/, ''), noExpire };
+}
+
+function pushAlistRow(rows: NickServAccess[], seen: Set<string>, rawChan: string, rest: string): void {
+  const { channel, noExpire } = splitChanFlag(rawChan);
+  if (!channel) return;
+  const key = channel.toLowerCase();
+  if (seen.has(key)) return;
+  seen.add(key);
+  const { access, description } = splitAccessDesc(rest);
+  rows.push({ channel, access, description, noExpire });
+}
+
 /** NickServ ALIST blob → channel / level / description. */
 export function parseNickServAlist(raw: string): NickServAccess[] {
   const rows: NickServAccess[] = [];
   const seen = new Set<string>();
-  for (const line of String(raw || '').split(/\n/)) {
+  const text = String(raw || '').replace(/\r\n?/g, '\n');
+  for (const line of text.split('\n')) {
     const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
     if (!s || isAlistNoise(s) || isAlistEmpty(s)) continue;
-    const numbered = s.match(/^\d+\s+!?([#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
-    const simple = numbered ? null : s.match(/^!?([#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
+    // Entre Nous / Anope FR:  2: !#Aide.chat = Fondateurice, QOP (desc)
+    const eq = s.match(/^\d+\s*[:.)]\s+(!?[#&][^\s=]*)\s*=\s*(.+)$/);
+    if (eq) {
+      pushAlistRow(rows, seen, eq[1], eq[2]);
+      continue;
+    }
+    const numbered = s.match(/^\d+\s+(!?[#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
+    const simple = numbered ? null : s.match(/^(!?[#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
     const m = numbered || simple;
-    if (!m) continue;
-    const channel = m[1].replace(/^!+/, '');
-    const access = m[2].replace(/[,.;]+$/, '');
+    if (!m) {
+      if (rows.length && !/^\d+/.test(s) && !/^(syntaxe|syntax)\b/i.test(s)) {
+        const prev = rows[rows.length - 1];
+        prev.description = `${prev.description} ${s.replace(/^[()]|[()]$/g, '')}`.trim();
+      }
+      continue;
+    }
+    const { channel, noExpire } = splitChanFlag(m[1]);
     const key = channel.toLowerCase();
-    if (seen.has(key)) continue;
+    if (!channel || seen.has(key)) continue;
     seen.add(key);
-    rows.push({ channel, access, description: (m[3] || '').trim() });
+    rows.push({
+      channel,
+      access: m[2].replace(/[,.;]+$/, ''),
+      description: (m[3] || '').trim(),
+      noExpire,
+    });
   }
   return rows;
 }

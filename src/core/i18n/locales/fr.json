@@ -421,6 +421,8 @@
       "alistLoading": "Chargement des accès…",
       "alistUnavailable": "Impossible de charger tes accès ChanServ (ALIST).",
       "alistEmpty": "Aucun salon avec un accès ChanServ.",
+      "alistNoExpire": "Sans expiration",
+      "alistNoExpireHint": "Ce salon n'expire pas (ChanServ NOEXPIRE).",
       "alistRole": {
         "founder": "Fondateur",
         "successor": "Successeur",

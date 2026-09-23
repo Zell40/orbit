@@ -1888,7 +1888,9 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nsaccess-pfx--hop { background: color-mix(in srgb, #0f766e 18%, var(--bg)); color: #0f766e; }
 .nsaccess-pfx--vop { background: color-mix(in srgb, #64748b 16%, var(--bg)); color: #475569; }
 .nsaccess-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .12rem; }
+.nsaccess-chanline { display: flex; align-items: center; gap: .4rem; min-width: 0; }
 .nsaccess-chan { font-size: .92rem; font-weight: 800; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess-keep { flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); background: color-mix(in srgb, var(--muted) 12%, var(--bg)); border-radius: 999px; padding: .12rem .4rem; }
 .nsaccess-desc { font-size: .76rem; color: var(--muted); line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nsaccess-role { flex: none; display: inline-flex; align-items: center; gap: .28rem; font-size: .72rem; font-weight: 800; letter-spacing: .01em; color: var(--accent-d); background: var(--accent-soft); border-radius: 999px; padding: .22rem .55rem; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nsaccess-role b { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 800; }

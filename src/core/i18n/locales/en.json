@@ -421,6 +421,8 @@
       "alistLoading": "Loading channel access…",
       "alistUnavailable": "Couldn’t load your ChanServ access list (ALIST).",
       "alistEmpty": "No channels with ChanServ access.",
+      "alistNoExpire": "No expire",
+      "alistNoExpireHint": "This channel does not expire (ChanServ NOEXPIRE).",
       "alistRole": {
         "founder": "Founder",
         "successor": "Successor",
