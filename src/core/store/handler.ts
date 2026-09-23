@@ -12,7 +12,7 @@ import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
 import { modeStringWithoutBans, splitModeAndBans } from '@/lib/format-text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
-import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading, onWebPushServerAck } from '@/platform/push';
+import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading, onWebPushServerAck, notePushActionFailure } from '@/platform/push';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -308,7 +308,9 @@ export function makeHandler(ctx: HandlerCtx) {
         // Guests (and the window before 900) get FAIL INTERNAL_ERROR / FORBIDDEN
         // — don't dump those into the channel the user is looking at.
         if (msg.command === 'FAIL' && (cmd === 'MARKREAD' || cmd === 'WEBPUSH')) {
-          if (cmd === 'WEBPUSH') failPushDeviceList();
+          // Exception: a click in Settings → Notifications is waiting on this reply, so show
+          // the reason there rather than letting the button look like it did nothing.
+          if (cmd === 'WEBPUSH' && !notePushActionFailure(code, desc)) failPushDeviceList();
           break;
         }
         if (msg.command === 'NOTE' && (cmd === 'WEBPUSH' || (isPushDeviceListLoading() && desc.includes('WEBPUSH')))) {

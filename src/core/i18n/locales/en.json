@@ -480,6 +480,8 @@
       "pushDevicesEmpty": "No devices registered for this account.",
       "pushDevicesPending": "Registering (verifying push)…",
       "pushDevicesUnavailable": "Device list unavailable (server needs an up-to-date ircv3_webpush module with WEBPUSH LIST).",
+      "pushDeviceRemoveFailed": "The server refused the removal: {{reason}}",
+      "pushDeviceRemoveNotSent": "Nothing was sent: the server no longer advertises Web Push (ISUPPORT VAPID). Reconnect, or check that the ircv3_webpush module is loaded and its VAPID key is readable.",
       "pushDeviceThis": "This device",
       "pushDeviceOnline": "Online ({{nick}})",
       "pushDeviceOffline": "Offline (last nick: {{nick}})",

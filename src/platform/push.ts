@@ -94,8 +94,13 @@ export async function enablePush(client: IrcClient, account: string): Promise<{ 
 export async function disablePush(client: IrcClient, account: string): Promise<void> {
   setPref(false);
   pushRegisterPending = false;
+  pushActionError = null;
   // Wipe all account endpoints on the server (survives empty/stale device list).
-  client.ircv3.webpushUnregisterTarget('*', account);
+  pushActionTarget = '*';
+  if (!client.ircv3.webpushUnregisterTarget('*', account)) {
+    pushActionTarget = '';
+    pushActionError = { kind: 'notSent' };
+  }
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
@@ -125,17 +130,32 @@ export interface PushDevice {
   shared: boolean;
 }
 
-type PushDevicesState = { devices: PushDevice[]; loading: boolean; listFailed: boolean; registerPending: boolean };
+/** Why a click in Settings → Notifications did not take effect. Rendered by the component. */
+export type PushActionError =
+  | { kind: 'notSent' }
+  | { kind: 'server'; code: string; desc: string };
+
+type PushDevicesState = {
+  devices: PushDevice[];
+  loading: boolean;
+  listFailed: boolean;
+  registerPending: boolean;
+  actionError: PushActionError | null;
+};
 const pushDeviceListeners = new Set<() => void>();
 let pushDevices: PushDevice[] = [];
 let pushDevicesLoading = false;
 let pushListFailed = false;
 let pushRegisterPending = false;
+let pushActionError: PushActionError | null = null;
+/** Non-empty while a click is waiting for the server's REGISTER/UNREGISTER reply. */
+let pushActionTarget = '';
 let pushDevicesSnapshot: PushDevicesState = {
   devices: pushDevices,
   loading: pushDevicesLoading,
   listFailed: pushListFailed,
   registerPending: pushRegisterPending,
+  actionError: pushActionError,
 };
 
 function syncPushDevicesSnapshot(): void {
@@ -144,6 +164,7 @@ function syncPushDevicesSnapshot(): void {
     loading: pushDevicesLoading,
     listFailed: pushListFailed,
     registerPending: pushRegisterPending,
+    actionError: pushActionError,
   };
 }
 
@@ -222,9 +243,32 @@ export function requestPushDeviceList(client: IrcClient, force = false): void {
   client.ircv3.webpushList();
 }
 
+export function clearPushActionError(): void {
+  if (!pushActionError && !pushActionTarget) return;
+  pushActionError = null;
+  pushActionTarget = '';
+  notifyPushDevices();
+}
+
+/**
+ * A FAIL WEBPUSH arrived. Returns true when a click was waiting for it, in which case the
+ * reason is shown in Settings instead of being dropped; automatic WEBPUSH traffic (the
+ * connect-time REGISTER/LIST, which FAILs for guests) stays silent.
+ */
+export function notePushActionFailure(code: string, desc: string): boolean {
+  if (!pushActionTarget) return false;
+  pushActionTarget = '';
+  pushRegisterPending = false;
+  pushActionError = { kind: 'server', code, desc };
+  notifyPushDevices();
+  return true;
+}
+
 /** Server confirmed REGISTER/UNREGISTER — refresh the settings device list. */
 export function onWebPushServerAck(client: IrcClient | null | undefined): void {
   pushRegisterPending = false;
+  pushActionTarget = '';
+  pushActionError = null;
   notifyPushDevices();
   if (!client) return;
   requestPushDeviceList(client, true);
@@ -232,7 +276,15 @@ export function onWebPushServerAck(client: IrcClient | null | undefined): void {
 
 export async function removePushDevice(client: IrcClient, account: string, device: PushDevice, isLocal: boolean): Promise<void> {
   if (!account) return;
-  client.ircv3.webpushUnregisterTarget(device.id, account);
+  pushActionError = null;
+  pushActionTarget = device.id;
+  if (!client.ircv3.webpushUnregisterTarget(device.id, account)) {
+    // The VAPID token is gone from ISUPPORT, so nothing was sent at all.
+    pushActionTarget = '';
+    pushActionError = { kind: 'notSent' };
+    notifyPushDevices();
+    return;
+  }
   pushDevices = pushDevices.filter((d) => d.id !== device.id);
   if (isLocal) {
     setPref(false);

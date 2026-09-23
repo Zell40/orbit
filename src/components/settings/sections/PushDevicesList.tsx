@@ -8,6 +8,7 @@ import {
   removePushDevice,
   localPushDeviceId,
   isPushSupported,
+  clearPushActionError,
 } from '@/platform/push';
 
 function fmtTs(ts: number): string {
@@ -20,13 +21,14 @@ export function PushDevicesList() {
   const client = useActiveChat((s) => s.client);
   const account = useActiveChat((s) => s.account);
   const hasVapid = !!client?.server.vapid;
-  const { devices, loading, listFailed, registerPending } = useSyncExternalStore(subscribePushDevices, getPushDevicesState, getPushDevicesState);
+  const { devices, loading, listFailed, registerPending, actionError } = useSyncExternalStore(subscribePushDevices, getPushDevicesState, getPushDevicesState);
   const [localId, setLocalId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState('');
 
   useEffect(() => {
     if (!client || !account || !hasVapid || !isPushSupported()) return;
     void localPushDeviceId().then(setLocalId);
+    clearPushActionError();
     requestPushDeviceList(client);
   }, [client, account, hasVapid]);
 
@@ -36,6 +38,15 @@ export function PushDevicesList() {
     <div className="push-devices">
       <div className="push-devices__label">📱 {t('settings.notifications.pushDevicesLabel')}</div>
       <div className="push-devices__hint">{t('settings.notifications.pushDevicesHint')}</div>
+      {actionError && (
+        <div className="push-devices__error" role="alert">
+          {actionError.kind === 'notSent'
+            ? t('settings.notifications.pushDeviceRemoveNotSent')
+            : t('settings.notifications.pushDeviceRemoveFailed', {
+                reason: actionError.desc || actionError.code || 'FAIL',
+              })}
+        </div>
+      )}
       {listFailed
         ? <div className="push-devices__hint">{t('settings.notifications.pushDevicesUnavailable')}</div>
         : (loading || registerPending) && !devices.length

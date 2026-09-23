@@ -486,6 +486,8 @@
       "pushDeviceUpdated": "Enregistré le {{date}}",
       "pushDeviceShared": "Un autre compte utilise aussi cet appareil.",
       "pushDeviceRemove": "Retirer",
+      "pushDeviceRemoveFailed": "Le serveur a refusé le retrait : {{reason}}",
+      "pushDeviceRemoveNotSent": "Rien n’a été envoyé : le serveur n’annonce plus le Web Push (ISUPPORT VAPID). Reconnecte-toi, ou vérifie que le module ircv3_webpush est bien chargé et que sa clé VAPID est lisible.",
       "sounds": "Sons",
       "soundsHint": "Un bip sur mention ou message privé.",
       "joinOnInvite": "Rejoindre sur invitation",

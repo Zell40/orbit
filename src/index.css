@@ -1995,6 +1995,7 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 }
 .push-devices__meta { font-size: .78rem; color: var(--muted); line-height: 1.4; overflow-wrap: break-word; }
 .push-devices__warn { font-size: .78rem; font-weight: 650; color: #b45309; line-height: 1.35; overflow-wrap: break-word; }
+.push-devices__error { font-size: .78rem; font-weight: 650; color: var(--danger); line-height: 1.35; margin-top: .3rem; overflow-wrap: break-word; }
 .push-devices__item .upbtn { align-self: flex-start; max-width: 100%; }
 .sbadge-ok { display: inline-flex; align-items: center; gap: .3rem; font-size: .82rem; font-weight: 800; color: var(--online-d, #15a36a); }
 .set-leave { width: 100%; padding: .7rem; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg-soft); color: var(--danger); font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; transition: background .13s, color .13s, border-color .13s; }
