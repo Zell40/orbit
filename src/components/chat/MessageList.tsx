@@ -56,6 +56,10 @@ export function MessageList() {
   const prevHeight = useRef(0);
   const prevActive = useRef(active);
   const atBottom = useRef(true); // pinned to the very bottom → auto-follow new messages
+  // Programmatic scrollTop writes fire a scroll event; without this guard that
+  // event can re-measure a mid-layout height, clear atBottom, and the next
+  // incoming line (bot reply right after you send) no longer follows.
+  const pinning = useRef(false);
   const [showJump, setShowJump] = useState(false);
   const count = buffer?.messages.length ?? 0;
   // The buffer is capped (slice(-500)), so once it's full its LENGTH stops changing
@@ -85,6 +89,16 @@ export function MessageList() {
     const switched = prevActive.current !== active;
     prevActive.current = active;
     const grew = el.scrollHeight - prevHeight.current;
+    const pinBottom = () => {
+      pinning.current = true;
+      el.scrollTop = el.scrollHeight;
+      atBottom.current = true;
+      // Two frames: onScroll also coalesces via rAF, so a single frame can clear
+      // the guard before that handler runs and then drop the follow pin.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { pinning.current = false; });
+      });
+    };
     // Switching into a channel always jumps to the newest line (the last message),
     // even when it has unread — the "New messages" divider still renders as a marker
     // to scroll up to. Also follow the tail when already pinned to the bottom.
@@ -94,19 +108,27 @@ export function MessageList() {
       // buffer the bottom itself sits at scrollTop < 80, so a burst of appended
       // lines (e.g. a /cs HELP reply) must scroll down to them rather than be
       // mistaken for a history prepend and leave them hidden under the composer.
-      el.scrollTop = el.scrollHeight;
+      // Trust the pin: don't re-derive atBottom from dist (subpixel / mid-layout
+      // heights often leave dist ≥ 64 right after scrollTop = scrollHeight).
+      pinBottom();
     } else if (growRef.current) {
       el.scrollTop += grew;                                // tail→full fill prepended older rows → keep position
     } else if (el.scrollTop < 80 && grew > 0) {
-      el.scrollTop = el.scrollHeight - prevHeight.current; // prepend while reading up → keep position
+      // Near the top of the scroll range — either reading history, or a short
+      // buffer whose bottom is also scrollTop≈0. Only preserve position when
+      // there's clearly more content below; otherwise this is an append and we
+      // must follow (otherwise a bot reply after your send stops short).
+      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+      if (dist < 140) pinBottom();
+      else el.scrollTop = el.scrollHeight - prevHeight.current;
     }
     growRef.current = false;
     // Ended at the bottom → everything is read: advance the marker here (pre-paint,
     // so an incoming line never flashes a "New messages" divider before it clears).
     const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-    atBottom.current = dist < 64;    // follow only while pinned to the very bottom
+    if (!atBottom.current) atBottom.current = dist < 64;
     if (dist < 140) markReadHere();  // but count everything read across a wider band
-    setShowJump(dist > 120);         // keep the jump button in sync as lines arrive
+    setShowJump(!atBottom.current && dist > 120);
     prevHeight.current = el.scrollHeight;
   }, [count, lastId, effTailOnly, active, search, markReadHere]);
 
@@ -119,9 +141,16 @@ export function MessageList() {
       requestAnimationFrame(() => {
         const el = ref.current;
         if (!el) return;
-        if (atBottom.current) el.scrollTop = el.scrollHeight;
+        if (atBottom.current) {
+          pinning.current = true;
+          el.scrollTop = el.scrollHeight;
+          atBottom.current = true;
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => { pinning.current = false; });
+          });
+        }
         const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-        setShowJump(dist > 120);
+        setShowJump(!atBottom.current && dist > 120);
         if (dist < 140) markReadHere();
       });
     };
@@ -148,7 +177,16 @@ export function MessageList() {
   // message would otherwise land below the fold, hidden behind the keyboard.
   // If we were pinned to the bottom, re-pin once the new layout has settled.
   useEffect(() => {
-    const pin = () => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; };
+    const pin = () => {
+      const el = ref.current;
+      if (!el) return;
+      pinning.current = true;
+      el.scrollTop = el.scrollHeight;
+      atBottom.current = true;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { pinning.current = false; });
+      });
+    };
     // The newest lines slide out of view two ways: the list box SHRINKS (composer
     // growing, mobile keyboard) or its CONTENT GROWS after paint (a link-preview
     // card loads, an embed expands). Observe both — the box and the row flow.
@@ -183,6 +221,9 @@ export function MessageList() {
       // Scrolled before the idle fill ran → render the full buffer now, so there's
       // real older history above rather than the tail's edge.
       if (effTailOnly) { growRef.current = true; setTailOnly(false); }
+      // Ignore the scroll event caused by our own pin — it often samples layout
+      // before the new row's height has settled and would clear the follow flag.
+      if (pinning.current) return;
       const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
       // Follow only while pinned to the very bottom, so scrolling up even slightly
       // to read the last line stops the auto-scroll instead of yanking you down.
@@ -200,10 +241,14 @@ export function MessageList() {
   const jumpToBottom = () => {
     const el = ref.current;
     if (!el) return;
+    pinning.current = true;
     el.scrollTop = el.scrollHeight;
     atBottom.current = true;
     setShowJump(false);
     markReadHere();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { pinning.current = false; });
+    });
   };
 
   if (!buffer) return <div className="empty">{t('sidebar.noChannel')}</div>;
