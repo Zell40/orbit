@@ -25,6 +25,11 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   const modBanOnly = useActiveChat((s) => s.modBanOnly);
   const modSetMode = useActiveChat((s) => s.modSetMode);
   const memberMenus = usePluginRegistry((s) => s.memberMenus);
+  // IRCOP tab first (above ChanServ / Modération), then the rest in registration order.
+  const orderedMenus = [...memberMenus].sort((a, b) => {
+    const rank = (p: string) => (p === 'orbit-ircop' ? 0 : 1);
+    return rank(a.plugin) - rank(b.plugin);
+  });
 
   const prefixModes = useActiveChat((s) => s.client?.server.prefixModes || '~&@%+');
   const prefixModeToChar = useActiveChat((s) => s.client?.server.prefixModeToChar || { q: '~', a: '&', o: '@', h: '%', v: '+' });
@@ -114,10 +119,10 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   return (
     <div ref={menuRef} className="memberctx" role="menu" style={{ left: pos.x, top: pos.y }}>
       <div className="memberctx__nick">{targetMember?.prefix}{nick}</div>
-      {memberMenus.map((u) => (
+      {orderedMenus.map((u) => (
         <PluginBoundary key={u.id} render={() => u.render({ nick, close: onClose })} label="member_menu" />
       ))}
-      {memberMenus.length > 0 && <div className="memberctx__sep" />}
+      {orderedMenus.length > 0 && <div className="memberctx__sep" />}
       <button className="memberctx__item" role="menuitem" onClick={() => { if (getTheme().startsWith('yomirc')) whoisText(nick); else openUser(nick); onClose(); onNavigate?.(); }}>{t('members.whoisAction')}</button>
       {canModerate && (
         <>

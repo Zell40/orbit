@@ -34,6 +34,7 @@ npm ci --silent
 npm run test
 npm run build
 
-# Publish: keep a one-deep backup, then mirror dist/ into the web root.
+# Publish: keep a one-deep backup, then mirror dist/ into the web root
+# (including config.json — source of truth is public/config.json in git).
 sudo rsync -a --delete --backup --backup-dir="${WEBROOT}.bak" dist/ "$WEBROOT/"
 echo "$(date -Is) deployed $(git rev-parse --short HEAD)"

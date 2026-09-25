@@ -1542,6 +1542,7 @@
       },
       "mm": {
         "title": "IRCOP",
+        "tab": "Commandes IRCOP",
         "whois": "WHOIS",
         "notice": "NOTICE…",
         "noticePrompt": "Message NOTICE pour {{nick}} :",

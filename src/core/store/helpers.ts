@@ -234,6 +234,13 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
 
   function serverLine(text: string, kind: MessageKind = 'system'): void {
     if (!text) return;
+    // IRCOP / plugin divert: show the reply where the user is looking.
+    const echo = get().echoServerTo;
+    if (echo) {
+      ensureBuffer(echo);
+      addMessage(echo, { id: newId(), bufferName: echo, from: '', text, ts: Date.now(), kind, self: false });
+      return;
+    }
     ensureBuffer(SERVER);
     if (!get().active) set({ active: SERVER });
     addMessage(SERVER, { id: newId(), bufferName: SERVER, from: '', text, ts: Date.now(), kind, self: false });

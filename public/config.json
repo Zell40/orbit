@@ -1,36 +1,43 @@
 {
   "server": {
-    "url": "wss://www.swaygo.fr/irc/",
-    "guestIdent": "Invité"
+    "url": "https://irc.entrenous.chat/",
+    "guestIdent": "ENuser",
+    "guestIdentFromNick": true,
+    "bouncerUrl": "wss://bnc.reseau-entrenous.fr/webirc/websocket/",
+    "bouncerHost": "bnc.entrenous.chat:+8066"
   },
   "startup": {
     "channels": [
-      "#accueil"
+      "#EntreNous.chat"
     ],
     "suggestions": [
-      "#accueil",
-      "#30-40",
-      "#adultes",
-      "#quizz",
-      "#trivia"
+      "#Aide.chat",
+      "#Baccalaureat.chat",
+      "#Motus.chat",
+      "#Uno.chat",
+      "#Echecs.chat",
+      "#HarryPotter.chat",
+      "#CCAS.chat",
+      "#EDFGDF.chat",
+      "#Enedis.chat"
     ],
     "intents": {
-      "chat": [
-        "#accueil"
-      ],
-      "love": [
-        "#accueil"
-      ]
+      "chat": ["#EntreNous.chat"],
+      "love": ["#EDFGDF.chat"],
+      "play": ["#Baccalaureat.chat", "#Echecs.chat", "#HarryPotter.chat"]
     }
   },
   "branding": {
-    "name": "Orbit",
-    "icon": "/app/orbit-icon.svg",
-    "url": "",
-    "tagline": "Soyez au cœur des échanges,",
-    "taglineEm": "là où tout commence.",
-    "subtitle": "Le tchat français en direct. Choisissez un pseudo, et vous y êtes.",
-    "projectUrl": "",
+    "name": "EntreNous",
+    "icon": "https://www.reseau-entrenous.fr/wp-content/uploads/2021/11/icone_ren.png",
+    "logo": "https://www.reseau-entrenous.fr/wp-content/uploads/2021/11/logo_ren_grand.png",
+    "url": "https://www.entrenous.chat",
+    "tagline": "Tchat des Electricien(ne)s et Gazier(e)s Français(es),",
+    "taglineEm": "nous vous accueillons maintenant!",
+    "subtitle": "Tchat français en direct. Choisissez un pseudo, et vous y êtes.",
+    "projectUrl": "https://www.reseau-entrenous.fr/articles/NouveauWebchat",
+    "registerUrl": "https://www.reseau-entrenous.fr/register/",
+    "loginUrl": "https://www.reseau-entrenous.fr/login/",
     "links": [],
     "accent": ""
   },
@@ -39,64 +46,184 @@
     "sitekey": "0x4AAAAAADlXGeFQ-Aj3Kitp"
   },
   "report": {
-    "service": "ReportServ",
-    "target": "#staff"
+    "service": "",
+    "target": "#_bo",
+    "query": "SignalMoi"
   },
   "defaults": {
     "theme": "light",
-    "compact": false,
+    "compact": true,
     "sound": true,
-    "hideJoinQuit": false,
+    "hideJoinQuit": true,
     "clock24": true,
-    "lang": "fr"
+    "lang": ""
   },
   "features": {
     "push": true,
+    "pushRequireAccount": true,
     "imageUpload": true,
     "register": true,
     "linkPreviews": true,
-    "multiNetwork": true,
+    "multiNetwork": false,
     "sessionResume": true,
     "passkeySasl": true,
-    "saslScram": true
+    "saslScram": true,
+    "saslOauthBearer": true,
+    "bouncer": true
+  },
+  "filehost": {
+    "retentionHours": 24,
+    "retentionChoices": [1, 6, 24, 72]
+  },
+  "roomGallery": {
+    "writers": ["Founder", "Admin"]
+  },
+  "conference": {
+    "server": "visio.entrenous.chat",
+    "secure": true,
+    "tokenEndpoint": "/app/plugins/third/orbit-conference/visio-jwt.php",
+    "inviteEndpoint": "/app/plugins/third/orbit-conference/visio-invite.php",
+    "tagID": "1",
+    "channels": true,
+    "queries": true,
+    "enabledInChannels": ["*"],
+    "disabledInChannels": [],
+    "viewHeight": "46%",
+    "viewHeightMobile": "28%",
+    "requireAccount": true,
+    "requireChannelOp": true,
+    "startPrefixes": "~&@",
+    "denyGroups": ["controle-parentale"],
+    "requireGroups": [],
+    "maxParticipantsChannel": 20,
+    "maxParticipantsQuery": 2,
+    "idleTimeoutSec": 600,
+    "idleWarnSec": 60,
+    "inviteTtlSec": 180,
+    "inviteMaxAgeSec": 120,
+    "heartbeatSec": 45,
+    "anyoneCanStartIn": ["#Visio.chat"],
+    "channelRules": {
+      "#Visio.chat": {
+        "requireChannelOp": false
+      }
+    },
+    "publicLinkInInvite": false,
+    "hideInviteForOrbit": true,
+    "secureInviteText": "-{{ nick }}- a lancé une visio [room:{{ room }}]. Rejoignez-la via le bandeau Orbit ou votre profil EntreNous.",
+    "secureQueryInviteText": "-{{ nick }}- vous invite en visio. Acceptez ou refusez depuis le bandeau.",
+    "inviteText": "-{{ nick }}- vous invite à rejoindre la conférence. Cliquez sur le lien pour y acceder : {{ link }}",
+    "joinText": "-{{ nick }}- vous invite à rejoindre la conférence. Cliquez sur le lien pour y acceder : {{ link }}",
+    "joinButtonText": "Rejoindre"
+  },
+  "petitbac": {
+    "channels": ["#Baccalaureat.chat"],
+    "showWhenIdle": true,
+    "defaultCollapsed": true,
+    "maxPlayers": 14
+  },
+  "echecs": {
+    "channels": ["#Echecs.chat"],
+    "showWhenIdle": true,
+    "botNicks": ["CapEchecs", "JeuEchecs"]
+  },
+  "harrypotter": {
+    "channels": ["#HarryPotter.chat"],
+    "showWhenIdle": true,
+    "defaultCollapsed": false,
+    "botNicks": ["Choixpeau"]
+  },
+  "asl": {
+    "requireAge": true,
+    "requireGender": true,
+    "requireCity": true,
+    "minAge": 10
+  },
+  "callerid": {
+    "group": "controle-parentale",
+    "modes": "+ixIgcRw",
+    "autoMode": true
+  },
+  "helpservWelcome": {
+    "bots": [
+      {
+        "nick": "EcoutE",
+        "needle": "idée ou un avis",
+        "lines": [
+          "Bonjour {{nick}}, merci de partager une idée ou un avis.",
+          "Décrivez votre suggestion en quelques mots (amélioration, nouveau salon, fonctionnalité…). Un ticket sera ouvert dès que votre message sera suffisamment clair.",
+          "Vous pouvez également ajouter des photos si vous le souhaitez."
+        ]
+      }
+    ]
+  },
+  "helpdesk": {
+    "label": "Aide",
+    "title": "Aide, signalement, idées",
+    "desks": [
+      {
+        "id": "aide",
+        "label": "Aide",
+        "title": "Demander de l’aide",
+        "bot": "AideMoi",
+        "channel": "#Aide.chat",
+        "links": [
+          { "label": "Aide sur le site", "url": "https://www.reseau-entrenous.fr/aide/" }
+        ]
+      },
+      {
+        "id": "signal",
+        "label": "Signaler",
+        "title": "Signaler un problème",
+        "bot": "SignalMoi",
+        "channel": "#Signalement.chat",
+        "links": [
+          { "label": "Aide signalement", "url": "https://www.reseau-entrenous.fr/salons/salon-signalement/" }
+        ]
+      },
+      {
+        "id": "idees",
+        "label": "Idées",
+        "title": "Idées et suggestions",
+        "bot": "EcoutE",
+        "channel": "#Idees.chat",
+        "links": [
+          { "label": "Le réseau EntreNous", "url": "https://www.reseau-entrenous.fr/" }
+        ]
+      }
+    ]
   },
   "plugins": [
-    {
-      "url": "/app/plugins/third/orbit-clock.js",
-      "sandbox": true,
-      "permissions": [
-        "none"
-      ]
-    },
-    {
-      "url": "/app/plugins/third/orbit-radio.js?v=5",
-      "sandbox": true,
-      "permissions": [
-        "storage",
-        "irc"
-      ]
-    },
+    { "url": "/app/plugins/third/orbit-clock.js", "sandbox": true, "permissions": ["none"] },
+    { "url": "/app/plugins/third/orbit-radio.js?v=5", "sandbox": true, "permissions": ["storage", "irc"] },
+    "/app/plugins/third/orbit-helpdesk/orbit-helpdesk.js?v=4",
     "/app/plugins/third/orbit-copy.js",
-    "/app/plugins/third/orbit-games.js",
     "/app/plugins/third/orbit-invite.js",
     "/app/plugins/third/orbit-navbar.js",
-    "/app/plugins/third/orbit-ircop.js"
+    "/app/plugins/third/orbit-room-gallery/orbit-room-gallery.js?v=32",
+    "/app/plugins/third/orbit-helpserv-welcome/orbit-helpserv-welcome.js?v=9",
+    "/app/plugins/third/orbit-anope/orbit-anope.js?v=11",
+    "/app/plugins/third/orbit-ircop.js",
+    "/app/plugins/third/orbit-chanserv/orbit-chanserv.js?v=81",
+    "/app/plugins/third/orbit-conference/orbit-conference.js?v=50",
+    "/app/plugins/third/orbit-petitbac/orbit-petitbac.js?v=77",
+    "/app/plugins/third/orbit-echecs/orbit-echecs.js?v=55",
+    "/app/plugins/third/orbit-harrypotter/orbit-harrypotter.js?v=6",
+    "/app/plugins/third/orbit-callerid/orbit-callerid.js?v=19",
+    "/app/plugins/third/orbit-asl/orbit-asl.js?v=2"
   ],
+  "chanserv": {
+    "kickReason": "Vous n'êtes pas le bienvenu sur ce salon"
+  },
+  "moderation": {
+    "redirectChannel": "#Bannis.chat",
+    "redirectSuffix": ".chat"
+  },
   "builtins": [],
   "analytics": {
-    "endpoint": "/accounts/api/analytics/",
-    "siteId": "orbit",
-    "gaId": "G-1PQFZWGNFX"
+    "endpoint": "",
+    "siteId": "",
+    "gaId": ""
   },
-  "securityGroups": [
-    "kiwiirc",
-    "oper",
-    "ssl",
-    "plain",
-    "registered",
-    "staff",
-    "trusted",
-    "bots",
-    "EU"
-  ]
+  "securityGroups": ["IRCOperateur", "enregistre", "tls", "regulier", "nouveau", "non-securise", "websocket", "bot", "user", "bouncer", "controle-parentale"]
 }

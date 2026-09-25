@@ -247,6 +247,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       store.authError = '';
       store.csAccess = undefined;
       store.csTried = false;
+      try { orbit.state.get().setEchoServerTo?.(null); } catch (_) { /* */ }
       notify();
     } else {
       refreshCsAccess();
@@ -306,6 +307,36 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     orbit.irc.send(l);
   }
 
+  /** Print WHOIS as classic text in the active buffer (not the profile panel / Status). */
+  function whoisActive(nick) {
+    const n = String(nick || '').trim().split(/\s+/)[0];
+    if (!n) return;
+    const s = orbit.state.get();
+    if (typeof s.whoisText === 'function') s.whoisText(n);
+    else sendRaw('WHOIS ' + n + ' ' + n);
+  }
+
+  /** Divert Status-bound server replies (CHECK, numerics, NOTICE *) into the active buffer for a few seconds. */
+  let echoTimer = 0;
+  function echoToActive(ms) {
+    const s = orbit.state.get();
+    const dest = orbit.state.active();
+    if (!dest || typeof s.setEchoServerTo !== 'function') return;
+    s.setEchoServerTo(dest);
+    if (echoTimer) clearTimeout(echoTimer);
+    echoTimer = setTimeout(() => {
+      echoTimer = 0;
+      try { orbit.state.get().setEchoServerTo(null); } catch (_) { /* */ }
+    }, ms || 12000);
+  }
+
+  function checkActive(nick) {
+    const n = String(nick || '').trim().split(/\s+/)[0];
+    if (!n) return;
+    echoToActive(15000);
+    sendRaw('CHECK ' + n);
+  }
+
   // ── UI ──
   const btnBase = {
     display: 'block', width: '100%', textAlign: 'left',
@@ -320,11 +351,6 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
   };
   const labelStyle = { display: 'block', fontSize: '.72rem', fontWeight: 650, color: 'var(--muted, #9aa)', margin: '0 0 .25rem' };
   const sectionTitle = { fontSize: '.72rem', fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted, #9aa)', margin: '.85rem 0 .4rem' };
-  const mmBtn = {
-    display: 'block', width: '100%', textAlign: 'left', border: 0, background: 'transparent',
-    color: 'inherit', font: 'inherit', fontSize: '.86rem', cursor: 'pointer',
-    padding: '.45rem .75rem',
-  };
 
   function AuthForm() {
     const s = useStore();
@@ -387,7 +413,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
         <${FieldRow} label=${T('act.notice')} placeholder=${T('ph.notice')}
           onGo=${(v) => { const [nick, ...rest] = v.trim().split(/\s+/); if (nick && rest.length) sendRaw('NOTICE ' + nick + ' :' + rest.join(' ')); }} />
         <${FieldRow} label=${T('act.whois')} placeholder=${T('ph.nick')}
-          onGo=${(v) => { const nick = v.trim().split(/\s+/)[0]; if (nick) sendRaw('WHOIS ' + nick + ' ' + nick); }} />
+          onGo=${(v) => whoisActive(v)} />
       </div>` : null}
 
       ${/* Helpeur (+ HOP): OperChat — pas de BanControl */ ''}
@@ -408,7 +434,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
         <${FieldRow} label=${T('act.kline')} placeholder=${T('ph.kline')} danger=${true}
           onGo=${(v) => { if (v.trim()) sendRaw('KLINE ' + v.trim()); }} />
         <${FieldRow} label=${T('act.check')} placeholder=${T('ph.nick')}
-          onGo=${(v) => { const nick = v.trim().split(/\s+/)[0]; if (nick) sendRaw('CHECK ' + nick); }} />
+          onGo=${(v) => checkActive(v)} />
         <${FieldRow} label=${T('act.sajoin')} placeholder=${T('ph.sajoin')}
           onGo=${(v) => { const p = v.trim().split(/\s+/); if (p.length >= 2) sendRaw('SAJOIN ' + p[0] + ' ' + p[1]); }} />
         <${FieldRow} label=${T('act.sapart')} placeholder=${T('ph.sapart')}
@@ -516,9 +542,11 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     return html`<${Panel} />`;
   }
 
-  // Right-click nicklist: IRCOP actions when OPER-authenticated.
+  // Right-click nicklist: "Commandes IRCOP" flyout tab (same pattern as ChanServ),
+  // only when OPER-authenticated. Sorted to the top of the menu by MemberMenu.
   function MemberIrcop({ nick, close }) {
     useStore();
+    const [open, setOpen] = useState(false);
     if (!isOperSession() && !store.authOk) return null;
     const access = teamAccess();
     if (!access || access.level < 10) return null;
@@ -529,42 +557,48 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     const inChan = active && (active[0] === '#' || active[0] === '&');
 
     const run = (fn) => { fn(); close(); };
+    const item = (label, onClick, danger) => html`<button type="button" role="menuitem"
+      className=${'memberctx__item ocs-mirow' + (danger ? ' memberctx__item--warn' : '')}
+      onClick=${(e) => { e.stopPropagation(); onClick(); }}>${label}</button>`;
 
-    return html`<div className="memberctx__block" style=${{ borderTop: '1px solid var(--border, #333)', marginTop: '.15rem', paddingTop: '.15rem' }}>
-      <div style=${{ padding: '.25rem .75rem .1rem', fontSize: '.68rem', fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted, #9aa)' }}>${T('mm.title')}</div>
-      <button type="button" role="menuitem" style=${mmBtn}
-        onClick=${() => run(() => sendRaw('WHOIS ' + nick + ' ' + nick))}>${T('mm.whois')}</button>
-      ${level >= 10 ? html`<button type="button" role="menuitem" style=${mmBtn}
-        onClick=${() => run(() => {
+    return html`<div className="ocs-mm">
+      <button type="button" className=${'ocs-mm__trig' + (open ? ' is-open' : '')}
+        aria-expanded=${open} aria-haspopup="menu"
+        onClick=${(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
+        <span className="ocs-mm__trig-ic" aria-hidden="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+        </span>
+        <span>${T('mm.tab')}</span>
+      </button>
+      ${open ? html`<div className="ocs-mm__fly" role="menu" aria-label=${T('mm.tab')}>
+        ${item(T('mm.whois'), () => run(() => whoisActive(nick)))}
+        ${level >= 10 ? item(T('mm.notice'), () => run(() => {
           const msg = window.prompt(T('mm.noticePrompt', { nick }));
           if (msg) sendRaw('NOTICE ' + nick + ' :' + msg);
-        })}>${T('mm.notice')}</button>` : null}
-      ${level >= 30 ? html`<button type="button" role="menuitem" style=${mmBtn}
-        onClick=${() => run(() => sendRaw('CHECK ' + nick))}>${T('mm.check')}</button>` : null}
-      ${level >= 30 ? html`<button type="button" role="menuitem" style=${{ ...mmBtn, color: 'var(--danger, #dc2626)' }}
-        onClick=${() => run(() => {
+        })) : null}
+        ${level >= 30 ? item(T('mm.check'), () => run(() => checkActive(nick))) : null}
+        ${level >= 30 ? item(T('mm.kill'), () => run(() => {
           const reason = window.prompt(T('mm.killPrompt', { nick })) || 'IRCOP';
           sendRaw('KILL ' + nick + ' :' + reason);
-        })}>${T('mm.kill')}</button>` : null}
-      ${level >= 30 ? html`<button type="button" role="menuitem" style=${{ ...mmBtn, color: 'var(--danger, #dc2626)' }}
-        onClick=${() => run(() => {
+        }), true) : null}
+        ${level >= 30 ? item(T('mm.kline'), () => run(() => {
           const rest = window.prompt(T('mm.klinePrompt', { nick }));
           if (rest) sendRaw('KLINE ' + rest);
-        })}>${T('mm.kline')}</button>` : null}
-      ${level >= 40 ? html`<button type="button" role="menuitem" style=${{ ...mmBtn, color: 'var(--danger, #dc2626)' }}
-        onClick=${() => run(() => {
+        }), true) : null}
+        ${level >= 40 ? item(T('mm.gline'), () => run(() => {
           const rest = window.prompt(T('mm.glinePrompt', { nick }));
           if (rest) sendRaw('GLINE ' + rest);
-        })}>${T('mm.gline')}</button>` : null}
-      ${level >= 30 && inChan ? html`<button type="button" role="menuitem" style=${mmBtn}
-        onClick=${() => run(() => sendRaw('SAJOIN ' + nick + ' ' + active))}>${T('mm.sajoinHere')}</button>` : null}
-      ${level >= 30 && inChan ? html`<button type="button" role="menuitem" style=${mmBtn}
-        onClick=${() => run(() => sendRaw('SAPART ' + nick + ' ' + active))}>${T('mm.sapartHere')}</button>` : null}
-      ${level >= 30 ? html`<button type="button" role="menuitem" style=${mmBtn}
-        onClick=${() => run(() => {
+        }), true) : null}
+        ${level >= 30 && inChan ? item(T('mm.sajoinHere'), () => run(() => sendRaw('SAJOIN ' + nick + ' ' + active))) : null}
+        ${level >= 30 && inChan ? item(T('mm.sapartHere'), () => run(() => sendRaw('SAPART ' + nick + ' ' + active))) : null}
+        ${level >= 30 ? item(T('mm.sanick'), () => run(() => {
           const nn = window.prompt(T('mm.sanickPrompt', { nick }));
           if (nn) sendRaw('SANICK ' + nick + ' ' + nn.trim());
-        })}>${T('mm.sanick')}</button>` : null}
+        })) : null}
+      </div>` : null}
     </div>`;
   }
 

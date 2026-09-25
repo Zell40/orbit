@@ -60,6 +60,13 @@ export interface ChatState {
   networkIcon: string;
   account: string; // NickServ account we're logged in as ('' = guest)
   umodes: string;  // our own active user-mode letters, e.g. "iwx" (global, per-user)
+  /**
+   * When set, informational server lines (NOTICE *, unmatched numerics, OPER
+   * replies like CHECK) are printed into this buffer instead of the Status
+   * console — so IRCOP tools stay visible without opening Status.
+   */
+  echoServerTo: string | null;
+  setEchoServerTo: (buffer: string | null) => void;
   /** 396 / CHGHOST displayed host (cloak or Anope vHost). */
   displayedHost: string;
   /** Session is under the callerid parental security group (plugin-driven). */
@@ -224,6 +231,11 @@ export function createChatStore(ns = '') {
     networkIcon: getConfig().branding.icon,
     account: '',
     umodes: '',
+    echoServerTo: null,
+    setEchoServerTo(buffer) {
+      const b = (buffer || '').trim();
+      set({ echoServerTo: b || null });
+    },
     displayedHost: '',
     parentalControls: false,
     serverName: '',
@@ -345,6 +357,7 @@ export function createChatStore(ns = '') {
         connectUrl: opts.url,
         viaBouncer: !!opts.serverPassword,
         umodes: '',
+        echoServerTo: null,
         displayedHost: '',
         parentalControls: false,
       });
