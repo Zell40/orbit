@@ -1437,6 +1437,76 @@
         "Gold": "Gold",
         "Master": "Master"
       }
+    },
+    "ircop": {
+      "title": "IRCOP",
+      "tip": "Staff / IRCOP panel",
+      "authIntro": "Authenticate with your OPER account to unlock tools for your #_bo access level.",
+      "operName": "OPER account",
+      "operPass": "OPER password",
+      "authSubmit": "Authenticate",
+      "authPending": "Authenticating…",
+      "authFailed": "Authentication refused",
+      "authNeedBoth": "Enter both OPER account and password",
+      "deoper": "Drop OPER",
+      "dieConfirm": "Shut down the IRC server? This cannot be undone.",
+      "dieReason": "Reason (DIE)",
+      "role": {
+        "admin": "Server administrator",
+        "staff": "General IRCOP / Technician",
+        "oper": "Basic IRCOP",
+        "helper": "Helper",
+        "voice": "Helper in training / RS",
+        "team": "Channel operator"
+      },
+      "roleHint": {
+        "admin": "Full panel access",
+        "staff": "Advanced network tools",
+        "oper": "Core network moderation",
+        "helper": "Assistance and KILL",
+        "voice": "Team messages / GLOBOPS",
+        "team": "Light team tools"
+      },
+      "sec": {
+        "team": "Team",
+        "voice": "Helper / RS",
+        "helper": "Helper",
+        "oper": "IRCOP",
+        "staff": "Technician / General IRCOP",
+        "admin": "Administrator",
+        "raw": "Raw command"
+      },
+      "act": {
+        "notice": "NOTICE",
+        "whois": "WHOIS",
+        "globops": "GLOBOPS",
+        "kill": "KILL",
+        "kline": "KLINE",
+        "sajoin": "SAJOIN",
+        "sapart": "SAPART",
+        "wallops": "WALLOPS…",
+        "gline": "GLINE",
+        "zline": "ZLINE",
+        "rehash": "REHASH",
+        "modules": "MODULES",
+        "loadmodule": "LOADMODULE",
+        "unloadmodule": "UNLOADMODULE",
+        "die": "DIE (shut down)",
+        "raw": "Send"
+      },
+      "ph": {
+        "notice": "nick message…",
+        "nick": "nickname",
+        "message": "message…",
+        "kill": "nick reason…",
+        "kline": "duration user@host :reason",
+        "sajoin": "nick #channel",
+        "sapart": "nick #channel",
+        "gline": "duration user@host :reason",
+        "zline": "duration ip :reason",
+        "module": "module name",
+        "raw": "IRC COMMAND…"
+      }
     }
   },
   "pwa": {

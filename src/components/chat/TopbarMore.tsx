@@ -20,7 +20,7 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, onSearch }:
   // array every read → zustand Object.is → infinite re-render / React #185).
   const pluginUi = usePluginRegistry((s) => s.ui);
   const morePlugins = pluginUi.filter((u) => u.slot === 'topbar_more_item');
-  const afterManageNames = new Set(['orbit-chanserv']);
+  const afterManageNames = new Set(['orbit-chanserv', 'orbit-ircop']);
   const moreAfterManage = morePlugins.filter((u) => afterManageNames.has(u.plugin));
   const moreRest = morePlugins.filter((u) => !afterManageNames.has(u.plugin));
   const [open, setOpen] = useState(false);

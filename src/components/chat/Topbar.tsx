@@ -16,7 +16,7 @@ const TOPBAR_LEAD = ['invite', 'orbit-clock'] as const;
 /** Video conference + callerid sit after search + notifications. */
 const TOPBAR_AFTER_NOTIFY = ['orbit-conference', 'orbit-callerid'] as const;
 /** ChanServ sits to the right of room settings (sliders), before the member pill. */
-const TOPBAR_AFTER_MANAGE = ['orbit-chanserv'] as const;
+const TOPBAR_AFTER_MANAGE = ['orbit-chanserv', 'orbit-ircop'] as const;
 
 function sortByPluginOrder(items: PluginUi[], order: readonly string[]) {
   const rank = (p: string) => {

@@ -1461,6 +1461,76 @@
         "Gold": "Or",
         "Master": "Maître"
       }
+    },
+    "ircop": {
+      "title": "IRCOP",
+      "tip": "Panel équipe / IRCOP",
+      "authIntro": "Authentifie-toi avec ton compte OPER pour déverrouiller les outils de ton niveau d'accès (#_bo).",
+      "operName": "Compte OPER",
+      "operPass": "Mot de passe OPER",
+      "authSubmit": "S'authentifier",
+      "authPending": "Authentification…",
+      "authFailed": "Authentification refusée",
+      "authNeedBoth": "Indique le compte et le mot de passe OPER",
+      "deoper": "Quitter OPER",
+      "dieConfirm": "Arrêter le serveur IRC ? Cette action est irréversible.",
+      "dieReason": "Raison (DIE)",
+      "role": {
+        "admin": "Administrateur serveur",
+        "staff": "IRCOP général / Technicien",
+        "oper": "IRCOP de base",
+        "helper": "Helpeur",
+        "voice": "Helpeur en test / RS",
+        "team": "Opérateur de salon"
+      },
+      "roleHint": {
+        "admin": "Accès complet au panel",
+        "staff": "Outils réseau avancés",
+        "oper": "Modération réseau de base",
+        "helper": "Assistance et KILL",
+        "voice": "Messages équipe / GLOBOPS",
+        "team": "Outils d'équipe légers"
+      },
+      "sec": {
+        "team": "Équipe",
+        "voice": "Helpeur / RS",
+        "helper": "Helpeur",
+        "oper": "IRCOP",
+        "staff": "Technicien / IRCOP général",
+        "admin": "Administrateur",
+        "raw": "Commande brute"
+      },
+      "act": {
+        "notice": "NOTICE",
+        "whois": "WHOIS",
+        "globops": "GLOBOPS",
+        "kill": "KILL",
+        "kline": "KLINE",
+        "sajoin": "SAJOIN",
+        "sapart": "SAPART",
+        "wallops": "WALLOPS…",
+        "gline": "GLINE",
+        "zline": "ZLINE",
+        "rehash": "REHASH",
+        "modules": "MODULES",
+        "loadmodule": "LOADMODULE",
+        "unloadmodule": "UNLOADMODULE",
+        "die": "DIE (arrêt serveur)",
+        "raw": "Envoyer"
+      },
+      "ph": {
+        "notice": "nick message…",
+        "nick": "pseudo",
+        "message": "message…",
+        "kill": "nick raison…",
+        "kline": "durée user@host :raison",
+        "sajoin": "nick #salon",
+        "sapart": "nick #salon",
+        "gline": "durée user@host :raison",
+        "zline": "durée ip :raison",
+        "module": "nom du module",
+        "raw": "COMMANDE IRC…"
+      }
     }
   },
   "pwa": {
