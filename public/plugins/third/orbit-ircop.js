@@ -1,21 +1,27 @@
 /*
  * Orbit IRCOP — topbar panel for the server team (salon #_bo).
  *
- * Visibility & tool tiers come from the user's prefix in #_bo:
- *   ~  Fondateur          → Administrateur serveur (panel complet)
- *   &  Administrateur     → IRCOP général / Technicien IRC
- *   @  Opérateur          → IRCOP de base
- *   %  Halfop             → Helpeur
- *   +  Voice              → Helpeur en test / RS
- *   (aucun)               → Membre équipe (opérateur de salon)
+ * Access tier comes from ChanServ / NickServ ALIST on #_bo (QOP, SOP, AOP,
+ * HOP, VOP, Fondateurice…), not from the live MODE prefixes in the nicklist.
+ * Live prefixes are only a fallback when ALIST is unavailable (guest, RPC down).
  *
- * Opening the panel always starts with OPER authentication. Once the session
- * has global oper (+o / RPL_YOUREOPER), the tools for that #_bo tier unlock.
+ * Mapping (EntreNous × InspIRCd oper types):
+ *   QOP / Fondateur     → IRC Administrateur     (panel admin, sans DIE)
+ *   SOP                 → Technicien / Oper Gen.  (staff)
+ *   AOP                 → IRC Operateur           (oper)
+ *   HOP                 → Helpeur                 (helper — OperChat/View)
+ *   VOP                 → Helpeur en test / RS
+ *   membre #_bo sans xOP→ Opérateur de salon
+ *
+ * Opening the panel starts with OPER authentication. Once the session has
+ * global oper (+o / RPL_YOUREOPER), tools for that ChanServ tier unlock.
+ * Authenticated opers also get an "IRCOP" block in the nicklist right-click menu.
  */
 Orbit.plugin('orbit-ircop', (orbit, log) => {
   const { useState, useEffect } = orbit.React;
   const html = orbit.html;
   const TEAM = '#_bo';
+  const CS_RPC = '/app/plugins/third/orbit-chanserv/chanserv-rpc.php';
 
   const T = (key, vars) => {
     const full = 'plugins.ircop.' + key;
@@ -23,18 +29,41 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     return out === full ? key : out;
   };
 
-  // Strongest-first rank from #_bo prefixes.
-  const RANKS = [
+  function fold(s) {
+    return String(s || '').toLowerCase();
+  }
+
+  /** Strongest ChanServ xOP / FR label → panel tier. */
+  function rankFromCsToken(raw) {
+    const code = String(raw || '').replace(/[,.;]+$/g, '').trim();
+    const c = fold(code);
+    if (/fondat|founder|^qop$|^owner$/.test(c)) return { id: 'admin', level: 50, ch: '~', code };
+    if (/successeur|successor|^sop$|^10$/.test(c)) return { id: 'staff', level: 40, ch: '&', code };
+    if (/^aop$|^5$/.test(c)) return { id: 'oper', level: 30, ch: '@', code };
+    if (/^hop$|^4$/.test(c)) return { id: 'helper', level: 20, ch: '%', code };
+    if (/^vop$|^3$/.test(c)) return { id: 'voice', level: 10, ch: '+', code };
+    return null;
+  }
+
+  function rankFromCsAccess(raw) {
+    const parts = String(raw || '').split(/[,/|]+/).map((s) => s.trim()).filter(Boolean);
+    let best = null;
+    for (const p of parts) {
+      const r = rankFromCsToken(p);
+      if (r && (!best || r.level > best.level)) best = r;
+    }
+    if (best) return { ...best, source: 'chanserv', access: String(raw || '').trim() };
+    return { id: 'team', level: 5, ch: '', code: String(raw || '').trim() || 'MEM', source: 'chanserv', access: String(raw || '').trim() };
+  }
+
+  // Live nicklist prefixes — fallback only.
+  const PREFIX_RANKS = [
     { ch: '~', id: 'admin', level: 50 },
     { ch: '&', id: 'staff', level: 40 },
     { ch: '@', id: 'oper', level: 30 },
     { ch: '%', id: 'helper', level: 20 },
     { ch: '+', id: 'voice', level: 10 },
   ];
-
-  function fold(s) {
-    return String(s || '').toLowerCase();
-  }
 
   function teamBuffer() {
     const buffers = orbit.state.get().buffers || {};
@@ -55,16 +84,26 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     return null;
   }
 
-  function teamAccess() {
+  function rankFromLivePrefix() {
     const b = teamBuffer();
     if (!b || !b.joined) return null;
     const me = findMember(b.members, orbit.state.nick());
     if (!me) return null;
     const pfx = String(me.prefixes || me.prefix || '');
-    for (const r of RANKS) {
-      if (pfx.includes(r.ch)) return { ...r, prefix: pfx };
+    for (const r of PREFIX_RANKS) {
+      if (pfx.includes(r.ch)) return { ...r, prefix: pfx, source: 'prefix', access: pfx };
     }
-    return { ch: '', id: 'team', level: 5, prefix: pfx };
+    return { id: 'team', level: 5, ch: '', prefix: pfx, source: 'prefix', access: '' };
+  }
+
+  /** Prefer ChanServ ALIST; fall back to live #_bo prefix / membership. */
+  function teamAccess() {
+    if (store.csAccess) return store.csAccess;
+    if (store.csAccess === null && store.csTried) {
+      // Explicitly no ALIST row — still allow live membership on #_bo.
+      return rankFromLivePrefix();
+    }
+    return rankFromLivePrefix();
   }
 
   function isOperSession() {
@@ -72,12 +111,15 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     return /o/i.test(um);
   }
 
-  // ── tiny store (open / auth feedback / form scratch) ──
+  // ── store ──
   const store = {
     open: false,
     authBusy: false,
     authError: '',
     authOk: false,
+    csAccess: undefined, // undefined=loading/unknown, null=no row, object=rank
+    csTried: false,
+    csLabel: '',
     subs: new Set(),
   };
   const notify = () => store.subs.forEach((f) => f());
@@ -89,6 +131,88 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       return () => store.subs.delete(f);
     }, []);
     return store;
+  }
+
+  // Minimal ALIST line parse (same shapes as nickserv-info.ts).
+  function parseAlistBlob(raw) {
+    const rows = [];
+    const seen = new Set();
+    const text = String(raw || '').replace(/\r\n?/g, '\n');
+    for (const line of text.split('\n')) {
+      const s = line.replace(/\x03\d{0,2}(?:,\d{1,2})?|\x02|\x1d|\x1f|\x16|\x0f/g, '').replace(/\s+/g, ' ').trim();
+      if (!s) continue;
+      if (/^(fin\s+de|end of|num[eé]ro|number\s+channel|n[°º]\b)/i.test(s)) continue;
+      if (/a acc[eè]s|has access on|access list|liste d['’]acc[eè]s/i.test(s)) continue;
+      const eq = s.match(/^\d+\s*[:.)]\s+(!?[#&][^\s=]*)\s*=\s*(.+)$/);
+      if (eq) {
+        const chan = eq[1].replace(/^!+/, '');
+        const key = fold(chan);
+        if (chan && !seen.has(key)) { seen.add(key); rows.push({ channel: chan, access: eq[2].replace(/\s+\(.*$/, '').trim() }); }
+        continue;
+      }
+      const numbered = s.match(/^\d+\s+(!?[#&]\S+)\s+(\S+)/);
+      const simple = numbered ? null : s.match(/^(!?[#&]\S+)\s+(\S+)/);
+      const m = numbered || simple;
+      if (!m) continue;
+      const chan = m[1].replace(/^!+/, '');
+      const key = fold(chan);
+      if (!chan || seen.has(key)) continue;
+      seen.add(key);
+      rows.push({ channel: chan, access: m[2].replace(/[,.;]+$/, '') });
+    }
+    return rows;
+  }
+
+  let alistInflight = null;
+  async function refreshCsAccess() {
+    const account = orbit.state.account();
+    const nick = orbit.state.nick();
+    if (!account) {
+      store.csAccess = undefined;
+      store.csTried = true;
+      store.csLabel = '';
+      notify();
+      return;
+    }
+    if (alistInflight) return alistInflight;
+    alistInflight = (async () => {
+      const ctrl = new AbortController();
+      const to = window.setTimeout(() => ctrl.abort(), 6000);
+      try {
+        const r = await fetch(CS_RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ account, nick, action: 'nsalist' }),
+          signal: ctrl.signal,
+        });
+        const data = await r.json();
+        store.csTried = true;
+        if (!data || !data.ok || data.list == null) {
+          store.csAccess = undefined;
+          store.csLabel = '';
+          notify();
+          return;
+        }
+        const rows = parseAlistBlob(String(data.list));
+        const hit = rows.find((row) => fold(row.channel) === fold(TEAM));
+        if (!hit) {
+          store.csAccess = null;
+          store.csLabel = '';
+        } else {
+          store.csAccess = rankFromCsAccess(hit.access);
+          store.csLabel = hit.access;
+        }
+        notify();
+      } catch (e) {
+        store.csTried = true;
+        log('alist failed', e);
+        notify();
+      } finally {
+        window.clearTimeout(to);
+        alistInflight = null;
+      }
+    })();
+    return alistInflight;
   }
 
   orbit.on('orbit:panel', (id) => {
@@ -112,7 +236,6 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       store.authOk = false;
       notify();
     } else if (cmd === 'MODE') {
-      // +o/-o on ourselves flips the unlocked tools without waiting for a re-open.
       notify();
     }
   });
@@ -122,11 +245,21 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       store.authBusy = false;
       store.authOk = false;
       store.authError = '';
+      store.csAccess = undefined;
+      store.csTried = false;
       notify();
+    } else {
+      refreshCsAccess();
     }
   });
 
-  // Periodic refresh so joins/modes in #_bo update the topbar button.
+  orbit.on('connected', () => { refreshCsAccess(); });
+  // Account may land after SASL / bouncer attach.
+  setInterval(() => {
+    if (orbit.state.account() && store.csAccess === undefined) refreshCsAccess();
+  }, 8000);
+  refreshCsAccess();
+
   function useTick(ms) {
     const [, set] = useState(0);
     useEffect(() => {
@@ -140,6 +273,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     if (store.open) {
       store.authError = '';
       orbit.emit('orbit:panel', 'orbit-ircop');
+      refreshCsAccess();
     }
     notify();
   }
@@ -156,7 +290,6 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     store.authError = '';
     store.authOk = false;
     notify();
-    // Never log the password. OPER is sent as a raw IRC command.
     orbit.irc.send('OPER ' + n + ' ' + p);
   }
 
@@ -173,7 +306,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     orbit.irc.send(l);
   }
 
-  // ── UI bits ──
+  // ── UI ──
   const btnBase = {
     display: 'block', width: '100%', textAlign: 'left',
     border: '1px solid var(--border, #444)', background: 'var(--bg-soft, transparent)',
@@ -187,6 +320,11 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
   };
   const labelStyle = { display: 'block', fontSize: '.72rem', fontWeight: 650, color: 'var(--muted, #9aa)', margin: '0 0 .25rem' };
   const sectionTitle = { fontSize: '.72rem', fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted, #9aa)', margin: '.85rem 0 .4rem' };
+  const mmBtn = {
+    display: 'block', width: '100%', textAlign: 'left', border: 0, background: 'transparent',
+    color: 'inherit', font: 'inherit', fontSize: '.86rem', cursor: 'pointer',
+    padding: '.45rem .75rem',
+  };
 
   function AuthForm() {
     const s = useStore();
@@ -230,12 +368,16 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
   function Tools({ access }) {
     const level = access.level;
     const can = (min) => level >= min;
+    const src = access.source === 'chanserv'
+      ? T('accessCs', { access: access.access || access.code || '—' })
+      : T('accessPrefix');
 
     return html`<div>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', marginBottom: '.55rem' }}>
         <div>
           <div style=${{ fontWeight: 800, fontSize: '.9rem' }}>${T('role.' + access.id)}</div>
           <div style=${{ fontSize: '.72rem', color: 'var(--muted, #9aa)' }}>${T('roleHint.' + access.id)}</div>
+          <div style=${{ fontSize: '.68rem', color: 'var(--muted, #9aa)', marginTop: '.15rem' }}>${src}</div>
         </div>
         <button onClick=${deoper} style=${{ ...btnBase, width: 'auto', marginBottom: 0, padding: '.35rem .55rem', fontSize: '.75rem' }}>${T('deoper')}</button>
       </div>
@@ -248,49 +390,59 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
           onGo=${(v) => { const nick = v.trim().split(/\s+/)[0]; if (nick) sendRaw('WHOIS ' + nick + ' ' + nick); }} />
       </div>` : null}
 
+      ${/* Helpeur (+ HOP): OperChat — pas de BanControl */ ''}
       ${can(10) ? html`<div>
-        <div style=${sectionTitle}>${T('sec.voice')}</div>
+        <div style=${sectionTitle}>${T('sec.helper')}</div>
         <${FieldRow} label=${T('act.globops')} placeholder=${T('ph.message')}
           onGo=${(v) => { if (v.trim()) sendRaw('GLOBOPS :' + v.trim()); }} />
+        <${FieldRow} label=${T('act.wallops')} placeholder=${T('ph.message')}
+          onGo=${(v) => { if (v.trim()) sendRaw('WALLOPS :' + v.trim()); }} />
+        <button onClick=${() => sendRaw('OPERMOTD')} style=${btnBase}>${T('act.opermotd')}</button>
       </div>` : null}
 
-      ${can(20) ? html`<div>
-        <div style=${sectionTitle}>${T('sec.helper')}</div>
-        <${FieldRow} label=${T('act.kill')} placeholder=${T('ph.kill')} danger=${true}
-          onGo=${(v) => { const [nick, ...rest] = v.trim().split(/\s+/); if (nick) sendRaw('KILL ' + nick + ' :' + (rest.join(' ') || 'IRCOP')); }} />
-      </div>` : null}
-
+      ${/* IRC Operateur (AOP): BanControl + SACommands + HostCloak… */ ''}
       ${can(30) ? html`<div>
         <div style=${sectionTitle}>${T('sec.oper')}</div>
+        <${FieldRow} label=${T('act.kill')} placeholder=${T('ph.kill')} danger=${true}
+          onGo=${(v) => { const [nick, ...rest] = v.trim().split(/\s+/); if (nick) sendRaw('KILL ' + nick + ' :' + (rest.join(' ') || 'IRCOP')); }} />
         <${FieldRow} label=${T('act.kline')} placeholder=${T('ph.kline')} danger=${true}
           onGo=${(v) => { if (v.trim()) sendRaw('KLINE ' + v.trim()); }} />
+        <${FieldRow} label=${T('act.check')} placeholder=${T('ph.nick')}
+          onGo=${(v) => { const nick = v.trim().split(/\s+/)[0]; if (nick) sendRaw('CHECK ' + nick); }} />
         <${FieldRow} label=${T('act.sajoin')} placeholder=${T('ph.sajoin')}
           onGo=${(v) => { const p = v.trim().split(/\s+/); if (p.length >= 2) sendRaw('SAJOIN ' + p[0] + ' ' + p[1]); }} />
         <${FieldRow} label=${T('act.sapart')} placeholder=${T('ph.sapart')}
           onGo=${(v) => { const p = v.trim().split(/\s+/); if (p.length >= 2) sendRaw('SAPART ' + p[0] + ' ' + p[1]); }} />
-        <button onClick=${() => sendRaw('WALLOPS :' + (window.prompt(T('ph.message')) || ''))}
-          style=${btnBase}>${T('act.wallops')}</button>
+        <${FieldRow} label=${T('act.sanick')} placeholder=${T('ph.sanick')}
+          onGo=${(v) => { const p = v.trim().split(/\s+/); if (p.length >= 2) sendRaw('SANICK ' + p[0] + ' ' + p[1]); }} />
+        <${FieldRow} label=${T('act.sethost')} placeholder=${T('ph.sethost')}
+          onGo=${(v) => { const p = v.trim().split(/\s+/); if (p.length >= 1) sendRaw('SETHOST ' + p.join(' ')); }} />
       </div>` : null}
 
+      ${/* Technicien / Oper General (SOP): + GLINE/ZLINE, REHASH, FILTER… */ ''}
       ${can(40) ? html`<div>
         <div style=${sectionTitle}>${T('sec.staff')}</div>
         <${FieldRow} label=${T('act.gline')} placeholder=${T('ph.gline')} danger=${true}
           onGo=${(v) => { if (v.trim()) sendRaw('GLINE ' + v.trim()); }} />
         <${FieldRow} label=${T('act.zline')} placeholder=${T('ph.zline')} danger=${true}
           onGo=${(v) => { if (v.trim()) sendRaw('ZLINE ' + v.trim()); }} />
+        <${FieldRow} label=${T('act.shun')} placeholder=${T('ph.shun')} danger=${true}
+          onGo=${(v) => { if (v.trim()) sendRaw('SHUN ' + v.trim()); }} />
         <button onClick=${() => sendRaw('REHASH')} style=${btnBase}>${T('act.rehash')}</button>
         <button onClick=${() => sendRaw('MODULES')} style=${btnBase}>${T('act.modules')}</button>
+        <${FieldRow} label=${T('act.filter')} placeholder=${T('ph.filter')}
+          onGo=${(v) => { if (v.trim()) sendRaw('FILTER ' + v.trim()); }} />
       </div>` : null}
 
+      ${/* IRC Administrateur (QOP): modules — pas de DIE */ ''}
       ${can(50) ? html`<div>
         <div style=${sectionTitle}>${T('sec.admin')}</div>
         <${FieldRow} label=${T('act.loadmodule')} placeholder=${T('ph.module')}
           onGo=${(v) => { if (v.trim()) sendRaw('LOADMODULE ' + v.trim()); }} />
         <${FieldRow} label=${T('act.unloadmodule')} placeholder=${T('ph.module')} danger=${true}
           onGo=${(v) => { if (v.trim()) sendRaw('UNLOADMODULE ' + v.trim()); }} />
-        <button onClick=${() => {
-          if (window.confirm(T('dieConfirm'))) sendRaw('DIE ' + (window.prompt(T('dieReason')) || 'admin'));
-        }} style=${{ ...btnBase, color: 'var(--danger, #dc2626)', fontWeight: 700 }}>${T('act.die')}</button>
+        <${FieldRow} label=${T('act.reloadmodule')} placeholder=${T('ph.module')}
+          onGo=${(v) => { if (v.trim()) sendRaw('RELOADMODULE ' + v.trim()); }} />
       </div>` : null}
 
       <div style=${sectionTitle}>${T('sec.raw')}</div>
@@ -304,7 +456,6 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     useTick(2000);
     const live = teamAccess();
     const unlocked = isOperSession() || s.authOk;
-
     if (!live) return null;
 
     return html`<div style=${{
@@ -318,7 +469,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
         <div>
           <strong style=${{ fontWeight: 800, fontSize: '.98rem' }}>${T('title')}</strong>
           <div style=${{ fontSize: '.72rem', color: 'var(--muted, #9aa)' }}>
-            ${live.ch ? live.ch + ' ' : ''}${T('role.' + live.id)} · ${TEAM}
+            ${T('role.' + live.id)} · ${TEAM}
           </div>
         </div>
         <button onClick=${() => { store.open = false; notify(); }}
@@ -365,8 +516,61 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     return html`<${Panel} />`;
   }
 
+  // Right-click nicklist: IRCOP actions when OPER-authenticated.
+  function MemberIrcop({ nick, close }) {
+    useStore();
+    if (!isOperSession() && !store.authOk) return null;
+    const access = teamAccess();
+    if (!access || access.level < 10) return null;
+    const level = access.level;
+    const me = fold(orbit.state.nick());
+    if (fold(nick) === me) return null;
+    const active = orbit.state.active();
+    const inChan = active && (active[0] === '#' || active[0] === '&');
+
+    const run = (fn) => { fn(); close(); };
+
+    return html`<div className="memberctx__block" style=${{ borderTop: '1px solid var(--border, #333)', marginTop: '.15rem', paddingTop: '.15rem' }}>
+      <div style=${{ padding: '.25rem .75rem .1rem', fontSize: '.68rem', fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted, #9aa)' }}>${T('mm.title')}</div>
+      <button type="button" role="menuitem" style=${mmBtn}
+        onClick=${() => run(() => sendRaw('WHOIS ' + nick + ' ' + nick))}>${T('mm.whois')}</button>
+      ${level >= 10 ? html`<button type="button" role="menuitem" style=${mmBtn}
+        onClick=${() => run(() => {
+          const msg = window.prompt(T('mm.noticePrompt', { nick }));
+          if (msg) sendRaw('NOTICE ' + nick + ' :' + msg);
+        })}>${T('mm.notice')}</button>` : null}
+      ${level >= 30 ? html`<button type="button" role="menuitem" style=${mmBtn}
+        onClick=${() => run(() => sendRaw('CHECK ' + nick))}>${T('mm.check')}</button>` : null}
+      ${level >= 30 ? html`<button type="button" role="menuitem" style=${{ ...mmBtn, color: 'var(--danger, #dc2626)' }}
+        onClick=${() => run(() => {
+          const reason = window.prompt(T('mm.killPrompt', { nick })) || 'IRCOP';
+          sendRaw('KILL ' + nick + ' :' + reason);
+        })}>${T('mm.kill')}</button>` : null}
+      ${level >= 30 ? html`<button type="button" role="menuitem" style=${{ ...mmBtn, color: 'var(--danger, #dc2626)' }}
+        onClick=${() => run(() => {
+          const rest = window.prompt(T('mm.klinePrompt', { nick }));
+          if (rest) sendRaw('KLINE ' + rest);
+        })}>${T('mm.kline')}</button>` : null}
+      ${level >= 40 ? html`<button type="button" role="menuitem" style=${{ ...mmBtn, color: 'var(--danger, #dc2626)' }}
+        onClick=${() => run(() => {
+          const rest = window.prompt(T('mm.glinePrompt', { nick }));
+          if (rest) sendRaw('GLINE ' + rest);
+        })}>${T('mm.gline')}</button>` : null}
+      ${level >= 30 && inChan ? html`<button type="button" role="menuitem" style=${mmBtn}
+        onClick=${() => run(() => sendRaw('SAJOIN ' + nick + ' ' + active))}>${T('mm.sajoinHere')}</button>` : null}
+      ${level >= 30 && inChan ? html`<button type="button" role="menuitem" style=${mmBtn}
+        onClick=${() => run(() => sendRaw('SAPART ' + nick + ' ' + active))}>${T('mm.sapartHere')}</button>` : null}
+      ${level >= 30 ? html`<button type="button" role="menuitem" style=${mmBtn}
+        onClick=${() => run(() => {
+          const nn = window.prompt(T('mm.sanickPrompt', { nick }));
+          if (nn) sendRaw('SANICK ' + nick + ' ' + nn.trim());
+        })}>${T('mm.sanick')}</button>` : null}
+    </div>`;
+  }
+
   orbit.addUi('topbar_item', () => orbit.h(IrcopButton, { compact: false }));
   orbit.addUi('topbar_more_item', () => orbit.h(IrcopButton, { compact: true }));
   orbit.addUi('overlay', () => orbit.h(Overlay));
-  log('ircop panel ready (team ' + TEAM + ')');
+  orbit.addMemberMenu((ctx) => orbit.h(MemberIrcop, { nick: ctx.nick, close: ctx.close }));
+  log('ircop panel ready (ChanServ ALIST on ' + TEAM + ')');
 });
