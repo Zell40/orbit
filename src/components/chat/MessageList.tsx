@@ -59,7 +59,10 @@ export function MessageList() {
   // Programmatic scrollTop writes fire a scroll event; without this guard that
   // event can re-measure a mid-layout height, clear atBottom, and the next
   // incoming line (bot reply right after you send) no longer follows.
+  // Also held true across settle frames while a tall message's height is still
+  // catching up (wrap / preview / font), so onScroll can't drop the pin early.
   const pinning = useRef(false);
+  const settleRaf = useRef(0);
   const [showJump, setShowJump] = useState(false);
   const count = buffer?.messages.length ?? 0;
   // The buffer is capped (slice(-500)), so once it's full its LENGTH stops changing
@@ -68,6 +71,41 @@ export function MessageList() {
   // key, not `id`: the latter is swapped for the real msgid when our own echo
   // lands, which would run the whole anchoring pass a second time per send.
   const lastId = count ? rowKey(buffer!.messages[count - 1]) : '';
+
+  // Stick to the newest line and keep re-pinning for a few frames while the
+  // newest row's height finishes settling (long wraps, link cards, images).
+  // Does nothing if the user has scrolled away (atBottom cleared).
+  const pinBottom = (el?: HTMLDivElement | null) => {
+    const box = el ?? ref.current;
+    if (!box) return;
+    pinning.current = true;
+    atBottom.current = true;
+    box.scrollTop = box.scrollHeight;
+    if (settleRaf.current) cancelAnimationFrame(settleRaf.current);
+    let lastH = box.scrollHeight;
+    let stable = 0;
+    let frames = 0;
+    const step = () => {
+      settleRaf.current = 0;
+      const cur = ref.current;
+      if (!cur || !atBottom.current) { pinning.current = false; return; }
+      cur.scrollTop = cur.scrollHeight;
+      const h = cur.scrollHeight;
+      if (h !== lastH) { lastH = h; stable = 0; prevHeight.current = h; }
+      else stable++;
+      frames++;
+      // Two stable frames = layout settled; cap so a runaway resize can't spin.
+      if (stable < 2 && frames < 45) {
+        settleRaf.current = requestAnimationFrame(step);
+      } else {
+        prevHeight.current = cur.scrollHeight;
+        // One extra frame so a coalesced onScroll from the last write still sees
+        // the guard before we release follow back to user scroll.
+        requestAnimationFrame(() => { pinning.current = false; });
+      }
+    };
+    settleRaf.current = requestAnimationFrame(step);
+  };
 
   // tailOnly: render just the TAIL right after a switch, then fill on idle. Reset
   // to true whenever the active buffer changes (derived during render so the very
@@ -89,16 +127,6 @@ export function MessageList() {
     const switched = prevActive.current !== active;
     prevActive.current = active;
     const grew = el.scrollHeight - prevHeight.current;
-    const pinBottom = () => {
-      pinning.current = true;
-      el.scrollTop = el.scrollHeight;
-      atBottom.current = true;
-      // Two frames: onScroll also coalesces via rAF, so a single frame can clear
-      // the guard before that handler runs and then drop the follow pin.
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => { pinning.current = false; });
-      });
-    };
     // Switching into a channel always jumps to the newest line (the last message),
     // even when it has unread — the "New messages" divider still renders as a marker
     // to scroll up to. Also follow the tail when already pinned to the bottom.
@@ -110,7 +138,7 @@ export function MessageList() {
       // mistaken for a history prepend and leave them hidden under the composer.
       // Trust the pin: don't re-derive atBottom from dist (subpixel / mid-layout
       // heights often leave dist ≥ 64 right after scrollTop = scrollHeight).
-      pinBottom();
+      pinBottom(el);
     } else if (growRef.current) {
       el.scrollTop += grew;                                // tail→full fill prepended older rows → keep position
     } else if (el.scrollTop < 80 && grew > 0) {
@@ -119,7 +147,7 @@ export function MessageList() {
       // there's clearly more content below; otherwise this is an append and we
       // must follow (otherwise a bot reply after your send stops short).
       const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-      if (dist < 140) pinBottom();
+      if (dist < 140) pinBottom(el);
       else el.scrollTop = el.scrollHeight - prevHeight.current;
     }
     growRef.current = false;
@@ -141,14 +169,7 @@ export function MessageList() {
       requestAnimationFrame(() => {
         const el = ref.current;
         if (!el) return;
-        if (atBottom.current) {
-          pinning.current = true;
-          el.scrollTop = el.scrollHeight;
-          atBottom.current = true;
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => { pinning.current = false; });
-          });
-        }
+        if (atBottom.current) pinBottom(el);
         const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
         setShowJump(!atBottom.current && dist > 120);
         if (dist < 140) markReadHere();
@@ -176,29 +197,19 @@ export function MessageList() {
   // shrinks the message list WITHOUT moving its scrollTop — so a freshly-sent
   // message would otherwise land below the fold, hidden behind the keyboard.
   // If we were pinned to the bottom, re-pin once the new layout has settled.
+  // Re-bind whenever the scroll box mounts (search ↔ chat, empty ↔ buffer).
   useEffect(() => {
-    const pin = () => {
-      const el = ref.current;
-      if (!el) return;
-      pinning.current = true;
-      el.scrollTop = el.scrollHeight;
-      atBottom.current = true;
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => { pinning.current = false; });
-      });
-    };
+    const box = ref.current;
+    const flow = flowRef.current;
+    if (!box) return;
     // The newest lines slide out of view two ways: the list box SHRINKS (composer
     // growing, mobile keyboard) or its CONTENT GROWS after paint (a link-preview
-    // card loads, an embed expands). Observe both — the box and the row flow.
-    // ResizeObserver fires before paint, so re-pinning synchronously there keeps
-    // the newest line in place with no visible jump (the shift never renders).
-    const onResize = () => { if (atBottom.current) pin(); };
-    // The mobile keyboard resizes the visual viewport, not the list, and its
-    // scrollTop doesn't move — wait a frame for the new layout, then re-pin.
-    const onViewport = () => { if (atBottom.current) requestAnimationFrame(pin); };
+    // card loads, an embed expands, a long wrap finishes). Observe both.
+    const onResize = () => { if (atBottom.current) pinBottom(box); };
+    const onViewport = () => { if (atBottom.current) requestAnimationFrame(() => pinBottom()); };
     const ro = new ResizeObserver(onResize);
-    if (ref.current) ro.observe(ref.current);
-    if (flowRef.current) ro.observe(flowRef.current);
+    ro.observe(box);
+    if (flow) ro.observe(flow);
     window.addEventListener('orbit:vh', onViewport);
     window.visualViewport?.addEventListener('resize', onViewport);
     return () => {
@@ -206,7 +217,7 @@ export function MessageList() {
       window.removeEventListener('orbit:vh', onViewport);
       window.visualViewport?.removeEventListener('resize', onViewport);
     };
-  }, []);
+  }, [!!buffer, !!search.trim(), active]);
 
   // Coalesce scroll handling to one layout read per frame — a Mac trackpad fires
   // scroll events far faster than paints, and forcing layout on each one is what
@@ -223,7 +234,18 @@ export function MessageList() {
       if (effTailOnly) { growRef.current = true; setTailOnly(false); }
       // Ignore the scroll event caused by our own pin — it often samples layout
       // before the new row's height has settled and would clear the follow flag.
-      if (pinning.current) return;
+      // But if the user actively scrolls away during settle, honor that.
+      if (pinning.current) {
+        const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+        if (dist > 80) {
+          if (settleRaf.current) cancelAnimationFrame(settleRaf.current);
+          settleRaf.current = 0;
+          pinning.current = false;
+          atBottom.current = false;
+          setShowJump(dist > 120);
+        }
+        return;
+      }
       const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
       // Follow only while pinned to the very bottom, so scrolling up even slightly
       // to read the last line stops the auto-scroll instead of yanking you down.
@@ -239,17 +261,12 @@ export function MessageList() {
   };
   // Snap to the newest line and re-engage follow (used by the floating button).
   const jumpToBottom = () => {
-    const el = ref.current;
-    if (!el) return;
-    pinning.current = true;
-    el.scrollTop = el.scrollHeight;
-    atBottom.current = true;
     setShowJump(false);
     markReadHere();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => { pinning.current = false; });
-    });
+    pinBottom();
   };
+
+  useEffect(() => () => { if (settleRaf.current) cancelAnimationFrame(settleRaf.current); }, []);
 
   if (!buffer) return <div className="empty">{t('sidebar.noChannel')}</div>;
   if (search.trim()) return <SearchResults messages={buffer.messages} query={search.trim()} />;
