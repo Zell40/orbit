@@ -27,7 +27,21 @@ fi
 
 echo "$(date -Is) deploying ${LOCAL:0:8} -> ${REMOTE:0:8}"
 git checkout "$BRANCH" --quiet
+
+# bash reads a script incrementally by byte offset, so a pull that rewrites this
+# file mid-run makes it resume at the wrong place and silently run the WRONG
+# lines (that's how a stale publish step kept overwriting/skipping config.json).
+# Pull, then hand over to the new script once.
+BEFORE=$(git rev-parse "HEAD:$(basename "$0")" 2>/dev/null || echo none)
 git pull --ff-only --quiet
+AFTER=$(git rev-parse "HEAD:$(basename "$0")" 2>/dev/null || echo none)
+if [ "$BEFORE" != "$AFTER" ] && [ "${ORBIT_DEPLOY_REEXEC:-}" != "1" ]; then
+  echo "$(date -Is) deploy script updated — re-exec"
+  # --force: the pull already moved HEAD to origin/main, so the fresh run would
+  # otherwise decide there's nothing to do and skip the publish entirely.
+  ORBIT_DEPLOY_REEXEC=1 exec bash "$REPO/$(basename "$0")" --force
+fi
+
 npm ci --silent
 
 # Correctness gates ÔÇö abort the deploy (live site untouched) if anything fails.
