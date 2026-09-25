@@ -544,6 +544,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
 
   // Right-click nicklist: "Commandes IRCOP" flyout tab (same pattern as ChanServ),
   // only when OPER-authenticated. Sorted to the top of the menu by MemberMenu.
+  // Opens on hover (desktop) like ChanServ; click still toggles for touch.
   function MemberIrcop({ nick, close }) {
     useStore();
     const [open, setOpen] = useState(false);
@@ -561,7 +562,9 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       className=${'memberctx__item ocs-mirow' + (danger ? ' memberctx__item--warn' : '')}
       onClick=${(e) => { e.stopPropagation(); onClick(); }}>${label}</button>`;
 
-    return html`<div className="ocs-mm">
+    return html`<div className="ocs-mm"
+      onMouseEnter=${() => setOpen(true)}
+      onMouseLeave=${() => setOpen(false)}>
       <button type="button" className=${'ocs-mm__trig' + (open ? ' is-open' : '')}
         aria-expanded=${open} aria-haspopup="menu"
         onClick=${(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
