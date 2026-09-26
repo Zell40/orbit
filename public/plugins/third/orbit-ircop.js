@@ -559,24 +559,32 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
 
     const run = (fn) => { fn(); close(); };
     const item = (label, onClick, danger) => html`<button type="button" role="menuitem"
-      className=${'memberctx__item ocs-mirow' + (danger ? ' memberctx__item--warn' : '')}
+      className=${'memberctx__item' + (danger ? ' memberctx__item--warn' : '')}
       onClick=${(e) => { e.stopPropagation(); onClick(); }}>${label}</button>`;
+    // Hover-to-open for mice only: a tap also fires pointerenter, which would
+    // open the panel and then let the click toggle it straight back shut.
+    const hover = (want) => (e) => { if (e.pointerType === 'mouse') setOpen(want); };
 
-    return html`<div className="ocs-mm"
-      onMouseEnter=${() => setOpen(true)}
-      onMouseLeave=${() => setOpen(false)}>
-      <button type="button" className=${'ocs-mm__trig' + (open ? ' is-open' : '')}
+    return html`<div className="ircopmm"
+      onPointerEnter=${hover(true)}
+      onPointerLeave=${hover(false)}>
+      <button type="button" className=${'ircopmm__trig' + (open ? ' is-open' : '')}
         aria-expanded=${open} aria-haspopup="menu"
         onClick=${(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
-        <span className="ocs-mm__trig-ic" aria-hidden="true">
+        <span className="ircopmm__chev" aria-hidden="true">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </span>
+        <span className="ircopmm__ic" aria-hidden="true">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <path d="M9 12l2 2 4-4" />
           </svg>
         </span>
-        <span>${T('mm.tab')}</span>
+        <span className="ircopmm__lbl">${T('mm.tab')}</span>
       </button>
-      ${open ? html`<div className="ocs-mm__fly" role="menu" aria-label=${T('mm.tab')}>
+      ${open ? html`<div className="ircopmm__fly" role="menu" aria-label=${T('mm.tab')}>
         ${item(T('mm.whois'), () => run(() => whoisActive(nick)))}
         ${level >= 10 ? item(T('mm.notice'), () => run(() => {
           const msg = window.prompt(T('mm.noticePrompt', { nick }));
