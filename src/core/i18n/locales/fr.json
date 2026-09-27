@@ -187,6 +187,7 @@
     "newMessages": "Nouveaux messages",
     "jumpNewest": "Aller au plus récent",
     "loadingHistory": "Chargement de l'historique…",
+    "joiningChannel": "Connexion au salon…",
     "receiptPending": "Envoi…",
     "receiptSent": "Envoyé",
     "receiptDisplayed": "Lu",
@@ -1553,7 +1554,9 @@
         "klinePrompt": "KLINE (ex. 1d {{nick}}!*@* :raison) :",
         "gline": "GLINE…",
         "glinePrompt": "GLINE (ex. 1d {{nick}}!*@* :raison) :",
-        "sajoinHere": "SAJOIN ici",
+        "sajoin": "SAJOIN…",
+        "sajoinAsk": "Salon à rejoindre pour {{nick}} :",
+        "sajoinPlaceholder": "#salon",
         "sapartHere": "SAPART ici",
         "sanick": "SANICK…",
         "sanickPrompt": "Nouveau pseudo pour {{nick}} :"

@@ -187,6 +187,7 @@
     "newMessages": "New messages",
     "jumpNewest": "Jump to newest",
     "loadingHistory": "Loading history…",
+    "joiningChannel": "Joining the channel…",
     "receiptPending": "Sending…",
     "receiptSent": "Sent",
     "receiptDisplayed": "Read",
@@ -1529,7 +1530,9 @@
         "klinePrompt": "KLINE (e.g. 1d {{nick}}!*@* :reason):",
         "gline": "GLINE…",
         "glinePrompt": "GLINE (e.g. 1d {{nick}}!*@* :reason):",
-        "sajoinHere": "SAJOIN here",
+        "sajoin": "SAJOIN…",
+        "sajoinAsk": "Channel for {{nick}} to join:",
+        "sajoinPlaceholder": "#channel",
         "sapartHere": "SAPART here",
         "sanick": "SANICK…",
         "sanickPrompt": "New nick for {{nick}}:"

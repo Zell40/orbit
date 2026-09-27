@@ -401,10 +401,22 @@ export function MessageList() {
     lastFrom = m.from; lastTs = m.ts; lastKind = m.kind;
   }
   flushCallouts(); // trailing run
+  // A channel window opens as soon as JOIN is sent, so the whole panel can sit
+  // blank for a second while NAMES/history land. Keyed on the raw buffer being
+  // empty (not `rows`) so a channel we parted — whose part line may be hidden by
+  // "hide join/quit" — can't get stuck on a spinner it will never leave.
+  const joining = buffer.isChannel && !buffer.joined && !buffer.messages.length;
+  const waiting = joining || (histLoading && !rows.length);
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
       role="log" aria-label={t('a11y.messages')}>
-      {histLoading && <div className="histload"><span className="histload__spin" /> {t('messages.loadingHistory')}</div>}
+      {waiting && (
+        <div className="msgload" role="status">
+          <span className="msgload__spin" aria-hidden="true" />
+          {t(joining ? 'messages.joiningChannel' : 'messages.loadingHistory')}
+        </div>
+      )}
+      {histLoading && !waiting && <div className="histload"><span className="histload__spin" /> {t('messages.loadingHistory')}</div>}
       {showJump && <button className="jump-unread" onClick={jumpToBottom}>{t('messages.jumpNewest')} ↓</button>}
       <div ref={flowRef}>{rows}</div>
     </div>

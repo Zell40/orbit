@@ -1757,6 +1757,20 @@ html[data-actions="off"] .msg-actions { display: none; }
   .ircopmm__fly .memberctx__item { white-space: normal; padding: .55rem .6rem; }
 }
 
+.ircopmm__ask { display: flex; flex-direction: column; gap: .3rem; padding: .4rem .45rem .5rem; }
+.ircopmm__asklbl { font-size: .72rem; font-weight: 650; color: var(--faint); line-height: 1.35; }
+.ircopmm__in {
+  width: 100%; box-sizing: border-box;
+  padding: .45rem .55rem; border-radius: 8px;
+  border: 1px solid var(--border-2); background: var(--bg-soft); color: var(--ink);
+  font: inherit; outline: none;
+}
+.ircopmm__in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ircopmm__askgo {
+  border: 0; border-radius: 7px; padding: .42rem .55rem;
+  background: var(--accent); color: #fff; font: inherit; font-weight: 700; cursor: pointer;
+}
+
 .memberrsn-scrim { position: fixed; inset: 0; z-index: 210; display: grid; place-items: center; padding: 1rem;
   background: rgba(0,0,0,.4); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); animation: cfaq-fade .12s ease both; }
 .memberrsn { width: min(360px, 100%); border-radius: 14px; overflow: hidden; background: var(--bg); border: 1px solid var(--border-2); box-shadow: var(--shadow-pop);
@@ -2727,6 +2741,19 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   animation: hl-spin .7s linear infinite;
 }
 @keyframes hl-spin { to { transform: rotate(360deg); } }
+
+/* Nothing to show yet (JOIN / history still in flight) — without this the whole
+   timeline is a blank panel with no hint that anything is happening. */
+.msgload {
+  position: absolute; inset: 0; z-index: 4; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .7rem;
+  font-size: .85rem; color: var(--muted);
+}
+.msgload__spin {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid var(--border-2); border-top-color: var(--accent);
+  animation: hl-spin .7s linear infinite;
+}
 
 /* friends (MONITOR) list + rail badge + away presence */
 .rail__badge {

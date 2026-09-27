@@ -152,6 +152,7 @@
     "searchResults_other": "«{{q}}» için {{count}} sonuç",
     "newMessages": "Yeni mesajlar",
     "loadingHistory": "Geçmiş yükleniyor…",
+    "joiningChannel": "Kanala giriliyor…",
     "receiptPending": "Gönderiliyor…",
     "receiptSent": "Gönderildi",
     "receiptDisplayed": "Okundu",

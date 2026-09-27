@@ -545,9 +545,17 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
   // Right-click nicklist: "Commandes IRCOP" flyout tab (same pattern as ChanServ),
   // only when OPER-authenticated. Sorted to the top of the menu by MemberMenu.
   // Opens on hover (desktop) like ChanServ; click still toggles for touch.
+  function normChan(raw) {
+    const c = String(raw || '').trim().split(/\s+/)[0];
+    if (!c) return '';
+    return (c[0] === '#' || c[0] === '&') ? c : '#' + c;
+  }
+
   function MemberIrcop({ nick, close }) {
     useStore();
     const [open, setOpen] = useState(false);
+    const [ask, setAsk] = useState(null); // null | 'sajoin'
+    const [chan, setChan] = useState('');
     if (!isOperSession() && !store.authOk) return null;
     const access = teamAccess();
     if (!access || access.level < 10) return null;
@@ -563,14 +571,25 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       onClick=${(e) => { e.stopPropagation(); onClick(); }}>${label}</button>`;
     // Hover-to-open for mice only: a tap also fires pointerenter, which would
     // open the panel and then let the click toggle it straight back shut.
-    const hover = (want) => (e) => { if (e.pointerType === 'mouse') setOpen(want); };
+    // Keep the flyout open while the SAJOIN channel field is up.
+    const hover = (want) => (e) => {
+      if (e.pointerType !== 'mouse') return;
+      if (!want && ask) return;
+      setOpen(want);
+    };
+
+    const doSajoin = () => {
+      const dest = normChan(chan);
+      if (!dest) return;
+      run(() => sendRaw('SAJOIN ' + nick + ' ' + dest));
+    };
 
     return html`<div className="ircopmm"
       onPointerEnter=${hover(true)}
       onPointerLeave=${hover(false)}>
       <button type="button" className=${'ircopmm__trig' + (open ? ' is-open' : '')}
         aria-expanded=${open} aria-haspopup="menu"
-        onClick=${(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
+        onClick=${(e) => { e.stopPropagation(); setOpen((v) => !v); setAsk(null); }}>
         <span className="ircopmm__chev" aria-hidden="true">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
@@ -603,7 +622,21 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
           const rest = window.prompt(T('mm.glinePrompt', { nick }));
           if (rest) sendRaw('GLINE ' + rest);
         }), true) : null}
-        ${level >= 30 && inChan ? item(T('mm.sajoinHere'), () => run(() => sendRaw('SAJOIN ' + nick + ' ' + active))) : null}
+        ${level >= 30 ? (ask === 'sajoin'
+          ? html`<div className="ircopmm__ask" onMouseDown=${(e) => e.stopPropagation()}>
+              <label className="ircopmm__asklbl">${T('mm.sajoinAsk', { nick })}</label>
+              <input className="ircopmm__in" autoFocus spellcheck=${false}
+                placeholder=${T('mm.sajoinPlaceholder')}
+                value=${chan}
+                onInput=${(e) => setChan(e.target.value)}
+                onKeyDown=${(e) => {
+                  if (e.key === 'Enter') { e.stopPropagation(); doSajoin(); }
+                  if (e.key === 'Escape') { e.stopPropagation(); setAsk(null); }
+                }} />
+              <button type="button" className="ircopmm__askgo"
+                onClick=${(e) => { e.stopPropagation(); doSajoin(); }}>${T('act.sajoin')}</button>
+            </div>`
+          : item(T('mm.sajoin'), () => { setAsk('sajoin'); setChan(''); })) : null}
         ${level >= 30 && inChan ? item(T('mm.sapartHere'), () => run(() => sendRaw('SAPART ' + nick + ' ' + active))) : null}
         ${level >= 30 ? item(T('mm.sanick'), () => run(() => {
           const nn = window.prompt(T('mm.sanickPrompt', { nick }));

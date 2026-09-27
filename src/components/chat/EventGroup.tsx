@@ -27,16 +27,13 @@ function Nicks({ nicks }: { nicks: string[] }) {
 export const EventGroup = memo(function EventGroup({ events }: { events: ChatMessage[] }) {
   const { t } = useTranslation();
 
-  // Net the run: unique joins and leaves, and anyone who both joined and left
-  // within the same run is churn — drop them from both sides.
+  // Unique nicks per side. Do not cancel a nick who both joined and left in
+  // the same run: that hid SAJOIN+SAPART (and any genuine rejoin) entirely.
   const joined = new Set<string>();
   const left = new Set<string>();
   for (const e of events) {
     if (e.kind === 'join') joined.add(e.from);
     else left.add(e.from); // part / quit
-  }
-  for (const n of [...joined]) {
-    if (left.has(n)) { joined.delete(n); left.delete(n); }
   }
   const jn = [...joined];
   const lv = [...left];

@@ -152,6 +152,7 @@
     "searchResults_other": "«{{q}}» का लागि {{count}} परिणाम",
     "newMessages": "नयाँ म्यासेजहरू",
     "loadingHistory": "इतिहास लोड हुँदैछ…",
+    "joiningChannel": "च्यानलमा प्रवेश गर्दै…",
     "receiptPending": "पठाउँदै…",
     "receiptSent": "पठाइयो",
     "receiptDisplayed": "पढियो",

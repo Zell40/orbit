@@ -152,6 +152,7 @@
     "searchResults_other": "{{count}} Ergebnisse für „{{q}}“",
     "newMessages": "Neue Nachrichten",
     "loadingHistory": "Verlauf wird geladen…",
+    "joiningChannel": "Kanal wird betreten…",
     "receiptPending": "Senden…",
     "receiptSent": "Gesendet",
     "receiptDisplayed": "Gelesen",

@@ -152,6 +152,7 @@
     "searchResults_other": "{{count}} результатов по «{{q}}»",
     "newMessages": "Новые сообщения",
     "loadingHistory": "Загружаю историю…",
+    "joiningChannel": "Вход на канал…",
     "receiptPending": "Отправка…",
     "receiptSent": "Отправлено",
     "receiptDisplayed": "Прочитано",
