@@ -1072,7 +1072,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
   margin: 0; font-size: .92rem; line-height: 1.45; color: var(--ink-2);
 }
 .join-denied__flag {
-  display: inline-block; margin-top: .65rem;
+  display: inline-block; margin-left: .35rem; vertical-align: baseline;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: .78rem; font-weight: 800; letter-spacing: .04em;
   padding: .18rem .5rem; border-radius: 999px;
