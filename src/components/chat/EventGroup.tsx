@@ -24,44 +24,40 @@ function Nicks({ nicks }: { nicks: string[] }) {
   );
 }
 
+type Side = 'join' | 'leave';
+
 export const EventGroup = memo(function EventGroup({ events }: { events: ChatMessage[] }) {
   const { t } = useTranslation();
 
-  // Unique nicks per side. Do not cancel a nick who both joined and left in
-  // the same run: that hid SAJOIN+SAPART (and any genuine rejoin) entirely.
-  const joined = new Set<string>();
-  const left = new Set<string>();
+  // Keep join and leave as separate bubbles, in the order they actually arrived.
+  // A fixed JOIN-then-PART layout put a rejoin above the part that preceded it.
+  const sections: { side: Side; nicks: string[]; ts: number }[] = [];
   for (const e of events) {
-    if (e.kind === 'join') joined.add(e.from);
-    else left.add(e.from); // part / quit
+    const side: Side = e.kind === 'join' ? 'join' : 'leave';
+    const last = sections[sections.length - 1];
+    if (!last || last.side !== side) {
+      sections.push({ side, nicks: [e.from], ts: e.ts });
+    } else {
+      if (!last.nicks.includes(e.from)) last.nicks.push(e.from);
+      last.ts = e.ts;
+    }
   }
-  const jn = [...joined];
-  const lv = [...left];
-  if (!jn.length && !lv.length) return null;
+  if (!sections.length) return null;
 
-  const ts = events[events.length - 1].ts;
   return (
     <div className="eventgroup-wrap">
-      {jn.length > 0 && (
-        <div className="eventgroup eventgroup--join">
-          <span className="eventgroup__tag">JOIN</span>
-          <span className="eventgroup__time">{fmtTime(ts)}</span>
+      {sections.map((sec, i) => (
+        <div key={`${sec.side}-${i}`} className={`eventgroup eventgroup--${sec.side === 'join' ? 'join' : 'part'}`}>
+          <span className="eventgroup__tag">{sec.side === 'join' ? 'JOIN' : 'PART'}</span>
+          <span className="eventgroup__time">{fmtTime(sec.ts)}</span>
           <span className="eventgroup__body">
-            <Nicks nicks={jn} />{' '}
-            <span className="eventgroup__verb">{t('events.joined', { count: jn.length })}</span>
+            <Nicks nicks={sec.nicks} />{' '}
+            <span className="eventgroup__verb">
+              {sec.side === 'join' ? t('events.joined', { count: sec.nicks.length }) : t('events.left', { count: sec.nicks.length })}
+            </span>
           </span>
         </div>
-      )}
-      {lv.length > 0 && (
-        <div className="eventgroup eventgroup--part">
-          <span className="eventgroup__tag">PART</span>
-          <span className="eventgroup__time">{fmtTime(ts)}</span>
-          <span className="eventgroup__body">
-            <Nicks nicks={lv} />{' '}
-            <span className="eventgroup__verb">{t('events.left', { count: lv.length })}</span>
-          </span>
-        </div>
-      )}
+      ))}
     </div>
   );
 });
