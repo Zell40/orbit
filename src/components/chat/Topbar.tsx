@@ -51,14 +51,15 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   // Status (server console) only counts when the user opted to show that page.
   const otherUnread = useActiveChat((s) =>
     Object.entries(s.buffers).reduce((n, [k, b]) => {
-      if (k === s.active) return n;
+      if (k === s.active && !s.chatCovered) return n;
       if (k === SERVER && !s.prefs.showStatus) return n;
       return n + (b.unread || 0);
     }, 0));
+  const noticeAlert = useActiveChat((s) => !!s.chatCovered && ((s.buffers[s.active]?.unread || 0) > 0 || !!s.buffers[s.active]?.highlight));
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
   const menuBtn = (
-    <button className="nav-toggle" onClick={onMenu} aria-label={t('sidebar.channels')}>
+    <button className={`nav-toggle${noticeAlert ? ' nav-toggle--alert' : ''}`} onClick={onMenu} aria-label={t('sidebar.channels')}>
       <Icon name="menu" size={20} />
       {otherUnread > 0 && <span className="nav-toggle__badge">{otherUnread > 99 ? '99+' : otherUnread}</span>}
     </button>

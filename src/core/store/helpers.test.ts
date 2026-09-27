@@ -15,6 +15,7 @@ function setup() {
         members: {} as Record<string, Member>,
         messages: [] as ChatMessage[],
         unread: 0,
+        highlight: false,
         joined: true,
       },
       aidemoi: {
@@ -23,6 +24,7 @@ function setup() {
         members: {} as Record<string, Member>,
         messages: [] as ChatMessage[],
         unread: 0,
+        highlight: false,
         joined: false,
       },
     },
@@ -171,6 +173,29 @@ describe('addMessage replay events', () => {
     });
     expect(state.buffers['#aide.chat'].messages).toHaveLength(1);
     expect(state.buffers['#aide.chat'].messages[0].ts).toBe(48_000);
+  });
+});
+
+describe('addMessage unread while chat is covered', () => {
+  it('counts a NOTICE on the active salon when a game hides the timeline', () => {
+    const { helpers, state } = setup();
+    (state as { chatCovered?: boolean }).chatCovered = true;
+    helpers.addMessage('#Aide.chat', {
+      id: 'n1', bufferName: '#Aide.chat', from: 'ChanServ', text: 'You have been invited',
+      ts: 1000, kind: 'notice', self: false,
+    });
+    expect(state.buffers['#aide.chat'].unread).toBe(1);
+    expect(state.buffers['#aide.chat'].highlight).toBe(true);
+  });
+
+  it('does not count a channel PRIVMSG from the game bot while covered', () => {
+    const { helpers, state } = setup();
+    (state as { chatCovered?: boolean }).chatCovered = true;
+    helpers.addMessage('#Aide.chat', {
+      id: 'p1', bufferName: '#Aide.chat', from: 'Bac', text: 'Lettre : A',
+      ts: 1000, kind: 'privmsg', self: false,
+    });
+    expect(state.buffers['#aide.chat'].unread).toBe(0);
   });
 });
 

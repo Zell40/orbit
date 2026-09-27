@@ -349,6 +349,14 @@ input, textarea { font-family: inherit; }
   border-radius: 9px; background: var(--accent); color: #fff; font: 700 .62rem/16px system-ui, sans-serif; text-align: center;
   box-shadow: 0 0 0 2px var(--bg);
 }
+.nav-toggle--alert {
+  color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 28%, transparent);
+  animation: nav-alert-pulse 1.4s ease-in-out infinite;
+}
+@keyframes nav-alert-pulse {
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 12%, transparent); }
+}
 
 @media (max-width: 880px) {
   .app { display: flex; flex-direction: column; }

@@ -57,6 +57,26 @@ export function Chat({ locked = false }: { locked?: boolean }) {
   useEffect(() => {
     if (!isChannel) setMembersOpen(false);
   }, [isChannel]);
+  const setChatCovered = useActiveChat((s) => s.setChatCovered);
+  // Petit Bac / Échecs / HP hide `.messages` in full-board mode — treat that as
+  // "you're not actually reading the salon" so incoming notices can badge.
+  useEffect(() => {
+    if (joinDenied) { setChatCovered(false); return; }
+    const measure = () => {
+      const el = document.querySelector('.main .messages') as HTMLElement | null;
+      if (!el) { setChatCovered(false); return; }
+      const st = getComputedStyle(el);
+      setChatCovered(st.display === 'none' || st.visibility === 'hidden' || el.clientHeight < 40);
+    };
+    measure();
+    const el = document.querySelector('.main .messages');
+    const ro = new ResizeObserver(measure);
+    if (el) ro.observe(el);
+    const mo = new MutationObserver(measure);
+    mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    if (el) mo.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+    return () => { ro.disconnect(); mo.disconnect(); setChatCovered(false); };
+  }, [joinDenied, channelName, setChatCovered]);
   return (
     <div className={`shell${locked ? ' is-booting' : ''}`} inert={locked || undefined} aria-hidden={locked || undefined}>
       {navbar.map((u) => <PluginBoundary key={u.id} render={u.render} label="navbar" />)}

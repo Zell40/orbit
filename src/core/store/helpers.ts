@@ -219,10 +219,16 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
       // Status console only bumps unread when the Status page is visible in the list.
       const bumps = (name === SERVER && s.prefs.showStatus)
         || m.kind === 'privmsg' || m.kind === 'action' || m.kind === 'notice';
+      // A visual game can hide the active salon: still count a NOTICE there so
+      // the hamburger badge moves. Channel PRIVMSG from the bot must not, or
+      // every game line would ring the icon.
+      const noticeWhileHidden = !!s.chatCovered && key === s.active && m.kind === 'notice' && !m.self;
+      const bumpUnread = bumps && (key !== s.active || noticeWhileHidden);
       return {
         ...b,
         messages: [...b.messages, m].slice(-500),
-        unread: key === s.active ? 0 : b.unread + (bumps ? 1 : 0),
+        unread: b.unread + (bumpUnread ? 1 : 0),
+        ...(noticeWhileHidden ? { highlight: true } : {}),
       };
     });
   }

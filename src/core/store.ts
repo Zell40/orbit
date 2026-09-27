@@ -56,6 +56,9 @@ export interface ChatState {
   order: string[];
   active: string;
   isActive: boolean;      // is this the network the user is currently viewing (registry-managed)
+  /** Game HUD (Petit Bac plein écran, etc.) is hiding the message list. */
+  chatCovered: boolean;
+  setChatCovered: (covered: boolean) => void;
   client: IrcClient | null;
   networkIcon: string;
   account: string; // NickServ account we're logged in as ('' = guest)
@@ -260,6 +263,12 @@ export function createChatStore(ns = '') {
     drafts: {},
     pins: loadPins(ns),
     isActive: true, // is this network the one the user is currently viewing (set by the registry)
+    chatCovered: false,
+    setChatCovered(covered) {
+      if (get().chatCovered === covered) return;
+      set({ chatCovered: covered });
+      if (!covered) get().markReadHere();
+    },
     reg: { step: 'idle', account: '', busy: false, error: '', info: '', challengeUrl: '' },
     replyTarget: null,
     search: '',
@@ -805,6 +814,7 @@ export function createChatStore(ns = '') {
     // Local readTs moves freely; the server MARKREAD is throttled to avoid spam.
     markReadHere() {
       const s = get();
+      if (s.chatCovered) return;
       const key = s.active;
       if (isPseudoBuffer(key) || isBouncerServiceNick(key)) return;
       const b = s.buffers[key];
