@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeHelpers, rememberQueryAccount } from './helpers';
 import type { ChatState } from '../store';
-import type { ChatMessage, Member } from '../irc/types';
+import type { ChatMessage, Member, WhoisInfo } from '../irc/types';
 
 function setup() {
   const state = {
@@ -26,7 +26,7 @@ function setup() {
         joined: false,
       },
     },
-    whois: {},
+    whois: {} as Record<string, WhoisInfo>,
     prefs: { showStatus: false },
     profileUser: '',
   };
