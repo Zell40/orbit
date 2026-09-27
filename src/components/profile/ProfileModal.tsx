@@ -7,6 +7,7 @@ import { GenderBadge } from '../GenderBadge';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
+import { findWhoisKey } from '@/core/store/helpers';
 import { GENDER_COLOR, parseProfileGecos } from '@/lib/profile-gecos';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
@@ -16,7 +17,12 @@ const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'inf
 export function ProfileModal() {
   const { t } = useTranslation();
   const nick = useActiveChat((s) => s.profileUser);
-  const info = useActiveChat((s) => s.whois[s.profileUser]);
+  const info = useActiveChat((s) => {
+    const n = s.profileUser;
+    if (!n) return undefined;
+    const key = findWhoisKey(s.whois, n);
+    return key ? s.whois[key] : undefined;
+  });
   const me = useActiveChat((s) => s.nick);
   const openQuery = useActiveChat((s) => s.openQuery);
   const refreshUser = useActiveChat((s) => s.refreshUser);
@@ -142,7 +148,7 @@ export function ProfileModal() {
         </div>
         <div className="pm-id">
           <div className="pm-name" style={info?.oper ? { color: IRCOP_COLOR } : genderColor ? { color: genderColor } : undefined}>
-            {nick}
+            {info?.nick || nick}
             {info?.account && <span className="pm-check" title={t('whois.registeredTitle', { account: info.account })}>✓</span>}
           </div>
           <div className="pm-handle">{info?.loading && !info?.user ? t('whois.loading') : (info?.account ? `@${info.account}` : t('whois.visitor'))}</div>

@@ -9,7 +9,7 @@ import { resolveConnectUsername } from './irc/ident';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick, trackBufferMuteSync } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
-import { makeHelpers, rememberQueryAccount } from './store/helpers';
+import { findWhoisKey, makeHelpers, rememberQueryAccount } from './store/helpers';
 import { isService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
@@ -509,7 +509,8 @@ export function createChatStore(ns = '') {
     openUser(nick) {
       if (!nick || isPseudoBuffer(nick) || isBouncerServiceNick(nick)) return;
       const s = get();
-      set({ profileUser: nick, whois: { ...s.whois, [nick]: { nick, loading: true } } });
+      const key = findWhoisKey(s.whois, nick) || nick;
+      set({ profileUser: key, whois: { ...s.whois, [key]: { nick: key, loading: true } } });
       s.client?.whois(nick);
       s.client?.ircv3.fetchMetadata(nick);
     },
@@ -527,12 +528,13 @@ export function createChatStore(ns = '') {
     refreshUser(nick) {
       if (!nick || isPseudoBuffer(nick) || isBouncerServiceNick(nick)) return;
       const s = get();
-      const cur = s.whois[nick];
-      if (!cur) { s.openUser(nick); return; }
+      const key = findWhoisKey(s.whois, nick);
+      const cur = key ? s.whois[key] : undefined;
+      if (!cur || !key) { s.openUser(nick); return; }
       // Reset the fields that a WHOIS response REBUILDS by appending across its
       // lines (319 channels, 320 special) so repeated refreshes don't accumulate
       // / duplicate them; keep the rest visible so there's no flash.
-      set({ whois: { ...s.whois, [nick]: { ...cur, loading: true, channels: '', special: [] } } });
+      set({ whois: { ...s.whois, [key]: { ...cur, loading: true, channels: '', special: [] } } });
       s.client?.whois(nick);
       s.client?.ircv3.fetchMetadata(nick);
     },

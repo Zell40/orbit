@@ -15,7 +15,7 @@ import { saveNotify } from './persistence';
 import type { IrcMessage, WhoisInfo } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
-import type { StoreHelpers } from './helpers';
+import { findWhoisKey, type StoreHelpers } from './helpers';
 
 interface WhoisDeps {
   get: StoreApi<ChatState>['getState'];
@@ -29,7 +29,11 @@ interface WhoisDeps {
 
 export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs = '' }: WhoisDeps) {
   function clearWhois(nick: string): void {
-    const rest = { ...get().whois }; delete rest[nick]; set({ whois: rest });
+    const rest = { ...get().whois };
+    const key = findWhoisKey(rest, nick);
+    if (key) delete rest[key];
+    else delete rest[nick];
+    set({ whois: rest });
   }
 
   // Apply soju.im/muted from the server without re-sending METADATA (avoids a loop).
@@ -104,7 +108,7 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
   function handleWhois(msg: IrcMessage): boolean {
     switch (msg.command) {
       case '311': // RPL_WHOISUSER: <me> <nick> <user> <host> * :<realname>
-        patchWhois(msg.params[1], (w) => ({ ...w, user: msg.params[2], host: msg.params[3], realname: msg.params[5] }));
+        patchWhois(msg.params[1], (w) => ({ ...w, nick: msg.params[1] || w.nick, user: msg.params[2], host: msg.params[3], realname: msg.params[5] }));
         return true;
       case '312': // RPL_WHOISSERVER: <me> <nick> <server> :<info>
         patchWhois(msg.params[1], (w) => ({ ...w, server: msg.params[2], serverInfo: msg.params[3] }));
@@ -184,8 +188,9 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
         return true;
       case '318': { // RPL_ENDOFWHOIS
         const nk = msg.params[1];
-        patchWhois(nk, (w) => ({ ...w, loading: false }));
-        const w = get().whois[nk];
+        patchWhois(nk, (w) => ({ ...w, loading: false, nick: nk || w.nick }));
+        const key = findWhoisKey(get().whois, nk);
+        const w = key ? get().whois[key] : undefined;
         if (w?.printTo) printWhois(w); // yomirc: dump it to the active window as text
         return true;
       }

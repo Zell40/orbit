@@ -13,6 +13,17 @@ type G = StoreApi<ChatState>['getState'];
 const WHOIS_CAP = 64; // most WHOIS entries anyone actually views at once; bounds server spam
 const QUERY_CAP = 100; // open query (PM) windows; far above real use, caps a server PM flood
 
+/** Map key for an in-flight WHOIS, ignoring CASEMAPPING so `/whois bob` matches `311 Bob`. */
+export function findWhoisKey(table: Record<string, WhoisInfo>, nick: string): string | undefined {
+  if (!nick) return undefined;
+  if (table[nick]) return nick;
+  const folded = canon(nick);
+  for (const k of Object.keys(table)) {
+    if (canon(k) === folded) return k;
+  }
+  return undefined;
+}
+
 /** Remember a services account on a query buffer so PM rows can resolve avatars. */
 export function rememberQueryAccount(
   patchBuffer: (name: string, fn: (b: Buffer) => Buffer) => void,
@@ -248,15 +259,16 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
 
   function patchWhois(nick: string, fn: (w: WhoisInfo) => WhoisInfo): void {
     const s = get();
-    const cur = s.whois[nick] ?? { nick, loading: true };
-    const whois: Record<string, WhoisInfo> = { ...s.whois, [nick]: fn(cur) };
+    const key = findWhoisKey(s.whois, nick) ?? nick;
+    const cur = s.whois[key] ?? { nick, loading: true };
+    const whois: Record<string, WhoisInfo> = { ...s.whois, [key]: fn(cur) };
     // A hostile server can stream WHOIS-reply numerics for endless fake nicks
     // (and may never send the 318 that would prune them). Bound the map, keeping
     // the actively-viewed profile and the entry just touched.
     const keys = Object.keys(whois);
     if (keys.length > WHOIS_CAP) {
       const keepUser = get().profileUser;
-      for (const k of keys.filter((x) => x !== keepUser && x !== nick).slice(0, keys.length - WHOIS_CAP))
+      for (const k of keys.filter((x) => x !== keepUser && x !== key).slice(0, keys.length - WHOIS_CAP))
         delete whois[k];
     }
     set({ whois });

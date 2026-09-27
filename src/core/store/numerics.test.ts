@@ -143,6 +143,16 @@ describe('store numerics handler', () => {
     expect(server.some((l) => l.includes('coloured') || l.includes('Message of the day'))).toBe(true);
   });
 
+  it('406 ERR_WASNOSUCHNICK matches an open WHOIS regardless of nick case', () => {
+    const { handleNumerics, sys, state } = setup({
+      profileUser: 'ghost',
+      whois: { ghost: { nick: 'ghost', loading: true } },
+    });
+    expect(handleNumerics(mk('406', ['me', 'Ghost', 'was never on this network']))).toBe(true);
+    expect(sys).toHaveLength(0);
+    expect(state.whois.ghost).toMatchObject({ loading: false, notFound: true });
+  });
+
   it('406 ERR_WASNOSUCHNICK marks an open WHOIS as notFound without a chat line', () => {
     const { handleNumerics, sys, state } = setup({
       profileUser: 'ghost',

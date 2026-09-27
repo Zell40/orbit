@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { makeWhois } from './whois';
 import { parseLine } from '../irc/parser';
 import { canon, trackBufferMuteSync } from './context';
+import { findWhoisKey } from './helpers';
 import type { WhoisInfo } from '../irc/types';
 import type { ChatState } from '../store';
 
@@ -20,8 +21,9 @@ function setup(initial: Record<string, WhoisInfo> = {}, nick = 'me') {
     if (partial.notifyLevel) notifyLevel = partial.notifyLevel as Record<string, string>;
   };
   const patchWhois = (nickName: string, fn: (w: WhoisInfo) => WhoisInfo) => {
-    const cur = whois[nickName] ?? { nick: nickName, loading: true };
-    whois = { ...whois, [nickName]: fn(cur) };
+    const key = findWhoisKey(whois, nickName) ?? nickName;
+    const cur = whois[key] ?? { nick: nickName, loading: true };
+    whois = { ...whois, [key]: fn(cur) };
   };
   const sysLine = (name: string, text: string) => { lines.push([name, text]); };
   const serverLine = (text: string) => { statusLines.push(text); };
@@ -129,6 +131,18 @@ describe('makeWhois — yomirc text WHOIS (printTo)', () => {
     expect(lines.some(([, text]) => text.includes('logged in as acct'))).toBe(true);
     expect(lines[lines.length - 1][1]).toContain('End of /WHOIS list.');
     expect(whois()['bob']).toBeUndefined(); // cleared after printing
+  });
+
+  it('merges server-cased 311/318 onto a /whois typed with another case', () => {
+    const { w, whois } = setup({
+      borisismo: { nick: 'borisismo', loading: true },
+    });
+    w.handleWhois(parseLine(':srv 311 me Borisismo u host.example * :Real'));
+    w.handleWhois(parseLine(':srv 318 me Borisismo :End of /WHOIS'));
+    expect(whois()['borisismo']).toMatchObject({
+      user: 'u', host: 'host.example', realname: 'Real', loading: false, nick: 'Borisismo',
+    });
+    expect(whois()['Borisismo']).toBeUndefined();
   });
 
   it('on 318 without printTo just finalises loading, prints nothing', () => {

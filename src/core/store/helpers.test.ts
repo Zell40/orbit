@@ -174,6 +174,16 @@ describe('addMessage replay events', () => {
   });
 });
 
+describe('patchWhois casemapping', () => {
+  it('applies a differently-cased reply onto the in-flight /whois entry', () => {
+    const { helpers, state } = setup();
+    state.whois = { borisismo: { nick: 'borisismo', loading: true } };
+    helpers.patchWhois('Borisismo', (w) => ({ ...w, user: 'u', host: 'h', loading: false }));
+    expect(state.whois.borisismo).toMatchObject({ user: 'u', host: 'h', loading: false });
+    expect(state.whois.Borisismo).toBeUndefined();
+  });
+});
+
 describe('rememberQueryAccount', () => {
   it('stores the account on a query buffer and ignores channels', () => {
     const { helpers, state } = setup();

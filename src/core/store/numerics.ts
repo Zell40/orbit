@@ -9,7 +9,7 @@ import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } fr
 import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
-import type { StoreHelpers } from './helpers';
+import { findWhoisKey, type StoreHelpers } from './helpers';
 
 interface NumericsDeps {
   get: StoreApi<ChatState>['getState'];
@@ -43,13 +43,8 @@ const JOIN_DENIED: Record<string, { flag: string; reasonKey: string }> = {
 };
 
 function findWhois(table: ChatState['whois'], nick: string): ChatState['whois'][string] | undefined {
-  if (!nick) return undefined;
-  if (table[nick]) return table[nick];
-  const folded = canon(nick);
-  for (const [k, v] of Object.entries(table)) {
-    if (canon(k) === folded) return v;
-  }
-  return undefined;
+  const key = findWhoisKey(table, nick);
+  return key ? table[key] : undefined;
 }
 
 function findSelfMember(buf: ChatState['buffers'][string] | undefined, nick: string): Member | undefined {
@@ -497,10 +492,10 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         return true;
       case '406': { // ERR_WASNOSUCHNICK — WHOWAS miss (nick never seen / no history)
         const nk = msg.params[1];
-        const w = get().whois[nk];
+        const w = findWhois(get().whois, nk);
         if (w) {
-          if (w.printTo) { sysLine(w.printTo, `${nk} was never on this network`, 'info'); clearWhois(nk); return true; }
-          patchWhois(nk, (ww) => ({ ...ww, loading: false, notFound: true }));
+          if (w.printTo) { sysLine(w.printTo, `${w.nick} was never on this network`, 'info'); clearWhois(w.nick); return true; }
+          patchWhois(w.nick, (ww) => ({ ...ww, loading: false, notFound: true }));
           return true;
         }
         break;
