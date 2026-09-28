@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER, isNoticeBuffer } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
@@ -63,6 +63,17 @@ export function MessageList() {
   // catching up (wrap / preview / font), so onScroll can't drop the pin early.
   const pinning = useRef(false);
   const settleRaf = useRef(0);
+  // Only a real user gesture (wheel / touch / scrollbar) may break follow.
+  // Join bursts (Anope URL, bots, history paint) grow the list and fire
+  // scroll events that used to look like "scrolled away".
+  const userScroll = useRef(false);
+  const armUserScroll = () => { userScroll.current = true; };
+  const armScrollbar = (e: PointerEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    if (!el) return;
+    const bar = el.offsetWidth - el.clientWidth;
+    if (bar > 4 && e.clientX >= el.getBoundingClientRect().right - bar - 4) armUserScroll();
+  };
   const [showJump, setShowJump] = useState(false);
   const count = buffer?.messages.length ?? 0;
   // The buffer is capped (slice(-500)), so once it's full its LENGTH stops changing
@@ -117,7 +128,12 @@ export function MessageList() {
   const growRef = useRef(false);
   const switchedBuf = winBuf.current !== active;
   const effTailOnly = switchedBuf ? true : tailOnly;
-  if (switchedBuf) { winBuf.current = active; if (!tailOnly) setTailOnly(true); }
+  if (switchedBuf) {
+    winBuf.current = active;
+    if (!tailOnly) setTailOnly(true);
+    atBottom.current = true;
+    userScroll.current = false;
+  }
 
   // Keep the viewport anchored: stick to the bottom for live messages, but when
   // older history is PREPENDED (we're at the top) preserve the reading position.
@@ -232,19 +248,20 @@ export function MessageList() {
       // Scrolled before the idle fill ran → render the full buffer now, so there's
       // real older history above rather than the tail's edge.
       if (effTailOnly) { growRef.current = true; setTailOnly(false); }
-      // Ignore the scroll event caused by our own pin — it often samples layout
-      // before the new row's height has settled and would clear the follow flag.
-      // But if the user actively scrolls away during settle, honor that.
-      if (pinning.current) {
-        const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-        if (dist > 80) {
-          if (settleRaf.current) cancelAnimationFrame(settleRaf.current);
-          settleRaf.current = 0;
-          pinning.current = false;
-          atBottom.current = false;
-          setShowJump(dist > 120);
-        }
+      const fromUser = userScroll.current;
+      userScroll.current = false;
+      // Programmatic pin / growing content (join, Anope, bot lines) must not
+      // drop follow. Only a user gesture on this box can do that.
+      if (!fromUser) {
+        if (pinning.current) return;
+        const idleDist = el.scrollHeight - el.scrollTop - el.clientHeight;
+        if (atBottom.current && idleDist > 64) pinBottom(el);
         return;
+      }
+      if (pinning.current) {
+        if (settleRaf.current) cancelAnimationFrame(settleRaf.current);
+        settleRaf.current = 0;
+        pinning.current = false;
       }
       const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
       // Follow only while pinned to the very bottom, so scrolling up even slightly
@@ -409,6 +426,7 @@ export function MessageList() {
   const waiting = joining || (histLoading && !rows.length);
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
+      onWheel={armUserScroll} onTouchMove={armUserScroll} onPointerDown={armScrollbar}
       role="log" aria-label={t('a11y.messages')}>
       {waiting && (
         <div className="msgload" role="status">
