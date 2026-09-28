@@ -1455,7 +1455,7 @@
       "role": {
         "admin": "Server administrator",
         "staff": "General IRCOP / Technician",
-        "oper": "Basic IRCOP",
+        "oper": "IRC Operator",
         "helper": "Helper",
         "voice": "Helper in training / RS",
         "team": "Channel operator"
@@ -1463,7 +1463,7 @@
       "roleHint": {
         "admin": "QOP / Founder — admin panel (no DIE)",
         "staff": "SOP — advanced network tools",
-        "oper": "AOP — network moderation",
+        "oper": "Network moderation",
         "helper": "HOP — OperChat / view",
         "voice": "VOP — team messages",
         "team": "#_bo member without xOP"

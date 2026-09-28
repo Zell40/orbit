@@ -1479,7 +1479,7 @@
       "role": {
         "admin": "Administrateur serveur",
         "staff": "IRCOP général / Technicien",
-        "oper": "IRCOP de base",
+        "oper": "IRC Opérateur",
         "helper": "Helpeur",
         "voice": "Helpeur en test / RS",
         "team": "Opérateur de salon"
@@ -1487,7 +1487,7 @@
       "roleHint": {
         "admin": "QOP / Fondateur — panel admin (sans DIE)",
         "staff": "SOP — outils réseau avancés",
-        "oper": "AOP — modération réseau",
+        "oper": "Modération du réseau",
         "helper": "HOP — OperChat / vue",
         "voice": "VOP — messages équipe",
         "team": "Membre #_bo sans xOP"

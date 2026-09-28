@@ -229,6 +229,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       store.authBusy = false;
       store.authError = '';
       store.authOk = true;
+      store.open = false;
       notify();
     } else if (cmd === '491' || cmd === '464' || (cmd === '461' && fold(msg.params && msg.params[1]) === 'oper')) {
       store.authBusy = false;
@@ -394,16 +395,12 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
   function Tools({ access }) {
     const level = access.level;
     const can = (min) => level >= min;
-    const src = access.source === 'chanserv'
-      ? T('accessCs', { access: access.access || access.code || '—' })
-      : T('accessPrefix');
 
     return html`<div>
       <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '.5rem', marginBottom: '.55rem' }}>
         <div>
           <div style=${{ fontWeight: 800, fontSize: '.9rem' }}>${T('role.' + access.id)}</div>
           <div style=${{ fontSize: '.72rem', color: 'var(--muted, #9aa)' }}>${T('roleHint.' + access.id)}</div>
-          <div style=${{ fontSize: '.68rem', color: 'var(--muted, #9aa)', marginTop: '.15rem' }}>${src}</div>
         </div>
         <button onClick=${deoper} style=${{ ...btnBase, width: 'auto', marginBottom: 0, padding: '.35rem .55rem', fontSize: '.75rem' }}>${T('deoper')}</button>
       </div>
