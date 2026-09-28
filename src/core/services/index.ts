@@ -12,6 +12,12 @@ export function isNickServ(name: string): boolean {
   return /^nickserv$/i.test(String(name || '').trim());
 }
 
+/** NickServ / ChanServ / BotServ are control services: never a PM tab.
+ *  HelpServ desks (EcoutE, AideMoi, …) still open a real query. */
+export function isStatusService(name: string): boolean {
+  return /^(nick|chan|bot)serv$/i.test(String(name || '').trim());
+}
+
 /** EntreNous `orbit-anope` owns every NickServ CTA (guest register, IDENTIFY
  *  enforce, forced nick change, …). Notices still land in Status; Orbit never
  *  opens the generic NickServ dialog. */
@@ -38,12 +44,14 @@ export function routeMessage(o: {
   isChannel: boolean;
   reportService: boolean;
   nickServParty: boolean;
+  statusService?: boolean;
   serviceParty: boolean;
   isNotice: boolean;
 }): ServiceRoute {
   if (o.isChannel) return 'channel';
   if (o.reportService || o.nickServParty) return 'report';
   if (o.isNotice) return 'active';
+  if (o.statusService) return 'report';
   void o.serviceParty;
   return 'query';
 }

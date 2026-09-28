@@ -7,7 +7,7 @@
 import i18n from '../i18n';
 import { getTheme } from '@/themes';
 import { usePluginRegistry } from '@/modules/registry';
-import { isService, maskSecret, detectServiceLeak } from '../services';
+import { isService, isStatusService, maskSecret, detectServiceLeak } from '../services';
 import { stripFormatting, tidyOutgoing } from './text';
 import { SERVER, newId, canon, isChannelName, isNoticeBuffer } from './context';
 import type { StoreApi } from 'zustand';
@@ -93,8 +93,9 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
           const [t, ...m] = rest; const body = m.join(' ');
           if (!t || !body) break;
           client.privmsg(t, body);
-          addMessage(t, {
-            id: newId(), bufferName: t, from: get().nick,
+          const dest = isStatusService(t) ? SERVER : t;
+          addMessage(dest, {
+            id: newId(), bufferName: dest, from: get().nick,
             text: isService(t) ? maskSecret(body) : body,
             ts: Date.now(), kind: 'privmsg', self: true,
           });
@@ -151,6 +152,7 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
       sysLine(active,
         i18n.t('security.leakGuard', { channel: active, service: leak.service }),
         'warning');
+      if (isStatusService(leak.service)) return;
       ensureBuffer(leak.service);
       if (!client.ircv3.hasCap('echo-message')) {
         addMessage(leak.service, {

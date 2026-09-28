@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { nickInMembers, resolveNoticeDest, noticeIsChannelEcho, noticeScopeFor, noticeIsServerOrigin } from './notices';
+import { SERVER } from './context';
 
 const chan = (members: string[], joined = true) => ({
   isChannel: true as const,
@@ -99,16 +100,29 @@ describe('resolveNoticeDest', () => {
     })).toBe('#entrenous.chat');
   });
 
-  it('keeps the notice in the bot PM when that PM is the active window', () => {
+  it('keeps the notice in the helpdesk PM when that PM is the active window', () => {
+    expect(dest({
+      sender: 'EcoutE',
+      active: 'ecoute',
+      buffers: {
+        '#entrenous.chat': chan(['EcoutE', 'Jessie']),
+        ecoute: { isChannel: false, joined: false, members: {}, name: 'EcoutE' },
+      },
+      order: ['#entrenous.chat', 'ecoute'],
+    })).toBe('ecoute');
+  });
+
+  it('never keeps ChanServ notices in a ChanServ PM tab', () => {
     expect(dest({
       sender: 'ChanServ',
       active: 'chanserv',
       buffers: {
         '#entrenous.chat': chan(['ChanServ', 'Jessie']),
+        '#aide.chat': chan(['ChanServ']),
         chanserv: { isChannel: false, joined: false, members: {}, name: 'ChanServ' },
       },
-      order: ['#entrenous.chat', 'chanserv'],
-    })).toBe('chanserv');
+      order: ['#entrenous.chat', '#aide.chat', 'chanserv'],
+    })).toBe(SERVER);
   });
 
   it('falls back to the current window when the sender nick is empty', () => {

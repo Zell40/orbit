@@ -11,7 +11,7 @@ import { translateUmodeNotice } from '../irc/umode-notices';
 import { desktopNotify, blip } from '@/platform/notify';
 import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
-import { isService, isNickServ, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
+import { isService, isNickServ, isStatusService, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
@@ -182,10 +182,12 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     const svcParty = !isChan && !!otherParty &&
       (hasServiceTag(msg.tags) || isService(otherParty) || knownServices.has(canon(otherParty)));
     const nickServParty = !isChan && isNickServ(self ? chanTarget : (msg.nick || ''));
+    const statusParty = !isChan && isStatusService(self ? chanTarget : (msg.nick || ''));
     // Notices are not a conversation: they land in an open PM with the sender,
     // a channel we share, or the window you are looking at — never a new tab.
     const route = routeMessage({
-      isChannel: isChan, reportService: toReportSvc, nickServParty, serviceParty: svcParty, isNotice: kind === 'notice',
+      isChannel: isChan, reportService: toReportSvc, nickServParty,
+      statusService: statusParty, serviceParty: svcParty, isNotice: kind === 'notice',
     });
     const toActive = route === 'active';
     const chanCtx = !isChan ? msg.tags['+draft/channel-context'] : undefined;

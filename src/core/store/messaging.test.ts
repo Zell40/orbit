@@ -170,7 +170,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect((state.buffers['#entrenous.chat'] as { mlock?: string }).mlock).toBe('PtTVn');
   });
 
-  it('shows a ChanServ notice in the open PM, not a shared salon', () => {
+  it('sends ChanServ notices to Status instead of opening a PM', () => {
     const { on, added } = setup({
       active: 'chanserv',
       order: ['#entrenous.chat', 'chanserv'],
@@ -183,16 +183,23 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       },
     });
     on(':ChanServ!s@services NOTICE me :AIDE: …');
-    expect(added[0].name).toBe('chanserv');
+    expect(added[0].name).toBe('#entrenous.chat');
     expect(added[0].m).toMatchObject({ kind: 'notice', from: 'ChanServ', noticeScope: 'direct' });
   });
 
-  it('does not dump a nick-only ChanServ NOTICE into the server console', () => {
+  it('does not dump a nick-only ChanServ NOTICE into a ChanServ PM', () => {
     const { on, added, serverLines } = setup({ active: 'chanserv' });
     on(':ChanServ NOTICE me :Synopsys de AIDE');
     expect(serverLines).toHaveLength(0);
-    expect(added[0].name).toBe('chanserv');
+    expect(added[0].name).toBe(SERVER);
     expect(added[0].m).toMatchObject({ kind: 'notice', from: 'ChanServ' });
+  });
+
+  it('does not open a ChanServ query for our own PRIVMSG echo', () => {
+    const { on, added } = setup({ nick: 'me', active: '#entrenous.chat' });
+    on(':me!u@h PRIVMSG ChanServ :TOPICHISTORY #entrenous.chat LIST', 'me');
+    expect(added[0].name).toBe(SERVER);
+    expect(added[0].m).toMatchObject({ self: true, kind: 'privmsg' });
   });
 
   it('shows a bot notice in the shared channel, not the unrelated active window', () => {

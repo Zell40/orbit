@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isService, isNickServ, maskSecret, detectServiceLeak, routeMessage, hasServiceTag, shouldPopupNickServ } from './index';
+import { isService, isNickServ, isStatusService, maskSecret, detectServiceLeak, routeMessage, hasServiceTag, shouldPopupNickServ } from './index';
 
 describe('isService', () => {
   it('recognises the standard services (case-insensitive)', () => {
@@ -63,6 +63,10 @@ describe('routeMessage', () => {
     expect(routeMessage({ ...base, isNotice: true })).toBe('active');
     expect(routeMessage({ ...base, serviceParty: true, isNotice: true })).toBe('active');
   });
+  it('does not treat ChanServ notices as a query (PRIVMSG still goes to Status)', () => {
+    expect(routeMessage({ ...base, statusService: true, isNotice: true })).toBe('active');
+    expect(routeMessage({ ...base, statusService: true })).toBe('report');
+  });
   it('opens a query for a PRIVMSG, including U-lined HelpServ desks', () => {
     expect(routeMessage(base)).toBe('query');
     expect(routeMessage({ ...base, serviceParty: true })).toBe('query');
@@ -89,6 +93,16 @@ describe('shouldPopupNickServ', () => {
     expect(shouldPopupNickServ('Votre pseudo sera changé dans 1 minute si vous ne vous identifiez pas.')).toBe(false);
     expect(shouldPopupNickServ('Votre pseudo est maintenant changé en ENuser|1776')).toBe(false);
     expect(shouldPopupNickServ('Password incorrect.')).toBe(false);
+  });
+});
+
+describe('isStatusService', () => {
+  it('covers NickServ, ChanServ and BotServ', () => {
+    expect(isStatusService('ChanServ')).toBe(true);
+    expect(isStatusService('BotServ')).toBe(true);
+    expect(isStatusService('NickServ')).toBe(true);
+    expect(isStatusService('HelpServ')).toBe(false);
+    expect(isStatusService('EcoutE')).toBe(false);
   });
 });
 

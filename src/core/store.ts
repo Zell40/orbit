@@ -10,7 +10,7 @@ import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends,
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick, trackBufferMuteSync } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { findWhoisKey, makeHelpers, rememberQueryAccount } from './store/helpers';
-import { isService } from './services';
+import { isService, isStatusService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
 import { makeHandler } from './store/handler';
@@ -505,7 +505,7 @@ export function createChatStore(ns = '') {
     },
 
     openQuery(nick, fromChannel) {
-      if (!nick || isChannelName(nick) || isPseudoBuffer(nick)) return;
+      if (!nick || isChannelName(nick) || isPseudoBuffer(nick) || isStatusService(nick)) return;
       ensureBuffer(nick);
       // Record the channel this DM was started from (+draft/channel-context).
       if (fromChannel && isChannelName(fromChannel)) {

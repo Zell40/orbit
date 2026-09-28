@@ -4,6 +4,7 @@
 // PM tab. Bots like Bac also PRIVMSG the same lines to the channel — those
 // copies must not be re-inserted as NOTICE.
 import { canon, isChannelName, SERVER, isPseudoBuffer } from './context';
+import { isStatusService } from '../services';
 
 type NoticeBuf = {
   isChannel: boolean;
@@ -90,9 +91,12 @@ export function resolveNoticeDest(opts: {
   const current = () => opts.active || SERVER;
   if (!sender) return current();
   const activeKey = opts.active ? canon(opts.active) : '';
-  // Commands typed in the bot's PM must see the NOTICE replies there.
+  const skipServicePm = isStatusService(sender);
+  // Commands typed in a bot PM must see the NOTICE replies there.
+  // NickServ / ChanServ / BotServ are not a conversation — never keep that tab.
   if (
-    activeKey
+    !skipServicePm
+    && activeKey
     && !isChannelName(opts.active)
     && !isPseudoBuffer(opts.active)
     && activeKey === canon(sender)
@@ -105,6 +109,10 @@ export function resolveNoticeDest(opts: {
   if (ctx && shared.includes(ctx)) return ctx;
   if (activeKey && shared.includes(activeKey)) return activeKey;
   if (shared.length === 1) return shared[0];
+  if (skipServicePm) {
+    if (opts.active && isChannelName(opts.active)) return opts.active;
+    return SERVER;
+  }
   return current();
 }
 

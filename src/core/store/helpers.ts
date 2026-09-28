@@ -3,6 +3,7 @@
 // the returned object so its call sites are unchanged.
 import type { StoreApi } from 'zustand';
 import { canon, isChannelName, newId, SERVER, isPseudoBuffer } from './context';
+import { isStatusService } from '../services';
 import { stripFormatting } from './text';
 import type { Buffer, ChatMessage, Member, MessageKind, WhoisInfo, IrcMessage } from '../irc/types';
 import type { ChatState } from '../store';
@@ -97,6 +98,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     const key = canon(name);
     const s = get();
     if (s.buffers[key]) return;
+    if (isStatusService(name)) return;
     if (isChannelName(name) && closedChannels.has(key)) return; // don't resurrect a closed channel
     let buffers = s.buffers, order = s.order, pmContext = s.pmContext;
     // Bound auto-opened query windows: a hostile server can PRIVMSG from endless
@@ -155,6 +157,10 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
   }
 
   function addMessage(name: string, m: ChatMessage): void {
+    if (isStatusService(name)) {
+      name = SERVER;
+      m = { ...m, bufferName: SERVER };
+    }
     ensureBuffer(name);
     const key = canon(name);
     const s = get();
