@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode, type WheelEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SERVER, isNoticeBuffer } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
@@ -56,24 +56,42 @@ export function MessageList() {
   const prevHeight = useRef(0);
   const prevActive = useRef(active);
   const atBottom = useRef(true); // pinned to the very bottom → auto-follow new messages
-  // Programmatic scrollTop writes fire a scroll event; without this guard that
-  // event can re-measure a mid-layout height, clear atBottom, and the next
-  // incoming line (bot reply right after you send) no longer follows.
-  // Also held true across settle frames while a tall message's height is still
-  // catching up (wrap / preview / font), so onScroll can't drop the pin early.
+  // Programmatic scrollTop writes fire a scroll event; ignore those so a pin
+  // cannot be mistaken for the user leaving the bottom.
   const pinning = useRef(false);
   const settleRaf = useRef(0);
-  // User gesture window (ms since epoch). Touch inertia keeps firing scroll
-  // after finger-up; a short hold lets those events still count as the user.
-  const userUntil = useRef(0);
-  const holdFollowUntil = useRef(0);
-  const armUser = (ms = 600) => { userUntil.current = Date.now() + ms; };
-  const isUserScroll = () => Date.now() < userUntil.current;
+  // True while the user is moving the list (wheel / finger / scrollbar).
+  // Follow breaks on the first move away; it resumes only once they are back
+  // at the real bottom — never via a "close enough" heuristic.
+  const userMoving = useRef(false);
+  const distFromBottom = (el: HTMLDivElement) => el.scrollHeight - el.scrollTop - el.clientHeight;
+  const markUserMoving = () => { userMoving.current = true; };
+  const endUserMoving = () => {
+    userMoving.current = false;
+    const el = ref.current;
+    if (!el) return;
+    if (distFromBottom(el) < 64) {
+      atBottom.current = true;
+      setShowJump(false);
+    }
+  };
+  const onWheel = (e: WheelEvent<HTMLDivElement>) => {
+    // deltaY < 0 = toward older lines. Break follow immediately so a later
+    // ResizeObserver / pin settle cannot yank the list back down. Wheel-down
+    // while already at the bottom must not break follow.
+    if (e.deltaY < 0) {
+      userMoving.current = true;
+      atBottom.current = false;
+    } else {
+      markUserMoving();
+    }
+  };
+  const onTouchStart = () => { markUserMoving(); };
   const armScrollbar = (e: PointerEvent<HTMLDivElement>) => {
     const el = ref.current;
     if (!el) return;
     const bar = el.offsetWidth - el.clientWidth;
-    if (bar > 4 && e.clientX >= el.getBoundingClientRect().right - bar - 4) armUser(800);
+    if (bar > 4 && e.clientX >= el.getBoundingClientRect().right - bar - 4) markUserMoving();
   };
   const [showJump, setShowJump] = useState(false);
   const count = buffer?.messages.length ?? 0;
@@ -93,34 +111,23 @@ export function MessageList() {
   // Does nothing if the user has scrolled away (atBottom cleared).
   const pinBottom = (el?: HTMLDivElement | null) => {
     const box = el ?? ref.current;
-    if (!box) return;
+    if (!box || !atBottom.current) return;
     pinning.current = true;
-    atBottom.current = true;
     box.scrollTop = box.scrollHeight;
     if (settleRaf.current) cancelAnimationFrame(settleRaf.current);
-    let lastH = box.scrollHeight;
-    let stable = 0;
     let frames = 0;
     const step = () => {
       settleRaf.current = 0;
       const cur = ref.current;
       if (!cur || !atBottom.current) { pinning.current = false; return; }
       cur.scrollTop = cur.scrollHeight;
-      const h = cur.scrollHeight;
-      if (h !== lastH) { lastH = h; stable = 0; prevHeight.current = h; }
-      else stable++;
       frames++;
-      // Two stable frames = layout settled; cap so a runaway resize can't spin.
-      if (stable < 2 && frames < 45) {
+      // Two extra frames cover wrap / font settle. Longer loops fight the wheel.
+      if (frames < 3) {
         settleRaf.current = requestAnimationFrame(step);
       } else {
         prevHeight.current = cur.scrollHeight;
-        // One extra frame so a coalesced onScroll from the last write still sees
-        // the guard before we release follow back to user scroll.
-        requestAnimationFrame(() => {
-          pinning.current = false;
-          holdFollowUntil.current = Date.now() + 250;
-        });
+        requestAnimationFrame(() => { pinning.current = false; });
       }
     };
     settleRaf.current = requestAnimationFrame(step);
@@ -140,7 +147,7 @@ export function MessageList() {
     winBuf.current = active;
     if (!tailOnly) setTailOnly(true);
     atBottom.current = true;
-    userUntil.current = 0;
+    userMoving.current = false;
   }
 
   // Keep the viewport anchored: stick to the bottom for live messages, but when
@@ -151,40 +158,22 @@ export function MessageList() {
     const switched = prevActive.current !== active;
     prevActive.current = active;
     const grew = el.scrollHeight - prevHeight.current;
-    const distNow = el.scrollHeight - el.scrollTop - el.clientHeight;
-    // After an append, dist grows by the new rows — subtract that to know
-    // whether we WERE at the bottom before this paint.
-    const wasAtBottom = atBottom.current || (distNow - Math.max(0, grew)) < 80;
-    if (wasAtBottom) atBottom.current = true;
-    // Switching into a channel always jumps to the newest line (the last message),
-    // even when it has unread — the "New messages" divider still renders as a marker
-    // to scroll up to. Also follow the tail when already pinned to the bottom.
+    // Switch or already following → last line stays in view. Do not re-derive
+    // atBottom from distance: a mid-layout height or a just-appended row would
+    // look "close enough" and yank the user back after they scrolled up.
     if (switched || atBottom.current) {
-      // Buffer switch, or we were pinned to the bottom → follow the newest line.
-      // atBottom is checked BEFORE the prepend heuristic on purpose: in a short
-      // buffer the bottom itself sits at scrollTop < 80, so a burst of appended
-      // lines (e.g. a /cs HELP reply) must scroll down to them rather than be
-      // mistaken for a history prepend and leave them hidden under the composer.
-      // Trust the pin: don't re-derive atBottom from dist (subpixel / mid-layout
-      // heights often leave dist ≥ 64 right after scrollTop = scrollHeight).
       pinBottom(el);
     } else if (growRef.current) {
       el.scrollTop += grew;                                // tail→full fill prepended older rows → keep position
     } else if (el.scrollTop < 80 && grew > 0) {
-      // Near the top of the scroll range — either reading history, or a short
-      // buffer whose bottom is also scrollTop≈0. Only preserve position when
-      // there's clearly more content below; otherwise this is an append and we
-      // must follow (otherwise a bot reply after your send stops short).
-      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-      if (dist < 140) pinBottom(el);
-      else el.scrollTop = el.scrollHeight - prevHeight.current;
+      // History prepended at the top while reading older lines: keep the
+      // same messages on screen. A short buffer (bottom ≈ scrollTop 0) is
+      // already handled by atBottom + the sentinel-less pin above.
+      el.scrollTop += grew;
     }
     growRef.current = false;
-    // Ended at the bottom → everything is read: advance the marker here (pre-paint,
-    // so an incoming line never flashes a "New messages" divider before it clears).
-    const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (!atBottom.current) atBottom.current = dist < 64;
-    if (dist < 140) markReadHere();  // but count everything read across a wider band
+    const dist = distFromBottom(el);
+    if (dist < 140) markReadHere();
     setShowJump(!atBottom.current && dist > 120);
     prevHeight.current = el.scrollHeight;
   }, [count, lastId, lastGrow, effTailOnly, active, search, markReadHere]);
@@ -261,40 +250,24 @@ export function MessageList() {
       // Scrolled before the idle fill ran → render the full buffer now, so there's
       // real older history above rather than the tail's edge.
       if (effTailOnly) { growRef.current = true; setTailOnly(false); }
-      const fromUser = isUserScroll();
-      // Growth / pin writes fire scroll without a gesture. Never treat that as
-      // "user left the bottom" — or follow dies and new lines stay hidden.
-      if (!fromUser) {
-        if (pinning.current || Date.now() < holdFollowUntil.current) return;
-        const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-        if (dist < 64) atBottom.current = true;
-        if (dist < 140) markReadHere();
-        if (!effTailOnly && el.scrollTop < 60 && buffer && buffer.name !== SERVER && !isNoticeBuffer(buffer.name) && !histLoading && !histDone) loadMore(active);
-        setShowJump(!atBottom.current && dist > 120);
-        return;
+      if (pinning.current) return;
+      const dist = distFromBottom(el);
+      if (userMoving.current) {
+        atBottom.current = dist < 64;
+      } else if (dist < 64) {
+        atBottom.current = true;
       }
-      if (pinning.current) {
-        if (settleRaf.current) cancelAnimationFrame(settleRaf.current);
-        settleRaf.current = 0;
-        pinning.current = false;
-      }
-      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
-      // Follow only while pinned to the very bottom, so scrolling up even slightly
-      // to read the last line stops the auto-scroll instead of yanking you down.
-      atBottom.current = dist < 64;
-      if (dist < 140) markReadHere(); // count read across a wider band
-      // channels and private messages both have server-side history (not the console);
-      // only once the in-memory buffer is fully shown (not just the tail).
+      if (dist < 140) markReadHere();
       if (!effTailOnly && el.scrollTop < 60 && buffer && buffer.name !== SERVER && !isNoticeBuffer(buffer.name) && !histLoading && !histDone) loadMore(active);
-      // Once you're clearly scrolled up, offer a jump straight back to the newest
-      // line — so a fast channel can't strand you.
-      setShowJump(dist > 120);
+      setShowJump(!atBottom.current && dist > 120);
     });
   };
   // Snap to the newest line and re-engage follow (used by the floating button).
   const jumpToBottom = () => {
     setShowJump(false);
     markReadHere();
+    atBottom.current = true;
+    userMoving.current = false;
     pinBottom();
   };
 
@@ -441,11 +414,13 @@ export function MessageList() {
   const waiting = joining || (histLoading && !rows.length);
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
-      onWheel={() => armUser(200)}
-      onTouchStart={() => armUser(2000)}
-      onTouchEnd={() => armUser(700)}
-      onTouchCancel={() => armUser(700)}
+      onWheel={onWheel}
+      onTouchStart={onTouchStart}
+      onTouchEnd={endUserMoving}
+      onTouchCancel={endUserMoving}
       onPointerDown={armScrollbar}
+      onPointerUp={endUserMoving}
+      onPointerCancel={endUserMoving}
       role="log" aria-label={t('a11y.messages')}>
       {waiting && (
         <div className="msgload" role="status">
