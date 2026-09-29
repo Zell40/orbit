@@ -18,7 +18,7 @@
  * Authenticated opers also get an "IRCOP" block in the nicklist right-click menu.
  */
 Orbit.plugin('orbit-ircop', (orbit, log) => {
-  const { useState, useEffect } = orbit.React;
+  const { useState, useEffect, useRef, useLayoutEffect } = orbit.React;
   const html = orbit.html;
   const TEAM = '#_bo';
   const CS_RPC = '/app/plugins/third/orbit-chanserv/chanserv-rpc.php';
@@ -553,6 +553,56 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     const [open, setOpen] = useState(false);
     const [ask, setAsk] = useState(null); // null | 'sajoin'
     const [chan, setChan] = useState('');
+    const closeT = useRef(0);
+    const flyRef = useRef(null);
+    const askRef = useRef(ask);
+    askRef.current = ask;
+
+    // Same hover contract as orbit-chanserv: delayed close + overlap/bridge so
+    // sliding the pointer from the tab onto the flyout does not snap it shut.
+    const keepOpen = () => {
+      if (closeT.current) { clearTimeout(closeT.current); closeT.current = 0; }
+      setOpen(true);
+    };
+    const delayClose = () => {
+      if (askRef.current) return;
+      if (closeT.current) clearTimeout(closeT.current);
+      closeT.current = setTimeout(() => {
+        closeT.current = 0;
+        setOpen(false);
+        setAsk(null);
+      }, 280);
+    };
+    useEffect(() => () => { if (closeT.current) clearTimeout(closeT.current); }, []);
+    useLayoutEffect(() => {
+      if (!open) return undefined;
+      const el = flyRef.current;
+      if (!el) return undefined;
+      if (window.innerWidth <= 880) {
+        el.style.top = '';
+        el.style.bottom = '';
+        el.style.maxHeight = '';
+        return undefined;
+      }
+      el.style.top = '-4px';
+      el.style.bottom = 'auto';
+      el.style.maxHeight = '';
+      const pad = 8;
+      let r = el.getBoundingClientRect();
+      if (r.bottom > window.innerHeight - pad) {
+        el.style.top = 'auto';
+        el.style.bottom = '0px';
+        r = el.getBoundingClientRect();
+      }
+      if (r.top < pad) {
+        el.style.top = 'auto';
+        el.style.bottom = '0px';
+        r = el.getBoundingClientRect();
+        if (r.top < pad) el.style.maxHeight = Math.max(120, window.innerHeight - pad * 2) + 'px';
+      }
+      return undefined;
+    }, [open, nick, ask]);
+
     if (!isOperSession() && !store.authOk) return null;
     const access = teamAccess();
     if (!access || access.level < 10) return null;
@@ -566,14 +616,6 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     const item = (label, onClick, danger) => html`<button type="button" role="menuitem"
       className=${'memberctx__item' + (danger ? ' memberctx__item--warn' : '')}
       onClick=${(e) => { e.stopPropagation(); onClick(); }}>${label}</button>`;
-    // Hover-to-open for mice only: a tap also fires pointerenter, which would
-    // open the panel and then let the click toggle it straight back shut.
-    // Keep the flyout open while the SAJOIN channel field is up.
-    const hover = (want) => (e) => {
-      if (e.pointerType !== 'mouse') return;
-      if (!want && ask) return;
-      setOpen(want);
-    };
 
     const doSajoin = () => {
       const dest = normChan(chan);
@@ -581,17 +623,20 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       run(() => sendRaw('SAJOIN ' + nick + ' ' + dest));
     };
 
-    return html`<div className="ircopmm"
-      onPointerEnter=${hover(true)}
-      onPointerLeave=${hover(false)}>
-      <button type="button" className=${'ircopmm__trig' + (open ? ' is-open' : '')}
+    return html`<div className=${'ircopmm' + (open ? ' is-open' : '')}
+      onMouseEnter=${keepOpen}
+      onMouseLeave=${delayClose}>
+      <button type="button" className="memberctx__item memberctx__item--sub ircopmm__trig"
         aria-expanded=${open} aria-haspopup="menu"
-        onClick=${(e) => { e.stopPropagation(); setOpen((v) => !v); setAsk(null); }}>
-        <span className="ircopmm__chev" aria-hidden="true">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </span>
+        onClick=${(e) => {
+          e.stopPropagation();
+          if (open) {
+            if (closeT.current) clearTimeout(closeT.current);
+            setOpen(false);
+            setAsk(null);
+          } else keepOpen();
+        }}>
+        <span className="ircopmm__chev" aria-hidden="true">‹</span>
         <span className="ircopmm__ic" aria-hidden="true">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -600,7 +645,8 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
         </span>
         <span className="ircopmm__lbl">${T('mm.tab')}</span>
       </button>
-      ${open ? html`<div className="ircopmm__fly" role="menu" aria-label=${T('mm.tab')}>
+      ${open ? html`<div className="ircopmm__bridge" aria-hidden="true"></div>` : null}
+      ${open ? html`<div ref=${(n) => { flyRef.current = n; }} className="ircopmm__fly" role="menu" aria-label=${T('mm.tab')}>
         ${item(T('mm.whois'), () => run(() => whoisActive(nick)))}
         ${level >= 10 ? item(T('mm.notice'), () => run(() => {
           const msg = window.prompt(T('mm.noticePrompt', { nick }));

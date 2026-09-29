@@ -79,7 +79,7 @@ export function MemberMenu({ nick, x, y, onClose, onNavigate }: { nick: string; 
   }, [x, y, pending]);
 
   useEffect(() => {
-    const onDown = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.memberctx, .memberrsn, .ocs-mm__fly')) onClose(); };
+    const onDown = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.memberctx, .memberrsn, .ocs-mm__fly, .ircopmm__fly')) onClose(); };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('mousedown', onDown);
     window.addEventListener('keydown', onKey);
