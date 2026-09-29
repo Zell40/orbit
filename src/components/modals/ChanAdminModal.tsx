@@ -535,8 +535,11 @@ export function ChanAdminModal() {
 
   const pluginUi = usePluginRegistry((s) => s.ui);
   const pluginSections = pluginUi.filter((u) => u.slot === 'chanadmin_section');
-  const [section, setSection] = useState('personal');
-  const [drilled, setDrilled] = useState(false);
+  const startSection = pluginSections.find((p) => {
+    try { return !!p.meta?.attention?.(); } catch { return false; }
+  })?.id || 'personal';
+  const [section, setSection] = useState(startSection);
+  const [drilled, setDrilled] = useState(startSection !== 'personal');
   const close = () => setModal('');
 
   useEffect(() => {
@@ -934,7 +937,11 @@ export function ChanAdminModal() {
               {pluginSections.map((ps) => (
                 <button type="button" key={ps.id} className={`settings__navitem${section === ps.id ? ' is-on' : ''}`}
                   onClick={() => { setSection(ps.id); setDrilled(true); }}>
-                  <span className="settings__navic" aria-hidden>{ps.meta?.icon ?? '🧩'}</span>
+                  <span className="settings__navic" aria-hidden>
+                    {ps.meta?.iconNav
+                      ? <PluginBoundary render={ps.meta.iconNav} label="chanadmin_icon" />
+                      : (ps.meta?.icon ?? '🧩')}
+                  </span>
                   {ps.meta?.nav
                     ? <PluginBoundary render={ps.meta.nav} label="chanadmin_nav" />
                     : (
@@ -952,7 +959,11 @@ export function ChanAdminModal() {
             <header className="settings__top">
               <button type="button" className="settings__back" onClick={() => setDrilled(false)} aria-label={t('settings.misc.back')}>‹</button>
               <span className="settings__top-ic" aria-hidden>
-                {section === 'personal' ? <Icon name="sliders" size={18} /> : (curPlugin?.meta?.icon ?? '🧩')}
+                {section === 'personal'
+                  ? <Icon name="sliders" size={18} />
+                  : (curPlugin?.meta?.iconNav
+                    ? <PluginBoundary render={curPlugin.meta.iconNav} label="chanadmin_icon" />
+                    : (curPlugin?.meta?.icon ?? '🧩'))}
               </span>
               <h3 className="settings__top-title">
                 {section === 'personal' ? t('modals.chanadmin.personal') : (curPlugin?.meta?.label ?? '')}

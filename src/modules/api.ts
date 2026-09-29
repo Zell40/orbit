@@ -120,6 +120,8 @@ export interface OrbitPluginApi {
     icon?: string;
     desc?: string;
     nav?: () => ReactNode;
+    iconNav?: () => ReactNode;
+    attention?: () => boolean;
     render: () => ReactNode;
   }) => () => void;
   /** Decorate every rendered message inline (e.g. a badge appended after the text). */
@@ -219,7 +221,7 @@ function makeApi(name: string): OrbitPluginApi {
       usePluginRegistry.getState().addUi('settings_mode', name, opts.render),
     addChanAdminSection: (opts) =>
       usePluginRegistry.getState().addUi('chanadmin_section', name, opts.render, {
-        label: opts.label, icon: opts.icon, desc: opts.desc, nav: opts.nav,
+        label: opts.label, icon: opts.icon, desc: opts.desc, nav: opts.nav, iconNav: opts.iconNav, attention: opts.attention,
       }),
     addMessageDecorator: (render) => usePluginRegistry.getState().addDecorator(name, render),
     addMessageAction: (render) => usePluginRegistry.getState().addAction(name, render),

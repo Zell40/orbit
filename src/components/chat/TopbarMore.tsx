@@ -20,6 +20,7 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, onSe
   // array every read → zustand Object.is → infinite re-render / React #185).
   const pluginUi = usePluginRegistry((s) => s.ui);
   const morePlugins = pluginUi.filter((u) => u.slot === 'topbar_more_item');
+  const manageBadges = pluginUi.filter((u) => u.slot === 'chanadmin_badge');
   const afterManageNames = new Set(['orbit-chanserv', 'orbit-ircop']);
   const moreAfterManage = morePlugins.filter((u) => afterManageNames.has(u.plugin));
   const moreRest = morePlugins.filter((u) => !afterManageNames.has(u.plugin));
@@ -62,7 +63,10 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, onSe
           )}
           {isChannel && (showManage ?? amOp) && (
             <button className="nmenu__item" role="menuitem" onClick={() => run(() => setModal('chanadmin'))}>
-              <span className="nmenu__ic" aria-hidden><Icon name="sliders" size={18} /></span>
+              <span className="nmenu__ic nmenu__ic--badge" aria-hidden>
+                <Icon name="sliders" size={18} />
+                {manageBadges.map((u) => <PluginBoundary key={u.id} render={u.render} label="chanadmin_badge" />)}
+              </span>
               <span className="nmenu__txt"><b>{t('topbar.manage')}</b></span>
             </button>
           )}

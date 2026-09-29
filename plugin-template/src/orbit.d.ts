@@ -38,6 +38,8 @@ export interface OrbitPluginApi {
     icon?: string;
     desc?: string;
     nav?: () => React.ReactNode;
+    iconNav?: () => React.ReactNode;
+    attention?: () => boolean;
     render: () => React.ReactNode;
   }): () => void;
   log(...args: unknown[]): void;

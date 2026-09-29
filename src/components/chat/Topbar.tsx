@@ -76,6 +76,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const plugAfterManage = sortByPluginOrder(plug.filter((u) => afterManageNames.has(u.plugin)), TOPBAR_AFTER_MANAGE);
   const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin) && !afterManageNames.has(u.plugin));
   const plugEnd = topbarItems.filter((u) => u.slot === 'topbar_end');
+  const manageBadges = topbarItems.filter((u) => u.slot === 'chanadmin_badge');
   const hasChanAdminPlugin = topbarItems.some((u) => u.slot === 'chanadmin_section');
   const showManage = isChannel && (amOp || (hasChanAdminPlugin && !!myAccount));
   const isServer = bname === SERVER;
@@ -133,7 +134,12 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {plugAfterNotify.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterNotify)}</span>}
       {plugRest.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugRest)}</span>}
       {isChannel && <PinMenu />}
-      {isChannel && showManage && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
+      {isChannel && showManage && (
+        <button className="topbar__search topbar__hide-mobile topbar__manage" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}>
+          <Icon name="sliders" size={19} />
+          {manageBadges.map((u) => <PluginBoundary key={u.id} render={u.render} label="chanadmin_badge" />)}
+        </button>
+      )}
       {plugAfterManage.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterManage)}</span>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
       {!isServer && !isNotices && !isChannel && bname && !isBouncerServiceNick(bname) && (
