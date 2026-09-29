@@ -63,16 +63,17 @@ export function MessageList() {
   // catching up (wrap / preview / font), so onScroll can't drop the pin early.
   const pinning = useRef(false);
   const settleRaf = useRef(0);
-  // Only a real user gesture (wheel / touch / scrollbar) may break follow.
-  // Join bursts (Anope URL, bots, history paint) grow the list and fire
-  // scroll events that used to look like "scrolled away".
-  const userScroll = useRef(false);
-  const armUserScroll = () => { userScroll.current = true; };
+  // User gesture window (ms since epoch). Touch inertia keeps firing scroll
+  // after finger-up; a short hold lets those events still count as the user.
+  const userUntil = useRef(0);
+  const holdFollowUntil = useRef(0);
+  const armUser = (ms = 600) => { userUntil.current = Date.now() + ms; };
+  const isUserScroll = () => Date.now() < userUntil.current;
   const armScrollbar = (e: PointerEvent<HTMLDivElement>) => {
     const el = ref.current;
     if (!el) return;
     const bar = el.offsetWidth - el.clientWidth;
-    if (bar > 4 && e.clientX >= el.getBoundingClientRect().right - bar - 4) armUserScroll();
+    if (bar > 4 && e.clientX >= el.getBoundingClientRect().right - bar - 4) armUser(800);
   };
   const [showJump, setShowJump] = useState(false);
   const count = buffer?.messages.length ?? 0;
@@ -81,7 +82,11 @@ export function MessageList() {
   // still changes) is what keeps auto-scroll alive in busy channels. Use the row
   // key, not `id`: the latter is swapped for the real msgid when our own echo
   // lands, which would run the whole anchoring pass a second time per send.
-  const lastId = count ? rowKey(buffer!.messages[count - 1]) : '';
+  const last = count ? buffer!.messages[count - 1] : undefined;
+  const lastId = last ? rowKey(last) : '';
+  // Coalesced NOTICE/info (Status, services, long Anope replies) reuse the same
+  // row key — also watch ts/length so MP / salon / Status all re-pin.
+  const lastGrow = last ? `${last.ts}:${last.text.length}:${last.kind}` : '';
 
   // Stick to the newest line and keep re-pinning for a few frames while the
   // newest row's height finishes settling (long wraps, link cards, images).
@@ -112,7 +117,10 @@ export function MessageList() {
         prevHeight.current = cur.scrollHeight;
         // One extra frame so a coalesced onScroll from the last write still sees
         // the guard before we release follow back to user scroll.
-        requestAnimationFrame(() => { pinning.current = false; });
+        requestAnimationFrame(() => {
+          pinning.current = false;
+          holdFollowUntil.current = Date.now() + 250;
+        });
       }
     };
     settleRaf.current = requestAnimationFrame(step);
@@ -132,7 +140,7 @@ export function MessageList() {
     winBuf.current = active;
     if (!tailOnly) setTailOnly(true);
     atBottom.current = true;
-    userScroll.current = false;
+    userUntil.current = 0;
   }
 
   // Keep the viewport anchored: stick to the bottom for live messages, but when
@@ -143,6 +151,11 @@ export function MessageList() {
     const switched = prevActive.current !== active;
     prevActive.current = active;
     const grew = el.scrollHeight - prevHeight.current;
+    const distNow = el.scrollHeight - el.scrollTop - el.clientHeight;
+    // After an append, dist grows by the new rows — subtract that to know
+    // whether we WERE at the bottom before this paint.
+    const wasAtBottom = atBottom.current || (distNow - Math.max(0, grew)) < 80;
+    if (wasAtBottom) atBottom.current = true;
     // Switching into a channel always jumps to the newest line (the last message),
     // even when it has unread — the "New messages" divider still renders as a marker
     // to scroll up to. Also follow the tail when already pinned to the bottom.
@@ -174,7 +187,7 @@ export function MessageList() {
     if (dist < 140) markReadHere();  // but count everything read across a wider band
     setShowJump(!atBottom.current && dist > 120);
     prevHeight.current = el.scrollHeight;
-  }, [count, lastId, effTailOnly, active, search, markReadHere]);
+  }, [count, lastId, lastGrow, effTailOnly, active, search, markReadHere]);
 
   // Returning to a backgrounded tab: the browser freezes rAF and can report stale
   // layout while messages keep arriving, so the follow-pin drifts. Re-pin to the
@@ -248,14 +261,16 @@ export function MessageList() {
       // Scrolled before the idle fill ran → render the full buffer now, so there's
       // real older history above rather than the tail's edge.
       if (effTailOnly) { growRef.current = true; setTailOnly(false); }
-      const fromUser = userScroll.current;
-      userScroll.current = false;
-      // Programmatic pin / growing content (join, Anope, bot lines) must not
-      // drop follow. Only a user gesture on this box can do that.
+      const fromUser = isUserScroll();
+      // Growth / pin writes fire scroll without a gesture. Never treat that as
+      // "user left the bottom" — or follow dies and new lines stay hidden.
       if (!fromUser) {
-        if (pinning.current) return;
-        const idleDist = el.scrollHeight - el.scrollTop - el.clientHeight;
-        if (atBottom.current && idleDist > 64) pinBottom(el);
+        if (pinning.current || Date.now() < holdFollowUntil.current) return;
+        const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+        if (dist < 64) atBottom.current = true;
+        if (dist < 140) markReadHere();
+        if (!effTailOnly && el.scrollTop < 60 && buffer && buffer.name !== SERVER && !isNoticeBuffer(buffer.name) && !histLoading && !histDone) loadMore(active);
+        setShowJump(!atBottom.current && dist > 120);
         return;
       }
       if (pinning.current) {
@@ -426,7 +441,11 @@ export function MessageList() {
   const waiting = joining || (histLoading && !rows.length);
   return (
     <div className={`messages ${isConsole ? 'messages--console' : ''}`} ref={ref} onScroll={onScroll}
-      onWheel={armUserScroll} onTouchMove={armUserScroll} onPointerDown={armScrollbar}
+      onWheel={() => armUser(200)}
+      onTouchStart={() => armUser(2000)}
+      onTouchEnd={() => armUser(700)}
+      onTouchCancel={() => armUser(700)}
+      onPointerDown={armScrollbar}
       role="log" aria-label={t('a11y.messages')}>
       {waiting && (
         <div className="msgload" role="status">
