@@ -25,7 +25,7 @@ const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomi
 // Plugin API contract version. Bumped on any change to the surface below so
 // plugins can feature-detect (e.g. `if (Orbit.apiVersion >= 6) orbit.server.hasCap(…)`).
 // Still experimental.
-const API_VERSION = 10;
+const API_VERSION = 11;
 
 const registered = new Map<string, OrbitPluginApi>();
 
@@ -114,6 +114,14 @@ export interface OrbitPluginApi {
   addSettingsSection: (opts: { label: string; icon?: string; render: () => ReactNode }) => () => void;
   /** Add a row/block inside the shared Settings → Modes hub (privacy modes, future plugins). */
   addSettingsMode: (opts: { render: () => ReactNode }) => () => void;
+  /** Add a section to Gérer le salon (left rail, next to native IRC admin). */
+  addChanAdminSection: (opts: {
+    label: string;
+    icon?: string;
+    desc?: string;
+    nav?: () => ReactNode;
+    render: () => ReactNode;
+  }) => () => void;
   /** Decorate every rendered message inline (e.g. a badge appended after the text). */
   addMessageDecorator: (render: (m: MessageInfo) => ReactNode) => () => void;
   /** Add a button to every message's hover action toolbar (next to reply/react). */
@@ -209,6 +217,10 @@ function makeApi(name: string): OrbitPluginApi {
       usePluginRegistry.getState().addUi('settings_section', name, opts.render, { label: opts.label, icon: opts.icon }),
     addSettingsMode: (opts) =>
       usePluginRegistry.getState().addUi('settings_mode', name, opts.render),
+    addChanAdminSection: (opts) =>
+      usePluginRegistry.getState().addUi('chanadmin_section', name, opts.render, {
+        label: opts.label, icon: opts.icon, desc: opts.desc, nav: opts.nav,
+      }),
     addMessageDecorator: (render) => usePluginRegistry.getState().addDecorator(name, render),
     addMessageAction: (render) => usePluginRegistry.getState().addAction(name, render),
     addUserAction: (render) => usePluginRegistry.getState().addUserAction(name, render),

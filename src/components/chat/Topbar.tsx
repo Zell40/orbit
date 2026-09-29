@@ -45,6 +45,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const myPrefix = useActiveChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
   const myNick = useActiveChat((s) => s.nick);
+  const myAccount = useActiveChat((s) => s.account);
   const myUmodes = useActiveChat((s) => s.umodes);
   const serverName = useActiveChat((s) => s.serverName);
   // Unread outside the active buffer — badge the mobile hamburger so new mail is visible.
@@ -75,6 +76,8 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const plugAfterManage = sortByPluginOrder(plug.filter((u) => afterManageNames.has(u.plugin)), TOPBAR_AFTER_MANAGE);
   const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin) && !afterManageNames.has(u.plugin));
   const plugEnd = topbarItems.filter((u) => u.slot === 'topbar_end');
+  const hasChanAdminPlugin = topbarItems.some((u) => u.slot === 'chanadmin_section');
+  const showManage = isChannel && (amOp || (hasChanAdminPlugin && !!myAccount));
   const isServer = bname === SERVER;
   const isNotices = isNoticeBuffer(bname);
   const noticeNick = noticeBufferNick(bname);
@@ -130,7 +133,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {plugAfterNotify.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterNotify)}</span>}
       {plugRest.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugRest)}</span>}
       {isChannel && <PinMenu />}
-      {isChannel && amOp && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
+      {isChannel && showManage && <button className="topbar__search topbar__hide-mobile" title={t('topbar.manage')} aria-label={t('topbar.manage')} onClick={() => setModal('chanadmin')}><Icon name="sliders" size={19} /></button>}
       {plugAfterManage.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterManage)}</span>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
       {!isServer && !isNotices && !isChannel && bname && !isBouncerServiceNick(bname) && (
@@ -146,7 +149,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}><Icon name="close" size={18} /></button>
       )}
-      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} isNotices={isNotices} amOp={amOp} onSearch={() => setSearching(true)} />}
+      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} isNotices={isNotices} amOp={amOp} showManage={showManage} onSearch={() => setSearching(true)} />}
     </div>
   );
 }

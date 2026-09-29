@@ -268,6 +268,8 @@
       "modes": "Modes du salon",
       "subject": "Sujet",
       "manage": "Gérer {{chan}}",
+      "personal": "Gestion personnelle",
+      "personalDesc": "Modes, bans, sujet et accès IRC",
       "settings": "Réglages",
       "by": "par {{by}}",
       "members": "Membres",

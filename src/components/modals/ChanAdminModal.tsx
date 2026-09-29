@@ -21,6 +21,10 @@ import {
 import { getConfig } from '@/core/config';
 import type { Member } from '@/core/irc/types';
 import { Modal } from './Modal';
+import { Icon } from '../Icon';
+import { PluginBoundary } from '../PluginBoundary';
+import { usePluginRegistry } from '@/modules/registry';
+import { bus } from '@/modules/bus';
 
 function LockTag({ kind }: { kind: 'services' | 'overview' }) {
   const { t } = useTranslation();
@@ -529,6 +533,24 @@ export function ChanAdminModal() {
   const applyLimit = () => { const n = parseInt(limitVal, 10); if (n > 0) setChannelModeParam(chan, 'l', true, String(n)); };
   const clearLimit = () => { setChannelModeParam(chan, 'l', false); setLimitVal(''); };
 
+  const pluginUi = usePluginRegistry((s) => s.ui);
+  const pluginSections = pluginUi.filter((u) => u.slot === 'chanadmin_section');
+  const [section, setSection] = useState('personal');
+  const [drilled, setDrilled] = useState(false);
+  const close = () => setModal('');
+
+  useEffect(() => {
+    bus.emit('orbit:panel', 'chanadmin');
+  }, []);
+
+  useEffect(() => {
+    if (!pluginSections.length) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pluginSections.length]);
+
   const tabBtn = (id: Tab, label: string) => (
     <button type="button" role="tab" aria-selected={tab === id}
       className={`ca-tab${tab === id ? ' is-on' : ''}`} onClick={() => setTab(id)}>
@@ -536,9 +558,7 @@ export function ChanAdminModal() {
     </button>
   );
 
-  return (
-    <>
-    <Modal title={t('modals.chanadmin.manage', { chan })} wide onClose={() => setModal('')}>
+  const personal = (
       <div className="ca-layout">
         <div className="ca-sec ca-topicrow">
           <h4 className="ca-h">{t('modals.chanadmin.subject')}</h4>
@@ -879,8 +899,74 @@ export function ChanAdminModal() {
 
         </div>
       </div>
-    </Modal>
-    {lockTip ? <LockTipBubble text={lockTip.text} x={lockTip.x} y={lockTip.y} /> : null}
+  );
+
+  const lock = lockTip ? <LockTipBubble text={lockTip.text} x={lockTip.x} y={lockTip.y} /> : null;
+  if (!pluginSections.length) {
+    return (
+      <>
+        <Modal title={t('modals.chanadmin.manage', { chan })} wide onClose={close}>{personal}</Modal>
+        {lock}
+      </>
+    );
+  }
+
+  const curPlugin = pluginSections.find((p) => p.id === section);
+  return (
+    <>
+      <div className="settings-backdrop" onClick={close}>
+        <div className={`settings settings--chanadmin${drilled ? ' is-drilled' : ''}`} onClick={(e) => e.stopPropagation()}>
+          <aside className="settings__nav">
+            <div className="settings__brand">
+              <span className="settings__brand-title">{t('modals.chanadmin.manage', { chan })}</span>
+              <button type="button" className="settings__close" onClick={close} aria-label={t('modals.closeButton')}>✕</button>
+            </div>
+            <nav className="settings__navlist">
+              <button type="button" className={`settings__navitem${section === 'personal' ? ' is-on' : ''}`}
+                onClick={() => { setSection('personal'); setDrilled(true); }}>
+                <span className="settings__navic" aria-hidden><Icon name="sliders" size={18} /></span>
+                <span className="settings__navtxt">
+                  <span className="settings__navlabel">{t('modals.chanadmin.personal')}</span>
+                  <span className="settings__navdesc">{t('modals.chanadmin.personalDesc')}</span>
+                </span>
+                <span className="settings__navchev" aria-hidden>›</span>
+              </button>
+              {pluginSections.map((ps) => (
+                <button type="button" key={ps.id} className={`settings__navitem${section === ps.id ? ' is-on' : ''}`}
+                  onClick={() => { setSection(ps.id); setDrilled(true); }}>
+                  <span className="settings__navic" aria-hidden>{ps.meta?.icon ?? '🧩'}</span>
+                  {ps.meta?.nav
+                    ? <PluginBoundary render={ps.meta.nav} label="chanadmin_nav" />
+                    : (
+                      <span className="settings__navtxt">
+                        <span className="settings__navlabel">{ps.meta?.label ?? ps.plugin}</span>
+                        {ps.meta?.desc ? <span className="settings__navdesc">{ps.meta.desc}</span> : null}
+                      </span>
+                    )}
+                  <span className="settings__navchev" aria-hidden>›</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
+          <section className="settings__pane">
+            <header className="settings__top">
+              <button type="button" className="settings__back" onClick={() => setDrilled(false)} aria-label={t('settings.misc.back')}>‹</button>
+              <span className="settings__top-ic" aria-hidden>
+                {section === 'personal' ? <Icon name="sliders" size={18} /> : (curPlugin?.meta?.icon ?? '🧩')}
+              </span>
+              <h3 className="settings__top-title">
+                {section === 'personal' ? t('modals.chanadmin.personal') : (curPlugin?.meta?.label ?? '')}
+              </h3>
+              <button type="button" className="settings__close settings__close--pane" onClick={close} aria-label={t('modals.closeButton')}>✕</button>
+            </header>
+            <div className={`settings__content${section !== 'personal' ? ' settings__content--plugin' : ''}`}>
+              {section === 'personal' ? personal : null}
+              {curPlugin ? <PluginBoundary render={curPlugin.render} label="chanadmin_section" /> : null}
+            </div>
+          </section>
+        </div>
+      </div>
+      {lock}
     </>
   );
 }

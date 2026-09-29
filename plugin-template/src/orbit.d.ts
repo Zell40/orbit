@@ -33,6 +33,13 @@ export interface OrbitPluginApi {
   addUi(slot: 'composer_button', render: () => React.ReactNode): () => void;
   addSettingsSection(opts: { label: string; icon?: string; render: () => React.ReactNode }): () => void;
   addSettingsMode(opts: { render: () => React.ReactNode }): () => void;
+  addChanAdminSection(opts: {
+    label: string;
+    icon?: string;
+    desc?: string;
+    nav?: () => React.ReactNode;
+    render: () => React.ReactNode;
+  }): () => void;
   log(...args: unknown[]): void;
 }
 
