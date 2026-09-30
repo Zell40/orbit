@@ -702,6 +702,8 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .imgcard__label { font-weight: 700; }
 .imgcard__act { margin-left: 0; border: 0; background: none; color: var(--accent-d); font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; padding: .1rem .35rem; border-radius: 6px; text-decoration: none; transition: background .12s; }
 .imgcard__act:hover { background: var(--accent-soft); }
+.imgcard__del { color: var(--danger, #c2410c); margin-left: auto; }
+.imgcard--gone { opacity: .72; }
 .imgcard__toggle { margin-left: auto; color: var(--muted); }
 .imgcard__toggle:hover { background: var(--bg-soft-2); color: var(--ink); }
 .imgcard__thumb { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; width: 100%; border-radius: 12px; overflow: hidden; line-height: 0; }
@@ -2834,10 +2836,19 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
    click to reveal the raw edit input. */
 .ca-topic { display: flex; align-items: center; gap: .5rem; width: 100%; text-align: left; padding: .7rem .9rem; border: 1px solid var(--border-2); border-radius: 10px; background: var(--bg-soft); color: var(--ink); font: inherit; font-size: .95rem; line-height: 1.4; cursor: text; transition: border-color .15s; }
 .ca-topic:hover { border-color: var(--accent); }
+.ca-topic.is-locked { cursor: default; }
+.ca-topic.is-locked:hover { border-color: var(--border-2); }
 .ca-topic__txt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .ca-topic__empty { color: var(--faint); }
 .ca-topic__pen { flex: none; color: var(--muted); font-size: .9rem; }
 .ca-topic:hover .ca-topic__pen { color: var(--accent); }
+.ca-topic__lock { flex: none; display: inline-flex; color: var(--muted); cursor: help; }
+.ca-topic.is-locked .ca-topic__lock:hover { color: var(--accent-d); }
+.ca-topic-edit { position: relative; flex-wrap: wrap; }
+.ca-topic-edit .modal__input { flex: 1; min-width: 8rem; }
+.ca-topic-emoji { flex: none; width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); cursor: pointer; font-size: 1.1rem; }
+.ca-topic-emoji.is-on, .ca-topic-emoji:hover { background: var(--accent-soft); border-color: var(--accent); }
+.ca-topic-emojipop { bottom: calc(100% + 6px); right: 0; left: auto; }
 /* Channel stats header */
 .ca-stats { display: flex; gap: .5rem; margin: .1rem 0 .2rem; flex-wrap: wrap; }
 .ca-stat { flex: 1 1 5rem; min-width: 5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; padding: .55rem .5rem; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg-soft); text-align: center; }

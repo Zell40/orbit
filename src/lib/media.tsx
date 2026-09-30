@@ -3,6 +3,9 @@
 // the IRC formatter's linkify() renders these for recognised URLs.
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useActiveChat } from '@/core/networks';
+import { isPseudoBuffer } from '@/core/store/context';
+import { hostedFileName } from '@/core/store/upload';
 
 export const isImageUrl = (u: string) => /\.(png|jpe?g|gif|webp)(\?|#|$)/i.test(u);
 export const isAudioUrl = (u: string) => /\.(opus|ogg|mp3|m4a|wav|weba)(\?|#|$)/i.test(u)
@@ -28,7 +31,22 @@ export function ImageAttachment({ url, defaultShown = false }: { url: string; de
   const { t } = useTranslation();
   const [shown, setShown] = useState(defaultShown);
   const [zoom, setZoom] = useState(false);
+  const [gone, setGone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const inQuery = useActiveChat((s) => {
+    const b = s.buffers[s.active];
+    return !!b && !b.isChannel && !isPseudoBuffer(b.name);
+  });
+  const deleteHostedFile = useActiveChat((s) => s.deleteHostedFile);
+  const canDelete = inQuery && shown && !gone && !!hostedFileName(url);
   const ref = useRef<HTMLDivElement>(null);
+  const removeFile = async () => {
+    if (busy || !canDelete) return;
+    setBusy(true);
+    const ok = await deleteHostedFile(url);
+    setBusy(false);
+    if (ok) { setGone(true); setZoom(false); setShown(false); }
+  };
   // Keep the timeline pinned to the bottom when an image grows the content,
   // but only if the user was already near the bottom (don't yank history readers).
   // Deferred to the next frame so the new image height is laid out first
@@ -45,6 +63,16 @@ export function ImageAttachment({ url, defaultShown = false }: { url: string; de
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [zoom]);
+  if (gone) {
+    return (
+      <div className="imgcard imgcard--gone" ref={ref}>
+        <div className="imgcard__bar">
+          <span className="imgcard__ic">🖼️</span>
+          <span className="imgcard__label">{t('media.deleted')}</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="imgcard" ref={ref}>
       <div className="imgcard__bar">
@@ -54,6 +82,10 @@ export function ImageAttachment({ url, defaultShown = false }: { url: string; de
         <button className="imgcard__act imgcard__toggle" onClick={() => { setShown((s) => !s); snapIfStuck(); }}>
           {shown ? t('media.hide') : t('media.show')}
         </button>
+        {canDelete && (
+          <button className="imgcard__act imgcard__del" disabled={busy} onClick={removeFile}
+            title={t('media.delete')} aria-label={t('media.delete')}>{t('media.delete')}</button>
+        )}
       </div>
       {shown && (
         <button className="imgcard__thumb" onClick={() => setZoom(true)} title={t('media.enlarge')}>
@@ -64,6 +96,11 @@ export function ImageAttachment({ url, defaultShown = false }: { url: string; de
         <div className="lightbox" onClick={() => setZoom(false)}>
           <img className="lightbox__img" src={url} alt={t('media.sharedImage')} onClick={(e) => e.stopPropagation()} />
           <a className="lightbox__open" href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{t('media.openOriginal')}</a>
+          {canDelete && (
+            <button className="lightbox__open" disabled={busy} onClick={(e) => { e.stopPropagation(); void removeFile(); }}>
+              {t('media.delete')}
+            </button>
+          )}
           <button className="lightbox__x" onClick={() => setZoom(false)} aria-label={t('modals.closeButton')}>✕</button>
         </div>
       )}

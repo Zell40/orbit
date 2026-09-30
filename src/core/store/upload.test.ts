@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { makeUpload } from './upload';
+import { makeUpload, hostedFileName, uploadTtlChoices } from './upload';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
 
@@ -20,8 +20,8 @@ function setup() {
     addMessage: (name: string) => { added.push({ name }); },
     sysLine: (name: string, text: string) => { lines.push({ name, text }); },
   } as unknown as StoreHelpers;
-  const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers } as Parameters<typeof makeUpload>[0]);
-  return { uploadImage, uploadAudio, client, added, lines, filehost };
+  const { uploadImage, uploadAudio, deleteHostedFile } = makeUpload({ get, filehost, helpers } as Parameters<typeof makeUpload>[0]);
+  return { uploadImage, uploadAudio, deleteHostedFile, client, added, lines, filehost };
 }
 
 const okJson = (body: unknown, status = 200) =>
@@ -82,5 +82,27 @@ describe('upload', () => {
     filehost.resolve!('tok');
     await p;
     expect(client.calls.some(([n, a]) => n === 'action' && String(a[1]).includes('v.webm'))).toBe(true);
+  });
+
+  it('offers a 1-month retention choice', () => {
+    expect(uploadTtlChoices()).toContain(720);
+  });
+
+  it('parses a filehost image url', () => {
+    expect(hostedFileName('https://h/files/aabbccddeeff00112233445566778899.png')).toBe('aabbccddeeff00112233445566778899.png');
+    expect(hostedFileName('https://h/other/pic.png')).toBeNull();
+  });
+
+  it('deletes a hosted file with a FILEHOST token', async () => {
+    const { deleteHostedFile, client, filehost } = setup();
+    const fetchMock = okJson({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const p = deleteHostedFile('https://h/files/aabbccddeeff00112233445566778899.png');
+    filehost.resolve!('tokdel');
+    await expect(p).resolves.toBe(true);
+    expect(client.calls).toEqual([['send', ['FILEHOST']]]);
+    const body = fetchMock.mock.calls[0]?.[1]?.body as FormData;
+    expect(body.get('action')).toBe('delete');
+    expect(body.get('file')).toBe('aabbccddeeff00112233445566778899.png');
   });
 });

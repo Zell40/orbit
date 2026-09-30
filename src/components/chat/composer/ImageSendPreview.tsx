@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { uploadTtlChoices, resolveUploadTtlHours } from '@/core/store/upload';
+import { uploadTtlChoices, resolveUploadTtlHours, uploadTtlLabel } from '@/core/store/upload';
 
 export function ImageSendPreview({
   file,
@@ -38,7 +38,7 @@ export function ImageSendPreview({
               className={`imgttl__chip ${h === selected ? 'is-on' : ''}`}
               aria-pressed={h === selected}
               onClick={() => onTtl(h)}>
-              {h % 24 === 0 && h >= 24 ? t('composer.uploadTtlDays', { n: h / 24 }) : t('composer.uploadTtlHours', { n: h })}
+              {uploadTtlLabel(h, t)}
             </button>
           ))}
         </div>

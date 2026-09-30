@@ -33,18 +33,18 @@ export function ExploreModal() {
     const n = name.trim();
     if (!n) return;
     const chan = n.startsWith('#') || n.startsWith('&') ? n : '#' + n;
-    client?.join(chan); setActive(chan); setModal('');
+    client?.join(chan); setActive(chan);
   }
 
   return (
-    <Modal title={t('modals.join.title')} onClose={() => setModal('')} wide>
+    <Modal title={t('modals.join.title')} onClose={() => setModal('')} wide autoFocus={false}>
       <div className="explore">
         <div className="explore-bar">
           <div className="explore-search">
             <span className="explore-search__icon"><Icon name="search" size={15} /></span>
             <input name="channel-search" type="search" autoComplete="off" placeholder={t('modals.join.search')} value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && q.trim()) join(q); }} autoFocus />
+              onKeyDown={(e) => { if (e.key === 'Enter' && q.trim()) join(q); }} />
             {q && <button className="explore-search__clear" onClick={() => setQ('')} aria-label={t('topbar.closeSearch')}>✕</button>}
           </div>
           <button className={`explore-refresh ${loading ? 'is-spin' : ''}`} onClick={refresh}

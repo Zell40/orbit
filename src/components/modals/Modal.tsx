@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 // Shared modal shell: backdrop, centered card, title bar + close, Escape-to-close.
 // The specific dialogs (Join/Explore/Friends/…) render their body as children.
-export function Modal({ title, onClose, children, wide, stacked }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; stacked?: boolean }) {
+export function Modal({ title, onClose, children, wide, stacked, autoFocus = true }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; stacked?: boolean; autoFocus?: boolean }) {
   const { t } = useTranslation();
   const cardRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -16,9 +16,15 @@ export function Modal({ title, onClose, children, wide, stacked }: { title: stri
       : [];
     // Prefer the first field, not the header ✕ — otherwise each parent re-render
     // (new onClose identity) stole focus back to the close button while typing.
-    const field = card?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, select, [autofocus]');
-    const firstContent = tabbables().find((el) => !el.classList.contains('modal__x'));
-    (field || firstContent || tabbables()[0] || card)?.focus();
+    // Explore must not steal focus onto the filter — a phone keyboard would
+    // cover most of the room list. Other dialogs still land on the first field.
+    if (autoFocus) {
+      const field = card?.querySelector<HTMLElement>('input:not([type="hidden"]), textarea, select, [autofocus]');
+      const firstContent = tabbables().find((el) => !el.classList.contains('modal__x'));
+      (field || firstContent || tabbables()[0] || card)?.focus();
+    } else {
+      card?.focus();
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { onCloseRef.current(); return; }
       if (e.key !== 'Tab') return;

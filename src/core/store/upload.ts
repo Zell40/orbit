@@ -22,13 +22,19 @@ interface UploadDeps {
 }
 
 const MAX_BYTES = 16 * 1024 * 1024;
-const TTL_MAX_HOURS = 168;
+const TTL_MAX_HOURS = 744; // 31 days — 720 h = 1 month is a valid picker choice
+
+export function uploadTtlLabel(h: number, t: (key: string, opts?: { n: number }) => string): string {
+  if (h >= 720 && h % 720 === 0) return t('composer.uploadTtlMonths', { n: h / 720 });
+  if (h % 24 === 0 && h >= 24) return t('composer.uploadTtlDays', { n: h / 24 });
+  return t('composer.uploadTtlHours', { n: h });
+}
 
 export function uploadTtlChoices(): number[] {
   const cfg = getConfig().filehost;
   const raw = cfg?.retentionChoices;
   const def = cfg?.retentionHours ?? 24;
-  const list = Array.isArray(raw) ? raw : [1, 6, 24, 72];
+  const list = Array.isArray(raw) ? raw : [1, 6, 24, 72, 720];
   const clean = [...new Set(list.map((n) => Math.round(Number(n)))
     .filter((n) => n >= 1 && n <= TTL_MAX_HOURS))].sort((a, b) => a - b);
   if (def >= 1 && def <= TTL_MAX_HOURS && !clean.includes(def)) clean.push(def);
@@ -51,16 +57,30 @@ function uploadUrl(token: string): string {
   return `${path}?token=${encodeURIComponent(token)}`;
 }
 
+export function hostedFileName(url: string): string | null {
+  try {
+    const path = new URL(url, typeof location !== 'undefined' ? location.origin : 'https://local').pathname;
+    const name = path.split('/').pop() || '';
+    return /^[a-f0-9]{32}\.[A-Za-z0-9]+$/i.test(name) ? name : null;
+  } catch {
+    return null;
+  }
+}
+
 export function makeUpload({ get, filehost, helpers }: UploadDeps) {
   const { addMessage, sysLine } = helpers;
 
-  // Request a one-time FILEHOST token, POST the file, return its public URL.
-  async function uploadFile(client: IrcClient, file: File): Promise<string> {
-    const token = await new Promise<string>((resolve, reject) => {
+  function requestToken(client: IrcClient): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
       filehost.resolve = resolve; filehost.reject = reject;
       filehost.timer = setTimeout(() => { filehost.resolve = null; filehost.reject = null; reject(new Error('timeout')); }, 10000);
       client.send('FILEHOST');
     });
+  }
+
+  // Request a one-time FILEHOST token, POST the file, return its public URL.
+  async function uploadFile(client: IrcClient, file: File): Promise<string> {
+    const token = await requestToken(client);
     const fd = new FormData();
     fd.append('file', file);
     fd.append('ttl_hours', String(resolveUploadTtlHours(get().prefs?.uploadTtlHours)));
@@ -128,5 +148,24 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     } catch (e) { fail(active, e); }
   }
 
-  return { uploadImage, uploadAudio };
+  async function deleteHostedFile(url: string): Promise<boolean> {
+    const { client } = get();
+    const name = hostedFileName(url);
+    if (!client || !name) return false;
+    try {
+      const token = await requestToken(client);
+      const fd = new FormData();
+      fd.append('action', 'delete');
+      fd.append('file', name);
+      let res = await fetchTimeout(uploadUrl(token), { method: 'POST', body: fd }, 15000);
+      if (res.status === 404 && uploadUrl(token).startsWith('/app/')) {
+        res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 15000);
+      }
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  return { uploadImage, uploadAudio, deleteHostedFile };
 }

@@ -163,6 +163,7 @@ export interface ChatState {
   redact: (msgid: string) => void;
   uploadImage: (file: File) => Promise<void>;
   uploadAudio: (blob: Blob, ext: string) => Promise<void>;
+  deleteHostedFile: (url: string) => Promise<boolean>;
   pushSystem: (buffer: string, text: string) => void;
   /** Local-only line in a buffer (plugins) — does not send IRC. Default kind: privmsg.
    *  Pass `asSelf=true` to show as the local user's own bubble (e.g. pending +g DM). */
@@ -221,7 +222,7 @@ export function createChatStore(ns = '') {
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns, mlockAsked });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
-  const { uploadImage, uploadAudio } = makeUpload({ get, filehost, helpers });
+  const { uploadImage, uploadAudio, deleteHostedFile } = makeUpload({ get, filehost, helpers });
   const { accountRegister, accountVerify, accountResend, accountChangePassword, accountChallengeComplete, resetReg } = makeAccount({ get, set });
 
   return {
@@ -922,6 +923,7 @@ export function createChatStore(ns = '') {
 
     uploadImage,
     uploadAudio,
+    deleteHostedFile,
 
     // Surface a one-off system line in a buffer (used by UI for local hints).
     pushSystem(buffer, text) { sysLine(buffer || get().active, text, 'system'); },
