@@ -181,6 +181,9 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
           return { ...b, messages: msgs };
         }
       }
+      // History JOIN/PART (old server-time) must not land on the salon timeline.
+      if (b.isChannel && (m.kind === 'join' || m.kind === 'part') && b.sessionJoinedAt
+        && m.ts < b.sessionJoinedAt - 2500) return b;
       // Idempotent: the exact same message id already present → ignore.
       if (m.id && b.messages.some((x) => x.id === m.id)) return b;
       // Live JOIN/TOPIC vs CHATHISTORY event-playback: same event, different id

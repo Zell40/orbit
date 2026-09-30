@@ -38,7 +38,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         if (self) closedChannels.delete(canon(ch)); // we're (re)joining → allow the buffer again
         ensureBuffer(ch);
         if (self) {
-          patchBuffer(ch, (b) => ({ ...b, joined: true, joinDenied: undefined }));
+          patchBuffer(ch, (b) => ({ ...b, joined: true, joinDenied: undefined, sessionJoinedAt: tsOf(msg) || Date.now() }));
           const want = (getExpectedBootChannels()[0] || '').trim();
           const denied = get().buffers[get().active]?.joinDenied;
           // Redirect ban (+b d:#dest:…): we do land in the destination, but focus
@@ -71,7 +71,11 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         if (self && joinReal) get().client?.setRealname(joinReal);
         // ZNC attach: no SASL 900 — our own extended-join carries the NickServ account.
         if (self && joinAcct) set({ account: joinAcct });
-        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg), tsOf(msg));
+        const joinTs = tsOf(msg);
+        const joinedAt = get().buffers[canon(ch)]?.sessionJoinedAt;
+        if (!inQuietBatch(msg) && !(joinedAt && joinTs < joinedAt - 2500)) {
+          sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg), joinTs);
+        }
         return true;
       }
       case 'PART': {
@@ -84,7 +88,11 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           // chathistory/typing on a channel we left (CHATHISTORY would FAIL).
           return { ...b, members, joined: selfPart ? false : b.joined };
         });
-        if (!inQuietBatch(msg)) sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg), tsOf(msg));
+        const partTs = tsOf(msg);
+        const partSince = get().buffers[canon(ch)]?.sessionJoinedAt;
+        if (!inQuietBatch(msg) && !(partSince && partTs < partSince - 2500)) {
+          sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg), partTs);
+        }
         return true;
       }
       case 'KICK': {

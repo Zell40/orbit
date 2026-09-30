@@ -116,6 +116,11 @@ export interface Buffer {
   createdAt?: number;    // channel creation unix time (RPL_CREATIONTIME 329)
   /** Channel homepage (RPL_CHANNEL_URL 328). Kept so resume/rejoin does not re-spam the card. */
   url?: string;
+  /** When we joined this session — older JOIN/PART (history replay) stay off the timeline. */
+  sessionJoinedAt?: number;
+  csFounder?: string;
+  csDescription?: string;
+  csOfficial?: boolean;
   topicBy?: string;      // who last set the topic (RPL_TOPICWHOTIME 333 / live TOPIC)
   topicAt?: number;      // when the topic was last set (unix ms)
   unread: number;

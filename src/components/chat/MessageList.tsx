@@ -342,6 +342,9 @@ export function MessageList() {
   for (const m of shown) {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
     if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
+    // CHATHISTORY / +H replay of JOIN/PART: hide anything older than this session.
+    if (!isConsole && (m.kind === 'join' || m.kind === 'part') && buffer.sessionJoinedAt
+      && m.ts < buffer.sessionJoinedAt - 2500) continue;
     if (hideModes && !isConsole && m.kind === 'mode') continue;
     const day = dayIndex(m.ts);
     if (day !== lastDay) { flushCallouts(); rows.push(<div key={`d-${rowKey(m)}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }

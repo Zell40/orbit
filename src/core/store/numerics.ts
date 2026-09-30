@@ -240,6 +240,8 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
           get().client?.send(`MODE ${chan}`);
           // Join is complete here — CAP is ACK'd even if the server autojoin JOIN
           // raced ahead of draft/chathistory (or arrived without a self-JOIN).
+          ensureBuffer(chan);
+          patchBuffer(chan, (b) => (b.sessionJoinedAt ? b : { ...b, sessionJoinedAt: Date.now() }));
           prefetchLatestHistory(get, historyAsked, chan);
         }
         return true;

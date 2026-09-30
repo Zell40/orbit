@@ -13,6 +13,7 @@ import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, isStatusService, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
+import { parseChanServInfo } from './chanserv-info';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
@@ -58,6 +59,24 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       else active = true;
     }
     return active;
+  }
+
+  let csInfoChan = '';
+  let csInfoAt = 0;
+
+  function applyChanServPublic(text: string): void {
+    const parsed = parseChanServInfo(text);
+    if (parsed.chan) { csInfoChan = parsed.chan; csInfoAt = Date.now(); }
+    const chan = parsed.chan || (Date.now() - csInfoAt < 12_000 ? csInfoChan : '');
+    if (!chan || !isChannelName(chan)) return;
+    if (!parsed.founder && !parsed.description && parsed.official === undefined) return;
+    ensureBuffer(chan);
+    patchBuffer(chan, (b) => ({
+      ...b,
+      ...(parsed.founder ? { csFounder: parsed.founder } : {}),
+      ...(parsed.description ? { csDescription: parsed.description } : {}),
+      ...(parsed.official !== undefined ? { csOfficial: parsed.official } : {}),
+    }));
   }
 
   function applyChanServMlock(text: string): void {
@@ -131,6 +150,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     // ChanServ INFO/MODE (MLOCK) — capture lock letters before plugin filters hide the line.
     if (msg.command === 'NOTICE' && /^chanserv$/i.test(msg.nick || '')) {
       applyChanServMlock(text);
+      applyChanServPublic(text);
       if (mlockQueryActive()) return true;
     }
     // Plugin message filters: a plugin can hide a message from the chat

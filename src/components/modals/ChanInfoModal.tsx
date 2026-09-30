@@ -7,6 +7,7 @@ import { getConfig } from '@/core/config';
 import { previewableUrls, LinkPreview } from '@/lib/link-preview';
 import { stripFormatting } from '@/core/store/text';
 import { bus } from '@/modules/bus';
+import { fetchChanServPublic } from '@/core/store/chanserv-info';
 import { Icon } from '../Icon';
 import { Modal } from './Modal';
 
@@ -41,15 +42,24 @@ export function ChanInfoModal() {
   const topicFull = useActiveChat((s) => s.prefs.topicSetterFull);
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const locale = i18n.language;
+  const account = useActiveChat((s) => s.account);
+  const nick = useActiveChat((s) => s.nick);
   const [cs, setCs] = useState<CsInfo>({ founder: '', description: '', official: false });
 
   useEffect(() => {
     if (!buffer?.name) return;
+    const merge = (next: Partial<CsInfo>) => {
+      setCs((prev) => ({
+        founder: next.founder || prev.founder,
+        description: next.description || prev.description,
+        official: !!(next.official || prev.official),
+      }));
+    };
     const onInfo = (...args: unknown[]) => {
       const data = args[0] as { chan?: string; founder?: string; description?: string; official?: boolean } | undefined;
       if (!data || typeof data !== 'object') return;
       if (data.chan && !sameChan(data.chan, buffer.name)) return;
-      setCs({
+      merge({
         founder: String(data.founder || '').trim(),
         description: String(data.description || '').trim(),
         official: !!data.official,
@@ -57,8 +67,25 @@ export function ChanInfoModal() {
     };
     const off = bus.on('chanserv:chaninfo', onInfo);
     bus.emit('orbit:panel', 'chaninfo');
-    return off;
-  }, [buffer?.name]);
+    merge({
+      founder: buffer.csFounder || '',
+      description: buffer.csDescription || '',
+      official: !!buffer.csOfficial,
+    });
+    let cancelled = false;
+    if (account) {
+      void fetchChanServPublic(account, nick, buffer.name).then((info) => {
+        if (cancelled) return;
+        if (info.chan && !sameChan(info.chan, buffer.name)) return;
+        merge({
+          founder: info.founder || '',
+          description: info.description || '',
+          official: !!info.official,
+        });
+      });
+    }
+    return () => { cancelled = true; off(); };
+  }, [buffer?.name, buffer?.csFounder, buffer?.csDescription, buffer?.csOfficial, account, nick]);
 
   if (!buffer || !buffer.isChannel) return null;
 
