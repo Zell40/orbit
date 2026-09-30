@@ -16,7 +16,7 @@ const TOPBAR_LEAD = ['invite', 'orbit-clock'] as const;
 /** Video conference + callerid sit after search + notifications. */
 const TOPBAR_AFTER_NOTIFY = ['orbit-conference', 'orbit-callerid'] as const;
 /** ChanServ sits to the right of room settings (sliders), before the member pill. */
-const TOPBAR_AFTER_MANAGE = ['orbit-chanserv', 'orbit-ircop'] as const;
+const TOPBAR_AFTER_MANAGE = ['orbit-chanserv'] as const;
 
 function sortByPluginOrder(items: PluginUi[], order: readonly string[]) {
   const rank = (p: string) => {
@@ -45,7 +45,6 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const myPrefix = useActiveChat((s) => { const b = s.buffers[s.active]; const m = b?.members[s.nick]; return m?.prefixes || m?.prefix || ''; });
   const amOp = /[~&@!%]/.test(myPrefix);
   const myNick = useActiveChat((s) => s.nick);
-  const myAccount = useActiveChat((s) => s.account);
   const myUmodes = useActiveChat((s) => s.umodes);
   const serverName = useActiveChat((s) => s.serverName);
   // Unread outside the active buffer — badge the mobile hamburger so new mail is visible.
@@ -77,8 +76,8 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin) && !afterManageNames.has(u.plugin));
   const plugEnd = topbarItems.filter((u) => u.slot === 'topbar_end');
   const manageBadges = topbarItems.filter((u) => u.slot === 'chanadmin_badge');
-  const hasChanAdminPlugin = topbarItems.some((u) => u.slot === 'chanadmin_section');
-  const showManage = isChannel && (amOp || (hasChanAdminPlugin && !!myAccount));
+  const showManage = isChannel && amOp;
+  const showInfo = isChannel && !amOp;
   const isServer = bname === SERVER;
   const isNotices = isNoticeBuffer(bname);
   const noticeNick = noticeBufferNick(bname);
@@ -140,6 +139,11 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           {manageBadges.map((u) => <PluginBoundary key={u.id} render={u.render} label="chanadmin_badge" />)}
         </button>
       )}
+      {showInfo && (
+        <button className="topbar__search topbar__hide-mobile topbar__manage" title={t('topbar.channelInfo')} aria-label={t('topbar.channelInfo')} onClick={() => setModal('chaninfo')}>
+          <Icon name="info" size={19} />
+        </button>
+      )}
       {plugAfterManage.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterManage)}</span>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
       {!isServer && !isNotices && !isChannel && bname && !isBouncerServiceNick(bname) && (
@@ -155,7 +159,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           title={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}
           aria-label={isChannel ? t('sidebar.leaveRoom') : t('sidebar.closeConversation')}><Icon name="close" size={18} /></button>
       )}
-      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} isNotices={isNotices} amOp={amOp} showManage={showManage} onSearch={() => setSearching(true)} />}
+      {!isServer && <TopbarMore bname={bname} isChannel={isChannel} isNotices={isNotices} amOp={amOp} showManage={showManage} showInfo={showInfo} onSearch={() => setSearching(true)} />}
     </div>
   );
 }

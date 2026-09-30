@@ -43,6 +43,7 @@
     "search": "Pesquisar",
     "members": "Ver membros",
     "manage": "Gerenciar canal",
+    "channelInfo": "Informações do canal",
     "modes": "Modos do canal",
     "notifications": "Notificações",
     "closeSearch": "Fechar pesquisa",
@@ -195,6 +196,11 @@
       "dm": "Mensagem direta",
       "profile": "Perfil",
       "remove": "Remover"
+    },
+    "chaninfo": {
+      "title": "Informações · {{chan}}",
+      "noUrl": "Este canal não tem endereço web.",
+      "noTopic": "Sem tópico."
     },
     "chanadmin": {
       "title": "Gerenciar canal",

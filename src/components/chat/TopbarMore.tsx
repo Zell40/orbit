@@ -10,8 +10,8 @@ import { PluginBoundary } from '../PluginBoundary';
 // can't hold every button, so search / manage / leave collapse in here; the notify
 // and pin buttons stay inline because their glyph carries state (mute, pin count).
 // Plugins may add `topbar_more_item` rows (e.g. conference on mobile).
-export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, onSearch }:
-  { bname: string; isChannel: boolean; isNotices?: boolean; amOp: boolean; showManage?: boolean; onSearch: () => void }) {
+export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, showInfo, onSearch }:
+  { bname: string; isChannel: boolean; isNotices?: boolean; amOp: boolean; showManage?: boolean; showInfo?: boolean; onSearch: () => void }) {
   const { t } = useTranslation();
   const setModal = useActiveChat((s) => s.setModal);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
@@ -21,7 +21,7 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, onSe
   const pluginUi = usePluginRegistry((s) => s.ui);
   const morePlugins = pluginUi.filter((u) => u.slot === 'topbar_more_item');
   const manageBadges = pluginUi.filter((u) => u.slot === 'chanadmin_badge');
-  const afterManageNames = new Set(['orbit-chanserv', 'orbit-ircop']);
+  const afterManageNames = new Set(['orbit-chanserv']);
   const moreAfterManage = morePlugins.filter((u) => afterManageNames.has(u.plugin));
   const moreRest = morePlugins.filter((u) => !afterManageNames.has(u.plugin));
   const [open, setOpen] = useState(false);
@@ -68,6 +68,12 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, onSe
                 {manageBadges.map((u) => <PluginBoundary key={u.id} render={u.render} label="chanadmin_badge" />)}
               </span>
               <span className="nmenu__txt"><b>{t('topbar.manage')}</b></span>
+            </button>
+          )}
+          {isChannel && (showInfo ?? !amOp) && (
+            <button className="nmenu__item" role="menuitem" onClick={() => run(() => setModal('chaninfo'))}>
+              <span className="nmenu__ic" aria-hidden><Icon name="info" size={18} /></span>
+              <span className="nmenu__txt"><b>{t('topbar.channelInfo')}</b></span>
             </button>
           )}
           {moreAfterManage.map((u) => (

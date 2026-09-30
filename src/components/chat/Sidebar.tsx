@@ -33,6 +33,7 @@ function sortNavItems<T extends { plugin: string }>(items: T[]): T[] {
   const rank = (p: string) => {
     const n = p.toLowerCase();
     if (n === 'helpdesk' || n.includes('helpdesk')) return 90;
+    if (n.includes('ircop')) return 80;
     if (n.includes('radio')) return 10;
     if (n.includes('games')) return 20;
     return 50;

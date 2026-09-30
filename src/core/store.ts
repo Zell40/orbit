@@ -33,7 +33,7 @@ const filehost: { resolve: ((token: string) => void) | null; reject: ((err: Erro
 
 
 
-export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'report' | 'switcher' | 'shortcuts' | 'moderated';
+export type Modal = '' | 'join' | 'settings' | 'explore' | 'friends' | 'chanadmin' | 'chaninfo' | 'report' | 'switcher' | 'shortcuts' | 'moderated';
 export interface ChannelInfo { name: string; users: number; topic: string }
 export interface KickInfo {
   channel: string;

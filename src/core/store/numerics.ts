@@ -274,10 +274,15 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       }
       case '328': { // RPL_CHANNEL_URL / channel homepage
         const chan = msg.params[1];
-        const url = msg.params[2] || '';
+        const url = (msg.params[2] || '').trim();
         if (isChannelName(chan) && url) {
           ensureBuffer(chan);
-          sysLine(chan, url, 'url');
+          const buf = get().buffers[canon(chan)];
+          const already = buf?.url === url
+            || !!buf?.messages.some((m) => m.kind === 'url' && m.text === url);
+          patchBuffer(chan, (b) => (b.url === url ? b : { ...b, url }));
+          // First sighting only — reconnect / session resume re-sends 328.
+          if (!already) sysLine(chan, url, 'url');
         }
         return true;
       }

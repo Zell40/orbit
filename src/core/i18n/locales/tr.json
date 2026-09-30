@@ -43,6 +43,7 @@
     "search": "Ara",
     "members": "Üyeleri görüntüle",
     "manage": "Kanalı yönet",
+    "channelInfo": "Kanal bilgileri",
     "modes": "Kanal modları",
     "notifications": "Bildirimler",
     "closeSearch": "Aramayı kapat",
@@ -195,6 +196,11 @@
       "dm": "Özel mesaj",
       "profile": "Profil",
       "remove": "Kaldır"
+    },
+    "chaninfo": {
+      "title": "Bilgiler · {{chan}}",
+      "noUrl": "Bu kanalın web adresi yok.",
+      "noTopic": "Konu yok."
     },
     "chanadmin": {
       "title": "Kanalı yönet",

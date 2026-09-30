@@ -13,8 +13,8 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
   const server: string[] = [];
   const serverKind: string[] = [];
   let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
-  const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string }> =
-    (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string }>) || {};
+  const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string; url?: string }> =
+    (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string; url?: string }>) || {};
   const state = {
     client: { numerics: new Numerics(), whowas: (_nk: string) => {}, setRealname: () => {} },
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
@@ -405,5 +405,22 @@ describe('store numerics handler', () => {
     expect(sys).toEqual([]);
     expect(server).toHaveLength(1);
     expect(server[0]).toContain('⚠️');
+  });
+
+  it('328 stores the channel URL and posts it once', () => {
+    const { handleNumerics, state, sys } = setup();
+    expect(handleNumerics(mk('328', ['me', '#x', 'https://musique.example/']))).toBe(true);
+    expect(state.buffers['#x']?.url).toBe('https://musique.example/');
+    expect(sys.filter((l) => l.kind === 'url')).toHaveLength(1);
+    expect(handleNumerics(mk('328', ['me', '#x', 'https://musique.example/']))).toBe(true);
+    expect(sys.filter((l) => l.kind === 'url')).toHaveLength(1);
+  });
+
+  it('328 posts again when the channel URL changes', () => {
+    const { handleNumerics, sys } = setup({
+      buffers: { '#x': { name: '#x', joined: true, messages: [], url: 'https://old.example/' } },
+    });
+    expect(handleNumerics(mk('328', ['me', '#x', 'https://new.example/']))).toBe(true);
+    expect(sys.filter((l) => l.kind === 'url' && l.text === 'https://new.example/')).toHaveLength(1);
   });
 });

@@ -43,6 +43,7 @@
     "search": "Search",
     "members": "View members",
     "manage": "Manage channel",
+    "channelInfo": "Channel information",
     "modes": "Channel modes",
     "notifications": "Notifications",
     "closeSearch": "Close search",
@@ -250,6 +251,11 @@
       "sub": "You can't write in {{channel}}.",
       "body": "This channel is moderated. Only operators and voiced users can send messages. This is not a ban — ask an operator for voice if you need to speak.",
       "close": "Got it"
+    },
+    "chaninfo": {
+      "title": "Information · {{chan}}",
+      "noUrl": "This channel has no website address.",
+      "noTopic": "No topic."
     },
     "chanadmin": {
       "title": "Manage channel",

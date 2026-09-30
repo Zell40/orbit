@@ -43,6 +43,7 @@
     "search": "Rechercher",
     "members": "Voir les membres",
     "manage": "Gérer le salon",
+    "channelInfo": "Informations du salon",
     "modes": "Modes du salon",
     "notifications": "Notifications",
     "closeSearch": "Fermer la recherche",
@@ -250,6 +251,11 @@
       "sub": "Vous ne pouvez pas écrire dans {{channel}}.",
       "body": "Ce salon est en mode modéré. Seules les personnes qui ont reçu la voix (ou les opérateurs) peuvent y envoyer des messages. Ce n’est pas un ban — demandez la voix à un opérateur si vous devez intervenir.",
       "close": "Compris"
+    },
+    "chaninfo": {
+      "title": "Informations · {{chan}}",
+      "noUrl": "Aucune adresse web n’est définie pour ce salon.",
+      "noTopic": "Aucun sujet."
     },
     "chanadmin": {
       "title": "Gérer le salon",

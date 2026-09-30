@@ -114,6 +114,8 @@ export interface Buffer {
   /** ChanServ/InspIRCd MLOCK letters (from 742) — not toggleable in the Modes tab. */
   mlock?: string;
   createdAt?: number;    // channel creation unix time (RPL_CREATIONTIME 329)
+  /** Channel homepage (RPL_CHANNEL_URL 328). Kept so resume/rejoin does not re-spam the card. */
+  url?: string;
   topicBy?: string;      // who last set the topic (RPL_TOPICWHOTIME 333 / live TOPIC)
   topicAt?: number;      // when the topic was last set (unix ms)
   unread: number;

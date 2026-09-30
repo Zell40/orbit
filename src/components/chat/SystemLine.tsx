@@ -14,6 +14,24 @@ import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
 
+export function ChannelUrlCard({ text, channel, ts }: { text: string; channel?: string; ts?: number }) {
+  const { t } = useTranslation();
+  const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
+  const urls = previewableUrls(stripFormatting(text));
+  const showPreviews = linkPreviews && getConfig().features.linkPreviews && urls.length > 0;
+  return (
+    <div className="urlline">
+      <div className="urlline__head">
+        <span className="urlline__tag">{t('modeline.channelUrlTag')}</span>
+        {ts != null && <CalloutTime ts={ts} />}
+        {channel && <span className="urlline__chan">{channel}</span>}
+        {!showPreviews && <span className="urlline__txt">{formatIrc(text, false, false)}</span>}
+      </div>
+      {showPreviews ? <CalloutPreviews text={text} /> : null}
+    </div>
+  );
+}
+
 function CalloutPreviews({ text }: { text: string }) {
   const enabled = useActiveChat((s) => s.prefs.linkPreviews);
   if (!enabled || !getConfig().features.linkPreviews) return null;
@@ -525,20 +543,8 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
     return <OperGroup messages={[m]} />;
   }
   if (m.kind === 'url') {
-    const urls = previewableUrls(stripFormatting(m.text));
-    const showPreviews = linkPreviews && getConfig().features.linkPreviews && urls.length > 0;
     const chanLabel = isChannelName(m.bufferName) ? m.bufferName : '';
-    return (
-      <div className="urlline">
-        <div className="urlline__head">
-          <span className="urlline__tag">{t('modeline.channelUrlTag')}</span>
-          <CalloutTime ts={m.ts} />
-          {chanLabel && <span className="urlline__chan">{chanLabel}</span>}
-          {!showPreviews && <span className="urlline__txt">{formatIrc(m.text, false, false)}</span>}
-        </div>
-        {showPreviews ? <CalloutPreviews text={m.text} /> : null}
-      </div>
-    );
+    return <ChannelUrlCard text={m.text} channel={chanLabel || undefined} ts={m.ts} />;
   }
   if (m.kind === 'motd') {
     return (

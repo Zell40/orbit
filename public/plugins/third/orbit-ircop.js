@@ -1,5 +1,5 @@
 /*
- * Orbit IRCOP — topbar panel for the server team (salon #_bo).
+ * Orbit IRCOP — bottom-nav panel for the server team (salon #_bo).
  *
  * Access tier comes from ChanServ / NickServ ALIST on #_bo (QOP, SOP, AOP,
  * HOP, VOP, Fondateurice…), not from the live MODE prefixes in the nicklist.
@@ -120,6 +120,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     csAccess: undefined, // undefined=loading/unknown, null=no row, object=rank
     csTried: false,
     csLabel: '',
+    anchor: null,
     subs: new Set(),
   };
   const notify = () => store.subs.forEach((f) => f());
@@ -480,10 +481,18 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     const live = teamAccess();
     const unlocked = isOperSession() || s.authOk;
     if (!live) return null;
+    const A = s.anchor;
+    const W = window.innerWidth, H = window.innerHeight, PW = Math.min(360, W * 0.94);
+    const pos = A
+      ? {
+          left: Math.round(Math.min(Math.max(A.left + A.width / 2 - PW / 2, 8), W - PW - 8)) + 'px',
+          bottom: Math.round(H - A.top + 10) + 'px',
+        }
+      : { right: '14px', bottom: '74px' };
 
     return html`<div style=${{
-      position: 'fixed', right: '14px', top: '58px', zIndex: 70,
-      width: '360px', maxWidth: '94vw', maxHeight: 'min(78vh, 640px)', overflowY: 'auto',
+      position: 'fixed', ...pos, zIndex: 70,
+      width: PW + 'px', maxWidth: '94vw', maxHeight: 'min(70vh, 640px)', overflowY: 'auto',
       background: 'var(--bg2, var(--bg, #15151a))', color: 'var(--tx, var(--ink, #eee))',
       border: '1px solid var(--border, #333)', borderRadius: '14px',
       boxShadow: '0 24px 60px -20px rgba(0,0,0,.55)', padding: '.9rem 1rem 1rem',
@@ -503,33 +512,27 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
   }
 
   function ShieldIcon() {
-    return html`<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style=${{ display: 'block' }}>
+    return html`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <path d="M9 12l2 2 4-4" />
     </svg>`;
   }
 
-  function IrcopButton({ compact }) {
+  function IrcopTab() {
     useStore();
     useTick(2500);
     const access = teamAccess();
     if (!access) return null;
     const tip = T('tip') + ' — ' + T('role.' + access.id);
-    if (compact) {
-      return html`<button type="button" className="topmore__item" onClick=${() => { openPanel(); }}
-        style=${{ display: 'flex', alignItems: 'center', gap: '.55rem', width: '100%',
-          background: 'none', border: 0, color: 'inherit', font: 'inherit', cursor: 'pointer',
-          padding: '.55rem .7rem', textAlign: 'left' }}>
-        <${ShieldIcon} />
-        <span>${T('title')}</span>
-      </button>`;
-    }
-    return html`<button title=${tip} aria-label=${tip} onClick=${openPanel}
-      style=${{ display: 'flex', alignItems: 'center', background: 'transparent', border: 0,
-        color: store.open || isOperSession() ? 'var(--accent, #3b7bff)' : 'inherit',
-        cursor: 'pointer', padding: '0 .4rem', alignSelf: 'center' }}>
-      <${ShieldIcon} />
+    return html`<button className=${'tab' + (store.open || isOperSession() ? ' is-active' : '')}
+      title=${tip} aria-label=${tip} aria-expanded=${store.open}
+      onClick=${(e) => {
+        store.anchor = e.currentTarget.getBoundingClientRect();
+        openPanel();
+      }}>
+      <span className="tab__ic"><${ShieldIcon} /></span>
+      <span className="tab__lb">${T('title')}</span>
     </button>`;
   }
 
@@ -689,8 +692,7 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     </div>`;
   }
 
-  orbit.addUi('topbar_item', () => orbit.h(IrcopButton, { compact: false }));
-  orbit.addUi('topbar_more_item', () => orbit.h(IrcopButton, { compact: true }));
+  orbit.addUi('nav_item', () => orbit.h(IrcopTab));
   orbit.addUi('overlay', () => orbit.h(Overlay));
   orbit.addMemberMenu((ctx) => orbit.h(MemberIrcop, { nick: ctx.nick, close: ctx.close }));
   log('ircop panel ready (ChanServ ALIST on ' + TEAM + ')');

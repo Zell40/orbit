@@ -10,6 +10,7 @@ const JoinDialog = lazy(() => import('./JoinDialog').then((m) => ({ default: m.J
 const SettingsModal = lazy(() => import('../settings/SettingsModal').then((m) => ({ default: m.SettingsModal })));
 const ExploreModal = lazy(() => import('./ExploreModal').then((m) => ({ default: m.ExploreModal })));
 const ChanAdminModal = lazy(() => import('./ChanAdminModal').then((m) => ({ default: m.ChanAdminModal })));
+const ChanInfoModal = lazy(() => import('./ChanInfoModal').then((m) => ({ default: m.ChanInfoModal })));
 const ReportModal = lazy(() => import('./ReportModal').then((m) => ({ default: m.ReportModal })));
 const ModeratedModal = lazy(() => import('./ModeratedModal').then((m) => ({ default: m.ModeratedModal })));
 const QuickSwitcher = lazy(() => import('../QuickSwitcher').then((m) => ({ default: m.QuickSwitcher })));
@@ -26,6 +27,7 @@ export function Modals() {
         {modal === 'settings' && <SettingsModal />}
         {modal === 'explore' && <ExploreModal />}
         {modal === 'chanadmin' && <ChanAdminModal />}
+        {modal === 'chaninfo' && <ChanInfoModal />}
         {modal === 'report' && <ReportModal />}
         {modal === 'moderated' && <ModeratedModal />}
         {modal === 'switcher' && <QuickSwitcher />}
