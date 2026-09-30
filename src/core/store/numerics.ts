@@ -10,6 +10,7 @@ import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import { findWhoisKey, type StoreHelpers } from './helpers';
+import { loadChanUrls, saveChanUrls } from './persistence';
 
 interface NumericsDeps {
   get: StoreApi<ChatState>['getState'];
@@ -22,6 +23,7 @@ interface NumericsDeps {
   namesInFlight: Set<string>;
   historyAsked: Set<string>;
   profileCache?: Map<string, { realname?: string; account?: string }>;
+  persistNs?: string;
 }
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
@@ -126,7 +128,7 @@ function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatStat
 // numeric was consumed. Every 3-digit reply is either handled by name here or
 // routed by the generic fallback (errors → a ⚠ line where the user is looking,
 // info → the server console), so nothing is ever dumped unlabelled.
-export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache }: NumericsDeps) {
+export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs = '' }: NumericsDeps) {
   const { ensureBuffer, patchBuffer, sysLine, serverLine, patchWhois } = helpers;
   // LIST: keep the previous catalogue on screen while a refresh is in flight
   // (wiping it on 321 made Explore look empty/stuck). Live-append only when
@@ -277,12 +279,17 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const url = (msg.params[2] || '').trim();
         if (isChannelName(chan) && url) {
           ensureBuffer(chan);
-          const buf = get().buffers[canon(chan)];
-          const already = buf?.url === url
-            || !!buf?.messages.some((m) => m.kind === 'url' && m.text === url);
+          const key = canon(chan);
+          const buf = get().buffers[key];
+          const stored = loadChanUrls(persistNs)[key] || '';
+          const same = (a: string, b: string) => a.replace(/\/+$/, '') === b.replace(/\/+$/, '');
+          const already = same(buf?.url || '', url)
+            || same(stored, url)
+            || !!buf?.messages.some((m) => m.kind === 'url' && same(m.text, url));
           patchBuffer(chan, (b) => (b.url === url ? b : { ...b, url }));
-          // First sighting only — reconnect / session resume re-sends 328.
+          // First sighting only — reconnect / page refresh re-sends 328.
           if (!already) sysLine(chan, url, 'url');
+          if (!same(stored, url)) saveChanUrls({ ...loadChanUrls(persistNs), [key]: url }, persistNs);
         }
         return true;
       }

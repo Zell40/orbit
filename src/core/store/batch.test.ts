@@ -63,6 +63,17 @@ describe('BATCH handler', () => {
     expect(state.buffers['#x'].messages.filter((m) => m.kind === 'join')).toHaveLength(1);
   });
 
+  it('drops JOIN/PART from chathistory so they never land on the timeline', () => {
+    const { on, state } = setup();
+    on(':srv BATCH +abc chathistory #x');
+    historyCollect['abc'].push(mkMsg({ id: 'hist-join', kind: 'join', from: 'Quen', text: 'Quen est entré', ts: 48_200 }));
+    historyCollect['abc'].push(mkMsg({ id: 'hist-part', kind: 'part', from: 'Quen', text: 'Quen est sorti', ts: 48_400 }));
+    historyCollect['abc'].push(mkMsg({ id: 'hist-msg', from: 'Quen', text: 'salut', ts: 48_300 }));
+    on(':srv BATCH -abc');
+    expect(state.buffers['#x'].messages.map((m) => m.kind)).toEqual(['privmsg']);
+    expect(state.buffers['#x'].messages[0].text).toBe('salut');
+  });
+
   it('de-dupes a replayed message that matches one already shown (by signature)', () => {
     const { on, state } = setup();
     state.buffers['#x'].messages = [mkMsg({ id: 'shown', from: 'bob', text: 'hi', ts: 1000 })];

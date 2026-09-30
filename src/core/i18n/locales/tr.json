@@ -200,7 +200,11 @@
     "chaninfo": {
       "title": "Bilgiler · {{chan}}",
       "noUrl": "Bu kanalın web adresi yok.",
-      "noTopic": "Konu yok."
+      "noTopic": "Konu yok.",
+      "description": "Açıklama",
+      "owner": "Sahip",
+      "official": "Resmi kanal",
+      "officialHint": "Ağın resmi kanalı"
     },
     "chanadmin": {
       "title": "Kanalı yönet",

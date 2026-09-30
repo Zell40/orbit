@@ -23,6 +23,13 @@ function acLabel(pick: string, kind: CompletionKind): string {
   return pick.replace(/\s+$/, '');
 }
 
+// Phone / tablet: focusing the composer opens the virtual keyboard and eats
+// most of the chat. Autofocus only on a fine pointer (desktop).
+function skipComposerAutofocus(): boolean {
+  return window.matchMedia('(pointer: coarse)').matches
+    || window.matchMedia('(hover: none)').matches;
+}
+
 // ── Rich composer plumbing ───────────────────────────────────────────────────
 // The composer is a contentEditable so the user sees real bold/italic/colour as
 // they type (never the control codes). We only convert to/from IRC formatting
@@ -173,9 +180,11 @@ export function Composer({ locked = false }: { locked?: boolean }) {
     prevActive.current = active;
   }, [active, setDraft]);
 
-  // After JOIN / salon switch / splash unlock / closing a modal: caret in the message bar.
+  // After JOIN / salon switch / splash unlock / closing a modal: caret in the
+  // message bar — but not on a phone/tablet, where focus pops the keyboard.
   useEffect(() => {
     if (locked || readOnlyLog || modal || profileUser) return;
+    if (skipComposerAutofocus()) return;
     let raf2 = 0;
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {

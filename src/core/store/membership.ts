@@ -55,7 +55,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
               get().setActive(ch);
             }
           }
-          // Pull full history (messages + JOIN/PART/KICK/MODE/TOPIC events via event-playback)
+          // Pull full history (messages + KICK/MODE/TOPIC events via event-playback)
           // from m_ircv3_chathistory — the +H auto-replay only carries messages. Deduped by id.
           // Server autojoin can race ahead of CAP ACK; 366 retries if this no-ops.
           prefetchLatestHistory(get, historyAsked, ch);

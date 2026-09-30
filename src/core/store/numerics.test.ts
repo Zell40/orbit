@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { makeNumerics } from './numerics';
+import { saveChanUrls } from './persistence';
 import { Numerics } from '../irc/numerics';
 import type { IrcMessage } from '../irc/types';
 import type { ChatState } from '../store';
@@ -64,6 +65,8 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
 }
 
 describe('store numerics handler', () => {
+  afterEach(() => { saveChanUrls({}); });
+
   it('433 ERR_NICKNAMEINUSE sets nickError and a line in the active window', () => {
     const { handleNumerics, state, sys } = setup({ nickError: null });
     expect(handleNumerics(mk('433', ['me', 'Harry', 'Nickname is already in use']))).toBe(true);
@@ -422,5 +425,13 @@ describe('store numerics handler', () => {
     });
     expect(handleNumerics(mk('328', ['me', '#x', 'https://new.example/']))).toBe(true);
     expect(sys.filter((l) => l.kind === 'url' && l.text === 'https://new.example/')).toHaveLength(1);
+  });
+
+  it('328 does not re-post a URL already shown in a previous session', () => {
+    saveChanUrls({ '#x': 'https://musique.example/' });
+    const { handleNumerics, state, sys } = setup();
+    expect(handleNumerics(mk('328', ['me', '#x', 'https://musique.example/']))).toBe(true);
+    expect(state.buffers['#x']?.url).toBe('https://musique.example/');
+    expect(sys.filter((l) => l.kind === 'url')).toHaveLength(0);
   });
 });

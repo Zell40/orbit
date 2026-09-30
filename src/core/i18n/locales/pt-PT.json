@@ -200,7 +200,11 @@
     "chaninfo": {
       "title": "Informações · {{chan}}",
       "noUrl": "Este canal não tem endereço web.",
-      "noTopic": "Sem tópico."
+      "noTopic": "Sem tópico.",
+      "description": "Descrição",
+      "owner": "Proprietário",
+      "official": "Canal oficial",
+      "officialHint": "Canal oficial da rede"
     },
     "chanadmin": {
       "title": "Gerir canal",

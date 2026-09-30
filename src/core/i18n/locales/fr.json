@@ -255,7 +255,11 @@
     "chaninfo": {
       "title": "Informations · {{chan}}",
       "noUrl": "Aucune adresse web n’est définie pour ce salon.",
-      "noTopic": "Aucun sujet."
+      "noTopic": "Aucun sujet.",
+      "description": "Description",
+      "owner": "Propriétaire",
+      "official": "Salon officiel",
+      "officialHint": "Salon officiel du réseau"
     },
     "chanadmin": {
       "title": "Gérer le salon",

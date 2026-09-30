@@ -54,7 +54,7 @@ export function makeHandler(ctx: HandlerCtx) {
   // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
   const { handleMode } = makeMode({ get, set, helpers });
   // Numeric replies (RPL_*/ERR_*) + the generic error/console fallback. See ./numerics.
-  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache });
+  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {
@@ -68,12 +68,13 @@ export function makeHandler(ctx: HandlerCtx) {
     // the history); never let it mutate live channel/member state.
     const epRef = inHistoryBatch(msg);
     if (epRef && ['JOIN', 'PART', 'QUIT', 'KICK', 'NICK', 'TOPIC', 'MODE', 'CHGHOST'].includes(msg.command)) {
+      // JOIN/PART in CHATHISTORY are noise — keep them off the salon timeline.
+      // Still swallow the event so it does not mutate the live nicklist.
+      if (msg.command === 'JOIN' || msg.command === 'PART') return;
       const chan = openBatches[epRef].target;
       if (chan) {
         let text = '', kind: MessageKind = 'system';
-        if (msg.command === 'JOIN') { text = i18n.t('system.join', { nick: msg.nick }); kind = 'join'; }
-        else if (msg.command === 'PART') { text = i18n.t('system.part', { nick: msg.nick }); kind = 'part'; }
-        else if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
+        if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
         else if (msg.command === 'KICK') { text = msg.params[2] ? `${msg.params[1]}\n${msg.params[2]}` : (msg.params[1] || ''); kind = 'kick'; }
         else if (msg.command === 'NICK') { text = msg.params[0] || ''; kind = 'nick'; }
         else if (msg.command === 'CHGHOST') {

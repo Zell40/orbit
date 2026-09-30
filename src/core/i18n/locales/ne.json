@@ -200,7 +200,11 @@
     "chaninfo": {
       "title": "जानकारी · {{chan}}",
       "noUrl": "यो च्यानलको वेब ठेगाना छैन।",
-      "noTopic": "विषय छैन।"
+      "noTopic": "विषय छैन।",
+      "description": "विवरण",
+      "owner": "मालिक",
+      "official": "आधिकारिक च्यानल",
+      "officialHint": "सञ्जालको आधिकारिक च्यानल"
     },
     "chanadmin": {
       "title": "च्यानल व्यवस्थापन",

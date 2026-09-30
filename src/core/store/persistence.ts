@@ -8,6 +8,7 @@ const MUTED_KEY = 'orbit-muted';
 export const HIGHLIGHT_KEY = 'orbit-highlights';
 const NOTIFY_KEY = 'orbit-notify';
 const PINS_KEY = 'orbit-pins';
+const CHAN_URLS_KEY = 'orbit-chan-urls';
 
 function loadRaw(key: string, legacy: string): string | null {
   return lsRead(key, legacy);
@@ -54,6 +55,14 @@ export function savePins(map: Record<string, Pin[]>, ns = ''): void {
 }
 
 export const PIN_CAP = 30; // most-recent pins kept per channel
+
+/** Last channel homepage (328) already shown as a chat card — survives refresh. */
+export function loadChanUrls(ns = ''): Record<string, string> {
+  try { return JSON.parse(loadRaw(CHAN_URLS_KEY + ns, '') || '{}'); } catch { return {}; }
+}
+export function saveChanUrls(map: Record<string, string>, ns = ''): void {
+  lsWrite(CHAN_URLS_KEY + ns, JSON.stringify(map));
+}
 
 // Pure reducers over the pin map — toggle a line in/out, or drop one. An empty
 // channel key is removed so the map stays sparse. Kept pure so they're unit-testable

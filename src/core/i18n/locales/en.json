@@ -255,7 +255,11 @@
     "chaninfo": {
       "title": "Information · {{chan}}",
       "noUrl": "This channel has no website address.",
-      "noTopic": "No topic."
+      "noTopic": "No topic.",
+      "description": "Description",
+      "owner": "Owner",
+      "official": "Official channel",
+      "officialHint": "Official network channel"
     },
     "chanadmin": {
       "title": "Manage channel",
