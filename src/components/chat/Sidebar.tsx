@@ -228,7 +228,7 @@ export function Sidebar({ onNavigate }: { onNavigate: () => void }) {
       {sidebarItems.filter((u) => u.slot === 'sidebar_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="sidebar_item" />)}
       <div className="side-top">
         <h2 className="side-title">{t('nav.home')}</h2>
-        <button className="side-compose" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => setModal('join')}>✎</button>
+        <button className="side-compose" title={t('sidebar.newChat')} aria-label={t('sidebar.newChat')} onClick={() => setModal('join')}>+</button>
         {/* mIRC toolbar: a channels-list button (the vertical Explore CTA is hidden in the switchbar). */}
         {mirc && <button className="side-compose side-explore" title={t('nav.explore')} aria-label={t('nav.explore')} onClick={() => setModal('explore')}>☰</button>}
       </div>
