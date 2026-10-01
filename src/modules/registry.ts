@@ -117,6 +117,9 @@ export interface PluginModalSpec {
   render: () => ReactNode;
   title?: string;
   wide?: boolean;
+  /** When false, the shell focuses the card instead of the first field
+   *  (avoids popping a phone keyboard over a browse UI). */
+  autoFocus?: boolean;
 }
 
 const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || '');

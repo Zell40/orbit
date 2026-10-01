@@ -148,7 +148,7 @@ export interface OrbitPluginApi {
   requireVisualDisplay: (opts: { label: string; inChannel: (channel: string) => boolean }) => () => void;
   /** Open a modal dialog: `render` fills the body, the core supplies the backdrop,
    *  title bar and close button. Returns a function that closes it. */
-  modal: (render: () => ReactNode, opts?: { title?: string; wide?: boolean }) => () => void;
+  modal: (render: () => ReactNode, opts?: { title?: string; wide?: boolean; autoFocus?: boolean }) => () => void;
 }
 
 function makeApi(name: string): OrbitPluginApi {
@@ -233,7 +233,7 @@ function makeApi(name: string): OrbitPluginApi {
     addShortcut: (combo, run) => usePluginRegistry.getState().addShortcut(name, combo, run),
     requireVisualDisplay: (opts) =>
       usePluginRegistry.getState().addVisualDisplay(name, opts.label, opts.inChannel),
-    modal: (render, opts) => usePluginRegistry.getState().openModal({ plugin: name, render, title: opts?.title, wide: opts?.wide }),
+    modal: (render, opts) => usePluginRegistry.getState().openModal({ plugin: name, render, title: opts?.title, wide: opts?.wide, autoFocus: opts?.autoFocus }),
   };
 }
 
