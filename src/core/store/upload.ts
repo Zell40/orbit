@@ -23,6 +23,7 @@ interface UploadDeps {
     timer: ReturnType<typeof setTimeout> | null;
     lateToken?: string | null;
     lateAt?: number;
+    awaitingLate?: boolean;
   };
   helpers: StoreHelpers;
 }
@@ -63,6 +64,39 @@ function uploadUrl(token: string): string {
   return `${path}?token=${encodeURIComponent(token)}`;
 }
 
+/** Pull `token=` out of a FILEHOST NOTICE. Stop at query/IRC delimiters so a
+ *  JWT is not truncated, and so `<url>` / trailing punctuation is not kept. */
+export function extractFilehostToken(text: string): string | null {
+  const m = text.match(/[?&]token=([^&\s<>"'\)\]]+)/);
+  return m?.[1] || null;
+}
+
+function b64urlJson(seg: string): Record<string, unknown> | null {
+  try {
+    const pad = seg.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = pad + '='.repeat((4 - (pad.length % 4)) % 4);
+    const raw = typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('utf8');
+    const json = JSON.parse(raw) as unknown;
+    return json && typeof json === 'object' ? json as Record<string, unknown> : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True when the NOTICE token looks like a live FILEHOST JWT (not bouncer
+ *  playback of an hour-old NOTICE, and not a truncated leftover). */
+export function filehostTokenFresh(tok: string, nowSec = Math.floor(Date.now() / 1000)): boolean {
+  const parts = tok.split('.');
+  if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return false;
+  const claims = b64urlJson(parts[1]);
+  if (!claims) return false;
+  if (typeof claims.exp === 'number' && claims.exp < nowSec + 15) return false;
+  // Playback after connect often replays the last FILEHOST NOTICE. A token
+  // issued more than a few minutes ago is not the reply to *this* request.
+  if (typeof claims.iat === 'number' && claims.iat < nowSec - 180) return false;
+  return true;
+}
+
 export function hostedFileName(url: string): string | null {
   try {
     const path = new URL(url, typeof location !== 'undefined' ? location.origin : 'https://local').pathname;
@@ -86,7 +120,9 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     const at = filehost.lateAt || 0;
     filehost.lateToken = null;
     filehost.lateAt = 0;
-    return tok && Date.now() - at < 45000 ? tok : null;
+    filehost.awaitingLate = false;
+    if (!tok || Date.now() - at >= 45000) return null;
+    return filehostTokenFresh(tok) ? tok : null;
   }
 
   function requestToken(client: IrcClient): Promise<string> {
@@ -96,6 +132,7 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
       filehost.resolve = resolve; filehost.reject = reject;
       filehost.timer = setTimeout(() => {
         filehost.resolve = null; filehost.reject = null;
+        filehost.awaitingLate = true;
         reject(new Error('timeout'));
       }, ms);
       askFilehost(client);
@@ -129,20 +166,31 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     if (!get().account && (get().viaBouncer || get().status === 'connecting')) {
       await waitForAccount(8000);
     }
-    const token = await requestToken(client);
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('ttl_hours', String(resolveUploadTtlHours(get().prefs?.uploadTtlHours)));
-    let res = await fetchTimeout(uploadUrl(token), { method: 'POST', body: fd }, 30000);
-    // Legacy deployments that only rewrite bare /upload (DocumentRoot = web root).
-    if (res.status === 404 && uploadUrl(token).startsWith('/app/')) {
-      res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
-    }
-    if (!res.ok) {
+    const post = async (token: string) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('ttl_hours', String(resolveUploadTtlHours(get().prefs?.uploadTtlHours)));
+      let res = await fetchTimeout(uploadUrl(token), { method: 'POST', body: fd }, 30000);
+      // Legacy deployments that only rewrite bare /upload (DocumentRoot = web root).
+      if (res.status === 404 && uploadUrl(token).startsWith('/app/')) {
+        res = await fetchTimeout(`/upload?token=${encodeURIComponent(token)}`, { method: 'POST', body: fd }, 30000);
+      }
+      return res;
+    };
+    const readErr = async (res: Response) => {
       let detail = `http_${res.status}`;
       try { const j = await res.json(); if (j?.detail) detail = `${res.status}:${j.detail}`; } catch { /* ignore */ }
-      throw new Error(detail);
+      return detail;
+    };
+    let token = await requestToken(client);
+    let res = await post(token);
+    // Stale / truncated JWT (bouncer playback, race). Ask for a fresh token once.
+    if (res.status === 401) {
+      filehost.lateToken = null; filehost.lateAt = 0; filehost.awaitingLate = false;
+      token = await requestToken(client);
+      res = await post(token);
     }
+    if (!res.ok) throw new Error(await readErr(res));
     const data = await res.json() as { url: string };
     return data.url;
   }
@@ -163,6 +211,7 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     const human = msg === 'not_identified'
       ? i18n.t('system.uploadNeedAccount')
       : msg === 'timeout' ? i18n.t('system.uploadTimeout')
+      : /invalid_token/.test(msg) ? i18n.t('system.uploadBadToken')
       : msg.includes('scanner_unavailable') ? i18n.t('system.uploadAvDown')
       : msg.includes('nsfw_image') ? i18n.t('system.uploadNsfw')
       : msg.includes('violent_image') ? i18n.t('system.uploadViolent')

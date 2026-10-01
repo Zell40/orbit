@@ -539,6 +539,7 @@
     "sendingImage": "Отправка «{{name}}»…",
     "uploadNeedAccount": "Чтобы отправлять изображения, нужно войти в аккаунт (/msg NickServ IDENTIFY).",
     "uploadTimeout": "Файловый сервер ещё не готов. Попробуй через мгновение.",
+    "uploadBadToken": "Токен загрузки больше не действует. Попробуй через мгновение.",
     "uploadFailed": "Ошибка отправки ({{msg}}).",
     "shareImage": "делится изображением: {{url}}",
     "yourModes": "Ваши режимы: +{{modes}} ({{change}})",

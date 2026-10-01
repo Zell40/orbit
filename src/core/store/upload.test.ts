@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { makeUpload, hostedFileName, uploadTtlChoices } from './upload';
+import { makeUpload, hostedFileName, uploadTtlChoices, filehostTokenFresh, extractFilehostToken } from './upload';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
+
+function dummyJwt(claims: Record<string, unknown>): string {
+  const b64 = (o: unknown) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return `${b64({ alg: 'HS256' })}.${b64(claims)}.sig`;
+}
 
 function fakeClient() {
   const calls: [string, unknown[]][] = [];
@@ -21,6 +26,7 @@ function setup() {
     timer: null as ReturnType<typeof setTimeout> | null,
     lateToken: null as string | null,
     lateAt: 0,
+    awaitingLate: false,
   };
   const helpers = {
     addMessage: (name: string) => { added.push({ name }); },
@@ -101,13 +107,54 @@ describe('upload', () => {
 
   it('reuses a FILEHOST token that arrived after a previous timeout', async () => {
     const { uploadImage, client, filehost } = setup();
-    filehost.lateToken = 'lateTok';
+    const late = dummyJwt({ iss: 'FILEHOST', iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 3600 });
+    filehost.lateToken = late;
     filehost.lateAt = Date.now();
     const fetchMock = okJson({ url: 'https://h/files/x.png' });
     vi.stubGlobal('fetch', fetchMock);
     await uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
     expect(client.calls.filter(([n]) => n === 'sendNow')).toHaveLength(0);
-    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('lateTok');
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(encodeURIComponent(late));
+  });
+
+  it('ignores a stale late token (bouncer playback) and asks FILEHOST again', async () => {
+    const { uploadImage, client, filehost } = setup();
+    filehost.lateToken = dummyJwt({ iss: 'FILEHOST', iat: 1_000_000_000, exp: 1_000_003_600 });
+    filehost.lateAt = Date.now();
+    const fetchMock = okJson({ url: 'https://h/files/x.png' });
+    vi.stubGlobal('fetch', fetchMock);
+    const p = uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
+    expect(client.calls.filter(([n]) => n === 'sendNow')).toHaveLength(1);
+    filehost.resolve!('fresh');
+    await p;
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('fresh');
+  });
+
+  it('retries the POST once after 401 invalid_token', async () => {
+    const { uploadImage, client, filehost } = setup();
+    const fetchMock = vi.fn(async (input?: RequestInfo | URL) => {
+      const url = String(input ?? '');
+      if (url.includes('bad')) return new Response(JSON.stringify({ detail: 'invalid_token' }), { status: 401 });
+      return new Response(JSON.stringify({ url: 'https://h/files/x.png' }), { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const p = uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
+    filehost.resolve!('bad');
+    for (let i = 0; i < 40 && client.calls.filter(([n]) => n === 'sendNow').length < 2; i++) {
+      await Promise.resolve();
+    }
+    expect(client.calls.filter(([n]) => n === 'sendNow')).toHaveLength(2);
+    filehost.resolve!('good');
+    await p;
+    expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain('good');
+  });
+
+  it('parses and freshness-checks FILEHOST JWTs', () => {
+    const now = Math.floor(Date.now() / 1000);
+    expect(extractFilehostToken('FILEHOST https://x/upload?token=aaa.bbb.ccc>')).toBe('aaa.bbb.ccc');
+    expect(filehostTokenFresh(dummyJwt({ iss: 'FILEHOST', iat: now, exp: now + 3600 }), now)).toBe(true);
+    expect(filehostTokenFresh(dummyJwt({ iss: 'FILEHOST', iat: now - 600, exp: now + 3000 }), now)).toBe(false);
+    expect(filehostTokenFresh('not-a-jwt', now)).toBe(false);
   });
 
   it('retries FILEHOST once after a timeout', async () => {

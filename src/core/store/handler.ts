@@ -31,6 +31,7 @@ interface HandlerCtx {
     timer: ReturnType<typeof setTimeout> | null;
     lateToken?: string | null;
     lateAt?: number;
+    awaitingLate?: boolean;
   };
   namesInFlight: Set<string>;
   historyAsked: Set<string>;

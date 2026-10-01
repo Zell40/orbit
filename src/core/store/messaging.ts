@@ -14,6 +14,7 @@ import { getConfig } from '../config';
 import { isService, isNickServ, isStatusService, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
 import { parseChanServInfo } from './chanserv-info';
+import { extractFilehostToken, filehostTokenFresh } from './upload';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
@@ -47,6 +48,7 @@ interface MessagingDeps {
     timer: ReturnType<typeof setTimeout> | null;
     lateToken?: string | null;
     lateAt?: number;
+    awaitingLate?: boolean;
   };
   helpers: StoreHelpers;
   /** canon channel → expiry ms for a ChanServ INFO/MODE query we issued. */
@@ -110,16 +112,20 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     // services-looking nick!user@host. Always intercept before normal routing so
     // an in-flight upload never times out waiting for a swallowed/misrouted line.
     if (msg.command === 'NOTICE' && /FILEHOST|file hosting|\/upload\?[^ \t]*token=/i.test(text)) {
-      const tok = text.match(/[?&]token=([A-Za-z0-9._\-]+)/);
-      if (tok) {
+      // CHATHISTORY / +H replay is not a reply to the upload we just asked for.
+      if (inHistoryBatch(msg)) return true;
+      const tok = extractFilehostToken(text);
+      if (tok && filehostTokenFresh(tok)) {
         if (filehost.timer) clearTimeout(filehost.timer);
         if (filehost.resolve) {
           const r = filehost.resolve; filehost.resolve = null; filehost.reject = null;
-          r(tok[1]);
-        } else {
+          filehost.awaitingLate = false;
+          r(tok);
+        } else if (filehost.awaitingLate) {
           // NOTICE arrived after our wait timed out — keep it for the retry.
-          filehost.lateToken = tok[1];
+          filehost.lateToken = tok;
           filehost.lateAt = Date.now();
+          filehost.awaitingLate = false;
         }
       } else if (/must be logged in|not (logged|identif|authentic)|identifi|compte (enregistré|NickServ)/i.test(text)) {
         if (filehost.timer) clearTimeout(filehost.timer);

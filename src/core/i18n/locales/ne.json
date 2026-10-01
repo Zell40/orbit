@@ -539,6 +539,7 @@
     "sendingImage": "«{{name}}» पठाउँदै…",
     "uploadNeedAccount": "छविहरू पठाउन तपाईं खातामा लग इन हुनुपर्छ (/msg NickServ IDENTIFY)।",
     "uploadTimeout": "फाइल सर्भर अझै तयार छैन। केही बेरमा फेरि प्रयास गर्नुहोस्।",
+    "uploadBadToken": "अपलोड टोकन अब मान्य छैन। केही बेरमा फेरि प्रयास गर्नुहोस्।",
     "uploadFailed": "पठाउन असफल ({{msg}})।",
     "shareImage": "एउटा छवि साझा गर्छ: {{url}}",
     "yourModes": "तपाईंका मोड: +{{modes}} ({{change}})",

@@ -34,7 +34,8 @@ const filehost: {
   timer: ReturnType<typeof setTimeout> | null;
   lateToken: string | null;
   lateAt: number;
-} = { resolve: null, reject: null, timer: null, lateToken: null, lateAt: 0 };
+  awaitingLate: boolean;
+} = { resolve: null, reject: null, timer: null, lateToken: null, lateAt: 0, awaitingLate: false };
 
 
 
@@ -368,6 +369,9 @@ export function createChatStore(ns = '') {
       const client = new IrcClient();
       initNotify();
       setExpectedBootChannels(opts.channels);
+      if (filehost.timer) clearTimeout(filehost.timer);
+      filehost.resolve = null; filehost.reject = null; filehost.timer = null;
+      filehost.lateToken = null; filehost.lateAt = 0; filehost.awaitingLate = false;
       set({
         client, nick: opts.nick, status: 'connecting',
         connectUrl: opts.url,

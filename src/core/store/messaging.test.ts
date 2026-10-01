@@ -6,6 +6,11 @@ import type { ChatMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
 
+function dummyJwt(claims: Record<string, unknown>): string {
+  const b64 = (o: unknown) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return `${b64({ alg: 'HS256' })}.${b64(claims)}.sig`;
+}
+
 function setup(over: Partial<Record<string, unknown>> = {}, mlockAsked?: Map<string, number>) {
   const state = {
     active: '#x', isActive: true, ignored: [] as string[],
@@ -277,8 +282,61 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
   });
 
   it('stashes a FILEHOST token when no upload is waiting (late NOTICE)', () => {
+    const now = Math.floor(Date.now() / 1000);
+    const jwt = dummyJwt({ iss: 'FILEHOST', iat: now, exp: now + 3600 });
     const filehost = {
       resolve: null as ((token: string) => void) | null,
+      reject: null as ((err: Error) => void) | null,
+      timer: null as ReturnType<typeof setTimeout> | null,
+      lateToken: null as string | null,
+      lateAt: 0,
+      awaitingLate: true,
+    };
+    const { handleMessaging } = makeMessaging({
+      get: () => ({
+        active: '#x', isActive: true, ignored: [] as string[],
+        reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
+        highlightWords: [] as string[], prefs: { sound: false }, pmContext: {} as Record<string, string>,
+      }) as unknown as ChatState,
+      set: () => {},
+      knownServices: new Set<string>(),
+      filehost, helpers: { addMessage: () => {}, patchBuffer: () => {}, serverLine: () => {}, tsOf: () => 1000 } as unknown as StoreHelpers,
+    } as Parameters<typeof makeMessaging>[0]);
+    handleMessaging(parseLine(`:FileHost!fh@services NOTICE me :FILEHOST https://x/upload?token=${jwt}`), 'me');
+    expect(filehost.lateToken).toBe(jwt);
+    expect(filehost.lateAt).toBeGreaterThan(0);
+  });
+
+  it('does not stash a FILEHOST NOTICE replayed after connect (no upload waiting)', () => {
+    const now = Math.floor(Date.now() / 1000);
+    const jwt = dummyJwt({ iss: 'FILEHOST', iat: now, exp: now + 3600 });
+    const filehost = {
+      resolve: null as ((token: string) => void) | null,
+      reject: null as ((err: Error) => void) | null,
+      timer: null as ReturnType<typeof setTimeout> | null,
+      lateToken: null as string | null,
+      lateAt: 0,
+      awaitingLate: false,
+    };
+    const { handleMessaging } = makeMessaging({
+      get: () => ({
+        active: '#x', isActive: true, ignored: [] as string[],
+        reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
+        highlightWords: [] as string[], prefs: { sound: false }, pmContext: {} as Record<string, string>,
+      }) as unknown as ChatState,
+      set: () => {},
+      knownServices: new Set<string>(),
+      filehost, helpers: { addMessage: () => {}, patchBuffer: () => {}, serverLine: () => {}, tsOf: () => 1000 } as unknown as StoreHelpers,
+    } as Parameters<typeof makeMessaging>[0]);
+    handleMessaging(parseLine(`:FileHost!fh@services NOTICE me :FILEHOST https://x/upload?token=${jwt}`), 'me');
+    expect(filehost.lateToken).toBeNull();
+  });
+
+  it('ignores a stale FILEHOST JWT while an upload is waiting', () => {
+    let token = '';
+    const stale = dummyJwt({ iss: 'FILEHOST', iat: 1_000_000_000, exp: 1_000_003_600 });
+    const filehost = {
+      resolve: ((t: string) => { token = t; }) as ((token: string) => void) | null,
       reject: null as ((err: Error) => void) | null,
       timer: null as ReturnType<typeof setTimeout> | null,
       lateToken: null as string | null,
@@ -294,8 +352,8 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       knownServices: new Set<string>(),
       filehost, helpers: { addMessage: () => {}, patchBuffer: () => {}, serverLine: () => {}, tsOf: () => 1000 } as unknown as StoreHelpers,
     } as Parameters<typeof makeMessaging>[0]);
-    handleMessaging(parseLine(':FileHost!fh@services NOTICE me :FILEHOST https://x/upload?token=latejwt'), 'me');
-    expect(filehost.lateToken).toBe('latejwt');
-    expect(filehost.lateAt).toBeGreaterThan(0);
+    handleMessaging(parseLine(`:FileHost!fh@services NOTICE me :FILEHOST https://x/upload?token=${stale}`), 'me');
+    expect(token).toBe('');
+    expect(filehost.resolve).not.toBeNull();
   });
 });

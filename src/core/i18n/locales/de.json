@@ -539,6 +539,7 @@
     "sendingImage": "Sende „{{name}}“…",
     "uploadNeedAccount": "Du musst in einem Konto angemeldet sein, um Bilder zu senden (/msg NickServ IDENTIFY).",
     "uploadTimeout": "Der Dateiserver ist noch nicht bereit. Versuche es gleich noch einmal.",
+    "uploadBadToken": "Der Upload-Token ist nicht mehr gültig. Versuche es gleich noch einmal.",
     "uploadFailed": "Upload fehlgeschlagen ({{msg}}).",
     "shareImage": "teilt ein Bild: {{url}}",
     "yourModes": "Deine Modi: +{{modes}} ({{change}})",

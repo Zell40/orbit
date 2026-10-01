@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
-/** Installed PWA or a narrow touch phone — use the simple app-like shell. */
+/** True only on a real phone-sized screen. A wide desktop — even an installed
+ *  PWA — keeps the literary two-column welcome. */
 export function isPhoneUi(): boolean {
   if (typeof window === 'undefined') return false;
   const nav = navigator as Navigator & { standalone?: boolean };
@@ -10,7 +11,7 @@ export function isPhoneUi(): boolean {
   const narrow = window.matchMedia('(max-width: 720px)').matches;
   const coarse = window.matchMedia('(pointer: coarse)').matches
     || window.matchMedia('(hover: none)').matches;
-  return standalone || (narrow && coarse);
+  return narrow && (coarse || standalone);
 }
 
 export function usePhoneUi(): boolean {
