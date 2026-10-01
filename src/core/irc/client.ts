@@ -209,7 +209,21 @@ export class IrcClient {
     const ctx = context && this.ircv3.hasCap('message-tags') ? `+draft/channel-context=${context}` : '';
     if (this.useMultiline && /\r?\n/.test(text) && this.ircv3.hasCap('draft/multiline') && this.ircv3.hasCap('batch')) {
       const lines = text.split(/\r?\n/);
-      if (lines.length <= this.ircv3.multilineMaxLines) { this.multilineMsg(target, lines, ctx); return; }
+      // The server counts every wire PRIVMSG (incl. 512-byte concat splits) and
+      // the concatenated UTF-8 size — not just the visual paragraphs. Sending a
+      // batch over those CAP limits gets FAIL BATCH MULTILINE_MAX_*.
+      let wire = 0;
+      let concatBlank = false;
+      for (const line of lines) {
+        const parts = this.splitForLine('PRIVMSG', target, line);
+        wire += parts.length;
+        if (parts.some((p, i) => i > 0 && !p)) concatBlank = true;
+      }
+      const bytes = this.byteLen(text.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
+      if (!concatBlank && this.ircv3.multilineFits(wire, bytes)) {
+        this.multilineMsg(target, lines, ctx);
+        return;
+      }
     }
     const pre = ctx ? `@${ctx} ` : '';
     for (const part of this.splitForLine('PRIVMSG', target, text)) this.send(`${pre}PRIVMSG ${target} :${part}`);
@@ -228,8 +242,8 @@ export class IrcClient {
   private batchSeq = 0;
   private multilineMsg(target: string, lines: string[], ctx = ''): void {
     // A multiline batch is ONE logical message — send it atomically (sendRaw),
-    // so the per-line token bucket doesn't pace it. The server enforces the
-    // draft/multiline size limits.
+    // so the per-line token bucket doesn't pace it. Caller already checked
+    // draft/multiline max-lines / max-bytes (incl. concat splits).
     const ref = `ml${++this.batchSeq}`;
     this.sendRaw(`BATCH +${ref} draft/multiline ${target}`);
     for (const line of lines) {

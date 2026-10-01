@@ -104,10 +104,20 @@ describe('Ircv3 capability negotiation', () => {
     expect(ircv3.hasCap('message-tags')).toBe(false);
   });
 
-  it('learns draft/multiline max-lines from CAP LS', () => {
+  it('learns draft/multiline max-lines and max-bytes from CAP LS', () => {
     const { ircv3, cap } = make();
-    cap('CAP * LS :draft/multiline=max-lines=42');
-    expect(ircv3.multilineMaxLines).toBe(42);
+    cap('CAP * LS :draft/multiline=max-bytes=40000,max-lines=20');
+    expect(ircv3.multilineMaxLines).toBe(20);
+    expect(ircv3.multilineMaxBytes).toBe(40000);
+  });
+
+  it('multilineFits honours CAP limits (wire PRIVMSGs + bytes)', () => {
+    const { ircv3, cap } = make();
+    cap('CAP * LS :draft/multiline=max-bytes=100,max-lines=3');
+    expect(ircv3.multilineFits(3, 100)).toBe(true);
+    expect(ircv3.multilineFits(4, 10)).toBe(false);
+    expect(ircv3.multilineFits(1, 101)).toBe(false);
+    expect(ircv3.multilineFits(0, 0)).toBe(false);
   });
 });
 

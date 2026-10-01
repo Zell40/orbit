@@ -43,8 +43,9 @@ export class Ircv3 {
   private acked = new Set<string>();
   /** SASL mechanisms the server offers, learned from CAP LS (`sasl=PLAIN,SCRAM-SHA-256,…`). */
   private saslMechs = new Set<string>();
-  /** draft/multiline max-lines, learned from CAP LS (`draft/multiline=max-lines=N`). */
+  /** draft/multiline limits, learned from CAP LS (`max-bytes=N,max-lines=N`). */
   multilineMaxLines = 20;
+  multilineMaxBytes = 40000;
   private readonly tx: Ircv3Transport;
 
   constructor(tx: Ircv3Transport) { this.tx = tx; }
@@ -55,6 +56,15 @@ export class Ircv3 {
     this.acked.clear();
     this.saslMechs.clear();
     this.multilineMaxLines = 20;
+    this.multilineMaxBytes = 40000;
+  }
+
+  /** True if a draft/multiline batch of this size stays under the server CAP limits.
+   *  `wireCount` is every PRIVMSG in the batch, including concat splits. */
+  multilineFits(wireCount: number, contentBytes: number): boolean {
+    return wireCount > 0
+      && wireCount <= this.multilineMaxLines
+      && contentBytes <= this.multilineMaxBytes;
   }
 
   /** True if the server advertised SASL mechanism `name` (e.g. 'WEBAUTHN') in CAP LS. */
@@ -98,8 +108,10 @@ export class Ircv3 {
           for (const mech of tok.slice(eq + 1).split(',').filter(Boolean)) this.saslMechs.add(mech.toUpperCase());
         }
         if (name === 'draft/multiline') {
-          const m = tok.match(/max-lines=(\d+)/);
-          if (m) this.multilineMaxLines = parseInt(m[1], 10) || this.multilineMaxLines;
+          const lines = tok.match(/max-lines=(\d+)/);
+          const bytes = tok.match(/max-bytes=(\d+)/);
+          if (lines) this.multilineMaxLines = parseInt(lines[1], 10) || this.multilineMaxLines;
+          if (bytes) this.multilineMaxBytes = parseInt(bytes[1], 10) || this.multilineMaxBytes;
         }
       }
       if (more) return { do: 'none' };
