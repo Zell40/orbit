@@ -75,7 +75,7 @@ function b64urlJson(seg: string): Record<string, unknown> | null {
   try {
     const pad = seg.replace(/-/g, '+').replace(/_/g, '/');
     const padded = pad + '='.repeat((4 - (pad.length % 4)) % 4);
-    const raw = typeof atob === 'function' ? atob(padded) : Buffer.from(padded, 'base64').toString('utf8');
+    const raw = atob(padded);
     const json = JSON.parse(raw) as unknown;
     return json && typeof json === 'object' ? json as Record<string, unknown> : null;
   } catch {
