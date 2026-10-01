@@ -12,6 +12,7 @@ import { fetchProfileGecos } from '../platform/profile-gecos';
 import { bouncerConnectOpts, loadBouncerPrefs, saveBouncerSession, zncPass } from '../core/bouncer';
 import { peekDirectReconnect, clearDirectReconnect } from '../core/direct-reconnect';
 import { loadResume } from '../core/resume';
+import { usePhoneUi } from '../ui/phone-ui';
 
 /** Merge ?query and a hash that was accidentally created by an unencoded `#` in `channel=#salon`. */
 function queryBag(): URLSearchParams {
@@ -322,6 +323,7 @@ function RecoverOverlay({ onClose, onRecovered }: { onClose: () => void; onRecov
 export function ConnectScreen() {
   const { t, i18n } = useTranslation();
   const cfg = getConfig();
+  const phone = usePhoneUi();
   const [faq, setFaq] = useState<string | null>(null);
   const [recover, setRecover] = useState(false);
   const connect = useActiveChat((s) => s.connect);
@@ -478,7 +480,7 @@ export function ConnectScreen() {
   }
 
   return (
-    <div className="connect">
+    <div className={`connect${phone ? ' connect--app' : ''}`}>
       <div className="clang">
         <select aria-label={t('settings.appearance.language')} value={i18n.language}
           onChange={(e) => setLang(e.target.value)}>
@@ -496,10 +498,11 @@ export function ConnectScreen() {
         </div>
 
         <h1 className="cjoin__title">
-          {cfg.branding.tagline || t('connect.tagline')}<br />
-          <em>{cfg.branding.taglineEm || t('connect.taglineEm')}</em>
+          {phone ? <>{t('connect.appTitle')}<br /><em>{cfg.branding.name}</em></>
+            : <>{cfg.branding.tagline || t('connect.tagline')}<br />
+              <em>{cfg.branding.taglineEm || t('connect.taglineEm')}</em></>}
         </h1>
-        <p className="cjoin__sub">{cfg.branding.subtitle || t('connect.subtitle')}</p>
+        <p className="cjoin__sub">{phone ? t('connect.appSubtitle') : (cfg.branding.subtitle || t('connect.subtitle'))}</p>
 
         <form onSubmit={(e) => { e.preventDefault(); go(); }}>
           <div className="cjoin__composer">
@@ -509,8 +512,11 @@ export function ConnectScreen() {
               name="nick"
               value={nick}
               maxLength={30}
-              autoFocus
-              autoComplete="off"
+              autoFocus={!phone}
+              autoComplete="nickname"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder={t('connect.pseudoPlaceholder')}
               aria-label={t('connect.nickAria')}
               onChange={(e) => setNick(e.target.value)}
@@ -562,30 +568,75 @@ export function ConnectScreen() {
             </fieldset>
           )}
 
-          <div className="cjoin__row">
-            <label className="cjoin__chan">{viaBouncer ? t('connect.bouncerJoinHint') : t('connect.joinHint')}
-              <input className={`cjoin__chan-in${viaBouncer ? ' cjoin__chan-in--wide' : ''}`} value={chanField} spellCheck={false} autoComplete="off"
-                list="cjoin-chans" aria-label={t('connect.channelAria')} onChange={(e) => setChanField(e.target.value)}
-                placeholder={viaBouncer ? t('connect.bouncerJoinPlaceholder') : undefined} />
-              <datalist id="cjoin-chans">
-                {suggestions.map((c) => <option key={c} value={c} />)}
-              </datalist>
-            </label>
-            <span className="cjoin__row-actions">
-              {!viaBouncer && (
-                <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
-                  {showPw ? t('connect.hidePassword') : t('connect.registered')}
-                </button>
-              )}
-              {canBouncer && (
-                <button type="button" className="cjoin__pw-t" onClick={toggleBouncer}>
-                  {viaBouncer ? t('connect.bouncerHide') : t('connect.bouncerToggle')}
-                </button>
-              )}
-            </span>
-          </div>
+          {phone && showPw && !viaBouncer && (
+            <input
+              className="cjoin__pw"
+              type="password"
+              name="password"
+              value={password}
+              placeholder={t('connect.passwordPlaceholder')}
+              aria-label={t('connect.passwordLabel')}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && go()}
+            />
+          )}
+          {phone && viaBouncer && (
+            <>
+              <input
+                className="cjoin__pw"
+                name="bouncer-user"
+                value={bouncerUser}
+                autoComplete="username"
+                spellCheck={false}
+                autoCapitalize="off"
+                placeholder={t('connect.bouncerUserPlaceholder')}
+                aria-label={t('connect.bouncerUser')}
+                onChange={(e) => setBouncerUser(e.target.value)}
+              />
+              <input
+                className="cjoin__pw"
+                type="password"
+                name="bouncer-pass"
+                value={bouncerPass}
+                autoComplete="current-password"
+                placeholder={t('connect.bouncerPassPlaceholder')}
+                aria-label={t('connect.bouncerPass')}
+                onChange={(e) => setBouncerPass(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && go()}
+              />
+            </>
+          )}
 
-          {viaBouncer && (
+          <button type="submit" className="cjoin__go" disabled={connecting || !nickReady}>
+            {connecting ? <span className="cjoin__sendspin" /> : t('connect.goChat')}
+          </button>
+
+          {!phone && (
+            <div className="cjoin__row">
+              <label className="cjoin__chan">{viaBouncer ? t('connect.bouncerJoinHint') : t('connect.joinHint')}
+                <input className={`cjoin__chan-in${viaBouncer ? ' cjoin__chan-in--wide' : ''}`} value={chanField} spellCheck={false} autoComplete="off"
+                  list="cjoin-chans" aria-label={t('connect.channelAria')} onChange={(e) => setChanField(e.target.value)}
+                  placeholder={viaBouncer ? t('connect.bouncerJoinPlaceholder') : undefined} />
+                <datalist id="cjoin-chans">
+                  {suggestions.map((c) => <option key={c} value={c} />)}
+                </datalist>
+              </label>
+              <span className="cjoin__row-actions">
+                {!viaBouncer && (
+                  <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
+                    {showPw ? t('connect.hidePassword') : t('connect.registered')}
+                  </button>
+                )}
+                {canBouncer && (
+                  <button type="button" className="cjoin__pw-t" onClick={toggleBouncer}>
+                    {viaBouncer ? t('connect.bouncerHide') : t('connect.bouncerToggle')}
+                  </button>
+                )}
+              </span>
+            </div>
+          )}
+
+          {!phone && viaBouncer && (
             <>
               <input
                 className="cjoin__pw"
@@ -613,7 +664,7 @@ export function ConnectScreen() {
             </>
           )}
 
-          {showPw && !viaBouncer && (
+          {!phone && showPw && !viaBouncer && (
             <input
               className="cjoin__pw"
               type="password"
@@ -636,6 +687,35 @@ export function ConnectScreen() {
             </button>
           )}
 
+          {phone && (
+            <div className="cjoin__acct">
+              {!viaBouncer && (
+                <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
+                  {showPw ? t('connect.hidePassword') : t('connect.registered')}
+                </button>
+              )}
+              {canBouncer && (
+                <button type="button" className="cjoin__pw-t" onClick={toggleBouncer}>
+                  {viaBouncer ? t('connect.bouncerHide') : t('connect.bouncerToggle')}
+                </button>
+              )}
+            </div>
+          )}
+
+          {phone && (
+            <details className="cjoin__more">
+              <summary>{t('connect.moreOptions')}</summary>
+              <label className="cjoin__chan">{viaBouncer ? t('connect.bouncerJoinHint') : t('connect.joinHint')}
+                <input className={`cjoin__chan-in${viaBouncer ? ' cjoin__chan-in--wide' : ''}`} value={chanField} spellCheck={false} autoComplete="off"
+                  list="cjoin-chans-app" aria-label={t('connect.channelAria')} onChange={(e) => setChanField(e.target.value)}
+                  placeholder={viaBouncer ? t('connect.bouncerJoinPlaceholder') : undefined} />
+                <datalist id="cjoin-chans-app">
+                  {suggestions.map((c) => <option key={c} value={c} />)}
+                </datalist>
+              </label>
+            </details>
+          )}
+
           {errors[status] && <div className="cjoin__err">⚠ {errors[status]}</div>}
         </form>
 
@@ -655,12 +735,11 @@ export function ConnectScreen() {
           <span>🔒 {t('connect.encrypted')}</span>
           <span className="sep">·</span>
           <span>{t('connect.noData')}</span>
-          <span className="sep">·</span>
-          <span>IRCv3</span>
+          {!phone && <><span className="sep">·</span><span>IRCv3</span></>}
         </div>
       </section>
 
-      <LiveFeed chan={chan} />
+      {!phone && <LiveFeed chan={chan} />}
 
       {faq !== null && <FaqOverlay focus={faq} onClose={() => setFaq(null)} />}
       {recover && (

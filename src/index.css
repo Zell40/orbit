@@ -161,6 +161,7 @@ input, textarea { font-family: inherit; }
 .cjoin__send .arr { display: inline-block; transition: transform .2s; }
 .cjoin__send:hover:not(:disabled) .arr { transform: translateX(2px); }
 .cjoin__sendspin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; animation: c-spin .7s linear infinite; }
+.cjoin__go { display: none; }
 @keyframes c-spin { to { transform: rotate(360deg); } }
 
 .cjoin__hint { margin: .6rem 0 0 0; font-size: .76rem; color: var(--faint); }
@@ -263,6 +264,89 @@ input, textarea { font-family: inherit; }
 }
 @media (max-width: 560px) { .cjoin__title { font-size: 2.1rem; } }
 @media (prefers-reduced-motion: reduce) { .ctx, .ccursor__blink { animation: none; } .ccursor__blink { opacity: 1; } }
+
+/* Phone / installed PWA: a simple welcome, not the desktop literary split. */
+.connect--app {
+  display: flex; flex-direction: column;
+  overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+}
+.connect--app::after { opacity: .06; }
+.connect--app .clang { top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; }
+.connect--app .cfeed { display: none; }
+.connect--app .cjoin {
+  flex: 1; justify-content: flex-start; width: 100%; max-width: 28rem;
+  margin: 0 auto; padding: 1.15rem 1.3rem 1.7rem;
+}
+.connect--app .cjoin__brand { margin: .15rem auto 1rem; justify-content: center; }
+.connect--app .cjoin__logo { height: 52px; }
+.connect--app .cjoin__mark { width: 44px; height: 44px; border-radius: 14px; }
+.connect--app .cjoin__title {
+  font-size: 1.55rem; line-height: 1.22; letter-spacing: -.02em;
+  text-align: center; margin: 0 0 .4rem;
+}
+.connect--app .cjoin__sub {
+  text-align: center; font-size: .94rem; line-height: 1.45;
+  margin: 0 auto 1.35rem; max-width: 28ch;
+}
+.connect--app .cjoin__composer {
+  border: 1px solid var(--border-2); border-bottom-width: 1px; border-radius: 16px;
+  background: var(--bg); padding: .55rem .75rem; gap: .65rem;
+  box-shadow: 0 10px 28px -18px rgba(0,0,0,.35);
+}
+.connect--app .cjoin__composer:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.connect--app .cjoin__input { font-size: 16px; font-weight: 600; }
+.connect--app .cjoin__send { display: none; }
+.connect--app .cjoin__hint { text-align: center; }
+.connect--app .cjoin__me {
+  display: grid; grid-template-columns: 1fr; gap: .65rem; margin-top: 1.1rem;
+}
+.connect--app .cjoin__seg { width: 100%; justify-content: stretch; }
+.connect--app .cjoin__seg button { flex: 1; padding: .55rem .35rem; font-size: .85rem; min-height: 42px; }
+.connect--app .cjoin__mini,
+.connect--app .cjoin__mini--city {
+  width: 100%; max-width: none; padding: .7rem .85rem; font-size: 16px; border-radius: 12px;
+}
+.connect--app .cjoin__envie-lab { text-align: center; width: 100%; }
+.connect--app .cjoin__intents { gap: .45rem; }
+.connect--app .cjoin__intents button {
+  flex: 1 1 30%; border: 1px solid var(--border-2); border-radius: 14px;
+  background: var(--bg); padding: .72rem .35rem; min-height: 48px;
+}
+.connect--app .cjoin__intents button.is-on {
+  border-color: var(--accent); background: var(--accent-soft); color: var(--accent-d, var(--accent));
+}
+.connect--app .cjoin__go {
+  display: flex; align-items: center; justify-content: center; gap: .45rem;
+  width: 100%; min-height: 52px; margin-top: 1.25rem; border: 0; border-radius: 14px;
+  background: var(--accent); color: #fff; font: inherit; font-size: 1.05rem; font-weight: 700;
+  cursor: pointer; box-shadow: 0 10px 24px -12px var(--accent);
+}
+.connect--app .cjoin__go:disabled { opacity: .4; cursor: default; box-shadow: none; filter: grayscale(.15); }
+.connect--app .cjoin__go .cjoin__sendspin { width: 18px; height: 18px; }
+.connect--app .cjoin__acct {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem .9rem; margin-top: .95rem;
+}
+.connect--app .cjoin__acct .cjoin__pw-t { min-height: 44px; font-size: .88rem; }
+.connect--app .cjoin__more { margin-top: .35rem; }
+.connect--app .cjoin__more summary {
+  cursor: pointer; color: var(--muted); font-size: .86rem; font-weight: 600;
+  padding: .55rem 0; list-style: none;
+}
+.connect--app .cjoin__more summary::-webkit-details-marker { display: none; }
+.connect--app .cjoin__more .cjoin__chan { display: flex; flex-wrap: wrap; margin-top: .15rem; }
+.connect--app .cjoin__more .cjoin__chan-in,
+.connect--app .cjoin__more .cjoin__chan-in--wide { width: 100%; max-width: none; font-size: 16px; padding: .55rem .75rem; }
+.connect--app .cjoin__pw { margin-top: .85rem; padding: .7rem .85rem; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg); font-size: 16px; }
+.connect--app .cjoin__passkey { min-height: 48px; margin-top: .7rem; }
+.connect--app .cjoin__links { justify-content: center; gap: .55rem .85rem; margin-top: 1.15rem; }
+.connect--app .cjoin__links button { min-height: 44px; padding: .25rem .15rem; }
+.connect--app .cjoin__trust { justify-content: center; margin-top: 1rem; font-size: .72rem; }
+
+.splash--app .splash__mark { width: 72px; height: 72px; border-radius: 20px; }
+.splash--app .splash__name { margin: 0; font-weight: 700; font-size: 1.2rem; letter-spacing: -.02em; color: var(--ink); }
+.splash--app .splash__txt { font-size: 1rem; }
+.splash--app .splash__bar { width: min(18rem, 78vw); height: 5px; }
 
 /* welcome auth links + Aide/FAQ overlay */
 .cjoin__links { margin-top: 1.1rem; display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; font-size: .84rem; }

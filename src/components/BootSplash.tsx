@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '../core/config';
 import type { BootPhase } from '../lib/boot-ready';
+import { usePhoneUi } from '../ui/phone-ui';
 
 const PHASE_KEY: Record<BootPhase, string> = {
   connecting: 'connect.connecting',
@@ -18,10 +19,12 @@ export function BootSplash({ progress, phase, fading, peek }: {
 }) {
   const { t } = useTranslation();
   const cfg = getConfig();
+  const phone = usePhoneUi();
   return (
-    <div className={`splash${peek ? ' splash--peek' : ''}${fading ? ' is-out' : ''}`} role="status" aria-live="polite" aria-busy={!fading}>
+    <div className={`splash${peek ? ' splash--peek' : ''}${phone ? ' splash--app' : ''}${fading ? ' is-out' : ''}`} role="status" aria-live="polite" aria-busy={!fading}>
       <div className="splash__hud">
         <span className="splash__mark"><img src={cfg.branding.icon} alt="" /></span>
+        {phone ? <p className="splash__name">{cfg.branding.name}</p> : null}
         <p className="splash__txt">{t(PHASE_KEY[phase])}</p>
         <div className="splash__bar" aria-hidden="true">
           <i style={{ width: `${Math.max(6, Math.min(100, progress))}%` }} />
