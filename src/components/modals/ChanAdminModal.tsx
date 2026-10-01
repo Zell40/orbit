@@ -14,7 +14,7 @@ import {
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
-import { EMOJIS } from '../chat/composer/constants';
+import { TOPIC_SMILEYS } from '../chat/composer/constants';
 import {
   availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban,
   buildExtbanMask, nickMask, NICK_PICK, NICK_MASK_SHAPES, type ExtBan, type NickMaskShape,
@@ -407,7 +407,6 @@ export function ChanAdminModal() {
     const end = el?.selectionEnd ?? start;
     const next = topic.slice(0, start) + emoji + topic.slice(end);
     setTopicVal(next);
-    setTopicPicker(false);
     requestAnimationFrame(() => {
       el?.focus();
       const caret = start + emoji.length;
@@ -592,23 +591,23 @@ export function ChanAdminModal() {
                 onKeyDown={(e) => { if (e.key === 'Enter') { modTopic(topic); setEditingTopic(false); setTopicPicker(false); } }} />
               <button type="button" className={`ca-topic-emoji${topicPicker ? ' is-on' : ''}`}
                 title={t('composer.emoji')} aria-label={t('composer.emoji')}
+                aria-pressed={topicPicker}
                 onClick={() => setTopicPicker((p) => !p)}>😊</button>
-              {topicPicker && (
-                <>
-                  <div className="emoji-backdrop" onClick={() => setTopicPicker(false)} />
-                  <div className="emoji-pop ca-topic-emojipop">
-                    {EMOJIS.map((e) => <button key={e} type="button" onClick={() => insertTopicEmoji(e)}>{e}</button>)}
-                  </div>
-                </>
-              )}
               <button className="upbtn upbtn--primary" onClick={() => { modTopic(topic); setEditingTopic(false); setTopicPicker(false); }}>{t('modals.chanadmin.setTopic')}</button>
+              {topicPicker ? (
+                <div className="ca-topic-smileys" role="listbox" aria-label={t('composer.emoji')}>
+                  {TOPIC_SMILEYS.map((e) => (
+                    <button key={e} type="button" onClick={() => insertTopicEmoji(e)}>{e}</button>
+                  ))}
+                </div>
+              ) : null}
             </div>
           ) : (
             <>
               <button className={`ca-topic${mlock.includes('t') ? ' is-locked' : ''}`}
                 onClick={(e) => {
                   if (mlock.includes('t')) { showLockTip('t', 'topic', e); return; }
-                  setTopicVal(buffer?.topic || ''); setEditingTopic(true);
+                  setTopicVal(buffer?.topic || ''); setEditingTopic(true); setTopicPicker(true);
                 }}
                 title={mlock.includes('t') ? t('modals.chanadmin.topicLockedByServices') : t('modals.chanadmin.editTopic')}>
                 <span className="ca-topic__txt">

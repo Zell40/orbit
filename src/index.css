@@ -2886,11 +2886,22 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-topic:hover .ca-topic__pen { color: var(--accent); }
 .ca-topic__lock { flex: none; display: inline-flex; color: var(--muted); cursor: help; }
 .ca-topic.is-locked .ca-topic__lock:hover { color: var(--accent-d); }
-.ca-topic-edit { position: relative; flex-wrap: wrap; }
+.ca-topic-edit { position: relative; flex-wrap: wrap; align-items: center; }
 .ca-topic-edit .modal__input { flex: 1; min-width: 8rem; }
 .ca-topic-emoji { flex: none; width: 38px; height: 38px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); cursor: pointer; font-size: 1.1rem; }
 .ca-topic-emoji.is-on, .ca-topic-emoji:hover { background: var(--accent-soft); border-color: var(--accent); }
-.ca-topic-emojipop { bottom: calc(100% + 6px); right: 0; left: auto; }
+.ca-topic-smileys {
+  flex: 1 1 100%;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(2.05rem, 1fr));
+  gap: 1px; max-height: 9.2rem; overflow-y: auto; margin-top: .15rem;
+  padding: .4rem; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--bg-soft);
+}
+.ca-topic-smileys button {
+  border: 0; background: none; font-size: 1.22rem; line-height: 1; padding: .28rem;
+  border-radius: 8px; cursor: pointer;
+}
+.ca-topic-smileys button:hover { background: var(--bg-soft-2, var(--bg)); transform: scale(1.12); }
 /* Channel stats header */
 .ca-stats { display: flex; gap: .5rem; margin: .1rem 0 .2rem; flex-wrap: wrap; }
 .ca-stat { flex: 1 1 5rem; min-width: 5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; padding: .55rem .5rem; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg-soft); text-align: center; }
