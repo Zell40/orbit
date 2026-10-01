@@ -3,15 +3,19 @@
 
 export const EMOJIS = ['😀','😂','🤣','😊','😍','😘','😎','🤩','🥳','😏','😢','😭','😡','🤔','😴','🙄','👍','👎','👏','🙌','🙏','💪','👋','✌️','🤝','❤️','🔥','✨','🎉','🌹','☕','🍺','🍷','🎶','💯','😅','😜','🤗','😇','👀'];
 
-/** Richer set for the channel-topic picker (music, chat, weather, party…). */
-export const TOPIC_SMILEYS = [
-  '😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😎','🤩','🥳','😏','😢','😭','😡','🤔','😴','🙄','😜','🤗','😶',
-  '👍','👎','👏','🙌','🙏','💪','👋','✌️','🤝','👌','👀',
-  '❤️','🧡','💛','💚','💙','💜','💕','🔥','✨','⭐','🌟','🎉','🎊','💯',
-  '🎵','🎶','🎤','🎧','🎸','🎹','🥁','🎺','🎷','🎻','📻',
-  '💬','📢','🔔','💡','🏠','🌍','☀️','🌙','🌈','⚡','❄️','🌸',
-  '☕','🍺','🍷','🍕','🎂','🌹','🏆','🎮','⚽','🎯',
-];
+/** Richer set for the channel-topic picker, grouped so the user can filter. */
+export const TOPIC_SMILEY_GROUPS = [
+  { id: 'faces', icon: '😊', smileys: ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😎','🤩','🥳','😏','😢','😭','😡','🤔','😴','🙄','😜','🤗','😶'] },
+  { id: 'hands', icon: '👍', smileys: ['👍','👎','👏','🙌','🙏','💪','👋','✌️','🤝','👌','👀'] },
+  { id: 'hearts', icon: '❤️', smileys: ['❤️','🧡','💛','💚','💙','💜','💕','🔥','✨','⭐','🌟','🎉','🎊','💯'] },
+  { id: 'music', icon: '🎵', smileys: ['🎵','🎶','🎤','🎧','🎸','🎹','🥁','🎺','🎷','🎻','📻'] },
+  { id: 'nature', icon: '🌍', smileys: ['🌍','☀️','🌙','🌈','⚡','❄️','🌸','🌹'] },
+  { id: 'things', icon: '💡', smileys: ['💬','📢','🔔','💡','🏠','☕','🍺','🍷','🍕','🎂','🏆','🎮','⚽','🎯'] },
+] as const;
+
+export type TopicSmileyGroupId = typeof TOPIC_SMILEY_GROUPS[number]['id'];
+
+export const TOPIC_SMILEYS = TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys);
 
 // :name: → emoji, for tab-completion in the composer.
 export const EMOJI_NAMES: Record<string, string> = {
