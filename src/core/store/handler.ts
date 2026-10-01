@@ -167,7 +167,10 @@ export function makeHandler(ctx: HandlerCtx) {
       }
       case 'ERROR': { // server is closing the link — show why
         const reason = msg.params[msg.params.length - 1] || i18n.t('system.serverErrorDefault');
-        sysLine(SERVER, `⛔ ${i18n.t('system.serverError', { reason })}`, 'system');
+        const line = `⛔ ${i18n.t('system.serverError', { reason })}`;
+        sysLine(SERVER, line, 'system');
+        const active = get().active;
+        if (active && active !== SERVER) sysLine(active, line, 'system');
         set({ serverError: reason });
         break;
       }

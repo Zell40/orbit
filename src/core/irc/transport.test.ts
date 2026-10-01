@@ -203,6 +203,19 @@ describe('Transport — reconnect', () => {
     expect(rec.reconnecting).toEqual([1, 2, 1]);
   });
 
+  it('keeps climbing backoff when a session dies within seconds of 001', () => {
+    const { t, rec } = setup();
+    t.connect('ws://x'); last()._open();
+    t.resetBackoff();
+    last()._close();
+    expect(rec.reconnecting).toEqual([1]);
+    vi.advanceTimersByTime(1000);
+    last()._open();
+    t.resetBackoff(); // too soon after the previous 001 — do not hammer
+    last()._close();
+    expect(rec.reconnecting).toEqual([1, 2]);
+  });
+
   it('recovers a handshake that never reaches OPEN (connect timeout)', () => {
     const { t, rec } = setup();
     t.connect('ws://x'); // never _open

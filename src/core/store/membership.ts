@@ -91,7 +91,10 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         const partTs = tsOf(msg);
         const partSince = get().buffers[canon(ch)]?.sessionJoinedAt;
         if (!inQuietBatch(msg) && !(partSince && partTs < partSince - 2500)) {
-          sysLine(ch, i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg), partTs);
+          const why = (msg.params[1] || '').trim();
+          sysLine(ch, why
+            ? `${i18n.t('system.part', { nick: msg.nick })} (${why})`
+            : i18n.t('system.part', { nick: msg.nick }), 'part', msg.nick, hostmask(msg), partTs);
         }
         return true;
       }
@@ -128,7 +131,12 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
               const members = { ...b.members }; delete members[msg.nick];
               return { ...b, members };
             });
-            if (!inQuietBatch(msg)) sysLine(name, i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg), tsOf(msg));
+            if (!inQuietBatch(msg)) {
+              const why = (msg.params[0] || '').trim();
+              sysLine(name, why
+                ? `${i18n.t('system.quit', { nick: msg.nick })} (${why})`
+                : i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg), tsOf(msg));
+            }
           }
         }
         return true;

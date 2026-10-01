@@ -54,6 +54,7 @@ export class Transport {
   private connectTimer: ReturnType<typeof setTimeout> | null = null;
   private lastRx = 0;          // ms timestamp of the last inbound data
   private resumeHooked = false;
+  private sessionStartedAt = 0; // last RPL_WELCOME — a session that dies in seconds is not "healthy"
 
   // --- socket lifecycle tunables (named, not magic numbers) ---------------
   private keepaliveMs = 45_000;         // send a PING this often to keep NAT/proxy state warm
@@ -98,8 +99,19 @@ export class Transport {
     this.ws = undefined;
   }
 
-  /** A healthy registration (001) — clear the reconnect backoff. */
-  resetBackoff(): void { this.reconnectAttempts = 0; }
+  /** A healthy registration (001) — clear the reconnect backoff, unless the
+   *  previous session died within a few seconds (nick clash / Excess Flood).
+   *  Resetting every 001 in that case hammers the server and looks like a
+   *  connect/disconnect loop. */
+  resetBackoff(): void {
+    const now = Date.now();
+    if (this.sessionStartedAt && now - this.sessionStartedAt < 25_000) {
+      this.sessionStartedAt = now;
+      return;
+    }
+    this.reconnectAttempts = 0;
+    this.sessionStartedAt = now;
+  }
 
   /**
    * The handshake can't go ahead on this socket yet (no fresh keycard to

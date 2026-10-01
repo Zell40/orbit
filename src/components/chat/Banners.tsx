@@ -23,6 +23,7 @@ export function ReconnectBanner() {
   const { t } = useTranslation();
   const status = useActiveChat((s) => s.status);
   const reconnectIn = useActiveChat((s) => s.reconnectIn);
+  const serverError = useActiveChat((s) => s.serverError);
   const nick = useActiveChat((s) => s.nick);
   if (status === 'registered') return null;
   // A failed SASL ends the session for good — the client stops reconnecting on
@@ -48,7 +49,12 @@ export function ReconnectBanner() {
   const label = status === 'connecting' ? t('banners.reconnecting')
     : reconnectIn > 0 ? t('banners.lostRetry', { n: reconnectIn })
     : t('banners.lostReconnecting');
-  return <div className="reconnect-banner"><span className="reconnect-banner__dot" /> {label}</div>;
+  const why = (serverError || '').trim();
+  return (
+    <div className="reconnect-banner">
+      <span className="reconnect-banner__dot" /> {label}{why ? ` — ${why}` : ''}
+    </div>
+  );
 }
 
 // Shown when the server kicks or bans us from a salon — the salon is already
