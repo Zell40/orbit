@@ -712,7 +712,7 @@
     "sendingImage": "Sending “{{name}}”…",
     "sendingVoice": "Sending voice message…",
     "uploadNeedAccount": "You must be logged into an account to send images (/msg NickServ IDENTIFY).",
-    "uploadTimeout": "The file server is not responding.",
+    "uploadTimeout": "The file server is not ready yet. Try again in a moment.",
     "uploadViolent": "Violent content detected — upload blocked. Operators have been notified.",
     "uploadNsfw": "Explicit content detected — upload blocked. Operators have been notified.",
     "uploadInfected": "Malicious file detected — upload blocked. Operators have been notified.",

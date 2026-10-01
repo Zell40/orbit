@@ -107,6 +107,9 @@ export class IrcClient {
 
   // Outbound writes go through the transport's flood-control queues.
   send(line: string): void { this.transport.send(line); }
+  /** Skip the token bucket — FILEHOST / PONG-class lines that must not wait
+   *  behind CHATHISTORY after a (re)connect. */
+  sendNow(line: string): void { this.transport.sendRaw(line); }
   private sendRaw(line: string): void { this.transport.sendRaw(line); }
   private lowSend(line: string): void { this.transport.lowSend(line); }
 

@@ -6,7 +6,7 @@ import type { StoreHelpers } from './helpers';
 function fakeClient() {
   const calls: [string, unknown[]][] = [];
   const rec = (n: string) => (...a: unknown[]) => { calls.push([n, a]); };
-  return { send: rec('send'), action: rec('action'), ircv3: { hasCap: () => false }, calls };
+  return { send: rec('send'), sendNow: rec('sendNow'), action: rec('action'), ircv3: { hasCap: () => false }, calls };
 }
 
 function setup() {
@@ -15,7 +15,13 @@ function setup() {
   const added: { name: string }[] = [];
   const lines: { name: string; text: string }[] = [];
   const get = () => state as unknown as ChatState;
-  const filehost = { resolve: null as ((t: string) => void) | null, reject: null as ((e: Error) => void) | null, timer: null as ReturnType<typeof setTimeout> | null };
+  const filehost = {
+    resolve: null as ((t: string) => void) | null,
+    reject: null as ((e: Error) => void) | null,
+    timer: null as ReturnType<typeof setTimeout> | null,
+    lateToken: null as string | null,
+    lateAt: 0,
+  };
   const helpers = {
     addMessage: (name: string) => { added.push({ name }); },
     sysLine: (name: string, text: string) => { lines.push({ name, text }); },
@@ -44,7 +50,7 @@ describe('upload', () => {
     const fetchMock = okJson({ url: 'https://h/files/x.png' });
     vi.stubGlobal('fetch', fetchMock);
     const p = uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
-    expect(client.calls).toEqual([['send', ['FILEHOST']]]); // token requested synchronously
+    expect(client.calls).toEqual([['sendNow', ['FILEHOST']]]); // token requested immediately, not queued
     filehost.resolve!('tok123'); // messaging handler would do this on the service NOTICE
     await p;
     const action = client.calls.find(([n]) => n === 'action');
@@ -93,6 +99,29 @@ describe('upload', () => {
     expect(hostedFileName('https://h/other/pic.png')).toBeNull();
   });
 
+  it('reuses a FILEHOST token that arrived after a previous timeout', async () => {
+    const { uploadImage, client, filehost } = setup();
+    filehost.lateToken = 'lateTok';
+    filehost.lateAt = Date.now();
+    const fetchMock = okJson({ url: 'https://h/files/x.png' });
+    vi.stubGlobal('fetch', fetchMock);
+    await uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
+    expect(client.calls.filter(([n]) => n === 'sendNow')).toHaveLength(0);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('lateTok');
+  });
+
+  it('retries FILEHOST once after a timeout', async () => {
+    const { uploadImage, client, filehost } = setup();
+    const fetchMock = okJson({ url: 'https://h/files/x.png' });
+    vi.stubGlobal('fetch', fetchMock);
+    const p = uploadImage(new File(['img'], 'pic.png', { type: 'image/png' }));
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(client.calls.filter(([n]) => n === 'sendNow')).toHaveLength(2);
+    filehost.resolve!('tok2');
+    await p;
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('tok2');
+  });
+
   it('deletes a hosted file with a FILEHOST token', async () => {
     const { deleteHostedFile, client, filehost } = setup();
     const fetchMock = okJson({ ok: true });
@@ -100,7 +129,7 @@ describe('upload', () => {
     const p = deleteHostedFile('https://h/files/aabbccddeeff00112233445566778899.png');
     filehost.resolve!('tokdel');
     await expect(p).resolves.toBe(true);
-    expect(client.calls).toEqual([['send', ['FILEHOST']]]);
+    expect(client.calls).toEqual([['sendNow', ['FILEHOST']]]);
     const body = fetchMock.mock.calls[0]?.[1]?.body as FormData;
     expect(body.get('action')).toBe('delete');
     expect(body.get('file')).toBe('aabbccddeeff00112233445566778899.png');

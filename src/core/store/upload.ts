@@ -17,7 +17,13 @@ import type { StoreHelpers } from './helpers';
 
 interface UploadDeps {
   get: StoreApi<ChatState>['getState'];
-  filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
+  filehost: {
+    resolve: ((token: string) => void) | null;
+    reject: ((err: Error) => void) | null;
+    timer: ReturnType<typeof setTimeout> | null;
+    lateToken?: string | null;
+    lateAt?: number;
+  };
   helpers: StoreHelpers;
 }
 
@@ -70,16 +76,59 @@ export function hostedFileName(url: string): string | null {
 export function makeUpload({ get, filehost, helpers }: UploadDeps) {
   const { addMessage, sysLine } = helpers;
 
+  function askFilehost(client: IrcClient): void {
+    if (typeof client.sendNow === 'function') client.sendNow('FILEHOST');
+    else client.send('FILEHOST');
+  }
+
+  function takeLateToken(): string | null {
+    const tok = filehost.lateToken;
+    const at = filehost.lateAt || 0;
+    filehost.lateToken = null;
+    filehost.lateAt = 0;
+    return tok && Date.now() - at < 45000 ? tok : null;
+  }
+
   function requestToken(client: IrcClient): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+    const late = takeLateToken();
+    if (late) return Promise.resolve(late);
+    const oneTry = (ms: number) => new Promise<string>((resolve, reject) => {
       filehost.resolve = resolve; filehost.reject = reject;
-      filehost.timer = setTimeout(() => { filehost.resolve = null; filehost.reject = null; reject(new Error('timeout')); }, 10000);
-      client.send('FILEHOST');
+      filehost.timer = setTimeout(() => {
+        filehost.resolve = null; filehost.reject = null;
+        reject(new Error('timeout'));
+      }, ms);
+      askFilehost(client);
+    });
+    // After connect the FILEHOST NOTICE can trail the flood queue / account
+    // bind. One retry beats a cryptic timeout the user only "fixes" by waiting.
+    return oneTry(15000).catch((e) => {
+      if (!(e instanceof Error) || e.message !== 'timeout') throw e;
+      const again = takeLateToken();
+      if (again) return again;
+      return oneTry(20000);
+    });
+  }
+
+  function waitForAccount(ms: number): Promise<void> {
+    if (get().account) return Promise.resolve();
+    const start = Date.now();
+    return new Promise((resolve) => {
+      const tick = () => {
+        if (get().account || Date.now() - start >= ms) { resolve(); return; }
+        setTimeout(tick, 250);
+      };
+      tick();
     });
   }
 
   // Request a one-time FILEHOST token, POST the file, return its public URL.
   async function uploadFile(client: IrcClient, file: File): Promise<string> {
+    // FILEHOST requires a services account. Right after connect that bind can
+    // lag a few seconds (SASL 900 / bouncer WHOIS) while the user already taps 📷.
+    if (!get().account && (get().viaBouncer || get().status === 'connecting')) {
+      await waitForAccount(8000);
+    }
     const token = await requestToken(client);
     const fd = new FormData();
     fd.append('file', file);

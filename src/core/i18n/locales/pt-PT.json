@@ -538,7 +538,7 @@
     "imageTooLarge": "Imagem demasiado grande (máx. 16 MB).",
     "sendingImage": "A enviar «{{name}}»…",
     "uploadNeedAccount": "Tens de ter sessão iniciada numa conta para enviar imagens (/msg NickServ IDENTIFY).",
-    "uploadTimeout": "O servidor de ficheiros não responde.",
+    "uploadTimeout": "O servidor de ficheiros ainda não está pronto. Tenta de novo daqui a pouco.",
     "uploadFailed": "Falha no envio ({{msg}}).",
     "shareImage": "partilha uma imagem: {{url}}",
     "yourModes": "Os teus modos: +{{modes}} ({{change}})",

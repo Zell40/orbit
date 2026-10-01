@@ -41,7 +41,13 @@ interface MessagingDeps {
   get: StoreApi<ChatState>['getState'];
   set: StoreApi<ChatState>['setState'];
   knownServices: Set<string>;
-  filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
+  filehost: {
+    resolve: ((token: string) => void) | null;
+    reject: ((err: Error) => void) | null;
+    timer: ReturnType<typeof setTimeout> | null;
+    lateToken?: string | null;
+    lateAt?: number;
+  };
   helpers: StoreHelpers;
   /** canon channel → expiry ms for a ChanServ INFO/MODE query we issued. */
   mlockAsked?: Map<string, number>;
@@ -104,17 +110,21 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     // services-looking nick!user@host. Always intercept before normal routing so
     // an in-flight upload never times out waiting for a swallowed/misrouted line.
     if (msg.command === 'NOTICE' && /FILEHOST|file hosting|\/upload\?[^ \t]*token=/i.test(text)) {
-      if (filehost.resolve) {
-        const tok = text.match(/[?&]token=([A-Za-z0-9._\-]+)/);
-        if (tok) {
-          if (filehost.timer) clearTimeout(filehost.timer);
+      const tok = text.match(/[?&]token=([A-Za-z0-9._\-]+)/);
+      if (tok) {
+        if (filehost.timer) clearTimeout(filehost.timer);
+        if (filehost.resolve) {
           const r = filehost.resolve; filehost.resolve = null; filehost.reject = null;
           r(tok[1]);
-        } else if (/must be logged in|not (logged|identif|authentic)/i.test(text)) {
-          if (filehost.timer) clearTimeout(filehost.timer);
-          const rj = filehost.reject; filehost.resolve = null; filehost.reject = null;
-          rj?.(new Error('not_identified'));
+        } else {
+          // NOTICE arrived after our wait timed out — keep it for the retry.
+          filehost.lateToken = tok[1];
+          filehost.lateAt = Date.now();
         }
+      } else if (/must be logged in|not (logged|identif|authentic)|identifi|compte (enregistré|NickServ)/i.test(text)) {
+        if (filehost.timer) clearTimeout(filehost.timer);
+        const rj = filehost.reject; filehost.resolve = null; filehost.reject = null;
+        rj?.(new Error('not_identified'));
       }
       return true; // swallow all FILEHOST service notices
     }

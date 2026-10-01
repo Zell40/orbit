@@ -538,7 +538,7 @@
     "imageTooLarge": "Bild zu groß (max. 16 MB).",
     "sendingImage": "Sende „{{name}}“…",
     "uploadNeedAccount": "Du musst in einem Konto angemeldet sein, um Bilder zu senden (/msg NickServ IDENTIFY).",
-    "uploadTimeout": "Der Dateiserver antwortet nicht.",
+    "uploadTimeout": "Der Dateiserver ist noch nicht bereit. Versuche es gleich noch einmal.",
     "uploadFailed": "Upload fehlgeschlagen ({{msg}}).",
     "shareImage": "teilt ein Bild: {{url}}",
     "yourModes": "Deine Modi: +{{modes}} ({{change}})",

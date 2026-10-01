@@ -28,7 +28,13 @@ import { fetchChannelMlock } from './store/mlock-rpc';
 
 
 // Pending /FILEHOST token request (resolved when the server NOTICEs the upload URL).
-const filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null } = { resolve: null, reject: null, timer: null };
+const filehost: {
+  resolve: ((token: string) => void) | null;
+  reject: ((err: Error) => void) | null;
+  timer: ReturnType<typeof setTimeout> | null;
+  lateToken: string | null;
+  lateAt: number;
+} = { resolve: null, reject: null, timer: null, lateToken: null, lateAt: 0 };
 
 
 

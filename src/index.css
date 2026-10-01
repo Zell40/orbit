@@ -1547,7 +1547,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 .reaction b { font-weight: 800; }
 
 /* ============ COMPOSER ============ */
-.composer { padding: .35rem 1.3rem 1rem; }
+.composer { position: relative; padding: .35rem 1.3rem 1rem; }
 .composer__box {
   position: relative;
   display: flex; align-items: flex-end; gap: .4rem; background: var(--bg); border: 1px solid var(--border-2); border-radius: 14px; padding: .35rem .4rem .35rem .5rem;
@@ -2366,10 +2366,29 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 
 /* ============ EMOJI PICKER ============ */
 .emoji-backdrop { position: fixed; inset: 0; z-index: 40; }
-.emoji-pop { position: absolute; bottom: 4.6rem; right: 1.5rem; z-index: 41; width: 280px; max-height: 240px; overflow-y: auto;
-  display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; padding: .5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-pop); animation: rise .15s ease both; }
-.emoji-pop button { border: 0; background: none; font-size: 1.25rem; padding: 4px; border-radius: 8px; cursor: pointer; transition: background .1s, transform .1s; }
-.emoji-pop button:hover { background: var(--bg-soft-2); transform: scale(1.18); }
+.emoji-pop {
+  position: absolute; bottom: calc(100% + .35rem); right: 0; z-index: 41;
+  width: min(320px, calc(100vw - 1.4rem)); max-height: min(52vh, 320px);
+  display: flex; flex-direction: column; gap: .35rem; overflow: hidden;
+  padding: .5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: var(--shadow-pop); animation: rise .15s ease both;
+}
+.emoji-pop__filters { display: flex; flex-wrap: wrap; gap: .28rem; flex: none; }
+.emoji-pop__filter {
+  display: inline-flex; align-items: center; gap: .25rem;
+  border: 1px solid var(--border); background: var(--bg-soft); color: var(--ink);
+  font: inherit; font-size: .7rem; font-weight: 700; padding: .2rem .48rem;
+  border-radius: 999px; cursor: pointer;
+}
+.emoji-pop__filter:hover { border-color: var(--accent); }
+.emoji-pop__filter.is-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-d, var(--accent)); }
+.emoji-pop__filter-lbl { white-space: nowrap; }
+.emoji-pop__grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(2.05rem, 1fr));
+  gap: 1px; overflow-y: auto; min-height: 0;
+}
+.emoji-pop__grid button { border: 0; background: none; font-size: 1.25rem; padding: 4px; border-radius: 8px; cursor: pointer; transition: background .1s, transform .1s; }
+.emoji-pop__grid button:hover { background: var(--bg-soft-2); transform: scale(1.18); }
 .composer__emoji.is-on { background: var(--accent-soft); color: var(--accent-d); }
 
 /* Formatting toolbar (bold / italic / underline / colour) */
@@ -3293,8 +3312,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .composer__rich.is-empty { overflow: hidden; }
   .composer__fmt-toggle { display: inline-flex; align-items: center; justify-content: center; }
   /* Send stays the compact 38×38 icon (➤) — the long label overflows a phone row. */
-  /* The device keyboard has its own emoji key on mobile — drop our picker. */
-  .composer__emoji { display: none; }
+  .emoji-pop { left: 0; right: 0; width: auto; max-height: min(46vh, 280px); }
+  .emoji-pop__filter-lbl { display: none; }
 
   /* Topbar: tighter, and drop the channel-mode chip (advanced info) so the
      title/topic and the online pill always fit. */

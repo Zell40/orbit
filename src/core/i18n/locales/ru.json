@@ -538,7 +538,7 @@
     "imageTooLarge": "Изображение слишком большое (макс. 16 МБ).",
     "sendingImage": "Отправка «{{name}}»…",
     "uploadNeedAccount": "Чтобы отправлять изображения, нужно войти в аккаунт (/msg NickServ IDENTIFY).",
-    "uploadTimeout": "Файловый сервер не отвечает.",
+    "uploadTimeout": "Файловый сервер ещё не готов. Попробуй через мгновение.",
     "uploadFailed": "Ошибка отправки ({{msg}}).",
     "shareImage": "делится изображением: {{url}}",
     "yourModes": "Ваши режимы: +{{modes}} ({{change}})",

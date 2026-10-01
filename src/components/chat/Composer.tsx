@@ -7,7 +7,7 @@ import { getConfig } from '@/core/config';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat, activeStore } from '@/core/networks';
-import { EMOJIS, EMOJI_NAMES, SLASH_COMMANDS } from './composer/constants';
+import { EMOJI_NAMES, SLASH_COMMANDS, TOPIC_SMILEY_GROUPS, type TopicSmileyGroupId } from './composer/constants';
 import { TypingIndicator } from './composer/TypingIndicator';
 import { ReplyBar } from './composer/ReplyBar';
 import { useVoiceRecorder } from './composer/useVoiceRecorder';
@@ -54,6 +54,7 @@ export function Composer({ locked = false }: { locked?: boolean }) {
 
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [picker, setPicker] = useState(false);
+  const [smileyGroup, setSmileyGroup] = useState<'all' | TopicSmileyGroupId>('all');
   const [colors, setColors] = useState(false);
   const [fmtMenu, setFmtMenu] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -226,6 +227,7 @@ export function Composer({ locked = false }: { locked?: boolean }) {
     send(out);
     history.record(out);
     root.innerHTML = '';
+    setPicker(false);
     setEmpty(true); setBlank(true);
     setDraft(active, '');
     cyc.current = null;
@@ -254,9 +256,15 @@ export function Composer({ locked = false }: { locked?: boolean }) {
   }
 
   function insert(emoji: string) {
-    ed.current?.focus();
-    document.execCommand('insertText', false, emoji);
-    setPicker(false);
+    const root = ed.current;
+    if (!root) return;
+    const sel = window.getSelection();
+    const inEditor = !!(sel && sel.rangeCount && root.contains(sel.anchorNode));
+    if (inEditor) {
+      document.execCommand('insertText', false, emoji);
+    } else {
+      root.appendChild(document.createTextNode(emoji));
+    }
     changed();
   }
 
@@ -370,8 +378,33 @@ export function Composer({ locked = false }: { locked?: boolean }) {
       {picker && (
         <>
           <div className="emoji-backdrop" onClick={() => setPicker(false)} />
-          <div className="emoji-pop">
-            {EMOJIS.map((e) => <button key={e} onClick={() => insert(e)}>{e}</button>)}
+          <div className="emoji-pop" role="dialog" aria-label={t('composer.emoji')}>
+            <div className="emoji-pop__filters" role="tablist" aria-label={t('composer.emoji')}>
+              <button type="button" role="tab" aria-selected={smileyGroup === 'all'}
+                className={`emoji-pop__filter${smileyGroup === 'all' ? ' is-on' : ''}`}
+                title={t('modals.chanadmin.smileysAll')}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setSmileyGroup('all')}>{t('modals.chanadmin.smileysAll')}</button>
+              {TOPIC_SMILEY_GROUPS.map((g) => (
+                <button key={g.id} type="button" role="tab" aria-selected={smileyGroup === g.id}
+                  className={`emoji-pop__filter${smileyGroup === g.id ? ' is-on' : ''}`}
+                  title={t(`modals.chanadmin.smileys_${g.id}`)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setSmileyGroup(g.id)}>
+                  <span aria-hidden="true">{g.icon}</span>
+                  <span className="emoji-pop__filter-lbl">{t(`modals.chanadmin.smileys_${g.id}`)}</span>
+                </button>
+              ))}
+            </div>
+            <div className="emoji-pop__grid" role="listbox">
+              {(smileyGroup === 'all'
+                ? TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys)
+                : TOPIC_SMILEY_GROUPS.find((g) => g.id === smileyGroup)?.smileys || []
+              ).map((e) => (
+                <button key={e} type="button" onMouseDown={(ev) => ev.preventDefault()}
+                  onClick={() => insert(e)}>{e}</button>
+              ))}
+            </div>
           </div>
         </>
       )}
@@ -527,7 +560,10 @@ export function Composer({ locked = false }: { locked?: boolean }) {
           return <div className="composer__fmt">{fmtBtns}</div>;
         })()}
         {!readOnlyLog && pluginButtons.map((b) => <PluginBoundary key={b.id} render={b.render} label="composer_button" />)}
-        {!readOnlyLog && <button className={`composer__emoji ${picker ? 'is-on' : ''}`} title={t('composer.emoji')} aria-label={t('composer.emoji')} onClick={() => setPicker((p) => !p)}>😊</button>}
+        {!readOnlyLog && <button type="button" className={`composer__emoji ${picker ? 'is-on' : ''}`}
+          title={t('composer.emoji')} aria-label={t('composer.emoji')} aria-pressed={picker}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => setPicker((p) => !p)}>😊</button>}
         <button className="composer__send" disabled={blank && !pendingImage} onClick={submit} aria-label={t('composer.send')} title={t('composer.send')}>
           {readOnlyLog ? '⏎' : <><span className="composer__send-txt">{t('composer.sendLong')}</span>➤</>}
         </button>

@@ -25,7 +25,13 @@ interface HandlerCtx {
   knownServices: Set<string>;
   lastCantSend: Record<string, number>;
   lastAwayNotice: Record<string, number>;
-  filehost: { resolve: ((token: string) => void) | null; reject: ((err: Error) => void) | null; timer: ReturnType<typeof setTimeout> | null };
+  filehost: {
+    resolve: ((token: string) => void) | null;
+    reject: ((err: Error) => void) | null;
+    timer: ReturnType<typeof setTimeout> | null;
+    lateToken?: string | null;
+    lateAt?: number;
+  };
   namesInFlight: Set<string>;
   historyAsked: Set<string>;
   profileCache: Map<string, { realname?: string; account?: string }>;
@@ -132,6 +138,13 @@ export function makeHandler(ctx: HandlerCtx) {
     // ./numerics. RPL_TOPIC (332) / RPL_NAMREPLY (353) are the exception — they
     // stay in the command switch below, after the membership/message handlers.
     if (handleWhois(msg)) return;
+    if (msg.command === '421' && /FILEHOST/i.test(msg.params[1] || '')) {
+      if (filehost.timer) clearTimeout(filehost.timer);
+      const rj = filehost.reject;
+      filehost.resolve = null; filehost.reject = null;
+      rj?.(new Error('timeout'));
+      return;
+    }
     if (handleNumerics(msg)) return;
 
     // Channel-membership events, BATCH, TAGMSG and REDACT/MARKREAD are handled first.

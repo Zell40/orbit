@@ -538,7 +538,7 @@
     "imageTooLarge": "छवि धेरै ठूलो छ (अधिकतम 16 MB)।",
     "sendingImage": "«{{name}}» पठाउँदै…",
     "uploadNeedAccount": "छविहरू पठाउन तपाईं खातामा लग इन हुनुपर्छ (/msg NickServ IDENTIFY)।",
-    "uploadTimeout": "फाइल सर्भरले जवाफ दिँदैन।",
+    "uploadTimeout": "फाइल सर्भर अझै तयार छैन। केही बेरमा फेरि प्रयास गर्नुहोस्।",
     "uploadFailed": "पठाउन असफल ({{msg}})।",
     "shareImage": "एउटा छवि साझा गर्छ: {{url}}",
     "yourModes": "तपाईंका मोड: +{{modes}} ({{change}})",

@@ -538,7 +538,7 @@
     "imageTooLarge": "Görsel çok büyük (en fazla 16 MB).",
     "sendingImage": "«{{name}}» gönderiliyor…",
     "uploadNeedAccount": "Görsel göndermek için bir hesaba giriş yapmalısın (/msg NickServ IDENTIFY).",
-    "uploadTimeout": "Dosya sunucusu yanıt vermiyor.",
+    "uploadTimeout": "Dosya sunucusu henüz hazır değil. Biraz sonra tekrar dene.",
     "uploadFailed": "Gönderme başarısız ({{msg}}).",
     "shareImage": "bir görsel paylaşıyor: {{url}}",
     "yourModes": "Modların: +{{modes}} ({{change}})",

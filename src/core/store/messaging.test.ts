@@ -275,4 +275,27 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(ok).toBe(true);
     expect(token).toBe(jwt);
   });
+
+  it('stashes a FILEHOST token when no upload is waiting (late NOTICE)', () => {
+    const filehost = {
+      resolve: null as ((token: string) => void) | null,
+      reject: null as ((err: Error) => void) | null,
+      timer: null as ReturnType<typeof setTimeout> | null,
+      lateToken: null as string | null,
+      lateAt: 0,
+    };
+    const { handleMessaging } = makeMessaging({
+      get: () => ({
+        active: '#x', isActive: true, ignored: [] as string[],
+        reg: { busy: false, challengeUrl: '' }, notifyLevel: {} as Record<string, string>,
+        highlightWords: [] as string[], prefs: { sound: false }, pmContext: {} as Record<string, string>,
+      }) as unknown as ChatState,
+      set: () => {},
+      knownServices: new Set<string>(),
+      filehost, helpers: { addMessage: () => {}, patchBuffer: () => {}, serverLine: () => {}, tsOf: () => 1000 } as unknown as StoreHelpers,
+    } as Parameters<typeof makeMessaging>[0]);
+    handleMessaging(parseLine(':FileHost!fh@services NOTICE me :FILEHOST https://x/upload?token=latejwt'), 'me');
+    expect(filehost.lateToken).toBe('latejwt');
+    expect(filehost.lateAt).toBeGreaterThan(0);
+  });
 });
