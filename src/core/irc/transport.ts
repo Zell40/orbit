@@ -10,6 +10,12 @@ import { setStayAwake } from '@/platform/wake-lock';
 // moves bytes and calls back through TransportHooks, so the socket, timers and
 // queues stay private and this is testable on its own.
 
+/** Config often stores `https://irc…` (Apache WS upgrade). The constructor
+ *  needs `ws:`/`wss:` or the handshake can be aborted as a page navigation. */
+export function toWebsocketUrl(url: string): string {
+  return url.replace(/^https:/i, 'wss:').replace(/^http:/i, 'ws:');
+}
+
 /** Kiwi/webircgateway path — raw IRC over WS, no IRCv3 subprotocols. */
 export function isWebircGateway(url: string): boolean {
   try { return /\/webirc\//i.test(new URL(url).pathname); }
@@ -69,7 +75,7 @@ export class Transport {
   get isOpen(): boolean { return this.ws?.readyState === WebSocket.OPEN; }
 
   connect(url: string, opts?: { plain?: boolean }): void {
-    this.url = url;
+    this.url = toWebsocketUrl(url);
     this.wantConnected = true;
     this.reconnectAttempts = 0;
     // Kiwi webircgateway (golang.org/x/net/websocket) returns HTTP 400 if the

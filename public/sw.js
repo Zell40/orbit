@@ -4,9 +4,12 @@
 const CACHE = 'orbit-__SW_BUILD__';
 const SHELL = ['/app/', '/app/index.html', '/app/favicon.svg', '/app/orbit-icon.svg', '/app/manifest.webmanifest'];
 
-// No skipWaiting: a new SW stays waiting until every tab closes, so a running tab
-// keeps its cached bundle (a manual refresh still loads the new build — navigate
-// is network-first). This is what makes the app not auto-reload.
+// No skipWaiting and no clients.claim(): a new SW stays waiting until every tab
+// closes, so a running tab keeps its cached bundle and its IRC websocket.
+// claim() used to steal the page mid-handshake and abort wss:// (Chrome:
+// « connexion interrompue pendant le chargement de la page »), which looked
+// like a connect/disconnect loop after each deploy. Navigate is network-first,
+// so a manual refresh still loads the new build.
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
 });
@@ -15,7 +18,6 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
   );
 });
 

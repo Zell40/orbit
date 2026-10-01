@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Transport } from './transport';
+import { Transport, toWebsocketUrl } from './transport';
 
 // A controllable fake WebSocket. The transport news up `new WebSocket(url, protos)`
 // and drives it through onopen/onmessage/onclose/onerror; the tests drive it back
@@ -65,9 +65,11 @@ afterEach(() => {
 describe('Transport — connect + open', () => {
   it('opens a socket with the URL and IRCv3 subprotocols, emits connecting', () => {
     const { t, rec } = setup();
-    t.connect('ws://server/');
+    t.connect('https://irc.example/');
     expect(FakeWebSocket.instances).toHaveLength(1);
-    expect(last().url).toBe('ws://server/');
+    expect(last().url).toBe('wss://irc.example/');
+    expect(toWebsocketUrl('https://irc.example/')).toBe('wss://irc.example/');
+    expect(toWebsocketUrl('http://irc.example/')).toBe('ws://irc.example/');
     expect(last().protocols).toEqual(['text.ircv3.net', 'binary.ircv3.net']);
     expect(rec.status).toContain('connecting');
     expect(t.isOpen).toBe(false);

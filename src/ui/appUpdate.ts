@@ -29,7 +29,10 @@ export function applyAppUpdate(): void {
 
 export function registerAppUpdates(): void {
   if (!('serviceWorker' in navigator)) return;
-  window.addEventListener('load', () => {
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
     navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' }).then((reg) => {
       if (reg.waiting && navigator.serviceWorker.controller) announceUpdate();
       reg.addEventListener('updatefound', () => {
@@ -41,5 +44,9 @@ export function registerAppUpdates(): void {
       });
       window.setInterval(() => { void reg.update(); }, 30 * 60 * 1000);
     }).catch(() => { /* ignore */ });
-  });
+  };
+  // After IRC is up (or 10s on the join form) so a new SW cannot race the
+  // websocket handshake. claim() is no longer used; this is belt and braces.
+  void import('../modules/bus').then(({ bus }) => bus.once('boot:ready', start));
+  window.addEventListener('load', () => { window.setTimeout(start, 10_000); }, { once: true });
 }
