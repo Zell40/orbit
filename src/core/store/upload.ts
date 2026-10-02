@@ -83,13 +83,15 @@ function b64urlJson(seg: string): Record<string, unknown> | null {
   }
 }
 
-/** True when the NOTICE token looks like a live FILEHOST JWT (not bouncer
- *  playback of an hour-old NOTICE, and not a truncated leftover). */
+/** True when the NOTICE token looks like a usable FILEHOST JWT.
+ *  Only reject when claims decode AND clearly expired / ancient (bouncer
+ *  playback). If the payload can't be decoded, still accept — the upload
+ *  endpoint will 401 and we retry with a fresh FILEHOST. */
 export function filehostTokenFresh(tok: string, nowSec = Math.floor(Date.now() / 1000)): boolean {
   const parts = tok.split('.');
   if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) return false;
   const claims = b64urlJson(parts[1]);
-  if (!claims) return false;
+  if (!claims) return true;
   if (typeof claims.exp === 'number' && claims.exp < nowSec + 15) return false;
   // Playback after connect often replays the last FILEHOST NOTICE. A token
   // issued more than a few minutes ago is not the reply to *this* request.

@@ -155,6 +155,8 @@ describe('upload', () => {
     expect(filehostTokenFresh(dummyJwt({ iss: 'FILEHOST', iat: now, exp: now + 3600 }), now)).toBe(true);
     expect(filehostTokenFresh(dummyJwt({ iss: 'FILEHOST', iat: now - 600, exp: now + 3000 }), now)).toBe(false);
     expect(filehostTokenFresh('not-a-jwt', now)).toBe(false);
+    // Undecodable payload → still usable (server decides); don't block the upload.
+    expect(filehostTokenFresh('aaa.!!!notb64!!!.sig', now)).toBe(true);
   });
 
   it('retries FILEHOST once after a timeout', async () => {

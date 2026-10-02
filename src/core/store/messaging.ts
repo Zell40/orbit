@@ -115,18 +115,21 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       // CHATHISTORY / +H replay is not a reply to the upload we just asked for.
       if (inHistoryBatch(msg)) return true;
       const tok = extractFilehostToken(text);
-      if (tok && filehostTokenFresh(tok)) {
-        if (filehost.timer) clearTimeout(filehost.timer);
+      if (tok) {
         if (filehost.resolve) {
+          // Reply to the FILEHOST we just sent — accept even if claims look odd.
+          if (filehost.timer) clearTimeout(filehost.timer);
           const r = filehost.resolve; filehost.resolve = null; filehost.reject = null;
           filehost.awaitingLate = false;
           r(tok);
-        } else if (filehost.awaitingLate) {
-          // NOTICE arrived after our wait timed out — keep it for the retry.
+        } else if (filehost.awaitingLate && filehostTokenFresh(tok)) {
+          // NOTICE after our wait timed out — keep a fresh JWT for the retry.
+          if (filehost.timer) clearTimeout(filehost.timer);
           filehost.lateToken = tok;
           filehost.lateAt = Date.now();
           filehost.awaitingLate = false;
         }
+        // else: unsolicited / stale replay — swallow, do not stash
       } else if (/must be logged in|not (logged|identif|authentic)|identifi|compte (enregistré|NickServ)/i.test(text)) {
         if (filehost.timer) clearTimeout(filehost.timer);
         const rj = filehost.reject; filehost.resolve = null; filehost.reject = null;

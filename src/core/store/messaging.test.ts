@@ -332,7 +332,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(filehost.lateToken).toBeNull();
   });
 
-  it('ignores a stale FILEHOST JWT while an upload is waiting', () => {
+  it('accepts a FILEHOST NOTICE while an upload is waiting even if iat looks old', () => {
     let token = '';
     const stale = dummyJwt({ iss: 'FILEHOST', iat: 1_000_000_000, exp: 1_000_003_600 });
     const filehost = {
@@ -353,7 +353,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       filehost, helpers: { addMessage: () => {}, patchBuffer: () => {}, serverLine: () => {}, tsOf: () => 1000 } as unknown as StoreHelpers,
     } as Parameters<typeof makeMessaging>[0]);
     handleMessaging(parseLine(`:FileHost!fh@services NOTICE me :FILEHOST https://x/upload?token=${stale}`), 'me');
-    expect(token).toBe('');
-    expect(filehost.resolve).not.toBeNull();
+    expect(token).toBe(stale);
+    expect(filehost.resolve).toBeNull();
   });
 });
