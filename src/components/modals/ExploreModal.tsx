@@ -33,7 +33,7 @@ export function ExploreModal() {
     const n = name.trim();
     if (!n) return;
     const chan = n.startsWith('#') || n.startsWith('&') ? n : '#' + n;
-    client?.join(chan); setActive(chan);
+    client?.join(chan); setActive(chan); setModal('');
   }
 
   return (

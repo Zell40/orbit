@@ -14,6 +14,21 @@ export function onAppUpdate(fn: () => void): () => void {
   return () => window.removeEventListener(UPDATE_EVT, fn);
 }
 
+async function deployedCommit(): Promise<string> {
+  try {
+    const r = await fetch('/app/version.json', { cache: 'no-cache' });
+    if (!r.ok) return '';
+    const j = (await r.json()) as { commit?: string };
+    return typeof j.commit === 'string' ? j.commit : '';
+  } catch {
+    return '';
+  }
+}
+
+function seenKey(commit: string): string {
+  return commit ? `orbit-upd:${commit}` : 'orbit-upd:waiting';
+}
+
 async function activateWaitingWorker(): Promise<void> {
   if (!('serviceWorker' in navigator)) return;
   const reg = await navigator.serviceWorker.getRegistration('/app/');
@@ -44,6 +59,24 @@ export function applyAppUpdate(): void {
   })();
 }
 
+/** Leftover waiting SW: toast once per deploy (keyed by version.json commit). */
+async function offerWaitingUpdate(reg: ServiceWorkerRegistration): Promise<void> {
+  const w = reg.waiting;
+  if (!w || !navigator.serviceWorker.controller) return;
+  const commit = await deployedCommit();
+  const key = seenKey(commit);
+  try {
+    if (sessionStorage.getItem(key)) {
+      // Already prompted for this build (e.g. after F5) — activate quietly so the
+      // waiting worker does not stick forever. Navigate is network-first.
+      w.postMessage({ type: 'SKIP_WAITING' });
+      return;
+    }
+    sessionStorage.setItem(key, '1');
+  } catch { /* private mode — still announce */ }
+  announceUpdate();
+}
+
 export function registerAppUpdates(): void {
   if (!('serviceWorker' in navigator)) return;
   let started = false;
@@ -51,21 +84,32 @@ export function registerAppUpdates(): void {
     if (started) return;
     started = true;
     navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' }).then((reg) => {
-      // A waiting SW left over from a previous visit: activate it quietly.
-      // Navigate is already network-first, so this page has the new shell —
-      // toasting again after every F5 was wrong (skipWaiting was never asked).
-      if (reg.waiting && navigator.serviceWorker.controller) {
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      }
+      // Deploy finished while we were away / in background: offer reload once.
+      void offerWaitingUpdate(reg);
+
       reg.addEventListener('updatefound', () => {
         const w = reg.installing;
         if (!w) return;
-        w.addEventListener('statechange', () => {
-          // New deploy while this tab is open — ask the user to reload once.
-          if (w.state === 'installed' && navigator.serviceWorker.controller) announceUpdate();
-        });
+        const check = () => {
+          // New deploy while this tab is open — ask the user to reload.
+          // Check immediately: installing may already be "installed" before the
+          // statechange listener is attached (fast cache / small SW).
+          if (w.state !== 'installed' || !navigator.serviceWorker.controller) return;
+          void (async () => {
+            const commit = await deployedCommit();
+            try { sessionStorage.setItem(seenKey(commit), '1'); } catch { /* ignore */ }
+            announceUpdate();
+          })();
+        };
+        w.addEventListener('statechange', check);
+        check();
       });
-      window.setInterval(() => { void reg.update(); }, 30 * 60 * 1000);
+
+      const poke = () => { void reg.update().then(() => offerWaitingUpdate(reg)); };
+      window.setInterval(poke, 30 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') poke();
+      });
     }).catch(() => { /* ignore */ });
   };
   // After IRC is up (or 10s on the join form) so a new SW cannot race the
