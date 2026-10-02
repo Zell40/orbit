@@ -102,23 +102,90 @@ input, textarea { font-family: inherit; }
 @keyframes cj-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
 /* Boot splash: covers the shell until IRC + plugins + rooms + clickable chrome are ready. */
-.splash { position: fixed; inset: 0; z-index: 180; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .85rem; background: var(--bg-soft); color: var(--ink); transition: opacity .28s ease, background .28s ease; }
-.splash.is-out { opacity: 0; pointer-events: none; }
-.splash--peek { background: color-mix(in srgb, var(--bg-soft) 42%, transparent); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
-.splash__hud { display: flex; flex-direction: column; align-items: center; gap: .85rem; }
-.splash--peek .splash__hud {
-  padding: 1.15rem 1.4rem 1.2rem; border-radius: 18px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  border: 1px solid var(--border);
-  box-shadow: 0 18px 48px -18px rgba(20,30,45,.45);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+.splash {
+  position: fixed; inset: 0; z-index: 180;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: max(1.5rem, env(safe-area-inset-top)) 1.5rem max(1.5rem, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 38%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 68%),
+    #ffffff;
+  color: var(--ink);
+  transition: opacity .32s ease;
 }
-.splash__mark { width: 44px; height: 44px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); }
+.splash.is-out { opacity: 0; pointer-events: none; }
+.splash--peek {
+  background: color-mix(in srgb, #fff 55%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.splash__hud {
+  display: flex; flex-direction: column; align-items: center; gap: 1.05rem;
+  width: min(22rem, 100%);
+  animation: splash-rise .55s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes splash-rise {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+.splash--peek .splash__hud {
+  padding: 1.35rem 1.5rem 1.45rem; border-radius: 22px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: 0 22px 56px -22px rgba(20, 30, 45, .4);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.splash__mark {
+  width: min(38vw, 148px); height: min(38vw, 148px);
+  border-radius: 32px; overflow: hidden;
+  display: grid; place-items: center;
+  background: transparent;
+  filter: drop-shadow(0 16px 28px rgba(20, 40, 80, .14));
+}
 .splash__mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.splash__name {
+  margin: 0;
+  font-weight: 700; font-size: clamp(1.35rem, 4.2vw, 1.65rem);
+  letter-spacing: -.03em; line-height: 1.15; color: var(--ink);
+  text-align: center;
+}
+.splash__txt {
+  margin: 0;
+  font-size: .92rem; font-weight: 500; letter-spacing: .01em;
+  color: var(--muted); text-align: center;
+}
+.splash__bar {
+  width: min(13.5rem, 58vw); height: 5px; margin-top: .15rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  overflow: hidden;
+}
+.splash__bar > i {
+  display: block; height: 100%; border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #7eb6ff));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: width .35s cubic-bezier(.2,.8,.2,1);
+}
 .splash__spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--bg-soft-2); border-top-color: var(--accent); animation: c-spin .7s linear infinite; }
-.splash__txt { margin: 0; font-size: .95rem; color: var(--muted); }
-.splash__bar { width: min(16rem, 72vw); height: 4px; border-radius: 999px; background: var(--bg-soft-2); overflow: hidden; }
-.splash__bar > i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width .28s ease; }
+
+/* Phone / installed PWA: even larger mark on pure white (handoff from Android splash). */
+.splash--app { background: #ffffff; }
+.splash--app .splash__mark {
+  width: min(48vw, 176px); height: min(48vw, 176px); border-radius: 36px;
+}
+.splash--app .splash__name { font-size: clamp(1.45rem, 5vw, 1.75rem); }
+.splash--app.splash--peek { background: color-mix(in srgb, #fff 42%, transparent); }
+
+/* Optional branding.splashBg override (dark brand plates, etc.). */
+.splash--brand {
+  background: var(--splash-bg, #0d1b3e);
+}
+.splash--brand .splash__name { color: var(--splash-ink, #fff); }
+.splash--brand .splash__txt { color: color-mix(in srgb, var(--splash-ink, #fff) 72%, transparent); }
+.splash--brand .splash__mark { filter: drop-shadow(0 18px 32px rgba(0, 0, 0, .35)); }
+.splash--brand .splash__bar { background: color-mix(in srgb, var(--splash-ink, #fff) 18%, transparent); }
+.splash--brand .splash__bar > i {
+  background: var(--splash-ink, #fff);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--splash-ink, #fff) 40%, transparent);
+}
 
 .appupd { position: fixed; z-index: 200; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); pointer-events: auto;
   display: flex; align-items: center; gap: .85rem; max-width: min(32rem, calc(100vw - 1.5rem));
@@ -342,34 +409,6 @@ input, textarea { font-family: inherit; }
 .connect--app .cjoin__links { justify-content: center; gap: .55rem .85rem; margin-top: 1.15rem; }
 .connect--app .cjoin__links button { min-height: 44px; padding: .25rem .15rem; }
 .connect--app .cjoin__trust { justify-content: center; margin-top: 1rem; font-size: .72rem; }
-
-/* Phone / installed PWA: large mark on a white plate (matches Android OS splash). */
-.splash--app {
-  gap: 1.15rem;
-  background: #fff;
-}
-.splash--app .splash__hud { gap: 1.05rem; }
-.splash--app .splash__mark {
-  width: min(42vw, 168px); height: min(42vw, 168px); border-radius: 28px;
-  background: transparent; box-shadow: none;
-}
-.splash--app .splash__name {
-  margin: 0; font-weight: 700; font-size: 1.4rem; letter-spacing: -.02em; color: var(--ink);
-}
-.splash--app .splash__txt { font-size: .95rem; color: var(--muted); }
-.splash--app .splash__bar {
-  width: min(14rem, 62vw); height: 4px; background: color-mix(in srgb, var(--ink) 10%, transparent);
-}
-.splash--app.splash--peek { background: color-mix(in srgb, #fff 42%, transparent); }
-.splash--app.splash--peek .splash__hud {
-  padding: 1.25rem 1.5rem 1.35rem; border-radius: 22px;
-}
-/* Optional branding.splashBg override (dark brand plates, etc.). */
-.splash--brand .splash__name { color: var(--splash-ink, #fff); }
-.splash--brand .splash__txt { color: color-mix(in srgb, var(--splash-ink, #fff) 72%, transparent); }
-.splash--brand .splash__mark { box-shadow: none; }
-.splash--brand .splash__bar { background: color-mix(in srgb, var(--splash-ink, #fff) 18%, transparent); }
-.splash--brand .splash__bar > i { background: var(--splash-ink, #fff); }
 
 /* welcome auth links + Aide/FAQ overlay */
 .cjoin__links { margin-top: 1.1rem; display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; font-size: .84rem; }
