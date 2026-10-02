@@ -19,7 +19,9 @@
 [data-theme="dark"] .modeline--nick .modeline__tag,
 [data-theme="orbit"] .modeline--nick .modeline__tag,
 [data-theme="orbit-dark"] .modeline--nick .modeline__tag { background: #16a34a; color: #fff; }
-[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag--topic { background: #16294a; color: #6ea0ff; }
+[data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .modeline__tag--topic {
+  background: #3b7bff; color: #fff;
+}
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline { background: rgba(8, 145, 178, .16); border-left-color: #22d3ee; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__tag { background: #0891b2 !important; }
 [data-theme="dark"], [data-theme="orbit"], [data-theme="orbit-dark"] .noticeline__txt { color: #a5f3fc; }
