@@ -58,25 +58,14 @@ export function useBootSplash() {
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(8);
   const [phase, setPhase] = useState<BootPhase>('connecting');
-  // Avoid a useless ~10–200ms flash when autoConnecting aborts before a real IRC connect.
-  const [splashReady, setSplashReady] = useState(false);
   const connectStarted = useRef<number>(Date.now());
   const registeredAt = useRef(0);
 
   const failed = status === 'error' || status === 'closed' || status === 'sasl-failed';
   const inApp = status === 'registered' || everRegistered;
   const connecting = status === 'connecting' || autoConnecting;
-  const wantSplash = !revealed && !failed && (connecting || inApp);
-  const showSplash = wantSplash && splashReady;
-
-  useEffect(() => {
-    if (!wantSplash) { setSplashReady(false); return; }
-    // Real IRC connect or already in-app: show immediately.
-    if (status === 'connecting' || inApp) { setSplashReady(true); return; }
-    // autoConnecting alone (handoff / resume probe): only show if it lasts.
-    const t = window.setTimeout(() => setSplashReady(true), 480);
-    return () => clearTimeout(t);
-  }, [wantSplash, status, inApp]);
+  // Cover autoConnecting immediately so session resume never flashes the join form.
+  const showSplash = !revealed && !failed && (connecting || inApp);
 
   useEffect(() => {
     if (status === 'connecting' || autoConnecting) connectStarted.current = Date.now();
