@@ -1547,7 +1547,13 @@ html[data-actions="off"] .msg-actions { display: none; }
 .reaction b { font-weight: 800; }
 
 /* ============ COMPOSER ============ */
-.composer { position: relative; padding: .35rem 1.3rem 1rem; }
+.composer { position: relative; z-index: 1; padding: .35rem 1.3rem 1rem; }
+/* Popovers live inside .composer; .main > .orx (Actualités) is a sibling at
+ * z-index 30, so without lifting the composer they paint over the emoji panel. */
+.main:has(.emoji-pop) > .composer,
+.main:has(.color-pop) > .composer,
+.main:has(.composer__fmt--pop) > .composer,
+.main:has(.composer__ac) > .composer { z-index: 50; }
 .composer__box {
   position: relative;
   display: flex; align-items: flex-end; gap: .4rem; background: var(--bg); border: 1px solid var(--border-2); border-radius: 14px; padding: .35rem .4rem .35rem .5rem;
@@ -2365,9 +2371,9 @@ html[data-density="compact"] .messages { padding-top: .3rem; padding-bottom: .3r
 html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06rem; }
 
 /* ============ EMOJI PICKER ============ */
-.emoji-backdrop { position: fixed; inset: 0; z-index: 40; }
+.emoji-backdrop { position: fixed; inset: 0; z-index: 50; }
 .emoji-pop {
-  position: absolute; bottom: calc(100% + .35rem); right: 0; z-index: 41;
+  position: absolute; bottom: calc(100% + .35rem); right: 0; z-index: 51;
   width: min(320px, calc(100vw - 1.4rem)); max-height: min(52vh, 320px);
   display: flex; flex-direction: column; gap: .35rem; overflow: hidden;
   padding: .5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
