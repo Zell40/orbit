@@ -602,9 +602,13 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       const serverText = msg.params.length > 1 ? msg.params[msg.params.length - 1] : '';
       if (numerics?.isError(code)) {
         const ctx = msg.params[1];
-        // Only pin an error on a channel when the numeric names that channel.
-        // Otherwise it used to dump into whatever salon was focused (502 via ZNC).
-        const dest = ctx && isChannelName(ctx) && get().buffers[canon(ctx)] ? ctx : SERVER;
+        // Prefer the channel named by the numeric (e.g. 482 #salon). Otherwise:
+        // a recent composer /command → active buffer (red ⚠ callout); Orbit's own
+        // traffic (auto-JOIN, etc.) → Status — dedicated join/kick errors keep
+        // their popups via the cases above.
+        const namedChan = ctx && isChannelName(ctx) && get().buffers[canon(ctx)] ? ctx : '';
+        const manual = Date.now() < (get().userCmdEchoUntil || 0);
+        const dest = namedChan || (manual ? (get().active || SERVER) : SERVER);
         const text = i18n.t(`numerics.${code}`, { defaultValue: '' }) || serverText || code;
         sysLine(dest, `⚠️ ${text}`, 'system');
         if (get().prefs.sound) blip();

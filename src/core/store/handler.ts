@@ -335,10 +335,11 @@ export function makeHandler(ctx: HandlerCtx) {
           failPushDeviceList();
           break;
         }
-        // Otherwise surface it where the user is looking: FAIL/WARN as a ⚠ line,
-        // NOTE as an info callout. Label with the command + code when present.
+        // Manual composer /command → active buffer; otherwise Status (auto Orbit
+        // traffic). MARKREAD/WEBPUSH/CHATHISTORY are swallowed above.
         const tag = cmd && cmd !== '*' ? `${cmd}${code && code !== '*' ? ` (${code})` : ''} — ` : '';
-        const dest = isChannelName(get().active) ? get().active : SERVER;
+        const manual = Date.now() < (get().userCmdEchoUntil || 0);
+        const dest = manual ? (get().active || SERVER) : SERVER;
         if (msg.command === 'NOTE') {
           sysLine(dest, `ℹ️ ${tag}${desc}`, 'info');
         } else {

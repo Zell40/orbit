@@ -77,6 +77,12 @@ export interface ChatState {
    */
   echoServerTo: string | null;
   setEchoServerTo: (buffer: string | null) => void;
+  /**
+   * Composer slash/raw command was just sent: until this time, generic IRC
+   * errors (481, 421, FAIL, …) echo into the active buffer. Auto Orbit traffic
+   * (JOIN on connect, MARKREAD, …) keeps Status / existing popups.
+   */
+  userCmdEchoUntil: number;
   /** 396 / CHGHOST displayed host (cloak or Anope vHost). */
   displayedHost: string;
   /** Session is under the callerid parental security group (plugin-driven). */
@@ -243,6 +249,7 @@ export function createChatStore(ns = '') {
     account: '',
     umodes: '',
     echoServerTo: null,
+    userCmdEchoUntil: 0,
     setEchoServerTo(buffer) {
       const b = (buffer || '').trim();
       set({ echoServerTo: b || null });
@@ -378,6 +385,7 @@ export function createChatStore(ns = '') {
         viaBouncer: !!opts.serverPassword,
         umodes: '',
         echoServerTo: null,
+        userCmdEchoUntil: 0,
         displayedHost: '',
         parentalControls: false,
       });

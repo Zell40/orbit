@@ -25,6 +25,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     friends: [], friendsOnline: {},
     prefs: { sound: false }, whois,
     profileUser: '', nickError: null as { nick: string; code: string; text: string } | null,
+    userCmdEchoUntil: 0,
     ...over,
     buffers,
   };
@@ -131,11 +132,31 @@ describe('store numerics handler', () => {
     expect(server).toHaveLength(1);
   });
 
-  it('routes an unknown error numeric to a ⚠ line (via client.numerics.isError)', () => {
-    const { handleNumerics, sys } = setup({ active: 'status' });
-    // 421 ERR_UNKNOWNCOMMAND — an error with no dedicated case → generic fallback.
-    expect(handleNumerics(mk('421', ['me', 'FOO', 'Unknown command']))).toBe(true);
-    expect(sys.some((l) => l.text.includes('⚠️'))).toBe(true);
+  it('routes an unknown error numeric to a ⚠ line in the active buffer after a manual /command', () => {
+    const { handleNumerics, sys } = setup({
+      active: '#lobby',
+      userCmdEchoUntil: Date.now() + 60_000,
+      buffers: { '#lobby': { name: '#lobby', joined: true, messages: [] } },
+    });
+    // 481 ERR_NOPRIVILEGES — e.g. /setident without oper; no dedicated case → generic fallback.
+    expect(handleNumerics(mk('481', ['me', 'Permission Denied']))).toBe(true);
+    expect(sys).toHaveLength(1);
+    expect(sys[0].name).toBe('#lobby');
+    expect(sys[0].text).toMatch(/⚠️/);
+  });
+
+  it('routes channel-scoped errors to that channel even if another is focused', () => {
+    const { handleNumerics, sys } = setup({
+      active: '#lobby',
+      buffers: {
+        '#lobby': { name: '#lobby', joined: true, messages: [] },
+        '#ops': { name: '#ops', joined: true, messages: [] },
+      },
+    });
+    expect(handleNumerics(mk('482', ['me', '#ops', "You're not channel operator"]))).toBe(true);
+    expect(sys).toHaveLength(1);
+    expect(sys[0].name).toBe('#ops');
+    expect(sys[0].text).toMatch(/⚠️/);
   });
 
   it('routes MOTD numerics to the console as motd lines', () => {
@@ -223,14 +244,25 @@ describe('store numerics handler', () => {
     expect(server).toHaveLength(0);
   });
 
-  it('generic error numeric without a channel target stays on the server console', () => {
+  it('generic error numeric without a channel target stays on Status unless a manual /command is pending', () => {
     const { handleNumerics, sys } = setup({
       active: '#x',
+      userCmdEchoUntil: 0,
       buffers: { '#x': { name: '#x' } },
     });
     expect(handleNumerics(mk('481', ['me', "Permission Denied"]))).toBe(true);
     expect(sys.some((l) => l.name === '#x')).toBe(false);
     expect(sys.some((l) => l.name === '$server' && l.text.includes('⚠️'))).toBe(true);
+  });
+
+  it('generic error numeric echoes to the focused buffer after a manual /command', () => {
+    const { handleNumerics, sys } = setup({
+      active: '#x',
+      userCmdEchoUntil: Date.now() + 60_000,
+      buffers: { '#x': { name: '#x' } },
+    });
+    expect(handleNumerics(mk('481', ['me', "Permission Denied"]))).toBe(true);
+    expect(sys.some((l) => l.name === '#x' && l.text.includes('⚠️'))).toBe(true);
   });
 
   it('451 ERR_NOTREGISTERED is swallowed (handshake race)', () => {

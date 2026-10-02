@@ -33,6 +33,10 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
     // the leading '/' and send the command as a plain (formatted) message.
     const cmdline = stripFormatting(text).trimStart();
 
+    // Manual /command (or Status raw line): errors for a few seconds go to the
+    // focused buffer instead of Status — auto Orbit JOIN/WHOIS keep their popups.
+    const armUserCmdEcho = () => set({ userCmdEchoUntil: Date.now() + 12_000 });
+
     // The Console: a bare line (no leading slash) is a raw IRC command line — the
     // classic mIRC status-window convenience. Slash-commands fall through to the
     // normal dispatch below so /whois, /msg, /join … actually behave (raw-sending
@@ -41,6 +45,7 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
     if (active === SERVER && !cmdline.startsWith('/')) {
       const raw = cmdline.trim();
       if (!raw) return;
+      armUserCmdEcho();
       sysLine(SERVER, `» ${raw}`, 'system');
       client.send(raw);
       return;
@@ -49,6 +54,7 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
     if (isNoticeBuffer(active) && !cmdline.startsWith('/')) return;
 
     if (cmdline.startsWith('/')) {
+      armUserCmdEcho();
       const [cmd, ...rest] = cmdline.slice(1).split(' ');
       const arg = rest.join(' ');
       // From the Console there's no active channel to act on: a channel command
