@@ -53,7 +53,7 @@ function NoticeCallout({ messages }: { messages: ChatMessage[] }) {
   const service = !!head.from && isService(head.from);
   const room = head.noticeScope === 'room' && !service;
   const tone = room ? 'room' : service ? 'service' : 'direct';
-  const tag = room ? t('modeline.noticeRoomTag') : service ? t('modeline.noticeServiceTag') : t('modeline.noticeTag');
+  const tag = t('modeline.noticeTag');
   const showCtx = firstOfRun(msgs, head, (x) => x.channelContext);
   const combined = messages.map((m) => m.text).join('\n');
   const lines = messages.flatMap((m) =>

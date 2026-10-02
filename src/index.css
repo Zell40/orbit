@@ -1062,12 +1062,12 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .chaninfo__empty { margin: .2rem 0 0; color: var(--faint); font-size: .9rem; }
 .chaninfo__modes { margin: .7rem 0 0; }
 
-/* NOTICE — a prominent violet callout so it can't get lost in the chat flow */
+/* NOTICE — callout turquoise (même teinte salon / privé / services) */
 .noticeline {
   display: flex; flex-direction: column; align-items: stretch; gap: .28rem;
-  background: #f3effe;
-  border: 1px solid rgba(139, 92, 246, .28);
-  border-left: 3px solid #8b5cf6;
+  background: #eef8fb;
+  border: 1px solid rgba(8, 145, 178, .28);
+  border-left: 3px solid #0891b2;
   border-radius: 8px;
   margin: .22rem 1.1rem;
   padding: .5rem .75rem .6rem;
@@ -1076,36 +1076,29 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .noticeline__body { display: flex; flex-direction: column; align-items: stretch; gap: .35rem; min-width: 0; }
 .noticeline__body--stack { gap: .5rem; }
 .noticeline__body--stack .noticeline__txt + .noticeline__txt {
-  padding-top: .45rem; border-top: 1px solid rgba(139, 92, 246, .18);
+  padding-top: .45rem; border-top: 1px solid rgba(8, 145, 178, .18);
 }
-.noticeline__tag { background: #8b5cf6 !important; color: #fff !important; box-shadow: 0 2px 6px -2px rgba(139,92,246,.6); }
-.noticeline--room {
+.noticeline__tag { background: #0891b2 !important; color: #fff !important; box-shadow: 0 2px 6px -2px rgba(8, 145, 178, .55); }
+.noticeline--room,
+.noticeline--service,
+.noticeline--direct {
   background: #eef8fb;
   border-color: rgba(8, 145, 178, .28);
   border-left-color: #0891b2;
 }
-.noticeline--room .noticeline__tag { background: #0891b2 !important; box-shadow: 0 2px 6px -2px rgba(8, 145, 178, .55); }
-.noticeline--room .noticeline__txt { color: #0e7490; }
-.noticeline--room .noticeline__body--stack .noticeline__txt + .noticeline__txt {
+.noticeline--room .noticeline__tag,
+.noticeline--service .noticeline__tag,
+.noticeline--direct .noticeline__tag { background: #0891b2 !important; box-shadow: 0 2px 6px -2px rgba(8, 145, 178, .55); }
+.noticeline--room .noticeline__txt,
+.noticeline--service .noticeline__txt,
+.noticeline--direct .noticeline__txt { color: #0e7490; }
+.noticeline--room .noticeline__body--stack .noticeline__txt + .noticeline__txt,
+.noticeline--service .noticeline__body--stack .noticeline__txt + .noticeline__txt,
+.noticeline--direct .noticeline__body--stack .noticeline__txt + .noticeline__txt {
   border-top-color: rgba(8, 145, 178, .18);
 }
-.noticeline--service {
-  background: #f3effe;
-  border-color: rgba(139, 92, 246, .28);
-  border-left-color: #7c3aed;
-}
-.noticeline--direct {
-  background: #fff7ed;
-  border-color: rgba(217, 119, 6, .28);
-  border-left-color: #d97706;
-}
-.noticeline--direct .noticeline__tag { background: #d97706 !important; box-shadow: 0 2px 6px -2px rgba(217, 119, 6, .55); }
-.noticeline--direct .noticeline__txt { color: #b45309; }
-.noticeline--direct .noticeline__body--stack .noticeline__txt + .noticeline__txt {
-  border-top-color: rgba(217, 119, 6, .18);
-}
 .noticeline__txt {
-  color: #6d28d9; font-weight: 700; font-size: .9rem;
+  color: #0e7490; font-weight: 700; font-size: .9rem;
   overflow-wrap: anywhere; line-height: 1.55;
   white-space: pre-wrap;
 }
@@ -1361,7 +1354,7 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .messages--console .motdline { background: rgba(16, 185, 129, .10); border-color: transparent; box-shadow: inset 3px 0 0 #10b981; }
 .messages--console .motdline__tag { background: #047857 !important; color: #fff !important; }
 .messages--console .motdline__txt { color: var(--term-fg); }
-.messages--console .noticeline { background: rgba(139, 92, 246, .12); border-color: transparent; box-shadow: inset 3px 0 0 #8b5cf6; }
+.messages--console .noticeline { background: rgba(8, 145, 178, .12); border-color: transparent; box-shadow: inset 3px 0 0 #0891b2; }
 .messages--console .noticeline__txt { color: var(--term-fg); }
 
 /* Channel topic + room picture (thumbnail stays; large pic is .main__room-bg) */
