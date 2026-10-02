@@ -153,11 +153,6 @@ export default function App() {
     return () => navigator.serviceWorker.removeEventListener('message', onMsg);
   }, []);
 
-  // No React splash this frame (join form): drop the pre-React #orbit-boot plate.
-  useEffect(() => {
-    if (!boot.showSplash) window.__orbitDismissBoot?.();
-  }, [boot.showSplash]);
-
   return (
     <>
       <div className="aurora" />

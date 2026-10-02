@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '../core/config';
 import type { BootPhase } from '../lib/boot-ready';
@@ -11,12 +10,6 @@ const PHASE_KEY: Record<BootPhase, string> = {
   display: 'connect.preparingUi',
   almost: 'connect.almostReady',
 };
-
-declare global {
-  interface Window {
-    __orbitDismissBoot?: () => void;
-  }
-}
 
 export function BootSplash({ progress, phase, fading, peek }: {
   progress: number;
@@ -33,12 +26,6 @@ export function BootSplash({ progress, phase, fading, peek }: {
   const style = branded
     ? { background: splashBg, ['--splash-ink' as string]: splashInk || '#ffffff' }
     : undefined;
-
-  // React splash is on screen: drop the pre-React #orbit-boot plate (same look).
-  useEffect(() => {
-    window.__orbitDismissBoot?.();
-  }, []);
-
   return (
     <div
       className={`splash${peek ? ' splash--peek' : ''}${phone ? ' splash--app' : ''}${branded ? ' splash--brand' : ''}${fading ? ' is-out' : ''}`}

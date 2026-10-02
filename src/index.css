@@ -343,33 +343,31 @@ input, textarea { font-family: inherit; }
 .connect--app .cjoin__links button { min-height: 44px; padding: .25rem .15rem; }
 .connect--app .cjoin__trust { justify-content: center; margin-top: 1rem; font-size: .72rem; }
 
-/* Phone / installed PWA: continue the OS splash (icon + name + progress), not a tiny HUD. */
+/* Phone / installed PWA: large mark on a white plate (matches Android OS splash). */
 .splash--app {
-  gap: 1.1rem;
-  background:
-    radial-gradient(ellipse 70% 45% at 50% 42%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
-    var(--bg-soft);
+  gap: 1.15rem;
+  background: #fff;
 }
-.splash--app .splash__hud { gap: 1rem; }
+.splash--app .splash__hud { gap: 1.05rem; }
 .splash--app .splash__mark {
-  width: 96px; height: 96px; border-radius: 24px;
-  background: transparent; box-shadow: 0 18px 40px -18px rgba(15, 23, 42, .45);
+  width: min(42vw, 168px); height: min(42vw, 168px); border-radius: 28px;
+  background: transparent; box-shadow: none;
 }
 .splash--app .splash__name {
-  margin: 0; font-weight: 700; font-size: 1.35rem; letter-spacing: -.02em; color: var(--ink);
+  margin: 0; font-weight: 700; font-size: 1.4rem; letter-spacing: -.02em; color: var(--ink);
 }
 .splash--app .splash__txt { font-size: .95rem; color: var(--muted); }
 .splash--app .splash__bar {
   width: min(14rem, 62vw); height: 4px; background: color-mix(in srgb, var(--ink) 10%, transparent);
 }
-.splash--app.splash--peek { background: color-mix(in srgb, var(--bg-soft) 42%, transparent); }
+.splash--app.splash--peek { background: color-mix(in srgb, #fff 42%, transparent); }
 .splash--app.splash--peek .splash__hud {
   padding: 1.25rem 1.5rem 1.35rem; border-radius: 22px;
 }
-/* Brand splashBg (PWA handoff): same plate as the OS splash, no light flash. */
+/* Optional branding.splashBg override (dark brand plates, etc.). */
 .splash--brand .splash__name { color: var(--splash-ink, #fff); }
 .splash--brand .splash__txt { color: color-mix(in srgb, var(--splash-ink, #fff) 72%, transparent); }
-.splash--brand .splash__mark { box-shadow: 0 22px 48px -20px rgba(0,0,0,.55); }
+.splash--brand .splash__mark { box-shadow: none; }
 .splash--brand .splash__bar { background: color-mix(in srgb, var(--splash-ink, #fff) 18%, transparent); }
 .splash--brand .splash__bar > i { background: var(--splash-ink, #fff); }
 
