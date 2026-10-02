@@ -75,14 +75,14 @@ export function makeHandler(ctx: HandlerCtx) {
     // the history); never let it mutate live channel/member state.
     const epRef = inHistoryBatch(msg);
     if (epRef && ['JOIN', 'PART', 'QUIT', 'KICK', 'NICK', 'TOPIC', 'MODE', 'CHGHOST'].includes(msg.command)) {
-      // JOIN/PART in CHATHISTORY are noise — keep them off the salon timeline.
+      // JOIN/PART/QUIT in CHATHISTORY are noise — keep them off the salon timeline.
+      // EventGroup paints quit as a PART badge, so a leftover QUIT looked like a part.
       // Still swallow the event so it does not mutate the live nicklist.
-      if (msg.command === 'JOIN' || msg.command === 'PART') return;
+      if (msg.command === 'JOIN' || msg.command === 'PART' || msg.command === 'QUIT') return;
       const chan = openBatches[epRef].target;
       if (chan) {
         let text = '', kind: MessageKind = 'system';
-        if (msg.command === 'QUIT') { text = i18n.t('system.quit', { nick: msg.nick }); kind = 'quit'; }
-        else if (msg.command === 'KICK') { text = msg.params[2] ? `${msg.params[1]}\n${msg.params[2]}` : (msg.params[1] || ''); kind = 'kick'; }
+        if (msg.command === 'KICK') { text = msg.params[2] ? `${msg.params[1]}\n${msg.params[2]}` : (msg.params[1] || ''); kind = 'kick'; }
         else if (msg.command === 'NICK') { text = msg.params[0] || ''; kind = 'nick'; }
         else if (msg.command === 'CHGHOST') {
           const nu = msg.params[0] || '';

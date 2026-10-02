@@ -342,8 +342,9 @@ export function MessageList() {
   for (const m of shown) {
     // "Masquer les entrées/sorties" — drop join/part/quit noise (not on the console).
     if (hideJoinQuit && !isConsole && GROUP_KINDS.has(m.kind)) continue;
-    // CHATHISTORY / +H replay of JOIN/PART: hide anything older than this session.
-    if (!isConsole && (m.kind === 'join' || m.kind === 'part') && buffer.sessionJoinedAt
+    // CHATHISTORY / +H replay of JOIN/PART/QUIT: hide anything older than this session.
+    // Quit uses the PART badge in EventGroup, so it must be filtered too.
+    if (!isConsole && GROUP_KINDS.has(m.kind) && buffer.sessionJoinedAt
       && m.ts < buffer.sessionJoinedAt - 2500) continue;
     if (hideModes && !isConsole && m.kind === 'mode') continue;
     const day = dayIndex(m.ts);

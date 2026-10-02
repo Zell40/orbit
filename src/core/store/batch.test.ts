@@ -63,11 +63,12 @@ describe('BATCH handler', () => {
     expect(state.buffers['#x'].messages.filter((m) => m.kind === 'join')).toHaveLength(1);
   });
 
-  it('drops JOIN/PART from chathistory so they never land on the timeline', () => {
+  it('drops JOIN/PART/QUIT from chathistory so they never land on the timeline', () => {
     const { on, state } = setup();
     on(':srv BATCH +abc chathistory #x');
     historyCollect['abc'].push(mkMsg({ id: 'hist-join', kind: 'join', from: 'Quen', text: 'Quen est entré', ts: 48_200 }));
     historyCollect['abc'].push(mkMsg({ id: 'hist-part', kind: 'part', from: 'Quen', text: 'Quen est sorti', ts: 48_400 }));
+    historyCollect['abc'].push(mkMsg({ id: 'hist-quit', kind: 'quit', from: 'Quen', text: 'Quen a quitté', ts: 48_500 }));
     historyCollect['abc'].push(mkMsg({ id: 'hist-msg', from: 'Quen', text: 'salut', ts: 48_300 }));
     on(':srv BATCH -abc');
     expect(state.buffers['#x'].messages.map((m) => m.kind)).toEqual(['privmsg']);

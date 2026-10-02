@@ -125,17 +125,19 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
       }
       case 'QUIT': {
         const s = get();
+        const quitTs = tsOf(msg);
         for (const name of s.order) {
           if (s.buffers[name].members[msg.nick]) {
             patchBuffer(name, (b) => {
               const members = { ...b.members }; delete members[msg.nick];
               return { ...b, members };
             });
-            if (!inQuietBatch(msg)) {
+            const quitSince = s.buffers[name]?.sessionJoinedAt;
+            if (!inQuietBatch(msg) && !(quitSince && quitTs < quitSince - 2500)) {
               const why = (msg.params[0] || '').trim();
               sysLine(name, why
                 ? `${i18n.t('system.quit', { nick: msg.nick })} (${why})`
-                : i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg), tsOf(msg));
+                : i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg), quitTs);
             }
           }
         }

@@ -40,7 +40,7 @@ export function makeBatch({ get, set, helpers }: BatchDeps) {
     } else if (ref[0] === '-') {
       const b = openBatches[id];
       if (b?.type === 'chathistory' && b.target) {
-        const items = (historyCollect[id] || []).filter((m) => m.kind !== 'join' && m.kind !== 'part');
+        const items = (historyCollect[id] || []).filter((m) => m.kind !== 'join' && m.kind !== 'part' && m.kind !== 'quit');
         const key = canon(b.target);
         // Prepend older messages, keep buffer ordered oldest→newest.
         // Dedup by id AND by a content signature: the legacy +H auto-replay and

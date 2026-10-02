@@ -272,7 +272,7 @@ const DEFAULT_CONFIG: AppConfig = {
   },
   turnstile: { enabled: true, sitekey: '0x4AAAAAADlXGeFQ-Aj3Kitp' },
   report: { service: 'ReportServ', target: '#staff' },
-  defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: false, clock24: true },
+  defaults: { theme: 'light', compact: false, sound: true, hideJoinQuit: true, clock24: true },
   features: { push: true, pushRequireAccount: true, imageUpload: true, register: true, linkPreviews: true, multiNetwork: false, sessionResume: false, passkeySasl: false, saslScram: false, saslOauthBearer: false, webmcp: true, bouncer: false },
     filehost: { retentionHours: 24, retentionChoices: [1, 6, 24, 72, 720] },
   plugins: [],
