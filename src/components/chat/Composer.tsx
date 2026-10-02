@@ -500,7 +500,10 @@ export function Composer({ locked = false }: { locked?: boolean }) {
                   <>
                     <div className="emoji-backdrop" onClick={() => setAttachMenu(false)} />
                     <div className="composer__attach-pop" role="menu" aria-label={t('composer.attach')}>
-                      <button type="button" role="menuitem" className="composer__attach-item" onClick={() => { setAttachMenu(false); fileRef.current?.click(); }}>
+                      <button type="button" role="menuitem" className="composer__attach-item" onClick={() => {
+                        fileRef.current?.click();
+                        setAttachMenu(false);
+                      }}>
                         <svg className="composer__icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
                           stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <rect x="3" y="3" width="18" height="18" rx="4" />
@@ -509,7 +512,10 @@ export function Composer({ locked = false }: { locked?: boolean }) {
                         </svg>
                         <span>{t('composer.sendImage')}</span>
                       </button>
-                      <button type="button" role="menuitem" className="composer__attach-item composer__attach-item--mic" onClick={() => { setAttachMenu(false); startRec(); }}>
+                      <button type="button" role="menuitem" className="composer__attach-item composer__attach-item--mic" onClick={() => {
+                        startRec();
+                        setAttachMenu(false);
+                      }}>
                         <svg className="composer__icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
                           stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <rect x="9" y="2" width="6" height="12" rx="3" />
