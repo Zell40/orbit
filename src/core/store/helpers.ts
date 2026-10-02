@@ -186,6 +186,29 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
         && m.ts < b.sessionJoinedAt - 2500) return b;
       // Idempotent: the exact same message id already present → ignore.
       if (m.id && b.messages.some((x) => x.id === m.id)) return b;
+      // Same server msgid under another row id (e.g. local-* then history) → ignore,
+      // and never revive a tombstone from +H / CHATHISTORY.
+      if (m.msgid) {
+        const byMsgid = b.messages.find((x) => x.msgid === m.msgid || x.id === m.msgid);
+        if (byMsgid) return b;
+      }
+      // +H often lacks msgid and uses a random id — fold onto an existing row with
+      // the same content signature so a redacted image isn't duplicated below.
+      if (m.kind === 'privmsg' || m.kind === 'action') {
+        const sig = `${m.kind} ${m.from} ${Math.floor(m.ts / 1000)} ${m.text}`;
+        const dup = b.messages.find((x) => (
+          (x.kind === 'privmsg' || x.kind === 'action')
+          && `${x.kind} ${x.from} ${Math.floor(x.ts / 1000)} ${x.text}` === sig
+        ));
+        if (dup) return b;
+        // Redacted rows keep text:'' — still match by nick+second when history
+        // tries to re-inject the original body.
+        const tomb = b.messages.find((x) => x.redacted
+          && (x.kind === 'privmsg' || x.kind === 'action')
+          && canon(x.from) === canon(m.from)
+          && Math.abs(x.ts - m.ts) <= 2000);
+        if (tomb) return b;
+      }
       // Live JOIN/TOPIC vs CHATHISTORY event-playback: same event, different id
       // and often a few seconds of clock skew (sysLine used to stamp Date.now()).
       if (isReplayEvent(m)) {

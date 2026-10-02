@@ -928,6 +928,18 @@ export function createChatStore(ns = '') {
 
     redact(msgid) {
       const { client, active } = get();
+      // Optimistic tombstone — don't wait for the REDACT echo, and clear the body
+      // so a racing CHATHISTORY/+H replay can't flash the image back.
+      if (active && msgid) {
+        patchBuffer(active, (b) => ({
+          ...b,
+          messages: b.messages.map((m) => (
+            m.id === msgid || m.msgid === msgid
+              ? { ...m, redacted: true, text: '' }
+              : m
+          )),
+        }));
+      }
       client?.ircv3.redact(active, msgid);
     },
 

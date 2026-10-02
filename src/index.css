@@ -1615,6 +1615,7 @@ html[data-actions="off"] .msg-actions { display: none; }
 .main:has(.emoji-pop) > .composer,
 .main:has(.color-pop) > .composer,
 .main:has(.composer__fmt--pop) > .composer,
+.main:has(.composer__attach-pop) > .composer,
 .main:has(.composer__ac) > .composer { z-index: 50; }
 .composer__box {
   position: relative;
@@ -1708,8 +1709,25 @@ html[data-actions="off"] .msg-actions { display: none; }
 .composer__add { display: inline-flex; align-items: center; justify-content: center; }
 .composer__add:hover, .composer__emoji:hover { background: var(--bg-soft-2); }
 .composer__add:hover { color: var(--accent-d); }
+.composer__add.is-on, .composer__attach.is-on { background: var(--accent-soft); color: var(--accent-d); }
 .composer__mic:hover { color: #e0577a; }
 .composer__icon { display: block; }
+.composer__attach-pop {
+  position: absolute; bottom: calc(100% + .4rem); left: .35rem; z-index: 41;
+  display: flex; flex-direction: column; gap: .15rem; min-width: 11.5rem;
+  padding: .3rem; background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow-pop, 0 10px 28px -12px rgba(15, 23, 42, .35));
+}
+.composer__attach-item {
+  display: flex; align-items: center; gap: .55rem; width: 100%;
+  border: 0; border-radius: 9px; background: transparent; color: var(--ink);
+  padding: .55rem .65rem; font: inherit; font-size: .88rem; font-weight: 600;
+  text-align: left; cursor: pointer;
+}
+.composer__attach-item:hover { background: var(--bg-soft-2); }
+.composer__attach-item--mic:hover { color: #e0577a; }
+.composer__attach-item .composer__icon { flex: none; color: var(--muted); }
+.composer__attach-item:hover .composer__icon { color: inherit; }
 .imgttl {
   position: relative; align-self: flex-start;
   width: min(360px, 100%); margin: 0 0 .5rem;
@@ -3369,17 +3387,23 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .members__cols { padding-left: .65rem; padding-right: .65rem; }
   .actuline, .urlline, .topicline { margin-left: .7rem; margin-right: .7rem; }
 
-  /* Composer: keep a single row (image / mic / text / format / send). The
-     field still grows vertically when the user types several lines. */
-  .composer { padding: .3rem .5rem calc(.55rem + env(safe-area-inset-bottom)); }
-  .composer__box { flex-wrap: nowrap; gap: .2rem; padding: .35rem .4rem; }
+  /* Composer: one compact row — "+" merges image/voice; tight trailing icons. */
+  .composer { padding: .3rem .45rem calc(.5rem + env(safe-area-inset-bottom)); }
+  .composer__box { flex-wrap: nowrap; gap: .06rem; padding: .28rem .28rem .28rem .22rem; }
+  .composer__add, .composer__emoji, .composer__fmt-toggle {
+    width: 32px; height: 32px; border-radius: 8px;
+  }
+  .composer__emoji { font-size: 1.05rem; }
+  .composer__send { width: 34px; height: 34px; border-radius: 9px; }
   .composer__rich, .composer textarea {
     flex: 1 1 auto; order: 0; min-width: 0; max-height: 32vh;
-    padding: .45rem .3rem; font-size: 16px;
+    padding: .4rem .2rem; font-size: 16px;
   }
   .composer__rich.is-empty { overflow: hidden; }
+  .composer__rich.is-empty::before { left: calc(.15rem + 2px); top: .4rem; }
   .composer__fmt-toggle { display: inline-flex; align-items: center; justify-content: center; }
-  /* Send stays the compact 38×38 icon (➤) — the long label overflows a phone row. */
+  .composer__attach-pop { left: .2rem; }
+  /* Send stays the compact icon (➤) — the long label overflows a phone row. */
   .emoji-pop { left: 0; right: 0; width: auto; max-height: min(46vh, 280px); }
   .emoji-pop__filter-lbl { display: none; }
 

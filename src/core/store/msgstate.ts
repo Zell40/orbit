@@ -19,9 +19,15 @@ export function makeMsgState({ ensureBuffer, patchBuffer }: MsgStateDeps) {
       case 'REDACT': {
         const ch = msg.params[0];
         const id = msg.params[1];
+        // Match by row id or server msgid (history replay can disagree). Drop the
+        // body so a later CHATHISTORY/+H copy can't resurrect the image/text.
         patchBuffer(ch, (b) => ({
           ...b,
-          messages: b.messages.map((m) => (m.id === id ? { ...m, redacted: true } : m)),
+          messages: b.messages.map((m) => (
+            m.id === id || m.msgid === id
+              ? { ...m, redacted: true, text: '' }
+              : m
+          )),
         }));
         return true;
       }

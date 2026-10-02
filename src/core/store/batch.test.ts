@@ -75,6 +75,21 @@ describe('BATCH handler', () => {
     expect(state.buffers['#x'].messages[0].text).toBe('salut');
   });
 
+  it('keeps a redacted tombstone when CHATHISTORY replays the original body', () => {
+    const { on, state } = setup();
+    state.buffers['#x'].messages = [
+      mkMsg({ id: 'srv-1', msgid: 'srv-1', from: 'Zell506', text: '', ts: 50_000, redacted: true, kind: 'privmsg' }),
+    ];
+    on(':srv BATCH +abc chathistory #x');
+    historyCollect['abc'].push(mkMsg({
+      id: 'srv-1', msgid: 'srv-1', from: 'Zell506',
+      text: 'https://cdn.example/a.png', ts: 50_000, kind: 'privmsg',
+    }));
+    on(':srv BATCH -abc');
+    expect(state.buffers['#x'].messages).toHaveLength(1);
+    expect(state.buffers['#x'].messages[0]).toMatchObject({ redacted: true, text: '' });
+  });
+
   it('de-dupes a replayed message that matches one already shown (by signature)', () => {
     const { on, state } = setup();
     state.buffers['#x'].messages = [mkMsg({ id: 'shown', from: 'bob', text: 'hi', ts: 1000 })];

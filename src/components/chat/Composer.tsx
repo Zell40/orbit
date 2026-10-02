@@ -57,6 +57,7 @@ export function Composer({ locked = false }: { locked?: boolean }) {
   const [smileyGroup, setSmileyGroup] = useState<'all' | TopicSmileyGroupId>('all');
   const [colors, setColors] = useState(false);
   const [fmtMenu, setFmtMenu] = useState(false);
+  const [attachMenu, setAttachMenu] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [empty, setEmpty] = useState(true);   // truly empty → show the placeholder hint
   const [blank, setBlank] = useState(true);   // whitespace-only → keep the send button disabled
@@ -459,26 +460,72 @@ export function Composer({ locked = false }: { locked?: boolean }) {
             <button className="composer__rec-btn composer__rec-send" onClick={stopRec} aria-label={t('composer.send')} title={t('composer.send')}>➤</button>
           </div>
         )}
-        {canUpload && !readOnlyLog && (
-          <button className="composer__add" title={t('composer.sendImage')} aria-label={t('composer.sendImage')} onClick={() => fileRef.current?.click()}>
-            <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
-              stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="3" y="3" width="18" height="18" rx="4" />
-              <circle cx="8.5" cy="8.5" r="1.6" />
-              <path d="M21 15.5 16 10.5 5.5 21" />
-            </svg>
-          </button>
-        )}
-        {canRecord && (
-          <button className="composer__add composer__mic" title={t('composer.recordVoice')} aria-label={t('composer.recordVoice')} onClick={startRec}>
-            <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
-              stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="9" y="2" width="6" height="12" rx="3" />
-              <path d="M5 11a7 7 0 0 0 14 0" />
-              <line x1="12" y1="18" x2="12" y2="22" />
-            </svg>
-          </button>
-        )}
+        {(() => {
+          if (readOnlyLog) return null;
+          const imgBtn = canUpload ? (
+            <button key="img" type="button" className="composer__add" title={t('composer.sendImage')} aria-label={t('composer.sendImage')}
+              onClick={() => { setAttachMenu(false); fileRef.current?.click(); }}>
+              <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="4" />
+                <circle cx="8.5" cy="8.5" r="1.6" />
+                <path d="M21 15.5 16 10.5 5.5 21" />
+              </svg>
+            </button>
+          ) : null;
+          const micBtn = canRecord ? (
+            <button key="mic" type="button" className="composer__add composer__mic" title={t('composer.recordVoice')} aria-label={t('composer.recordVoice')}
+              onClick={() => { setAttachMenu(false); startRec(); }}>
+              <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="9" y="2" width="6" height="12" rx="3" />
+                <path d="M5 11a7 7 0 0 0 14 0" />
+                <line x1="12" y1="18" x2="12" y2="22" />
+              </svg>
+            </button>
+          ) : null;
+          // Phone: one "+" for image + voice so the text field keeps room.
+          if (narrow && canUpload && canRecord) {
+            return (
+              <>
+                <button type="button" className={`composer__add composer__attach ${attachMenu ? 'is-on' : ''}`}
+                  title={t('composer.attach')} aria-label={t('composer.attach')} aria-expanded={attachMenu}
+                  onClick={() => { setAttachMenu((v) => !v); setPicker(false); setFmtMenu(false); setColors(false); }}>
+                  <svg className="composer__icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                    stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                </button>
+                {attachMenu && (
+                  <>
+                    <div className="emoji-backdrop" onClick={() => setAttachMenu(false)} />
+                    <div className="composer__attach-pop" role="menu" aria-label={t('composer.attach')}>
+                      <button type="button" role="menuitem" className="composer__attach-item" onClick={() => { setAttachMenu(false); fileRef.current?.click(); }}>
+                        <svg className="composer__icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                          stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <rect x="3" y="3" width="18" height="18" rx="4" />
+                          <circle cx="8.5" cy="8.5" r="1.6" />
+                          <path d="M21 15.5 16 10.5 5.5 21" />
+                        </svg>
+                        <span>{t('composer.sendImage')}</span>
+                      </button>
+                      <button type="button" role="menuitem" className="composer__attach-item composer__attach-item--mic" onClick={() => { setAttachMenu(false); startRec(); }}>
+                        <svg className="composer__icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                          stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <rect x="9" y="2" width="6" height="12" rx="3" />
+                          <path d="M5 11a7 7 0 0 0 14 0" />
+                          <line x1="12" y1="18" x2="12" y2="22" />
+                        </svg>
+                        <span>{t('composer.recordVoice')}</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            );
+          }
+          return <>{imgBtn}{micBtn}</>;
+        })()}
         <div
           ref={ed}
           className={`composer__rich ${readOnlyLog ? 'composer__rich--console' : ''} ${empty ? 'is-empty' : ''}`}
@@ -545,7 +592,7 @@ export function Composer({ locked = false }: { locked?: boolean }) {
                 <button type="button" className={`composer__fmt-toggle ${fmtOn ? 'is-on' : ''}`}
                   title={t('composer.format')} aria-label={t('composer.format')} aria-expanded={fmtMenu}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { setFmtMenu((v) => !v); setColors(false); }}>
+                  onClick={() => { setFmtMenu((v) => !v); setColors(false); setAttachMenu(false); }}>
                   <b>A</b>
                 </button>
                 {fmtMenu && (
@@ -563,7 +610,7 @@ export function Composer({ locked = false }: { locked?: boolean }) {
         {!readOnlyLog && <button type="button" className={`composer__emoji ${picker ? 'is-on' : ''}`}
           title={t('composer.emoji')} aria-label={t('composer.emoji')} aria-pressed={picker}
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => setPicker((p) => !p)}>😊</button>}
+          onClick={() => { setPicker((p) => !p); setAttachMenu(false); setFmtMenu(false); }}>😊</button>}
         <button className="composer__send" disabled={blank && !pendingImage} onClick={submit} aria-label={t('composer.send')} title={t('composer.send')}>
           {readOnlyLog ? '⏎' : <><span className="composer__send-txt">{t('composer.sendLong')}</span>➤</>}
         </button>

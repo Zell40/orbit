@@ -24,8 +24,15 @@ describe('REDACT', () => {
     const { on, buffers, seed } = setup();
     seed('#x', [mkMsg('m1'), mkMsg('m2')]);
     on(':srv REDACT #x m1');
-    expect(buffers['#x'].messages.find((m) => m.id === 'm1')!.redacted).toBe(true);
+    expect(buffers['#x'].messages.find((m) => m.id === 'm1')!).toMatchObject({ redacted: true, text: '' });
     expect(buffers['#x'].messages.find((m) => m.id === 'm2')!.redacted).toBeUndefined();
+  });
+
+  it('matches by msgid when the row id differs', () => {
+    const { on, buffers, seed } = setup();
+    seed('#x', [{ ...mkMsg('local-1'), msgid: 'srv-m1', text: 'https://x/a.png' }]);
+    on(':srv REDACT #x srv-m1');
+    expect(buffers['#x'].messages[0]).toMatchObject({ redacted: true, text: '' });
   });
 });
 

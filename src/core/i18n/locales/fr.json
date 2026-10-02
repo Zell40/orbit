@@ -1105,6 +1105,7 @@
     "color": "Couleur {{i}}",
     "clearFormat": "Effacer le format",
     "sendImage": "Envoyer une image",
+    "attach": "Joindre",
     "uploadTtl": "Durée de conservation de l’image",
     "uploadTtlHours": "{{n}} h",
     "uploadTtlDays": "{{n}} j",

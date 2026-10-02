@@ -63,7 +63,18 @@ export function makeBatch({ get, set, helpers }: BatchDeps) {
               const loose = base.findIndex((x) => sameReplayEvent(x, m));
               if (loose !== -1) at = loose;
             }
+            // Tombstone kept text:'' after REDACT — match by msgid or nick+time so
+            // CHATHISTORY can't re-inject the original image/body underneath.
+            if (at === undefined && (m.kind === 'privmsg' || m.kind === 'action')) {
+              const tomb = base.findIndex((x) => x.redacted
+                && (x.kind === 'privmsg' || x.kind === 'action')
+                && ((m.msgid && (x.msgid === m.msgid || x.id === m.msgid))
+                  || (x.from.toLowerCase() === m.from.toLowerCase() && Math.abs(x.ts - m.ts) <= 2000)));
+              if (tomb !== -1) at = tomb;
+            }
             if (at !== undefined) {
+              // Already tombstoned locally — never restore body from history.
+              if (base[at].redacted) continue;
               // Same message already present (other replay source). Upgrade it to
               // the copy that carries the real msgid so REDACT/react target it.
               if (m.msgid && !base[at].msgid) base[at] = { ...base[at], rowId: base[at].rowId ?? base[at].id, id: m.id, msgid: m.msgid };
