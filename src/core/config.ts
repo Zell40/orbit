@@ -55,6 +55,10 @@ export interface AppConfig {
     loginUrl?: string;
     links?: { label: string; url: string }[]; // extra links shown in Settings → About (rules, donate, …)
     accent?: string;    // optional accent colour override (the --accent CSS token)
+    /** Boot / PWA handoff splash background (hex). Matches manifest background_color. */
+    splashBg?: string;
+    /** Text / progress colour on splashBg (hex). Defaults to white when splashBg is set. */
+    splashInk?: string;
   };
   turnstile: {
     // Render the anti-bot challenge inline with Cloudflare Turnstile. false = no

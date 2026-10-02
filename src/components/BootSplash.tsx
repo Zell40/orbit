@@ -20,8 +20,20 @@ export function BootSplash({ progress, phase, fading, peek }: {
   const { t } = useTranslation();
   const cfg = getConfig();
   const phone = usePhoneUi();
+  const splashBg = cfg.branding.splashBg?.trim() || '';
+  const splashInk = cfg.branding.splashInk?.trim() || (splashBg ? '#ffffff' : '');
+  const branded = phone && !!splashBg && !peek;
+  const style = branded
+    ? { background: splashBg, ['--splash-ink' as string]: splashInk || '#ffffff' }
+    : undefined;
   return (
-    <div className={`splash${peek ? ' splash--peek' : ''}${phone ? ' splash--app' : ''}${fading ? ' is-out' : ''}`} role="status" aria-live="polite" aria-busy={!fading}>
+    <div
+      className={`splash${peek ? ' splash--peek' : ''}${phone ? ' splash--app' : ''}${branded ? ' splash--brand' : ''}${fading ? ' is-out' : ''}`}
+      style={style}
+      role="status"
+      aria-live="polite"
+      aria-busy={!fading}
+    >
       <div className="splash__hud">
         <span className="splash__mark"><img src={cfg.branding.icon} alt="" /></span>
         {phone ? <p className="splash__name">{cfg.branding.name}</p> : null}
