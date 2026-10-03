@@ -24,6 +24,7 @@ import { setExpectedBootChannels } from '../lib/boot-ready';
 import { closeMobileNav } from '../lib/mobile-nav';
 import { mergeMlock } from './irc/mode-catalog';
 import { fetchChannelMlock } from './store/mlock-rpc';
+import { fetchChanServPublic } from './store/chanserv-info';
 
 
 
@@ -111,6 +112,8 @@ export interface ChatState {
   filterlists: Record<string, { mask: string; by: string; ts: number }[]>; // +g chanfilter words
   loadBanList: (channel: string) => void;
   loadChannelMlock: (channel: string) => void;
+  /** Refresh ChanServ public INFO (TOPICLOCK, founder, …) into the buffer. */
+  loadChanServPublic: (channel: string) => void;
   setChannelMode: (channel: string, mode: string, add: boolean) => void;
   setChannelModeParam: (channel: string, mode: string, add: boolean, param?: string) => void;
   removeBan: (channel: string, mask: string) => void;
@@ -674,6 +677,25 @@ export function createChatStore(ns = '') {
         if (!mlock || get().client == null) return;
         helpers.ensureBuffer(channel);
         helpers.patchBuffer(channel, (b) => ({ ...b, mlock: mergeMlock(b.mlock, mlock) }));
+      });
+    },
+    loadChanServPublic(channel) {
+      if (!isChannelName(channel)) return;
+      const account = get().account;
+      if (!account) return;
+      const nick = get().nick || '';
+      void fetchChanServPublic(account, nick, channel).then((info) => {
+        if (get().client == null) return;
+        if (!info.founder && !info.description && info.official === undefined
+          && info.topicLock === undefined) return;
+        helpers.ensureBuffer(channel);
+        helpers.patchBuffer(channel, (b) => ({
+          ...b,
+          ...(info.founder ? { csFounder: info.founder } : {}),
+          ...(info.description ? { csDescription: info.description } : {}),
+          ...(info.official !== undefined ? { csOfficial: info.official } : {}),
+          ...(info.topicLock !== undefined ? { csTopicLock: info.topicLock } : {}),
+        }));
       });
     },
     setChannelModeParam(channel, mode, add, param) {

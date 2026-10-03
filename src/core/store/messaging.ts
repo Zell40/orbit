@@ -77,13 +77,15 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     if (parsed.chan) { csInfoChan = parsed.chan; csInfoAt = Date.now(); }
     const chan = parsed.chan || (Date.now() - csInfoAt < 12_000 ? csInfoChan : '');
     if (!chan || !isChannelName(chan)) return;
-    if (!parsed.founder && !parsed.description && parsed.official === undefined) return;
+    if (!parsed.founder && !parsed.description && parsed.official === undefined
+      && parsed.topicLock === undefined) return;
     ensureBuffer(chan);
     patchBuffer(chan, (b) => ({
       ...b,
       ...(parsed.founder ? { csFounder: parsed.founder } : {}),
       ...(parsed.description ? { csDescription: parsed.description } : {}),
       ...(parsed.official !== undefined ? { csOfficial: parsed.official } : {}),
+      ...(parsed.topicLock !== undefined ? { csTopicLock: parsed.topicLock } : {}),
     }));
   }
 

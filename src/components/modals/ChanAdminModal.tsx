@@ -361,6 +361,7 @@ export function ChanAdminModal() {
   const filterlist = useActiveChat((s) => s.filterlists[s.active] || []);
   const loadBanList = useActiveChat((s) => s.loadBanList);
   const loadChannelMlock = useActiveChat((s) => s.loadChannelMlock);
+  const loadChanServPublic = useActiveChat((s) => s.loadChanServPublic);
   const setChannelMode = useActiveChat((s) => s.setChannelMode);
   const setChannelModeParam = useActiveChat((s) => s.setChannelModeParam);
   const removeBan = useActiveChat((s) => s.removeBan);
@@ -370,6 +371,8 @@ export function ChanAdminModal() {
   const chan = buffer?.name || '';
   const modeParams = buffer?.modeParams;
   const mlock = buffer?.mlock || '';
+  /** ChanServ TOPICLOCK — MLOCK +t only forces mode +t (ops can still TOPIC). */
+  const topicLocked = !!buffer?.csTopicLock;
   const curKey = modeParams?.k || '';
   const curLimit = modeParams?.l || '';
 
@@ -434,7 +437,8 @@ export function ChanAdminModal() {
     if (!chan) return;
     loadBanList(chan);
     loadChannelMlock(chan);
-  }, [chan, loadBanList, loadChannelMlock]);
+    loadChanServPublic(chan);
+  }, [chan, loadBanList, loadChannelMlock, loadChanServPublic]);
   useEffect(() => {
     if (!lockTip) return;
     const id = window.setTimeout(() => setLockTip(null), 5000);
@@ -583,7 +587,7 @@ export function ChanAdminModal() {
       <div className="ca-layout">
         <div className="ca-sec ca-topicrow">
           <h4 className="ca-h">{t('modals.chanadmin.subject')}</h4>
-          {editingTopic && !mlock.includes('t') ? (
+          {editingTopic && !topicLocked ? (
             <div className="modal__actions ca-topic-edit">
               {/* Editing works on the RAW topic (colour/format codes intact) so
                   setting it back never silently strips the colours. */}
@@ -625,16 +629,16 @@ export function ChanAdminModal() {
             </div>
           ) : (
             <>
-              <button className={`ca-topic${mlock.includes('t') ? ' is-locked' : ''}`}
+              <button className={`ca-topic${topicLocked ? ' is-locked' : ''}`}
                 onClick={(e) => {
-                  if (mlock.includes('t')) { showLockTip('t', 'topic', e); return; }
+                  if (topicLocked) { showLockTip('t', 'topic', e); return; }
                   setTopicVal(buffer?.topic || ''); setEditingTopic(true); setTopicPicker(true);
                 }}
-                title={mlock.includes('t') ? t('modals.chanadmin.topicLockedByServices') : t('modals.chanadmin.editTopic')}>
+                title={topicLocked ? t('modals.chanadmin.topicLockedByServices') : t('modals.chanadmin.editTopic')}>
                 <span className="ca-topic__txt">
                   {buffer?.topic ? formatIrc(buffer.topic, false, false) : <span className="ca-topic__empty">{t('modals.chanadmin.noTopicYet')}</span>}
                 </span>
-                {mlock.includes('t') ? (
+                {topicLocked ? (
                   <span className="ca-topic__lock"
                     onMouseEnter={(e) => showLockTip('t', 'topic', e)}
                     onClick={(e) => { e.stopPropagation(); showLockTip('t', 'topic', e); }}>

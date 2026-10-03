@@ -121,6 +121,8 @@ export interface Buffer {
   csFounder?: string;
   csDescription?: string;
   csOfficial?: boolean;
+  /** ChanServ TOPICLOCK — classic topic edit uses this, not MLOCK +t. */
+  csTopicLock?: boolean;
   topicBy?: string;      // who last set the topic (RPL_TOPICWHOTIME 333 / live TOPIC)
   topicAt?: number;      // when the topic was last set (unix ms)
   unread: number;

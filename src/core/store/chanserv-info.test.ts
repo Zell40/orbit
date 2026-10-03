@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { optionsAreOfficial, parseChanServInfo } from './chanserv-info';
+import { optionsAreOfficial, optionsHaveTopicLock, parseChanServInfo } from './chanserv-info';
 
 const INFO = `Informations à propos du salon #EntreNous.chat
 Fondateur : Zell
@@ -14,11 +14,13 @@ describe('parseChanServInfo', () => {
     expect(p.founder).toBe('Zell');
     expect(p.description).toBe("Salon d'accueil du reseau EntreNous");
     expect(p.official).toBe(true);
+    expect(p.topicLock).toBe(true);
   });
 
   it('does not mark official when the option is absent', () => {
     const p = parseChanServInfo('Options : Chanstats, Paix, Persistant');
     expect(p.official).toBe(false);
+    expect(p.topicLock).toBe(false);
   });
 });
 
@@ -27,5 +29,13 @@ describe('optionsAreOfficial', () => {
     expect(optionsAreOfficial('Paix, Persistant, Salon officiel, Sans expiration')).toBe(true);
     expect(optionsAreOfficial('Official, SecureOps')).toBe(true);
     expect(optionsAreOfficial('Paix, Persistant')).toBe(false);
+  });
+});
+
+describe('optionsHaveTopicLock', () => {
+  it('matches Verrouillage du topic among other tokens', () => {
+    expect(optionsHaveTopicLock('Paix, Verrouillage du topic, Persistant')).toBe(true);
+    expect(optionsHaveTopicLock('TOPICLOCK, SecureOps')).toBe(true);
+    expect(optionsHaveTopicLock('Paix, Persistant')).toBe(false);
   });
 });

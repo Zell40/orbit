@@ -7,6 +7,8 @@ export type ChanServPublicInfo = {
   founder?: string;
   description?: string;
   official?: boolean;
+  /** ChanServ TOPICLOCK (Options) — not the same as MLOCK +t. */
+  topicLock?: boolean;
 };
 
 function fold(s: string): string {
@@ -23,6 +25,16 @@ export function optionsAreOfficial(blob: string): boolean {
     return t === 'official' || t === 'officiel' || t === 'cs_official'
       || t === 'salon officiel' || /\bsalon officiel\b/.test(t)
       || /(^|\s)official(\s|$)/.test(t);
+  });
+}
+
+/** Anope "Options:" — TOPICLOCK / « Verrouillage du topic ». */
+export function optionsHaveTopicLock(blob: string): boolean {
+  return String(blob || '').split(/\s*,\s*/).some((part) => {
+    const t = fold(part).trim();
+    return t === 'topiclock'
+      || /verrouillage du (topic|sujet)/.test(t)
+      || /(^|\s)topic lock(\s|$)/.test(t);
   });
 }
 
@@ -49,6 +61,11 @@ export function parseChanServInfo(raw: string): ChanServPublicInfo {
       if (!/^(aucun|none|n\/a|vide|non definie|not set|-)$/i.test(fold(val))) out.description = val;
     } else if (/^options?$/.test(key)) {
       out.official = optionsAreOfficial(val);
+      out.topicLock = optionsHaveTopicLock(val);
+    } else if (/^(verrouillage du sujet|topic lock|sujet verrouille)$/.test(key)) {
+      const v = fold(val);
+      if (/\b(inactif|off|disabled|no|non)\b/.test(v)) out.topicLock = false;
+      else if (/\b(actif|on|enabled|yes|oui)\b/.test(v)) out.topicLock = true;
     }
   }
   return out;
