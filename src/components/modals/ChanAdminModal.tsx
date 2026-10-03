@@ -401,10 +401,19 @@ export function ChanAdminModal() {
   const [ixType, setIxType] = useState<string | null>(null); // null = first matching type; '' = hostmask
   const [ixVal, setIxVal] = useState('');
   const [topic, setTopicVal] = useState(buffer?.topic || '');
-  const [editingTopic, setEditingTopic] = useState(false);
   const [topicPicker, setTopicPicker] = useState(false);
   const [topicSmileyGroup, setTopicSmileyGroup] = useState<'all' | TopicSmileyGroupId>('all');
-  const topicInputRef = useRef<HTMLInputElement>(null);
+  const topicInputRef = useRef<HTMLTextAreaElement>(null);
+  const fitTopicTa = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = '0px';
+    el.style.height = `${el.scrollHeight}px`;
+  };
+  useLayoutEffect(() => { fitTopicTa(topicInputRef.current); }, [topic, topicLocked]);
+  useEffect(() => {
+    setTopicVal(buffer?.topic || '');
+    setTopicPicker(false);
+  }, [buffer?.name, buffer?.topic]);
   const insertTopicEmoji = (emoji: string) => {
     const el = topicInputRef.current;
     const start = el?.selectionStart ?? topic.length;
@@ -412,10 +421,21 @@ export function ChanAdminModal() {
     const next = topic.slice(0, start) + emoji + topic.slice(end);
     setTopicVal(next);
     requestAnimationFrame(() => {
-      el?.focus();
+      if (!el) return;
+      el.focus();
       const caret = start + emoji.length;
-      el?.setSelectionRange(caret, caret);
+      el.setSelectionRange(caret, caret);
+      fitTopicTa(el);
     });
+  };
+  const applyTopic = () => {
+    modTopic(topic.trim().replace(/\s+/g, ' '));
+    setTopicPicker(false);
+  };
+  const clearTopic = () => {
+    setTopicVal('');
+    modTopic('');
+    setTopicPicker(false);
   };
   const [keyVal, setKeyVal] = useState(curKey);
   const [limitVal, setLimitVal] = useState(curLimit);
@@ -587,82 +607,93 @@ export function ChanAdminModal() {
       <div className="ca-layout">
         <div className="ca-sec ca-topicrow">
           <h4 className="ca-h">{t('modals.chanadmin.subject')}</h4>
-          {editingTopic && !topicLocked ? (
-            <div className="modal__actions ca-topic-edit">
-              {/* Editing works on the RAW topic (colour/format codes intact) so
-                  setting it back never silently strips the colours. */}
-              <input ref={topicInputRef} className="modal__input" autoFocus value={topic} placeholder={t('modals.chanadmin.topic')}
-                onChange={(e) => setTopicVal(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { modTopic(topic); setEditingTopic(false); setTopicPicker(false); } }} />
-              <button type="button" className={`ca-topic-emoji${topicPicker ? ' is-on' : ''}`}
-                title={t('composer.emoji')} aria-label={t('composer.emoji')}
-                aria-pressed={topicPicker}
-                onClick={() => setTopicPicker((p) => !p)}>😊</button>
-              <button className="upbtn upbtn--primary" onClick={() => { modTopic(topic); setEditingTopic(false); setTopicPicker(false); }}>{t('modals.chanadmin.setTopic')}</button>
-              {topicPicker ? (
-                <div className="ca-topic-smileys-wrap">
-                  <div className="ca-topic-sfilters" role="tablist" aria-label={t('composer.emoji')}>
-                    <button type="button" role="tab" aria-selected={topicSmileyGroup === 'all'}
-                      className={`ca-topic-sfilter${topicSmileyGroup === 'all' ? ' is-on' : ''}`}
-                      title={t('modals.chanadmin.smileysAll')}
-                      onClick={() => setTopicSmileyGroup('all')}>{t('modals.chanadmin.smileysAll')}</button>
-                    {TOPIC_SMILEY_GROUPS.map((g) => (
-                      <button key={g.id} type="button" role="tab" aria-selected={topicSmileyGroup === g.id}
-                        className={`ca-topic-sfilter${topicSmileyGroup === g.id ? ' is-on' : ''}`}
-                        title={t(`modals.chanadmin.smileys_${g.id}`)}
-                        onClick={() => setTopicSmileyGroup(g.id)}>
-                        <span aria-hidden="true">{g.icon}</span>
-                        <span className="ca-topic-sfilter__lbl">{t(`modals.chanadmin.smileys_${g.id}`)}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="ca-topic-smileys" role="listbox" aria-label={t('composer.emoji')}>
-                    {(topicSmileyGroup === 'all'
-                      ? TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys)
-                      : TOPIC_SMILEY_GROUPS.find((g) => g.id === topicSmileyGroup)?.smileys || []
-                    ).map((e) => (
-                      <button key={e} type="button" onClick={() => insertTopicEmoji(e)}>{e}</button>
-                    ))}
-                  </div>
+          {!topicLocked ? (
+            <div className="ca-topic-card">
+              <div className="ca-topic-card__h">{t('modals.chanadmin.topicCurrent')}</div>
+              <div className="ca-topic-card__body">
+                {/* RAW topic (colour/format codes intact) — same idea as ChanServ. */}
+                <textarea
+                  ref={topicInputRef}
+                  className="ca-topic-card__ta"
+                  rows={1}
+                  value={topic}
+                  placeholder={t('modals.chanadmin.topic')}
+                  aria-label={t('modals.chanadmin.topic')}
+                  onChange={(e) => { setTopicVal(e.target.value); fitTopicTa(e.target); }}
+                />
+                <div className="ca-topic-card__bar">
+                  <button type="button" className={`ca-topic-emoji${topicPicker ? ' is-on' : ''}`}
+                    title={t('composer.emoji')} aria-label={t('composer.emoji')}
+                    aria-pressed={topicPicker}
+                    onClick={() => setTopicPicker((p) => !p)}>😊</button>
+                  <button type="button" className="upbtn upbtn--primary ca-topic-card__btn" onClick={applyTopic}>
+                    <Icon name="check" size={14} />
+                    {t('modals.chanadmin.setTopic')}
+                  </button>
+                  <button type="button" className="upbtn ca-topic-card__btn" onClick={clearTopic}>
+                    <Icon name="close" size={14} />
+                    {t('modals.chanadmin.clearTopic')}
+                  </button>
                 </div>
-              ) : null}
+                {topicPicker ? (
+                  <div className="ca-topic-smileys-wrap">
+                    <div className="ca-topic-sfilters" role="tablist" aria-label={t('composer.emoji')}>
+                      <button type="button" role="tab" aria-selected={topicSmileyGroup === 'all'}
+                        className={`ca-topic-sfilter${topicSmileyGroup === 'all' ? ' is-on' : ''}`}
+                        title={t('modals.chanadmin.smileysAll')}
+                        onClick={() => setTopicSmileyGroup('all')}>{t('modals.chanadmin.smileysAll')}</button>
+                      {TOPIC_SMILEY_GROUPS.map((g) => (
+                        <button key={g.id} type="button" role="tab" aria-selected={topicSmileyGroup === g.id}
+                          className={`ca-topic-sfilter${topicSmileyGroup === g.id ? ' is-on' : ''}`}
+                          title={t(`modals.chanadmin.smileys_${g.id}`)}
+                          onClick={() => setTopicSmileyGroup(g.id)}>
+                          <span aria-hidden="true">{g.icon}</span>
+                          <span className="ca-topic-sfilter__lbl">{t(`modals.chanadmin.smileys_${g.id}`)}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="ca-topic-smileys" role="listbox" aria-label={t('composer.emoji')}>
+                      {(topicSmileyGroup === 'all'
+                        ? TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys)
+                        : TOPIC_SMILEY_GROUPS.find((g) => g.id === topicSmileyGroup)?.smileys || []
+                      ).map((e) => (
+                        <button key={e} type="button" onClick={() => insertTopicEmoji(e)}>{e}</button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : (
-            <>
-              <button className={`ca-topic${topicLocked ? ' is-locked' : ''}`}
-                onClick={(e) => {
-                  if (topicLocked) { showLockTip('t', 'topic', e); return; }
-                  setTopicVal(buffer?.topic || ''); setEditingTopic(true); setTopicPicker(true);
-                }}
-                title={topicLocked ? t('modals.chanadmin.topicLockedByServices') : t('modals.chanadmin.editTopic')}>
+            <div className="ca-topic-card">
+              <div className="ca-topic-card__h">{t('modals.chanadmin.topicCurrent')}</div>
+              <button type="button" className="ca-topic is-locked ca-topic--in-card"
+                onClick={(e) => showLockTip('t', 'topic', e)}
+                title={t('modals.chanadmin.topicLockedByServices')}>
                 <span className="ca-topic__txt">
                   {buffer?.topic ? formatIrc(buffer.topic, false, false) : <span className="ca-topic__empty">{t('modals.chanadmin.noTopicYet')}</span>}
                 </span>
-                {topicLocked ? (
-                  <span className="ca-topic__lock"
-                    onMouseEnter={(e) => showLockTip('t', 'topic', e)}
-                    onClick={(e) => { e.stopPropagation(); showLockTip('t', 'topic', e); }}>
-                    <LockTag kind="services" />
-                  </span>
-                ) : (
-                  <span className="ca-topic__pen" aria-hidden="true">✎</span>
-                )}
+                <span className="ca-topic__lock"
+                  onMouseEnter={(e) => showLockTip('t', 'topic', e)}
+                  onClick={(e) => { e.stopPropagation(); showLockTip('t', 'topic', e); }}>
+                  <LockTag kind="services" />
+                </span>
               </button>
-              {buffer.topicBy ? (
-                <div className="ca-topicby">
-                  <span className="ca-topicby__by">
-                    {t('modals.chanadmin.topicBy')}{' '}
-                    <span className="ca-topicby__who">{
-                      topicFull
-                        ? setterMask(buffer.topicBy, buffer.members || {})
-                        : buffer.topicBy.split('!')[0]
-                    }</span>
-                  </span>
-                  {buffer.topicAt ? <span className="ca-topicby__when"> · {ago(buffer.topicAt, locale)}</span> : null}
-                </div>
-              ) : null}
-            </>
+            </div>
           )}
+          {buffer.topicBy ? (
+            <div className="ca-topicby">
+              <span className="ca-topicby__by">
+                {t('modals.chanadmin.topicBy')}{' '}
+                <span className="ca-topicby__who">
+                  {topicFull
+                    ? setterMask(buffer.topicBy, buffer.members || {})
+                    : buffer.topicBy.split('!')[0]
+                  }</span>
+              </span>
+              {buffer.topicAt ? <span className="ca-topicby__when"> · {ago(buffer.topicAt, locale)}</span> : null}
+            </div>
+          ) : null}
         </div>
         <div className="ca-main">
           <div className="ca-tabs" role="tablist">

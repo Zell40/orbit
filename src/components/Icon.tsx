@@ -37,6 +37,7 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   close: <path d="M6 6 18 18M18 6 6 18" />,
+  check: <path d="M5 12.5 10 17.5 19 7" />,
   menu: <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />,
   bell: (
     <>
