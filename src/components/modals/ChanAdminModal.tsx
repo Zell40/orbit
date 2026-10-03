@@ -14,7 +14,7 @@ import {
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
-import { TOPIC_SMILEY_GROUPS, type TopicSmileyGroupId } from '../chat/composer/constants';
+import { TOPIC_SMILEY_GROUPS, filterTopicSmileys, type TopicSmileyGroupId } from '../chat/composer/constants';
 import {
   availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban,
   buildExtbanMask, nickMask, NICK_PICK, NICK_MASK_SHAPES, type ExtBan, type NickMaskShape,
@@ -403,6 +403,7 @@ export function ChanAdminModal() {
   const [topic, setTopicVal] = useState(buffer?.topic || '');
   const [topicPicker, setTopicPicker] = useState(false);
   const [topicSmileyGroup, setTopicSmileyGroup] = useState<'all' | TopicSmileyGroupId>('all');
+  const [topicSmileyQuery, setTopicSmileyQuery] = useState('');
   const topicInputRef = useRef<HTMLTextAreaElement>(null);
   const fitTopicTa = (el: HTMLTextAreaElement | null) => {
     if (!el) return;
@@ -413,7 +414,15 @@ export function ChanAdminModal() {
   useEffect(() => {
     setTopicVal(buffer?.topic || '');
     setTopicPicker(false);
+    setTopicSmileyQuery('');
   }, [buffer?.name, buffer?.topic]);
+  const topicSmileyList = filterTopicSmileys(
+    topicSmileyGroup === 'all'
+      ? TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys)
+      : TOPIC_SMILEY_GROUPS.find((g) => g.id === topicSmileyGroup)?.smileys || [],
+    topicSmileyQuery,
+    topicSmileyGroup,
+  );
   const insertTopicEmoji = (emoji: string) => {
     const el = topicInputRef.current;
     const start = el?.selectionStart ?? topic.length;
@@ -625,7 +634,10 @@ export function ChanAdminModal() {
                   <button type="button" className={`ca-topic-emoji${topicPicker ? ' is-on' : ''}`}
                     title={t('composer.emoji')} aria-label={t('composer.emoji')}
                     aria-pressed={topicPicker}
-                    onClick={() => setTopicPicker((p) => !p)}>😊</button>
+                    onClick={() => setTopicPicker((p) => {
+                      if (p) setTopicSmileyQuery('');
+                      return !p;
+                    })}>😊</button>
                   <button type="button" className="upbtn upbtn--primary ca-topic-card__btn" onClick={applyTopic}>
                     <Icon name="check" size={14} />
                     {t('modals.chanadmin.setTopic')}
@@ -637,6 +649,14 @@ export function ChanAdminModal() {
                 </div>
                 {topicPicker ? (
                   <div className="ca-topic-smileys-wrap">
+                    <input
+                      type="search"
+                      className="ca-topic-ssearch"
+                      value={topicSmileyQuery}
+                      placeholder={t('modals.chanadmin.smileysSearch')}
+                      aria-label={t('modals.chanadmin.smileysSearch')}
+                      onChange={(e) => setTopicSmileyQuery(e.target.value)}
+                    />
                     <div className="ca-topic-sfilters" role="tablist" aria-label={t('composer.emoji')}>
                       <button type="button" role="tab" aria-selected={topicSmileyGroup === 'all'}
                         className={`ca-topic-sfilter${topicSmileyGroup === 'all' ? ' is-on' : ''}`}
@@ -652,14 +672,15 @@ export function ChanAdminModal() {
                         </button>
                       ))}
                     </div>
-                    <div className="ca-topic-smileys" role="listbox" aria-label={t('composer.emoji')}>
-                      {(topicSmileyGroup === 'all'
-                        ? TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys)
-                        : TOPIC_SMILEY_GROUPS.find((g) => g.id === topicSmileyGroup)?.smileys || []
-                      ).map((e) => (
-                        <button key={e} type="button" onClick={() => insertTopicEmoji(e)}>{e}</button>
-                      ))}
-                    </div>
+                    {topicSmileyList.length ? (
+                      <div className="ca-topic-smileys" role="listbox" aria-label={t('composer.emoji')}>
+                        {topicSmileyList.map((e) => (
+                          <button key={e} type="button" onClick={() => insertTopicEmoji(e)}>{e}</button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="ca-topic-snone">{t('modals.chanadmin.smileysNone')}</p>
+                    )}
                   </div>
                 ) : null}
               </div>

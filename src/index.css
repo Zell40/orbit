@@ -3112,6 +3112,13 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 }
 .ca-topic-emoji.is-on, .ca-topic-emoji:hover { background: var(--accent-soft); border-color: var(--accent); }
 .ca-topic-smileys-wrap { display: flex; flex-direction: column; gap: .35rem; }
+.ca-topic-ssearch {
+  width: 100%; box-sizing: border-box; min-height: 32px;
+  padding: .35rem .6rem; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--ink); font: inherit; font-size: .82rem;
+}
+.ca-topic-ssearch:focus { outline: none; border-color: var(--accent); }
+.ca-topic-snone { margin: 0; padding: .35rem .15rem; font-size: .8rem; color: var(--muted); }
 .ca-topic-sfilters { display: flex; flex-wrap: wrap; gap: .28rem; }
 .ca-topic-sfilter {
   display: inline-flex; align-items: center; gap: .28rem;
