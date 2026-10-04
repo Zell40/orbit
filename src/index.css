@@ -3089,11 +3089,14 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 }
 .ca-topic-card__ta {
   display: block; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
-  min-height: 1.4em; height: auto; margin: 0; padding: 0; border: 0;
+  min-height: 2.8em; height: auto; margin: 0; padding: 0; border: 0;
   background: transparent; color: var(--ink);
   font: inherit; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .86rem; line-height: 1.4;
-  overflow: hidden; overflow-wrap: anywhere; word-break: break-word; resize: none;
+  overflow-x: hidden; overflow-y: auto; max-height: 14rem;
+  overflow-wrap: anywhere; word-break: break-word; resize: none;
 }
+/* Keep personal pane mounted while ChanServ is open (topic textarea height). */
+.ca-personal-keep[hidden] { display: none !important; }
 .ca-topic-card__ta:focus { outline: none; }
 .ca-topic-card__ta::placeholder { color: var(--faint); }
 .ca-topic-card__bar { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; }

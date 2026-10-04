@@ -406,11 +406,10 @@ export function ChanAdminModal() {
   const [topicSmileyQuery, setTopicSmileyQuery] = useState('');
   const topicInputRef = useRef<HTMLTextAreaElement>(null);
   const fitTopicTa = (el: HTMLTextAreaElement | null) => {
-    if (!el) return;
-    el.style.height = '0px';
-    el.style.height = `${el.scrollHeight}px`;
+    if (!el || el.offsetParent === null) return; // hidden / not laid out yet
+    el.style.height = 'auto';
+    el.style.height = `${Math.max(el.scrollHeight, 40)}px`;
   };
-  useLayoutEffect(() => { fitTopicTa(topicInputRef.current); }, [topic, topicLocked]);
   useEffect(() => {
     setTopicVal(buffer?.topic || '');
     setTopicPicker(false);
@@ -592,6 +591,16 @@ export function ChanAdminModal() {
   const [section, setSection] = useState(startSection);
   const [drilled, setDrilled] = useState(startSection !== 'personal');
   const close = () => setModal('');
+
+  // Refit after mount / return from ChanServ: unmount or display:none used to leave
+  // the textarea at ~1 line and clip the rest of the topic (overflow:hidden).
+  useLayoutEffect(() => {
+    if (topicLocked || (pluginSections.length > 0 && section !== 'personal')) return;
+    const run = () => fitTopicTa(topicInputRef.current);
+    run();
+    const id = requestAnimationFrame(run);
+    return () => cancelAnimationFrame(id);
+  }, [topic, topicLocked, section, pluginSections.length]);
 
   useEffect(() => {
     bus.emit('orbit:panel', 'chanadmin');
@@ -1089,7 +1098,9 @@ export function ChanAdminModal() {
               <button type="button" className="settings__close settings__close--pane" onClick={close} aria-label={t('modals.closeButton')}>✕</button>
             </header>
             <div className={`settings__content${section !== 'personal' ? ' settings__content--plugin' : ''}`}>
-              {section === 'personal' ? personal : null}
+              <div hidden={section !== 'personal'} className="ca-personal-keep">
+                {personal}
+              </div>
               {curPlugin ? <PluginBoundary render={curPlugin.render} label="chanadmin_section" /> : null}
             </div>
           </section>
