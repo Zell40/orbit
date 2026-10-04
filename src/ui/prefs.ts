@@ -3,13 +3,14 @@ import { getConfig } from '../core/config';
 
 export interface Prefs {
   sound: boolean;        // play a blip on mention / private message
-  hideJoinQuit: boolean; // hide join/part/quit lines in busy channels
-  hideModes: boolean;    // hide MODE lines (+o/+v/…) in the conversation history
-  /** Hide TOPIC change lines in the conversation (banner still shows the topic). */
+  hideJoinQuit: boolean; // hide join/part/quit lines in busy channels (live + history display)
+  /** Skip MODE lines when replaying CHATHISTORY (live MODE still shows). */
+  hideModes: boolean;
+  /** Skip TOPIC lines in CHATHISTORY replay (live topic changes still show). */
   hideTopicEvents: boolean;
-  /** Hide NICK / CHGHOST lines in the conversation. */
+  /** Skip NICK / CHGHOST lines in CHATHISTORY replay (live still show). */
   hideNickEvents: boolean;
-  /** Hide KICK lines in the conversation. */
+  /** Skip KICK lines in CHATHISTORY replay (live kicks still show). */
   hideKicks: boolean;
   /** Re-fetch CHATHISTORY LATEST on reconnect even when the buffer already has messages. */
   historyOnReconnect: boolean;

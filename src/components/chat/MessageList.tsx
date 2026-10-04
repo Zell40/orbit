@@ -43,10 +43,6 @@ export function MessageList() {
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const search = useActiveChat((s) => s.search);
   const hideJoinQuit = useActiveChat((s) => s.prefs.hideJoinQuit);
-  const hideModes = useActiveChat((s) => s.prefs.hideModes);
-  const hideTopicEvents = useActiveChat((s) => s.prefs.hideTopicEvents);
-  const hideNickEvents = useActiveChat((s) => s.prefs.hideNickEvents);
-  const hideKicks = useActiveChat((s) => s.prefs.hideKicks);
   const mirc = useTheme().startsWith('yomirc');
   const loadMore = useActiveChat((s) => s.loadMoreHistory);
   const histLoading = useActiveChat((s) => !!s.historyLoading[s.active]);
@@ -349,10 +345,6 @@ export function MessageList() {
     // Quit uses the PART badge in EventGroup, so it must be filtered too.
     if (!isConsole && GROUP_KINDS.has(m.kind) && buffer.sessionJoinedAt
       && m.ts < buffer.sessionJoinedAt - 2500) continue;
-    if (hideModes && !isConsole && m.kind === 'mode') continue;
-    if (hideTopicEvents && !isConsole && m.kind === 'topic') continue;
-    if (hideNickEvents && !isConsole && (m.kind === 'nick' || m.kind === 'host')) continue;
-    if (hideKicks && !isConsole && m.kind === 'kick') continue;
     const day = dayIndex(m.ts);
     if (day !== lastDay) { flushCallouts(); rows.push(<div key={`d-${rowKey(m)}`} className="daysep"><span>{dayFmt.format(m.ts)}</span></div>); lastDay = day; lastFrom = ''; }
     if (!dividerShown && buffer.readTs > 0 && hadRead && m.ts > buffer.readTs) {

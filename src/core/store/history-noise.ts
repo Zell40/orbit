@@ -1,5 +1,6 @@
 // Which CHATHISTORY event-playback commands to drop before they hit the buffer.
-// JOIN/PART/QUIT are always noise; the rest follow the user's display prefs.
+// JOIN/PART/QUIT are always noise; MODE/TOPIC/NICK/KICK follow prefs that only
+// affect history replay (live events still reach the timeline).
 import type { Prefs } from '@/ui/prefs';
 
 export function skipHistoryCommand(
