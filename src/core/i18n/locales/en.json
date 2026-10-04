@@ -529,6 +529,8 @@
       "pushUnsupported": "Not supported by this browser.",
       "pushUnavailable": "Unavailable on this server.",
       "pushDenied": "Blocked by the browser. Open site settings (lock or ⋮) → Notifications → Allow, then try again. On iPhone, install the app via “Add to Home Screen” first.",
+      "pushDeniedPwa": "The installed app no longer has notification permission (this is not the same switch as Chrome). Android: long-press the Orbit icon → App info → Notifications → Allow. iPhone: Settings → Notifications → Orbit. Then fully close the app and try again.",
+      "pushDismissed": "The permission prompt was dismissed. Try again and tap Allow.",
       "pushNeedAccount": "Log into your account to use push notifications.",
       "pushNeedAccountTitle": "Push notifications",
       "pushNeedAccountBody": "To use push notifications, you need an account.",

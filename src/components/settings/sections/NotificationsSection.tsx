@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
-import { isPushSupported, pushEnabledPref, enablePush, disablePush, requestPushDeviceList } from '@/platform/push';
+import { isPushSupported, isStandalonePwa, pushEnabledPref, enablePush, disablePush, requestPushDeviceList } from '@/platform/push';
 import { useActiveChat } from '@/core/networks';
 import { getConsent, setConsent } from '@/core/consent';
 import { setGaConsent } from '@/core/ga';
@@ -43,6 +43,9 @@ function PushRow() {
   const [askAccount, setAskAccount] = useState(false);
   const hasVapid = !!client?.server.vapid;
   const browserDenied = typeof Notification !== 'undefined' && Notification.permission === 'denied';
+  const deniedHint = isStandalonePwa()
+    ? t('settings.notifications.pushDeniedPwa')
+    : t('settings.notifications.pushDenied');
   const requireAccount = getConfig().features.pushRequireAccount !== false;
   const registerUrl = (getConfig().branding.registerUrl || '').trim();
   // Pref stays on across LOGOUT so refreshPush can re-register — but the switch must look off without an account.
@@ -66,7 +69,8 @@ function PushRow() {
         setOn(true);
         requestPushDeviceList(client);
       } else setErr(
-        r.reason === 'denied' ? t('settings.notifications.pushDenied')
+        r.reason === 'denied' ? deniedHint
+        : r.reason === 'dismissed' ? t('settings.notifications.pushDismissed')
         : r.reason === 'no-vapid' ? t('settings.notifications.pushUnavailable')
         : r.reason === 'no-account' ? t('settings.notifications.pushNeedAccount')
         : t('settings.notifications.pushFailed'),
@@ -79,7 +83,7 @@ function PushRow() {
     : !hasVapid ? t('settings.notifications.pushUnavailable')
     : err ? err
     : requireAccount && !account ? t('settings.notifications.pushNeedAccount')
-    : browserDenied && !effectiveOn ? t('settings.notifications.pushDenied')
+    : browserDenied && !effectiveOn ? deniedHint
     : effectiveOn ? t('settings.notifications.pushActive')
     : t('settings.notifications.pushHint');
 

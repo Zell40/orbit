@@ -529,6 +529,8 @@
       "pushUnsupported": "Non pris en charge par ce navigateur.",
       "pushUnavailable": "Indisponible sur ce serveur.",
       "pushDenied": "Autorisation refusée par le navigateur. Ouvre les paramètres du site (cadenas ou ⋮) → Notifications → Autoriser, puis réessaie. Sur iPhone, installe d’abord l’app via « Sur l’écran d’accueil ».",
+      "pushDeniedPwa": "L’app installée n’a plus le droit d’envoyer des notifications (ça n’est pas le même réglage que Chrome). Android : appuie longtemps sur l’icône Orbit → Infos sur l’appli → Notifications → Autoriser. iPhone : Réglages → Notifications → Orbit. Puis ferme complètement l’app et réessaie.",
+      "pushDismissed": "La demande d’autorisation a été fermée sans choisir. Réessaie et appuie sur Autoriser.",
       "pushNeedAccount": "Connecte-toi à ton compte pour les notifications push.",
       "pushNeedAccountTitle": "Notifications push",
       "pushNeedAccountBody": "Pour utiliser les notifications push, tu dois disposer d’un compte.",

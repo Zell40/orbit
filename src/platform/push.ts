@@ -51,14 +51,32 @@ function bytesToUrlB64(buf: ArrayBuffer | null): string {
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-async function getOrCreateSubscription(vapid: string): Promise<PushSubscription | null> {
-  const reg = await navigator.serviceWorker.ready;
-  const existing = await reg.pushManager.getSubscription();
-  if (existing) return existing;
+export function isStandalonePwa(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (window.matchMedia('(display-mode: standalone)').matches) return true;
+  const nav = navigator as Navigator & { standalone?: boolean };
+  return nav.standalone === true;
+}
+
+async function subscribePush(reg: ServiceWorkerRegistration, vapid: string): Promise<PushSubscription | null> {
   return reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlB64ToBytes(vapid),
   });
+}
+
+async function getOrCreateSubscription(vapid: string): Promise<PushSubscription | null> {
+  const reg = await navigator.serviceWorker.ready;
+  const existing = await reg.pushManager.getSubscription();
+  if (existing) return existing;
+  try {
+    return await subscribePush(reg, vapid);
+  } catch {
+    // Chrome/Android after unsubscribe() often keeps a dead registration until a second try.
+    const stale = await reg.pushManager.getSubscription();
+    if (stale) await stale.unsubscribe();
+    return subscribePush(reg, vapid);
+  }
 }
 
 function registerWithServer(client: IrcClient, sub: PushSubscription, account: string): void {
@@ -70,12 +88,21 @@ function registerWithServer(client: IrcClient, sub: PushSubscription, account: s
 }
 
 // Turn push on: ask permission, subscribe, hand the endpoint to the ircd.
+// Never call requestPermission() when already granted — Chrome Android PWAs
+// often return "denied" on that second prompt even though the site is allowed.
 export async function enablePush(client: IrcClient, account: string): Promise<{ ok: boolean; reason?: string }> {
   if (!account) return { ok: false, reason: 'no-account' };
   if (!isPushSupported()) return { ok: false, reason: 'unsupported' };
   if (!client.server.vapid) return { ok: false, reason: 'no-vapid' };
-  const perm = await Notification.requestPermission();
-  if (perm !== 'granted') return { ok: false, reason: 'denied' };
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    try {
+      perm = await Notification.requestPermission();
+    } catch {
+      return { ok: false, reason: 'denied' };
+    }
+  }
+  if (perm !== 'granted') return { ok: false, reason: perm === 'denied' ? 'denied' : 'dismissed' };
   try {
     const sub = await getOrCreateSubscription(client.server.vapid);
     if (!sub) return { ok: false, reason: 'no-subscription' };
@@ -84,7 +111,9 @@ export async function enablePush(client: IrcClient, account: string): Promise<{ 
     pushRegisterPending = true;
     notifyPushDevices();
     return { ok: true };
-  } catch {
+  } catch (err) {
+    const name = err instanceof DOMException ? err.name : '';
+    if (name === 'NotAllowedError' || name === 'AbortError') return { ok: false, reason: 'denied' };
     return { ok: false, reason: 'error' };
   }
 }
