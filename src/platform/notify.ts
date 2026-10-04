@@ -1,8 +1,17 @@
 // Browser notifications, a subtle sound blip, and permission handling.
 import { pushEnabledPref } from './push';
 import { getConfig } from '../core/config';
+import { stripFormatting } from '../core/store/text';
 
 let ac: AudioContext | null = null;
+
+/** Plain text for OS notifications — IRC colour/bold bytes show as � in Firefox/Edge. */
+function notifyPlain(s: string): string {
+  return stripFormatting(String(s || ''))
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export function initNotify(): void {
   try {
@@ -18,7 +27,11 @@ export function desktopNotify(title: string, body: string): void {
     // even when the tab is backgrounded/closed) — skip here to avoid duplicates.
     if (pushEnabledPref()) return;
     if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-      const n = new Notification(title, { body, icon: getConfig().branding.icon || '/app/favicon.svg', silent: true });
+      const n = new Notification(notifyPlain(title), {
+        body: notifyPlain(body),
+        icon: getConfig().branding.icon || '/app/favicon.svg',
+        silent: true,
+      });
       n.onclick = () => { window.focus(); n.close(); };
       setTimeout(() => n.close(), 6000);
     }
@@ -31,7 +44,11 @@ export function pluginNotify(title: string, body?: string): void {
   try {
     if (!('Notification' in window)) return;
     const show = () => {
-      const n = new Notification(title, { body: body || '', icon: getConfig().branding.icon || '/app/favicon.svg', silent: true });
+      const n = new Notification(notifyPlain(title), {
+        body: notifyPlain(body || ''),
+        icon: getConfig().branding.icon || '/app/favicon.svg',
+        silent: true,
+      });
       n.onclick = () => { window.focus(); n.close(); };
       setTimeout(() => n.close(), 6000);
     };

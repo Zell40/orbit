@@ -23,6 +23,7 @@ function setup(over: Partial<Record<string, unknown>> = {}, mlockAsked?: Map<str
   };
   const added: { name: string; m: ChatMessage }[] = [];
   const serverLines: string[] = [];
+  const announceLines: { dest: string; text: string }[] = [];
   const get = () => state as unknown as ChatState;
   const set = (p: Partial<typeof state>) => Object.assign(state, p);
   const helpers = {
@@ -37,6 +38,15 @@ function setup(over: Partial<Record<string, unknown>> = {}, mlockAsked?: Map<str
       if (!state.buffers[k]) state.buffers[k] = { isChannel: true, joined: true, members: {} };
     },
     serverLine: (text: string) => { serverLines.push(text); },
+    announceLine: (text: string) => {
+      const dest = state.active || SERVER;
+      announceLines.push({ dest, text });
+      helpers.ensureBuffer(dest);
+      added.push({
+        name: dest,
+        m: { id: 'a', bufferName: dest, from: '', text, ts: 1000, kind: 'info', self: false },
+      });
+    },
     tsOf: () => 1000,
   } as unknown as StoreHelpers;
   const { handleMessaging } = makeMessaging({
@@ -45,7 +55,7 @@ function setup(over: Partial<Record<string, unknown>> = {}, mlockAsked?: Map<str
     mlockAsked,
   } as Parameters<typeof makeMessaging>[0]);
   const on = (line: string, me = 'me') => handleMessaging(parseLine(line), me);
-  return { on, added, serverLines, state };
+  return { on, added, serverLines, announceLines, state };
 }
 
 describe('messaging (PRIVMSG/NOTICE)', () => {
@@ -116,6 +126,17 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     on(':irc.server NOTICE * :the MOTD');
     expect(added).toHaveLength(0);
     expect(serverLines).toContain('the MOTD');
+  });
+
+  it('routes $*/$$host broadcasts to the active buffer', () => {
+    const { on, added, announceLines, serverLines } = setup({ active: '#accueil' });
+    on(':InfoReseau!s@services NOTICE $* :Mise a jour imminente');
+    expect(serverLines).toHaveLength(0);
+    expect(announceLines).toHaveLength(1);
+    expect(announceLines[0].dest).toBe('#accueil');
+    expect(added[0].name).toBe('#accueil');
+    expect(added[0].m.text).toMatch(/InfoReseau/);
+    expect(added[0].m.text).toMatch(/Mise a jour imminente/);
   });
 
   it('captures +draft/channel-context off a service notice', () => {

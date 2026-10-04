@@ -14,9 +14,10 @@ export const TOPIC_SMILEY_GROUPS = [
   { id: 'energy', icon: '⚡', smileys: ['⚡','💡','🔌','🔋','🪫','🔆','🔥','♨️','🌡️','🏭','⚙️','🔧','🛠️','🧯','🛢️','⛽','💨','💧','🌀','☢️'] },
   { id: 'works', icon: '🚚', smileys: ['🚚','🚛','🚜','🚧','🏗️','🧱','🪜','🦺','👷','🔨','🪛','🪓','🪵','🗼','⛑️','🧤','🧰','📏','🔩','🛣️'] },
   { id: 'social', icon: '🤝', smileys: ['🤝','🫂','❤️‍🩹','🏥','👨‍👩‍👧','🎁','🎉','🎊','🏖️','⚽','🎭','📚','🎓','🏕️','🚌','🎟️','🍽️','☕','🥐','🎄'] },
+  { id: 'games', icon: '🎲', smileys: ['🎲','🃏','🎴','🀄','♟️','♞','♝','♜','♛','♚','🧩','🎮','🕹️','👾','🎯','🏆','🎱','🎳','🎰','✏️'] },
   { id: 'music', icon: '🎵', smileys: ['🎵','🎶','🎤','🎧','🎸','🎹','🥁','🎺','🎷','🎻','📻'] },
   { id: 'nature', icon: '🌍', smileys: ['🌍','☀️','🌙','🌈','❄️','🌸','🌹','🌲','🌊','⛰️','🍀','🌾'] },
-  { id: 'things', icon: '🎯', smileys: ['🍺','🍷','🍕','🎂','🏆','🎮','🎯','⌚','📦','🛒','🔑','📷'] },
+  { id: 'things', icon: '📦', smileys: ['🍺','🍷','🍕','🎂','⌚','📦','🛒','🔑','📷','🕶️','🎈','📎'] },
 ] as const;
 
 export type TopicSmileyGroupId = typeof TOPIC_SMILEY_GROUPS[number]['id'];
@@ -73,7 +74,17 @@ export const TOPIC_SMILEY_TAGS: Record<string, string> = {
   '🌍': 'terre earth monde', '🌙': 'lune moon', '🌈': 'arc en ciel rainbow',
   '❄️': 'neige snow', '🌸': 'fleur flower', '🌹': 'rose',
   '🍺': 'biere beer', '🍷': 'vin wine', '🍕': 'pizza', '🎂': 'gateau cake',
-  '🏆': 'trophee trophy', '🎮': 'jeu game', '🎯': 'cible target',
+  '🏆': 'trophee trophy jeu games gagnant', '🎮': 'jeu game video console',
+  '🎯': 'cible target jeu dart',
+  '🎲': 'des dice jeu games hasard', '🃏': 'cartes cards jeu poker joker',
+  '🎴': 'cartes cards hanafuda', '🀄': 'mahjong cartes',
+  '♟️': 'echecs chess pion jeu', '♞': 'echecs chess cavalier',
+  '♝': 'echecs chess fou', '♜': 'echecs chess tour',
+  '♛': 'echecs chess dame reine', '♚': 'echecs chess roi',
+  '🧩': 'puzzle jeu', '🕹️': 'joystick manette arcade jeu',
+  '👾': 'invader arcade jeu', '🎱': 'billard pool jeu',
+  '🎳': 'bowling jeu', '🎰': 'casino machine jeu',
+  '✏️': 'crayon bac petitbac mot jeu',
 };
 
 const TOPIC_GROUP_TAGS: Record<TopicSmileyGroupId | 'all', string> = {
@@ -85,6 +96,7 @@ const TOPIC_GROUP_TAGS: Record<TopicSmileyGroupId | 'all', string> = {
   energy: 'energie energy electricite gaz edf enedis',
   works: 'chantier works travaux camion nacelle grue enedis poteau',
   social: 'social ccas entraide activites',
+  games: 'jeux games cartes des echecs chess poker bac video',
   music: 'musique music',
   nature: 'nature',
   things: 'objets things',

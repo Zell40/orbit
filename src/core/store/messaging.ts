@@ -18,6 +18,7 @@ import { extractFilehostToken, filehostTokenFresh } from './upload';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
+import { stripFormatting } from './text';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -56,7 +57,7 @@ interface MessagingDeps {
 }
 
 export function makeMessaging({ get, set, knownServices, filehost, helpers, mlockAsked }: MessagingDeps) {
-  const { addMessage, patchBuffer, ensureBuffer, serverLine, tsOf } = helpers;
+  const { addMessage, patchBuffer, ensureBuffer, serverLine, announceLine, tsOf } = helpers;
   const asked = mlockAsked ?? new Map<string, number>();
 
   function mlockQueryActive(): boolean {
@@ -192,11 +193,14 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     } else if (text.startsWith('\x01') && text.endsWith('\x01')) {
       return true; // other CTCP — ignore for now
     }
-    // Host/server-mask broadcast ("$$host" / "$#server", oper-only on send):
-    // we may RECEIVE one if it matches us. Show it on the console as a clear
-    // server-wide broadcast rather than a confusing private message.
+    // Host/server-mask broadcast ("$*" / "$$host" / "$#server", oper/services):
+    // show in the active buffer so users actually see the announce.
     if (target && target[0] === '$') {
-      serverLine(`📢 Diffusion de ${msg.nick} (${target}) : ${text}`, 'info');
+      announceLine(
+        `📢 ${i18n.t('system.broadcast', { nick: msg.nick || '?', target, msg: text })}`,
+        'info',
+      );
+      if (get().prefs.sound) blip();
       return true;
     }
     // STATUSMSG: a target like "@#chan" / "+#chan" addresses only members at
@@ -329,7 +333,11 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       if (mention && level !== 'mute') patchBuffer(bufferName, (b) => ({ ...b, highlight: true }));
       const wants = level === 'all' || (level === 'mentions' && mention);
       if (inactive && wants) {
-        desktopNotify(isPM ? i18n.t('system.pmNotif', { nick: msg.nick }) : `${msg.nick} · ${bufferName}`, text.slice(0, 120));
+        const plain = stripFormatting(text).replace(/\s+/g, ' ').trim();
+        desktopNotify(
+          isPM ? i18n.t('system.pmNotif', { nick: msg.nick }) : `${msg.nick} · ${bufferName}`,
+          plain.slice(0, 120),
+        );
         if (get().prefs.sound) blip();
       }
     }

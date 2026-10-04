@@ -60,7 +60,9 @@ export function AccountSection() {
   }
 
   // Logged in → account hero + security card + logout.
-  if (account) {
+  // Require a live IRC session: after a drop/restart `account` is cleared, but
+  // also hide the hero if status isn't registered (stale race).
+  if (account && status === 'registered') {
     return (
       <>
         <div className={`login-card login-card--ok ${phase === 'success' ? 'is-burst' : ''}`}>

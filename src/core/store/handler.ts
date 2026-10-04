@@ -44,7 +44,7 @@ interface HandlerCtx {
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
   const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs = '', mlockAsked } = ctx;
-  const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, patchWhois } = helpers;
+  const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, announceLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
   const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs });
@@ -174,8 +174,14 @@ export function makeHandler(ctx: HandlerCtx) {
         set({ serverError: reason });
         break;
       }
-      case 'WALLOPS': { // :src WALLOPS :message — network-wide oper broadcast
-        sysLine(SERVER, `📣 ${i18n.t('system.wallops', { nick: msg.nick, msg: msg.params[0] ?? '' })}`, 'info');
+      case 'WALLOPS': // :src WALLOPS :message — network-wide oper broadcast
+      case 'GLOBOPS': // Unreal/Insp-style oper announce
+      case 'OPERWALL': {
+        const body = msg.params[msg.params.length - 1] ?? '';
+        const key = msg.command === 'WALLOPS' ? 'system.wallops'
+          : msg.command === 'GLOBOPS' ? 'system.globops'
+            : 'system.operwall';
+        announceLine(`📣 ${i18n.t(key, { nick: msg.nick || '?', msg: body })}`, 'info');
         if (get().prefs.sound) blip();
         break;
       }

@@ -48,6 +48,17 @@ function parseIrcLine(line) {
   return { nick, command, target, text, msgid };
 }
 
+/** IRC colour/bold/etc. — OS notifications (esp. Firefox) render them as �. */
+function stripIrcFmt(s) {
+  return String(s || '')
+    .replace(/\x03\d{0,2}(?:,\d{1,2})?/g, '')
+    .replace(/\x04[0-9A-Fa-f]{0,6}/g, '')
+    .replace(/[\x02\x1d\x1f\x1e\x11\x16\x0f]/g, '')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // The deployment's own config.json (network-first, cache fallback) — the single
 // source of truth for branding on every surface this worker owns.
 async function configJson() {
@@ -80,9 +91,10 @@ self.addEventListener('push', (e) => {
 
     const isChannel = /^[#&]/.test(m.target || '');
     const b = await brand();
-    const title = isChannel ? `${m.nick} · ${m.target}` : (m.nick || b.name);
+    const title = stripIrcFmt(isChannel ? `${m.nick} · ${m.target}` : (m.nick || b.name));
     let body = m.text || '';
     if (body.startsWith('\x01ACTION ')) body = `* ${m.nick} ${body.slice(8).replace(/\x01$/, '')}`;
+    body = stripIrcFmt(body);
 
     await self.registration.showNotification(title, {
       body,

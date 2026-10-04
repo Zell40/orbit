@@ -295,6 +295,14 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     addMessage(SERVER, { id: newId(), bufferName: SERVER, from: '', text, ts: Date.now(), kind, self: false });
   }
 
+  /** Network-wide announce ($* / $$host / WALLOPS / GLOBOPS) into the active buffer. */
+  function announceLine(text: string, kind: MessageKind = 'info'): void {
+    if (!text) return;
+    const dest = get().active || SERVER;
+    ensureBuffer(dest);
+    addMessage(dest, { id: newId(), bufferName: dest, from: '', text, ts: Date.now(), kind, self: false });
+  }
+
   function patchWhois(nick: string, fn: (w: WhoisInfo) => WhoisInfo): void {
     const s = get();
     const key = findWhoisKey(s.whois, nick) ?? nick;
@@ -311,7 +319,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     }
     set({ whois });
   }
-  return { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sameReplayEvent, sysLine, serverLine, patchWhois };
+  return { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sameReplayEvent, sysLine, serverLine, announceLine, patchWhois };
 }
 
 export type StoreHelpers = ReturnType<typeof makeHelpers>;

@@ -397,6 +397,12 @@ export function createChatStore(ns = '') {
       const landOn = (opts.channels ?? []).map((c) => c.trim()).find(Boolean);
       if (landOn) get().setActive(landOn);
       client.on('status', (st) => {
+        // Drop stale NickServ identity as soon as the link is not live — a server
+        // restart / services outage must not keep Settings showing "Connecté".
+        // Re-filled by 900 / ACCOUNT / extended-JOIN / WHOIS 330 after reconnect.
+        if (st === 'closed' || st === 'error' || st === 'connecting' || st === 'sasl-failed') {
+          if (get().account) set({ account: '' });
+        }
         set({ status: st, nick: client.nick });
         // Once we leave 'connecting' (registered, or an auth/connection failure),
         // a handoff is no longer in flight: drop the splash so failures fall back
@@ -478,6 +484,7 @@ export function createChatStore(ns = '') {
         namesInFlight.clear();
         historyAsked.clear();
         mlockAsked.clear();
+        if (get().account) set({ account: '' });
         // Drop stale nicklists immediately — NAMES on rejoin will refill them.
         // Avoids ghost guests (Harry208 + Harry365) while the socket is down.
         // Keep a short-lived GECOS/account cache so âge/genre/ville flash back
