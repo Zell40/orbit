@@ -64,6 +64,10 @@ export function AppearanceSection() {
         <ToggleRow icon="⌨️" label={t('settings.appearance.mono')} hint={t('settings.appearance.monoHint')} prefKey="monoMessages" />
         <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
         <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />
+        <ToggleRow icon="📌" label={t('settings.notifications.hideTopic')} hint={t('settings.notifications.hideTopicHint')} prefKey="hideTopicEvents" />
+        <ToggleRow icon="✏️" label={t('settings.notifications.hideNicks')} hint={t('settings.notifications.hideNicksHint')} prefKey="hideNickEvents" />
+        <ToggleRow icon="🥾" label={t('settings.notifications.hideKicks')} hint={t('settings.notifications.hideKicksHint')} prefKey="hideKicks" />
+        <ToggleRow icon="🔄" label={t('settings.notifications.historyOnReconnect')} hint={t('settings.notifications.historyOnReconnectHint')} prefKey="historyOnReconnect" />
         {getConfig().features.linkPreviews && (
           <ToggleRow icon="🔗" label={t('settings.notifications.linkPreviews')} hint={t('settings.notifications.linkPreviewsHint')} prefKey="linkPreviews" />
         )}

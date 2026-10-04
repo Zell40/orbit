@@ -7,4 +7,5 @@ export const WANTED_CAPS = [
   'draft/message-redaction', 'draft/read-marker', 'draft/multiline',
   'draft/metadata-2', 'standard-replies', 'draft/account-registration',
   'draft/pre-away', 'draft/webpush',
+  'entrenous/mphistory',
 ];

@@ -1,9 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
 
-function fake(cap: boolean) {
+function fake(cap: boolean, over: {
+  prefs?: { historyOnReconnect?: boolean };
+  buffers?: Record<string, { messages?: unknown[] }>;
+  active?: string;
+} = {}) {
   const latest: string[] = [];
   const get = () => ({
+    active: over.active,
+    prefs: over.prefs ?? { historyOnReconnect: false },
+    buffers: over.buffers ?? {},
     client: {
       ircv3: {
         hasCap: (c: string) => cap && c === 'draft/chathistory',
@@ -42,6 +49,8 @@ describe('prefetchLatestHistory', () => {
     const latest: { t: string; urgent?: boolean }[] = [];
     const get = () => ({
       active: '#entrenous.chat',
+      prefs: { historyOnReconnect: false },
+      buffers: {},
       client: {
         ircv3: {
           hasCap: (c: string) => c === 'draft/chathistory',
@@ -53,5 +62,36 @@ describe('prefetchLatestHistory', () => {
     });
     prefetchLatestHistory(get, asked, '#EntreNous.chat');
     expect(latest).toEqual([{ t: '#EntreNous.chat', urgent: true }]);
+  });
+
+  it('skips CHATHISTORY when the buffer already has messages and historyOnReconnect is off', () => {
+    const asked = new Set<string>();
+    const { get, latest } = fake(true, {
+      prefs: { historyOnReconnect: false },
+      buffers: { '#x': { messages: [{ id: '1' }] } },
+    });
+    expect(prefetchLatestHistory(get, asked, '#x')).toBe(false);
+    expect(latest).toEqual([]);
+    expect(asked.has('#x')).toBe(true);
+  });
+
+  it('fetches when the buffer already has messages but historyOnReconnect is on', () => {
+    const asked = new Set<string>();
+    const { get, latest } = fake(true, {
+      prefs: { historyOnReconnect: true },
+      buffers: { '#x': { messages: [{ id: '1' }] } },
+    });
+    expect(prefetchLatestHistory(get, asked, '#x')).toBe(true);
+    expect(latest).toEqual(['#x']);
+  });
+
+  it('fetches when the buffer is empty even if historyOnReconnect is off', () => {
+    const asked = new Set<string>();
+    const { get, latest } = fake(true, {
+      prefs: { historyOnReconnect: false },
+      buffers: { '#x': { messages: [] } },
+    });
+    expect(prefetchLatestHistory(get, asked, '#x')).toBe(true);
+    expect(latest).toEqual(['#x']);
   });
 });

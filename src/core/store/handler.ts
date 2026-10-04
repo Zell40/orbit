@@ -12,6 +12,7 @@ import type { IrcMessage, Member, MessageKind } from '../irc/types';
 import { hostmask } from './text';
 import { modeStringWithoutBans, splitModeAndBans } from '@/lib/format-text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
+import { skipHistoryCommand, skipHistoryModeLine } from './history-noise';
 import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading, onWebPushServerAck, notePushActionFailure } from '@/platform/push';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -75,10 +76,10 @@ export function makeHandler(ctx: HandlerCtx) {
     // the history); never let it mutate live channel/member state.
     const epRef = inHistoryBatch(msg);
     if (epRef && ['JOIN', 'PART', 'QUIT', 'KICK', 'NICK', 'TOPIC', 'MODE', 'CHGHOST'].includes(msg.command)) {
-      // JOIN/PART/QUIT in CHATHISTORY are noise — keep them off the salon timeline.
-      // EventGroup paints quit as a PART badge, so a leftover QUIT looked like a part.
-      // Still swallow the event so it does not mutate the live nicklist.
-      if (msg.command === 'JOIN' || msg.command === 'PART' || msg.command === 'QUIT') return;
+      // JOIN/PART/QUIT always; TOPIC/NICK/KICK when the matching hide* pref is on.
+      // Still swallow so event-playback never mutates the live nicklist.
+      const prefs = get().prefs;
+      if (skipHistoryCommand(msg.command, prefs)) return;
       const chan = openBatches[epRef].target;
       if (chan) {
         let text = '', kind: MessageKind = 'system';
@@ -109,15 +110,17 @@ export function makeHandler(ctx: HandlerCtx) {
               ts, kind: 'ban', self: false,
             });
           }
-          if (leftover) {
-            batch.push({
-              id: msg.tags['msgid'] || `evt:MODE:${ts}:${msg.nick}:${leftover}`,
-              bufferName: chan, from: msg.nick, text: leftover,
-              ts, kind: 'mode', self: false,
-            });
-          } else if (!bans.length) {
-            const argStr = margs.length ? ' ' + margs.join(' ') : '';
-            text = `${modes}${argStr}`; kind = 'mode';
+          if (!skipHistoryModeLine(prefs)) {
+            if (leftover) {
+              batch.push({
+                id: msg.tags['msgid'] || `evt:MODE:${ts}:${msg.nick}:${leftover}`,
+                bufferName: chan, from: msg.nick, text: leftover,
+                ts, kind: 'mode', self: false,
+              });
+            } else if (!bans.length) {
+              const argStr = margs.length ? ' ' + margs.join(' ') : '';
+              text = `${modes}${argStr}`; kind = 'mode';
+            }
           }
         }
         if (text) {

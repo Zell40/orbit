@@ -559,6 +559,14 @@
       "hideJoinsHint": "Hides “joined / left” lines.",
       "hideModes": "Hide mode changes",
       "hideModesHint": "Hides “sets +o / +v / …” lines in the conversation.",
+      "hideTopic": "Hide topic changes",
+      "hideTopicHint": "Hides “changed the topic” lines in the chat (the topic still shows in the banner).",
+      "hideNicks": "Hide nick changes",
+      "hideNicksHint": "Hides renames and host changes in the chat.",
+      "hideKicks": "Hide kicks",
+      "hideKicksHint": "Hides kick lines in the chat.",
+      "historyOnReconnect": "Reload history on reconnect",
+      "historyOnReconnectHint": "Otherwise a channel that already has messages won’t re-fetch history from the server.",
       "readReceipts": "Read receipts",
       "readReceiptsHint": "A clock then a sent tick everywhere. In DMs, a double tick means read. In a channel, it means someone posted after you. Off: no receipts.",
       "linkPreviews": "Link previews",
@@ -1355,7 +1363,8 @@
       "standardReplies": "Clear, structured error messages",
       "accountRegistration": "Create an account in-app",
       "preAway": "Marked away the moment you connect",
-      "webpush": "Push notifications when the app is closed"
+      "webpush": "Push notifications when the app is closed",
+      "mphistory": "Keeps offline private messages and delivers them on reconnect (ircv3_mphistory module)"
     },
     "server": {
       "title": "Server",

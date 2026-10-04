@@ -559,6 +559,14 @@
       "hideJoinsHint": "Cache les « a rejoint / a quitté ».",
       "hideModes": "Masquer les changements de mode",
       "hideModesHint": "Cache les lignes « pose +o / +v / … » dans la conversation.",
+      "hideTopic": "Masquer les changements de sujet",
+      "hideTopicHint": "Cache les lignes « a changé le sujet » dans le fil (le sujet reste en bannière).",
+      "hideNicks": "Masquer les changements de pseudo",
+      "hideNicksHint": "Cache les renommages et changements d’hôte dans le fil.",
+      "hideKicks": "Masquer les expulsions",
+      "hideKicksHint": "Cache les lignes d’expulsion (kick) dans le fil.",
+      "historyOnReconnect": "Recharger l’historique à la reconnexion",
+      "historyOnReconnectHint": "Sinon, un salon qui a déjà des messages ne redemande pas l’historique au serveur.",
       "readReceipts": "Accusés de lecture",
       "readReceiptsHint": "Horloge puis tick « envoyé » partout. En privé, double tick = lu. En salon, double tick = quelqu’un a écrit après toi. Désactivé : plus d’accusés.",
       "linkPreviews": "Aperçus de liens",
@@ -1379,7 +1387,8 @@
       "standardReplies": "Messages d’erreur clairs et structurés",
       "accountRegistration": "Crée un compte dans l’app",
       "preAway": "Marqué absent dès la connexion",
-      "webpush": "Notifications push quand l’app est fermée"
+      "webpush": "Notifications push quand l’app est fermée",
+      "mphistory": "Conserve les MP reçus hors ligne et les livre à la reconnexion (module ircv3_mphistory)"
     },
     "server": {
       "title": "Serveur",

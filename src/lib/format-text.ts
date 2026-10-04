@@ -128,7 +128,8 @@ export function splitModeAndBans(modestring: string, args: string[] = []): { gro
   };
 }
 
-/** Rebuild a MODE payload without +b/-b (those have their own BAN callout). */
+/** Rebuild a MODE payload without +b/-b (those have their own BAN callout).
+ *  Also omits +g/-g chanfilter keywords so vulgar words never land in the timeline. */
 export function modeStringWithoutBans(modestring: string, args: string[] = []): string | null {
   const { groups } = splitModeAndBans(modestring, args);
   if (!groups.length) return null;
@@ -139,6 +140,8 @@ export function modeStringWithoutBans(modestring: string, args: string[] = []): 
     if (lastAdd !== g.add) { modes += g.add ? '+' : '-'; lastAdd = g.add; }
     modes += g.letters.join('');
     if (g.target) {
+      // Chanfilter (+g): keep the letter, drop the keyword from the stored/display line.
+      if (g.letters.every((l) => l === 'g')) continue;
       const n = g.letters.filter((l) => modeConsumesParam(l, g.add)).length;
       for (let i = 0; i < Math.max(n, 1); i++) outArgs.push(g.target);
     }
@@ -154,11 +157,13 @@ export function joinModeLabels(labels: string[]): string {
   return i18n.t('modeline.manyRoles', { head: labels.slice(0, -1).join(', '), last: labels[labels.length - 1] });
 }
 
-/** `+i (sur invitation uniquement)` — letter plus a short gloss. */
+/** `+i (sur invitation uniquement)` — letter plus a short gloss.
+ *  Never echo +g/-g keywords (chanfilter): they are often vulgar and visible to everyone. */
 export function formatModeFlagLine(letter: string, add: boolean, param?: string): string {
   const sign = add ? '+' : '-';
   const brief = modeFlagBrief(letter);
-  const extra = param && param !== '?' ? ` : ${param}` : '';
+  const safeParam = letter === 'g' ? undefined : param;
+  const extra = safeParam && safeParam !== '?' ? ` : ${safeParam}` : '';
   if (brief === letter && !extra) return `${sign}${letter}`;
   return `${sign}${letter} (${brief}${extra})`;
 }

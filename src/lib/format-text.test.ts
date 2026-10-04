@@ -152,6 +152,13 @@ describe('groupModeDisplay', () => {
     expect(formatModeChange({ add: true, labels: ['Sur invitation'], letters: ['i'] }))
       .toBe('a appliqué +i (sur invitation uniquement)');
   });
+
+  it('never echoes chanfilter (+g) keywords in the mode line', () => {
+    expect(formatModeFlagLine('g', true, 'salope')).toBe('+g (filtre)');
+    expect(formatModeFlagLine('g', false, 'ta*mère')).toBe('-g (filtre)');
+    expect(formatModeChange({ add: false, labels: ['Filtre de salon'], letters: ['g'], target: 'salope' }))
+      .toBe('a retiré -g (filtre)');
+  });
 });
 
 describe('banTargetLabel', () => {
@@ -169,7 +176,13 @@ describe('modeStringWithoutBans', () => {
   it('drops +b/-b and keeps the rest', () => {
     expect(modeStringWithoutBans('+ob', ['bob', 'user!*@*'])).toBe('+o bob');
     expect(modeStringWithoutBans('+b', ['user!*@*'])).toBeNull();
-    expect(modeStringWithoutBans('+gm', ['spam*'])).toBe('+gm spam*');
+    expect(modeStringWithoutBans('+gm', ['spam*'])).toBe('+gm');
+  });
+
+  it('strips +g/-g keywords so they are not stored in the timeline', () => {
+    expect(modeStringWithoutBans('+g', ['salope'])).toBe('+g');
+    expect(modeStringWithoutBans('-gg', ['ta*mère', 'salope'])).toBe('-gg');
+    expect(modeStringWithoutBans('+og', ['bob', 'spam*'])).toBe('+og bob');
   });
 });
 
