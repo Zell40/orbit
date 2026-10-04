@@ -14,7 +14,7 @@ import {
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import { setterMask, ago } from '@/lib/topic';
-import { TOPIC_SMILEY_GROUPS, filterTopicSmileys, type TopicSmileyGroupId } from '../chat/composer/constants';
+import { TOPIC_SMILEY_GROUPS, TOPIC_SMILEYS, filterTopicSmileys, type TopicSmileyGroupId } from '../chat/composer/constants';
 import {
   availableExtbans, matchExtban, extbanValueHint, ensureMatchingExtban, ensureActingExtban,
   buildExtbanMask, nickMask, NICK_PICK, NICK_MASK_SHAPES, type ExtBan, type NickMaskShape,
@@ -418,7 +418,7 @@ export function ChanAdminModal() {
   }, [buffer?.name, buffer?.topic]);
   const topicSmileyList = filterTopicSmileys(
     topicSmileyGroup === 'all'
-      ? TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys)
+      ? TOPIC_SMILEYS
       : TOPIC_SMILEY_GROUPS.find((g) => g.id === topicSmileyGroup)?.smileys || [],
     topicSmileyQuery,
     topicSmileyGroup,

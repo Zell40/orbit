@@ -5,22 +5,24 @@ export const EMOJIS = ['😀','😂','🤣','😊','😍','😘','😎','🤩','
 
 /** Richer set for the channel-topic picker, grouped so the user can filter.
  *  IRC topics are plain Unicode only — no custom image icons. */
+/** Each emoji appears in exactly one group (no cross-category duplicates). */
 export const TOPIC_SMILEY_GROUPS = [
   { id: 'faces', icon: '😊', smileys: ['😀','😃','😄','😁','😅','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😎','🤩','🥳','😏','😢','😭','😡','🤔','😴','🙄','😜','🤗','😶'] },
-  { id: 'hands', icon: '👍', smileys: ['👍','👎','👏','🙌','🙏','💪','👋','✌️','🤝','👌','👀'] },
-  { id: 'hearts', icon: '❤️', smileys: ['❤️','🧡','💛','💚','💙','💜','💕','🔥','✨','⭐','🌟','🎉','🎊','💯'] },
+  { id: 'hands', icon: '👍', smileys: ['👍','👎','👏','🙌','🙏','💪','👋','✌️','👌','👀','🤞','🤟','🤘','☝️','✋'] },
+  { id: 'hearts', icon: '❤️', smileys: ['❤️','🧡','💛','💚','💙','💜','💕','💖','💗','💘','💝','💞','❣️','💔','✨','⭐','🌟','💯'] },
   { id: 'chat', icon: '💬', smileys: ['💬','💭','🗣️','📢','📣','🔔','🔕','#️⃣','👥','👤','🧑‍💻','💻','⌨️','📱','🛜','📡','🛰️','🏠','🚪','🔗'] },
-  { id: 'energy', icon: '⚡', smileys: ['⚡','💡','🔌','🔋','🪫','☀️','🔆','🔥','♨️','🌡️','🏭','⚙️','🔧','🛠️','🧯','🛢️','⛽','💨','💧','🌀'] },
+  { id: 'energy', icon: '⚡', smileys: ['⚡','💡','🔌','🔋','🪫','🔆','🔥','♨️','🌡️','🏭','⚙️','🔧','🛠️','🧯','🛢️','⛽','💨','💧','🌀','☢️'] },
   { id: 'works', icon: '🚚', smileys: ['🚚','🚛','🚜','🚧','🏗️','🧱','🪜','🦺','👷','🔨','🪛','🪓','🪵','🗼','⛑️','🧤','🧰','📏','🔩','🛣️'] },
-  { id: 'social', icon: '🤝', smileys: ['🤝','🫂','❤️‍🩹','💙','🏥','👨‍👩‍👧','🎁','🎉','🏖️','⚽','🎭','📚','🎓','🏕️','🚌','🎟️','🍽️','☕','🥐','🎄'] },
+  { id: 'social', icon: '🤝', smileys: ['🤝','🫂','❤️‍🩹','🏥','👨‍👩‍👧','🎁','🎉','🎊','🏖️','⚽','🎭','📚','🎓','🏕️','🚌','🎟️','🍽️','☕','🥐','🎄'] },
   { id: 'music', icon: '🎵', smileys: ['🎵','🎶','🎤','🎧','🎸','🎹','🥁','🎺','🎷','🎻','📻'] },
-  { id: 'nature', icon: '🌍', smileys: ['🌍','☀️','🌙','🌈','⚡','❄️','🌸','🌹'] },
-  { id: 'things', icon: '💡', smileys: ['💬','📢','🔔','💡','🏠','☕','🍺','🍷','🍕','🎂','🏆','🎮','⚽','🎯'] },
+  { id: 'nature', icon: '🌍', smileys: ['🌍','☀️','🌙','🌈','❄️','🌸','🌹','🌲','🌊','⛰️','🍀','🌾'] },
+  { id: 'things', icon: '🎯', smileys: ['🍺','🍷','🍕','🎂','🏆','🎮','🎯','⌚','📦','🛒','🔑','📷'] },
 ] as const;
 
 export type TopicSmileyGroupId = typeof TOPIC_SMILEY_GROUPS[number]['id'];
 
-export const TOPIC_SMILEYS = TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys);
+/** Flat unique list (first group wins if a duplicate ever sneaks in). */
+export const TOPIC_SMILEYS = [...new Set(TOPIC_SMILEY_GROUPS.flatMap((g) => g.smileys))];
 
 /** FR/EN keywords so the topic picker can filter by text (emoji alone is hard to search). */
 export const TOPIC_SMILEY_TAGS: Record<string, string> = {
