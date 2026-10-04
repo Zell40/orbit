@@ -152,8 +152,16 @@ export class Transport {
   // the server's PING and gets timed out (~pingfreq later). When the tab wakes
   // (visible / network back / focus), check the link at once and reconnect
   // immediately instead of waiting on the exponential backoff.
+  //
+  // Never reconnect while the UI is hidden: a Web Push can thaw the PWA in the
+  // background on Android; an identify there would drain server offline-PM
+  // history (mphistory) before the user opens the app.
+  private isUiVisible(): boolean {
+    if (typeof document === 'undefined') return true;
+    return document.visibilityState === 'visible' && !document.hidden;
+  }
   private onResume = (): void => {
-    if (!this.wantConnected) return;
+    if (!this.wantConnected || !this.isUiVisible()) return;
     const rs = this.ws?.readyState;
     if (rs === WebSocket.OPEN) {
       // Socket looks open but may be a zombie after a freeze — probe it; the
@@ -164,7 +172,7 @@ export class Transport {
       this.reconnectNow();
     }
   };
-  private onVisible = (): void => { if (!document.hidden) this.onResume(); };
+  private onVisible = (): void => { if (this.isUiVisible()) this.onResume(); };
   private hookResume(): void {
     if (this.resumeHooked || typeof window === 'undefined') return;
     this.resumeHooked = true;
