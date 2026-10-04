@@ -495,6 +495,7 @@
     "join": "{{nick}} зашёл в канал",
     "part": "{{nick}} покинул канал",
     "quit": "{{nick}} отключился",
+    "online": "{{nick}} в сети",
     "kick": "{{target}} был кикнут {{by}}",
     "nick": "{{nick}} теперь {{newnick}}",
     "modes": "{{nick}} изменил режимы: {{modes}}",
@@ -1122,6 +1123,8 @@
     "joined_one": "присоединился",
     "joined_other": "присоединились",
     "left_one": "вышел",
-    "left_other": "вышли"
+    "left_other": "вышли",
+    "connected_one": "в сети",
+    "connected_other": "в сети"
   }
 }

@@ -495,6 +495,7 @@
     "join": "{{nick}} kanala katıldı",
     "part": "{{nick}} kanaldan ayrıldı",
     "quit": "{{nick}} bağlantısını kesti",
+    "online": "{{nick}} çevrimiçi",
     "kick": "{{target}}, {{by}} tarafından atıldı",
     "nick": "{{nick}} artık {{newnick}}",
     "modes": "{{nick}} modları değiştirdi: {{modes}}",
@@ -1122,6 +1123,8 @@
     "joined_one": "katıldı",
     "joined_other": "katıldı",
     "left_one": "ayrıldı",
-    "left_other": "ayrıldı"
+    "left_other": "ayrıldı",
+    "connected_one": "çevrimiçi",
+    "connected_other": "çevrimiçi"
   }
 }

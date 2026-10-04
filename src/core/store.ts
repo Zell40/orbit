@@ -10,6 +10,7 @@ import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends,
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick, trackBufferMuteSync } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { findWhoisKey, makeHelpers, rememberQueryAccount } from './store/helpers';
+import { clearPmPeerOffline } from './store/pm-presence';
 import { isService, isStatusService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
@@ -541,6 +542,8 @@ export function createChatStore(ns = '') {
         const s = get();
         set({ pmContext: { ...s.pmContext, [canon(nick)]: fromChannel } });
       }
+      // Watch presence so QUIT/CONNEXION can land in this PM even without a shared channel.
+      get().client?.ircv3.monitor('+', nick);
       get().setActive(nick);
     },
 
@@ -583,6 +586,12 @@ export function createChatStore(ns = '') {
       const buf = get().buffers[key];
       if (!buf) return;
       if (buf.isChannel) { closedChannels.add(key); if (buf.joined) get().client?.part(buf.name); } // leave + don't resurrect
+      else if (!isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
+        clearPmPeerOffline(buf.name || name);
+        // Drop MONITOR only when they aren't also on the friends list.
+        const kept = get().friends.some((f) => canon(f) === key);
+        if (!kept) get().client?.ircv3.monitor('-', buf.name || name);
+      }
       dropBuffer(key);
       set({ profileUser: '' });
     },

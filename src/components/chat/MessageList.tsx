@@ -13,7 +13,7 @@ import type { ChatMessage } from '@/core/irc/types';
 // (privmsg/action, plus any unknown kind) is a grouped message row (MsgRow).
 const SYSTEM_KINDS = new Set(['notice', 'info', 'url', 'motd', 'warning', 'mode', 'umode', 'oper', 'ban', 'kick', 'invite', 'topic', 'join', 'part', 'quit', 'nick', 'host', 'system']);
 // Presence noise that gets folded into a single EventGroup line.
-const GROUP_KINDS = new Set(['join', 'part', 'quit']);
+const GROUP_KINDS = new Set(['join', 'part', 'quit', 'online']);
 
 // On a channel/network switch we first render only the last TAIL messages so the
 // paint is cheap (mounting a full 500-line buffer is the bulk of switch latency),

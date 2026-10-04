@@ -29,6 +29,7 @@ export type MessageKind =
   | 'join'
   | 'part'
   | 'quit'
+  | 'online'
   | 'nick'
   | 'host'
   | 'topic';

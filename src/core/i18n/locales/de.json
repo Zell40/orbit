@@ -495,6 +495,7 @@
     "join": "{{nick}} hat den Kanal betreten",
     "part": "{{nick}} hat den Kanal verlassen",
     "quit": "{{nick}} hat die Verbindung getrennt",
+    "online": "{{nick}} ist online",
     "kick": "{{target}} wurde von {{by}} rausgeworfen",
     "nick": "{{nick}} heißt jetzt {{newnick}}",
     "modes": "{{nick}} hat die Modi geändert: {{modes}}",
@@ -1122,6 +1123,8 @@
     "joined_one": "ist beigetreten",
     "joined_other": "sind beigetreten",
     "left_one": "ist gegangen",
-    "left_other": "sind gegangen"
+    "left_other": "sind gegangen",
+    "connected_one": "ist online",
+    "connected_other": "sind online"
   }
 }

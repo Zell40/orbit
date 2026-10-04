@@ -18,6 +18,7 @@ import { extractFilehostToken, filehostTokenFresh } from './upload';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
+import { announcePmOnline } from './pm-presence';
 import { stripFormatting } from './text';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
@@ -57,7 +58,7 @@ interface MessagingDeps {
 }
 
 export function makeMessaging({ get, set, knownServices, filehost, helpers, mlockAsked }: MessagingDeps) {
-  const { addMessage, patchBuffer, ensureBuffer, serverLine, announceLine, tsOf } = helpers;
+  const { addMessage, patchBuffer, ensureBuffer, serverLine, announceLine, sysLine, tsOf } = helpers;
   const asked = mlockAsked ?? new Map<string, number>();
 
   function mlockQueryActive(): boolean {
@@ -310,6 +311,10 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       const slot = (multilineCollect[mlRef] ||= { base: cm, lines: [] });
       slot.lines.push({ text, concat });
       return true;
+    }
+    // Peer messaged an open PM after a QUIT → CONNEXION (fallback if MONITOR missed).
+    if (!self && kind !== 'notice' && !isChannelName(bufferName) && !histRef) {
+      announcePmOnline(get().buffers, sysLine, msg.nick, cm.ts);
     }
     addMessage(bufferName, cm);
     // Channel "seen": a live reply from someone else (not JOIN, not history).

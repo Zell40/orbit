@@ -495,6 +495,7 @@
     "join": "{{nick}} च्यानलमा सामेल भयो",
     "part": "{{nick}} ले च्यानल छोड्यो",
     "quit": "{{nick}} विच्छेद भयो",
+    "online": "{{nick}} अनलाइन छ",
     "kick": "{{target}} लाई {{by}} ले निकाल्यो",
     "nick": "{{nick}} अब {{newnick}} भयो",
     "modes": "{{nick}} ले मोडहरू परिवर्तन गर्‍यो: {{modes}}",
@@ -1122,6 +1123,8 @@
     "joined_one": "सामेल भयो",
     "joined_other": "सामेल भए",
     "left_one": "बाहिरियो",
-    "left_other": "बाहिरिए"
+    "left_other": "बाहिरिए",
+    "connected_one": "अनलाइन छ",
+    "connected_other": "अनलाइन छन्"
   }
 }

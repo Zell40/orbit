@@ -699,12 +699,15 @@
     "joined_one": "est entré",
     "joined_other": "sont entrés",
     "left_one": "est parti",
-    "left_other": "sont partis"
+    "left_other": "sont partis",
+    "connected_one": "est connecté",
+    "connected_other": "sont connectés"
   },
   "system": {
     "join": "{{nick}} est entré dans le salon",
     "part": "{{nick}} a quitté le salon",
     "quit": "{{nick}} s'est déconnecté",
+    "online": "{{nick}} est connecté",
     "kick": "{{target}} a été expulsé par {{by}}",
     "nick": "{{nick}} est désormais {{newnick}}",
     "modes": "{{nick}} a changé les modes : {{modes}}",

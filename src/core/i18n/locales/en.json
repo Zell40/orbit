@@ -699,12 +699,15 @@
     "joined_one": "joined",
     "joined_other": "joined",
     "left_one": "left",
-    "left_other": "left"
+    "left_other": "left",
+    "connected_one": "is online",
+    "connected_other": "are online"
   },
   "system": {
     "join": "{{nick}} joined the channel",
     "part": "{{nick}} left the channel",
     "quit": "{{nick}} disconnected",
+    "online": "{{nick}} is online",
     "kick": "{{target}} was kicked by {{by}}",
     "nick": "{{nick}} is now {{newnick}}",
     "modes": "{{nick}} changed the modes: {{modes}}",

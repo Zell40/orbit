@@ -11,6 +11,7 @@ import { SERVER, canon, isChannelName, inQuietBatch, trackBufferMuteSync } from 
 import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
 import { unregisterPushOnAccountLogout } from '@/platform/push';
+import { announcePmOnline, markPmPeerOffline, queryBufferKey } from './pm-presence';
 import type { IrcMessage } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -76,6 +77,8 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         if (!inQuietBatch(msg) && !(joinedAt && joinTs < joinedAt - 2500)) {
           sysLine(ch, i18n.t('system.join', { nick: msg.nick }), 'join', msg.nick, hostmask(msg), joinTs);
         }
+        // Peer back on IRC while their PM is still open → CONNEXION in that query.
+        if (!self && !inQuietBatch(msg)) announcePmOnline(get().buffers, sysLine, msg.nick, joinTs);
         return true;
       }
       case 'PART': {
@@ -126,6 +129,11 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
       case 'QUIT': {
         const s = get();
         const quitTs = tsOf(msg);
+        const why = (msg.params[0] || '').trim();
+        const quitText = why
+          ? `${i18n.t('system.quit', { nick: msg.nick })} (${why})`
+          : i18n.t('system.quit', { nick: msg.nick });
+        let quitInQuery = false;
         for (const name of s.order) {
           if (s.buffers[name].members[msg.nick]) {
             patchBuffer(name, (b) => {
@@ -134,12 +142,19 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
             });
             const quitSince = s.buffers[name]?.sessionJoinedAt;
             if (!inQuietBatch(msg) && !(quitSince && quitTs < quitSince - 2500)) {
-              const why = (msg.params[0] || '').trim();
-              sysLine(name, why
-                ? `${i18n.t('system.quit', { nick: msg.nick })} (${why})`
-                : i18n.t('system.quit', { nick: msg.nick }), 'quit', msg.nick, hostmask(msg), quitTs);
+              sysLine(name, quitText, 'quit', msg.nick, hostmask(msg), quitTs);
+              if (!s.buffers[name].isChannel) quitInQuery = true;
             }
           }
+        }
+        // Open PM without a cached member entry still gets the QUIT line.
+        const qKey = queryBufferKey(s.buffers, msg.nick);
+        if (qKey && !quitInQuery && !inQuietBatch(msg)) {
+          sysLine(qKey, quitText, 'quit', msg.nick, hostmask(msg), quitTs);
+        }
+        if (qKey) {
+          markPmPeerOffline(msg.nick);
+          s.client?.ircv3.monitor('+', msg.nick);
         }
         return true;
       }

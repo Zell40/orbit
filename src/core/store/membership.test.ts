@@ -83,6 +83,24 @@ describe('membership handler', () => {
     expect(state.buffers['#b'].members['amy']).toBeDefined();
   });
 
+  it('QUIT mirrors into an open PM and JOIN announces CONNEXION once', () => {
+    const { on, state, seed, lines, k } = setup();
+    seed('#a', ['bob']);
+    state.buffers[k('bob')] = { name: 'bob', isChannel: false, joined: false, members: { bob: { nick: 'bob' } } };
+    state.order.push(k('bob'));
+    on(':bob!u@h QUIT :bye');
+    expect(lines.some((l) => l.name === 'bob' && l.kind === 'quit')).toBe(true);
+    lines.length = 0;
+    on(':bob!u@h JOIN #a');
+    expect(lines.filter((l) => l.kind === 'online')).toEqual([
+      expect.objectContaining({ name: 'bob', kind: 'online', from: 'bob' }),
+    ]);
+    lines.length = 0;
+    on(':bob!u@h PART #a');
+    on(':bob!u@h JOIN #a'); // still online — no second CONNEXION
+    expect(lines.filter((l) => l.kind === 'online')).toHaveLength(0);
+  });
+
   it('NICK renames the member across channels; our own NICK updates state.nick', () => {
     const { on, state, seed, lines } = setup();
     seed('#a', ['bob']);

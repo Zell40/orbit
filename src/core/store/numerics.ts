@@ -11,6 +11,7 @@ import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import { findWhoisKey, type StoreHelpers } from './helpers';
 import { loadChanUrls, saveChanUrls } from './persistence';
+import { announcePmOnline, isPmPeerOffline, markPmPeerOffline, queryBufferKey } from './pm-presence';
 
 interface NumericsDeps {
   get: StoreApi<ChatState>['getState'];
@@ -457,6 +458,8 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
             desktopNotify('Ami en ligne', `${t} vient de se connecter`);
             if (get().prefs.sound) blip();
           }
+          // Open PM still waiting for this peer → CONNEXION (even without a shared channel).
+          announcePmOnline(get().buffers, helpers.sysLine, t, Date.now());
         }
         set({ friendsOnline: online });
         return true;
@@ -465,7 +468,18 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const targets = (msg.params[1] || '').split(',').map((t) => t.split('!')[0]).filter(Boolean);
         if (!targets.length) return true;
         const online = { ...get().friendsOnline };
-        for (const t of targets) online[t.toLowerCase()] = false;
+        for (const t of targets) {
+          const wasOnline = online[t.toLowerCase()] === true;
+          online[t.toLowerCase()] = false;
+          const qKey = queryBufferKey(get().buffers, t);
+          if (!qKey || isPmPeerOffline(t)) continue;
+          // Transition online→offline (PM-only, no shared-channel QUIT): show QUIT.
+          // Initial MONITOR snapshot while already offline: stay quiet, just arm CONNEXION.
+          if (wasOnline) {
+            helpers.sysLine(qKey, i18n.t('system.quit', { nick: t }), 'quit', t, '', Date.now());
+          }
+          markPmPeerOffline(t);
+        }
         set({ friendsOnline: online });
         return true;
       }

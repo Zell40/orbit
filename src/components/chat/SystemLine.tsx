@@ -607,7 +607,7 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       </div>
     );
   }
-  if (['join', 'part', 'quit', 'system'].includes(m.kind)) {
+  if (['join', 'part', 'quit', 'online', 'system'].includes(m.kind)) {
     const isCmd = m.text.startsWith('»');
     const isAlert = m.text.startsWith('\x01ALERT\x01');
     const warnPrefix = m.kind === 'system' ? m.text.match(/^⚠\uFE0F?\s*/) : null;
