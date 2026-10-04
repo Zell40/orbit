@@ -6,7 +6,11 @@ import { getTheme } from '@/themes';
 import { Turnstile } from '@/components/Turnstile';
 import { useActiveChat, activeStore } from '@/core/networks';
 import { ChangeNickField } from '../ChangeNickField';
-import { fetchNickServInfo, fetchNickServAlist, describeAlistAccess, type NickServInfo, type NickServAccess } from '@/core/store/nickserv-info';
+import {
+  fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, describeAlistAccess,
+  NICKSERV_MANAGE_CMDS, NICKSERV_MANAGE_FALLBACK,
+  type NickServInfo, type NickServAccess, type NickServManageCmd,
+} from '@/core/store/nickserv-info';
 
 export function AccountSection() {
   const { t } = useTranslation();
@@ -76,6 +80,7 @@ export function AccountSection() {
         <ChangePassword />
         <NickServInfoCard account={account} nick={nick} />
         <NickServAlistCard account={account} nick={nick} />
+        <NickServManageCard account={account} nick={nick} />
         <button className="set-leave" onClick={logout}>{t('settings.account.logoutAccount')}</button>
       </>
     );
@@ -250,6 +255,118 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
                 </button>
               );
             })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NickServManageCard({ account, nick }: { account: string; nick: string }) {
+  const { t } = useTranslation();
+  const client = useActiveChat((s) => s.client);
+  const [phase, setPhase] = useState<'loading' | 'ok' | 'fail'>('loading');
+  const [allowed, setAllowed] = useState<Set<string>>(NICKSERV_MANAGE_FALLBACK);
+  const [sel, setSel] = useState<NickServManageCmd | null>(null);
+  const [args, setArgs] = useState('');
+  const [flash, setFlash] = useState<'ok' | 'err' | null>(null);
+  const gen = useRef(0);
+
+  const load = useCallback(() => {
+    const mine = ++gen.current;
+    setPhase('loading');
+    void fetchNickServHelp(account, nick).then((cmds) => {
+      if (mine !== gen.current) return;
+      if (!cmds) {
+        setAllowed(NICKSERV_MANAGE_FALLBACK);
+        setPhase('fail');
+        return;
+      }
+      setAllowed(cmds);
+      setPhase('ok');
+    });
+  }, [account, nick]);
+
+  useEffect(() => {
+    load();
+    return () => { gen.current++; };
+  }, [load]);
+
+  const visible = NICKSERV_MANAGE_CMDS.filter((c) => {
+    if (c.hide || c.guestOnly) return false;
+    return allowed.has(c.cmd) || (phase === 'fail' && NICKSERV_MANAGE_FALLBACK.has(c.cmd));
+  });
+
+  function run() {
+    if (!client || !sel) return;
+    const arg = args.trim();
+    if (sel.args && !arg) return;
+    if (sel.danger && !window.confirm(t('settings.account.nsManageConfirm', { cmd: sel.cmd }))) return;
+    client.privmsg('NickServ', sel.args ? `${sel.cmd} ${arg}` : sel.cmd);
+    setFlash('ok');
+    window.setTimeout(() => setFlash(null), 2500);
+  }
+
+  return (
+    <div className="scard nsinfo">
+      <div className="scard__h">
+        <span>⚙️ {t('settings.account.nsManageTitle')}</span>
+        <button className="linkbtn nsinfo__refresh" type="button" onClick={() => load()}
+          disabled={phase === 'loading'}>{t('profile.refresh')}</button>
+      </div>
+      <div className="scard__body">
+        {phase === 'loading' && (
+          <div className="sfield"><div className="sfield__intro">{t('settings.account.nsManageLoading')}</div></div>
+        )}
+        {phase !== 'loading' && (
+          <div className="nsmanage">
+            <p className="nsmanage__intro">{t('settings.account.nsManageIntro')}</p>
+            {phase === 'fail' ? (
+              <p className="nsmanage__err">{t('settings.account.nsManageUnavailable')}</p>
+            ) : null}
+            {!visible.length ? (
+              <p className="nsmanage__intro">{t('settings.account.nsManageEmpty')}</p>
+            ) : (
+              <div className="nsmanage__grid" role="list">
+                {visible.map((c) => (
+                  <button
+                    key={c.cmd}
+                    type="button"
+                    role="listitem"
+                    className={`nsmanage__cmd${sel?.cmd === c.cmd ? ' is-on' : ''}${c.danger ? ' is-danger' : ''}`}
+                    onClick={() => { setSel(c); setArgs(''); setFlash(null); }}
+                  >
+                    {c.cmd}
+                  </button>
+                ))}
+              </div>
+            )}
+            {sel ? (
+              <div className="nsmanage__panel">
+                <p className="nsmanage__desc">{t(`settings.account.nsCmd.${sel.key}`)}</p>
+                <div className="nsmanage__row">
+                  {sel.args ? (
+                    <input
+                      className="modal__input"
+                      value={args}
+                      placeholder={t('settings.account.nsManageArgs')}
+                      aria-label={t('settings.account.nsManageArgs')}
+                      onChange={(e) => setArgs(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && run()}
+                    />
+                  ) : null}
+                  <button
+                    type="button"
+                    className={`upbtn upbtn--primary${sel.danger ? '' : ''}`}
+                    onClick={run}
+                    disabled={!!sel.args && !args.trim()}
+                  >
+                    {t('settings.account.nsManageRun')}
+                  </button>
+                </div>
+                {flash === 'ok' ? <p className="nsmanage__ok">{t('settings.account.nsManageSent')}</p> : null}
+              </div>
+            ) : null}
           </div>
         )}
       </div>

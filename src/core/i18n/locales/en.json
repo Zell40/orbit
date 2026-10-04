@@ -464,6 +464,33 @@
         "aop": "Operator",
         "hop": "Half-op",
         "vop": "Voice"
+      },
+      "nsManageTitle": "NickServ management",
+      "nsManageIntro": "Commands available for your account. Admin tools only appear if NickServ allows them.",
+      "nsManageLoading": "Loading commands…",
+      "nsManageUnavailable": "Couldn’t load the NickServ command list.",
+      "nsManageEmpty": "No commands to show.",
+      "nsManageRun": "Run",
+      "nsManageSent": "Command sent to NickServ.",
+      "nsManageConfirm": "Send {{cmd}} to NickServ?",
+      "nsManageArgs": "Arguments…",
+      "nsCmd": {
+        "update": "Refresh your status (memos, etc.).",
+        "set": "Nickname options (e.g. HIDEMAIL ON).",
+        "ajoin": "Auto-JOIN — LIST, ADD #chan, DEL #chan.",
+        "glist": "List nicknames on your account.",
+        "group": "Add a nickname to your account.",
+        "ungroup": "Remove a nickname from the account.",
+        "recover": "Regain control of a nickname.",
+        "resetpass": "Request a password reset.",
+        "drop": "Unregister a nickname (irreversible).",
+        "saset": "Options on another account (SA).",
+        "saregister": "Register another user (SA).",
+        "suspend": "Suspend a nickname (SA).",
+        "unsuspend": "Lift a suspension (SA).",
+        "massset": "Option for all accounts (SA).",
+        "getemail": "Find accounts by email (SA).",
+        "list": "Search registered nicknames (SA)."
       }
     },
     "appearance": {

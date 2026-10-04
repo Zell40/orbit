@@ -59,7 +59,11 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
   return { account, rows };
 }
 
-async function nickservRpc(account: string, nick: string, action: 'nsinfo' | 'nsalist'): Promise<string | null> {
+async function nickservRpc(
+  account: string,
+  nick: string,
+  action: 'nsinfo' | 'nsalist' | 'nshelp',
+): Promise<string | null> {
   if (!account) return null;
   const ctrl = new AbortController();
   const to = window.setTimeout(() => ctrl.abort(), 6000);
@@ -70,9 +74,9 @@ async function nickservRpc(account: string, nick: string, action: 'nsinfo' | 'ns
       body: JSON.stringify({ account, nick, action }),
       signal: ctrl.signal,
     });
-    const data = await r.json() as { ok?: boolean; info?: unknown; list?: unknown };
+    const data = await r.json() as { ok?: boolean; info?: unknown; list?: unknown; help?: unknown };
     if (!data?.ok) return null;
-    const blob = action === 'nsalist' ? data.list : data.info;
+    const blob = action === 'nsalist' ? data.list : action === 'nshelp' ? data.help : data.info;
     if (blob == null) return null;
     return String(blob);
   } catch {
@@ -200,3 +204,72 @@ export async function fetchNickServAlist(account: string, nick = ''): Promise<Ni
   if (/syntaxe:|syntax:/i.test(fold)) return null;
   return [];
 }
+
+/** Commands from NickServ HELP (privilege-aware on Anope). */
+export function parseNickServHelp(raw: string): Set<string> {
+  const out = new Set<string>();
+  for (const line of String(raw || '').split(/\n/)) {
+    const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
+    if (!s) continue;
+    const m = s.match(/^([A-Z][A-Z0-9]{1,20})\s*[:：—–-]\s+/);
+    if (m) out.add(m[1].toUpperCase());
+  }
+  return out;
+}
+
+export async function fetchNickServHelp(account: string, nick = ''): Promise<Set<string> | null> {
+  const blob = await nickservRpc(account, nick, 'nshelp');
+  if (blob == null) return null;
+  const cmds = parseNickServHelp(blob);
+  return cmds.size ? cmds : null;
+}
+
+/** UI catalog — `hide` = never surface (noise for end users). */
+export type NickServManageCmd = {
+  cmd: string;
+  /** i18n key suffix under settings.account.nsCmd.* */
+  key: string;
+  /** Needs a free-text argument field. */
+  args?: boolean;
+  /** Confirm before sending. */
+  danger?: boolean;
+  /** Never show in the manage block. */
+  hide?: boolean;
+  /** Only useful when not yet identified (kept for completeness). */
+  guestOnly?: boolean;
+};
+
+export const NICKSERV_MANAGE_CMDS: NickServManageCmd[] = [
+  { cmd: 'UPDATE', key: 'update' },
+  { cmd: 'SET', key: 'set', args: true },
+  { cmd: 'AJOIN', key: 'ajoin', args: true },
+  { cmd: 'GLIST', key: 'glist' },
+  { cmd: 'GROUP', key: 'group', args: true },
+  { cmd: 'UNGROUP', key: 'ungroup', args: true },
+  { cmd: 'RECOVER', key: 'recover', args: true },
+  { cmd: 'RESETPASS', key: 'resetpass', args: true },
+  { cmd: 'DROP', key: 'drop', args: true, danger: true },
+  { cmd: 'SASET', key: 'saset', args: true },
+  { cmd: 'SAREGISTER', key: 'saregister', args: true },
+  { cmd: 'SUSPEND', key: 'suspend', args: true, danger: true },
+  { cmd: 'UNSUSPEND', key: 'unsuspend', args: true },
+  { cmd: 'MASSSET', key: 'massset', args: true, danger: true },
+  { cmd: 'GETEMAIL', key: 'getemail', args: true },
+  { cmd: 'LIST', key: 'list', args: true },
+  // Noise / covered elsewhere — kept for HELP filtering reference only.
+  { cmd: 'AIDE', key: 'aide', hide: true },
+  { cmd: 'HELP', key: 'help', hide: true },
+  { cmd: 'CERT', key: 'cert', hide: true },
+  { cmd: 'CONFIRM', key: 'confirm', hide: true },
+  { cmd: 'IDENTIFY', key: 'identify', hide: true, guestOnly: true },
+  { cmd: 'REGISTER', key: 'register', hide: true, guestOnly: true },
+  { cmd: 'RESEND', key: 'resend', hide: true, guestOnly: true },
+  { cmd: 'INFO', key: 'info', hide: true },
+  { cmd: 'ALIST', key: 'alist', hide: true },
+  { cmd: 'LOGOUT', key: 'logout', hide: true },
+];
+
+/** Fallback when HELP RPC is unavailable — safe end-user set (no SA tools). */
+export const NICKSERV_MANAGE_FALLBACK = new Set([
+  'UPDATE', 'SET', 'AJOIN', 'GLIST', 'GROUP', 'UNGROUP', 'RECOVER', 'RESETPASS', 'DROP',
+]);

@@ -464,6 +464,33 @@
         "aop": "Opérateur",
         "hop": "Half-op",
         "vop": "Voice"
+      },
+      "nsManageTitle": "Gestion NickServ",
+      "nsManageIntro": "Commandes disponibles pour ton compte. Les outils d’administration n’apparaissent que si NickServ te les autorise.",
+      "nsManageLoading": "Chargement des commandes…",
+      "nsManageUnavailable": "Impossible de charger la liste des commandes NickServ.",
+      "nsManageEmpty": "Aucune commande à afficher.",
+      "nsManageRun": "Exécuter",
+      "nsManageSent": "Commande envoyée à NickServ.",
+      "nsManageConfirm": "Confirmer l’envoi de {{cmd}} à NickServ ?",
+      "nsManageArgs": "Arguments…",
+      "nsCmd": {
+        "update": "Rafraîchir ton statut (mémos, etc.).",
+        "set": "Options du pseudo (ex. HIDEMAIL ON).",
+        "ajoin": "JOIN auto — LIST, ADD #salon, DEL #salon.",
+        "glist": "Lister les pseudos de ton compte.",
+        "group": "Ajouter un pseudo à ton compte.",
+        "ungroup": "Retirer un pseudo du compte.",
+        "recover": "Reprendre le contrôle d’un pseudo.",
+        "resetpass": "Demander une réinit. de mot de passe.",
+        "drop": "Désenregistrer un pseudo (irréversible).",
+        "saset": "Options sur un autre compte (SA).",
+        "saregister": "Enregistrer un autre utilisateur (SA).",
+        "suspend": "Suspendre un pseudo (SA).",
+        "unsuspend": "Lever une suspension (SA).",
+        "massset": "Option pour tous les comptes (SA).",
+        "getemail": "Chercher des comptes par e-mail (SA).",
+        "list": "Recherche de pseudos enregistrés (SA)."
       }
     },
     "appearance": {
