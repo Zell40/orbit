@@ -889,6 +889,10 @@
     "appUpdateTitle": "Nouvelle version du tchat",
     "appUpdateBody": "Recharge pour l’appliquer — ça évite les bugs d’un ancien cache.",
     "appUpdateReload": "Recharger",
+    "pushPromptTitle": "Alertes hors de l’app",
+    "pushPromptBody": "Reçois tes MP et mentions sur ce téléphone même quand Orbit est fermé. Tu pourras les désactiver dans Réglages.",
+    "pushPromptEnable": "Activer",
+    "pushPromptLater": "Plus tard",
     "nickServTitle": "Message de {{from}}",
     "nickServViewStatus": "Voir le statut",
     "nickServDismiss": "Fermer"

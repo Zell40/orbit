@@ -888,6 +888,10 @@
     "appUpdateTitle": "New chat version",
     "appUpdateBody": "Reload to apply it — that avoids bugs from a stale cache.",
     "appUpdateReload": "Reload",
+    "pushPromptTitle": "Alerts outside the app",
+    "pushPromptBody": "Get DMs and mentions on this phone even when Orbit is closed. You can turn this off later in Settings.",
+    "pushPromptEnable": "Enable",
+    "pushPromptLater": "Not now",
     "nickServTitle": "Message from {{from}}",
     "nickServViewStatus": "View status",
     "nickServDismiss": "Close"
