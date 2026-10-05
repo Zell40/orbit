@@ -258,6 +258,25 @@ describe('Transport — reconnect', () => {
     expect(rec.status).toContain('closed');
     expect(dead.sent).toContain('PING :ka\r\n'); // keepalive pinged before giving up
   });
+
+  it('does not reconnect on mobile without window focus (push-style thaw)', () => {
+    // Mobile UA ⇒ likelyMobile(); without focus, IRC must not reconnect
+    // (would identify and drain mphistory after a Web Push thaw).
+    Object.defineProperty(navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (Linux; Android 14; Pixel) AppleWebKit/537.36 Mobile Safari/537.36',
+    });
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    Object.defineProperty(document, 'hasFocus', { configurable: true, value: () => false });
+    const { t, rec } = setup();
+    t.connect('ws://x'); last()._open();
+    last()._close();
+    expect(rec.status).toContain('closed');
+    expect(rec.reconnecting).toEqual([]);
+    vi.advanceTimersByTime(60_000);
+    expect(FakeWebSocket.instances).toHaveLength(1);
+  });
 });
 
 describe('Transport — disconnect', () => {

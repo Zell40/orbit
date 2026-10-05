@@ -79,6 +79,11 @@ async function brand() {
 self.addEventListener('push', (e) => {
   e.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    // Tell every open (even frozen) client a push arrived so it must NOT
+    // auto-reconnect IRC in the background — that would drain mphistory.
+    for (const w of wins) {
+      try { w.postMessage({ type: 'orbit-push-wake' }); } catch { /* ignore */ }
+    }
     // App already on screen (PWA/mobile often has focused=false even then) → the
     // in-chat highlighter/blip is enough. Don't stack an OS banner on top.
     if (wins.some((w) => w.visibilityState === 'visible')) return;

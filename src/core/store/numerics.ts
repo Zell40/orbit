@@ -506,23 +506,28 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         // Notice inboxes (`$notice:Nick`) are local buffers — never treat them as nicks.
         // ZNC module nicks (*status, *sasl) are phantoms — MARKREAD/WHOIS 401 is noise.
         if (isPseudoBuffer(nk) || isBouncerServiceNick(nk)) return true;
-        // Open PM + mphistory: server may have queued the PRIVMSG — soft hint, not a scare.
-        if (nk && get().buffers[canon(nk)] && get().client?.ircv3.hasCap('entrenous/mphistory')) {
+        // Open PM: clear the optimistic clock (no echo-message for offline targets).
+        if (nk && get().buffers[canon(nk)]) {
+          helpers.promoteLocalOutgoing(nk);
           markPmPeerOffline(nk);
-          const s = get();
-          maybeMphistoryQueuedHint({
-            hasMphistoryCap: true,
-            buffers: s.buffers,
-            order: s.order,
-            friendsOnline: s.friendsOnline,
-            nick: nk,
-            sysLine: helpers.sysLine,
-          });
+          // mphistory: server may have queued the PRIVMSG — soft hint, not a scare.
+          if (get().client?.ircv3?.hasCap('entrenous/mphistory')) {
+            const s = get();
+            maybeMphistoryQueuedHint({
+              hasMphistoryCap: true,
+              buffers: s.buffers,
+              order: s.order,
+              friendsOnline: s.friendsOnline,
+              nick: nk,
+              sysLine: helpers.sysLine,
+            });
+            return true;
+          }
+          const warn = `⚠️ ${i18n.t('numerics.401', { nick: nk })}`;
+          sysLine(nk, warn, 'system');
           return true;
         }
-        const warn = `⚠️ ${i18n.t('numerics.401', { nick: nk })}`;
-        if (nk && get().buffers[canon(nk)]) sysLine(nk, warn, 'system');
-        else serverLine(nk ? `${nk}: ${i18n.t('numerics.401', { nick: nk })}` : i18n.t('numerics.401'), 'info');
+        serverLine(nk ? `${nk}: ${i18n.t('numerics.401', { nick: nk })}` : i18n.t('numerics.401'), 'info');
         return true;
       }
       case '451': // ERR_NOTREGISTERED — command sent before 001 (plugin/handshake race)

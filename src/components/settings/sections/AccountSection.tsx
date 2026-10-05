@@ -7,8 +7,8 @@ import { Turnstile } from '@/components/Turnstile';
 import { useActiveChat, activeStore } from '@/core/networks';
 import { ChangeNickField } from '../ChangeNickField';
 import {
-  fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, describeAlistAccess,
-  NICKSERV_MANAGE_CMDS, NICKSERV_MANAGE_FALLBACK,
+  fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, describeAlistAccess, alistCanInvite,
+  parseNickServOptionPills, NICKSERV_SET_TOGGLES, NICKSERV_MANAGE_CMDS, NICKSERV_MANAGE_FALLBACK,
   type NickServInfo, type NickServAccess, type NickServManageCmd,
 } from '@/core/store/nickserv-info';
 
@@ -174,8 +174,8 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
               <div className="nsinfo-row" key={`${row.key}-${i}`}>
                 <dt className="nsinfo-row__k">{row.key}</dt>
                 <dd className="nsinfo-row__v">
-                  {row.pills?.length
-                    ? <span className="nsinfo-pills">{row.pills.map((p) => <span className="nsinfo-pill" key={p}>{p}</span>)}</span>
+                  {row.pills
+                    ? <NickServSetToggles pills={row.pills} onChanged={load} />
                     : row.value || '—'}
                 </dd>
               </div>
@@ -183,6 +183,57 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
           </dl>
         )}
       </div>
+    </div>
+  );
+}
+
+function requestChanServInvite(client: { privmsg: (t: string, m: string) => void; join: (c: string) => void } | null, chan: string) {
+  if (!client || !chan) return;
+  client.privmsg('ChanServ', `INVITE ${chan}`);
+  window.setTimeout(() => client.join(chan), 700);
+}
+
+function NickServSetToggles({ pills, onChanged }: { pills: string[]; onChanged: () => void }) {
+  const { t } = useTranslation();
+  const client = useActiveChat((s) => s.client);
+  const [busy, setBusy] = useState('');
+  const on = parseNickServOptionPills(pills);
+  const noExpire = on.has('NOEXPIRE');
+
+  function toggle(set: string, next: boolean) {
+    if (!client || busy) return;
+    setBusy(set);
+    client.privmsg('NickServ', `SET ${set} ${next ? 'ON' : 'OFF'}`);
+    window.setTimeout(() => { setBusy(''); onChanged(); }, 900);
+  }
+
+  return (
+    <div className="nsset">
+      {NICKSERV_SET_TOGGLES.map((opt) => {
+        const active = on.has(opt.set);
+        return (
+          <div className="nsset-row" key={opt.set}>
+            <span className="nsset-row__lab">{t(`settings.account.nsSet.${opt.key}`)}</span>
+            <button
+              type="button"
+              className={`switch${active ? ' is-on' : ''}${busy === opt.set ? ' is-locked' : ''}`}
+              role="switch"
+              aria-checked={active}
+              aria-label={t(`settings.account.nsSet.${opt.key}`)}
+              disabled={busy === opt.set}
+              onClick={() => toggle(opt.set, !active)}
+            >
+              <span className="switch__dot" />
+            </button>
+          </div>
+        );
+      })}
+      {noExpire ? (
+        <div className="nsset-row nsset-row--locked">
+          <span className="nsset-row__lab">{t('settings.account.nsSet.noexpire')}</span>
+          <span className="nsset-lock" title={t('settings.account.nsSet.noexpireHint')}>{t('settings.account.nsSet.locked')}</span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -218,6 +269,12 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
     setModal('');
   }
 
+  function inviteChan(ch: string) {
+    requestChanServInvite(client, ch);
+    setActive(ch);
+    setModal('');
+  }
+
   return (
     <div className="scard nsinfo">
       <div className="scard__h">
@@ -234,25 +291,36 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
             {rows.map((row) => {
               const acc = describeAlistAccess(row.access);
               const role = acc.labelKey ? t(`settings.account.alistRole.${acc.labelKey}`) : acc.code;
+              const canInvite = alistCanInvite(row.access);
               return (
-                <button type="button" className="nsaccess-row" key={row.channel} onClick={() => openChan(row.channel)}>
-                  <span className={`nsaccess-pfx nsaccess-pfx--${acc.labelKey || 'other'}`} aria-hidden>{acc.prefix || '#'}</span>
-                  <span className="nsaccess-txt">
-                    <span className="nsaccess-chanline">
+                <div className="nsaccess-row" key={row.channel}>
+                  <button type="button" className="nsaccess-main" onClick={() => openChan(row.channel)}>
+                    <span className={`nsaccess-pfx nsaccess-pfx--${acc.labelKey || 'other'}`} aria-hidden>{acc.prefix || '#'}</span>
+                    <span className="nsaccess-txt">
                       <span className="nsaccess-chan">{row.channel}</span>
                       {row.noExpire ? (
                         <span className="nsaccess-keep" title={t('settings.account.alistNoExpireHint')}>
                           {t('settings.account.alistNoExpire')}
                         </span>
                       ) : null}
+                      {row.description ? <span className="nsaccess-desc">{row.description}</span> : null}
                     </span>
-                    {row.description ? <span className="nsaccess-desc">{row.description}</span> : null}
-                  </span>
+                  </button>
                   <span className="nsaccess-role">
                     {acc.prefix ? <b>{acc.prefix}</b> : null}
                     {role}
                   </span>
-                </button>
+                  {canInvite ? (
+                    <button
+                      type="button"
+                      className="nsaccess-invite"
+                      title={t('settings.account.alistInviteHint')}
+                      onClick={() => inviteChan(row.channel)}
+                    >
+                      {t('settings.account.alistInvite')}
+                    </button>
+                  ) : null}
+                </div>
               );
             })}
           </div>

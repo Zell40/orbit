@@ -46,6 +46,18 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     dropBuffer: (name: string) => { delete state.buffers[name.toLowerCase()]; },
     sysLine: (name: string, text: string, kind?: string, from?: string) => { sys.push({ name, text, kind: kind || 'system', from }); },
     serverLine: (text: string, kind?: string) => { server.push(text); serverKind.push(kind || ''); },
+    promoteLocalOutgoing: (name: string) => {
+      const key = name.toLowerCase();
+      const b = state.buffers[key];
+      if (!b?.messages) return;
+      for (let j = b.messages.length - 1; j >= 0; j--) {
+        const x = b.messages[j] as { self?: boolean; id?: string };
+        if (x.self && typeof x.id === 'string' && x.id.startsWith('local-')) {
+          b.messages[j] = { ...x, id: `queued-${x.id.slice(6)}` };
+          break;
+        }
+      }
+    },
     patchWhois: (nick: string, fn: (w: { nick: string; loading: boolean; notFound?: boolean }) => typeof whois[string]) => {
       const cur = whois[nick] ?? { nick, loading: true };
       whois = { ...whois, [nick]: fn(cur) };
@@ -207,12 +219,41 @@ describe('store numerics handler', () => {
   });
 
   it('401 without a WHOIS tracker prints in an open query with that nick', () => {
-    const { handleNumerics, sys } = setup({
+    const { handleNumerics, sys, state } = setup({
       active: '#x',
-      buffers: { bob: { name: 'bob' } },
+      buffers: {
+        bob: {
+          name: 'bob',
+          messages: [{ self: true, id: 'local-1', kind: 'privmsg', text: 'hi' }],
+        },
+      },
     });
     expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
     expect(sys).toEqual([{ name: 'bob', text: expect.stringContaining('⚠️'), kind: 'system' }]);
+    // Optimistic clock (local-*) must clear — offline PMs get no echo-message.
+    expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-1');
+  });
+
+  it('401 with mphistory CAP promotes the clock and soft-hints instead of warning', () => {
+    const { handleNumerics, sys, state } = setup({
+      active: '#x',
+      client: {
+        numerics: new Numerics(),
+        whowas: () => {},
+        setRealname: () => {},
+        ircv3: { hasCap: (c: string) => c === 'entrenous/mphistory' },
+      },
+      buffers: {
+        bob: {
+          name: 'bob',
+          messages: [{ self: true, id: 'local-9', kind: 'privmsg', text: 'yo' }],
+        },
+      },
+    });
+    expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
+    expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-9');
+    expect(sys.some((l) => l.name === 'bob' && l.kind === 'info')).toBe(true);
+    expect(sys.some((l) => String(l.text).includes('⚠️'))).toBe(false);
   });
 
   it('401 for a $notice: inbox is swallowed (local buffer, not a nick)', () => {

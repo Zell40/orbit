@@ -60,6 +60,10 @@ export class Transport {
   private connectTimer: ReturnType<typeof setTimeout> | null = null;
   private lastRx = 0;          // ms timestamp of the last inbound data
   private resumeHooked = false;
+  /** Socket died / push woke us while the UI was not in the foreground. */
+  private reconnectWhenVisible = false;
+  /** Service-worker push wake: do not IRC-reconnect until the user focuses the app. */
+  private pushWake = false;
   private sessionStartedAt = 0; // last RPL_WELCOME — a session that dies in seconds is not "healthy"
 
   // --- socket lifecycle tunables (named, not magic numbers) ---------------
@@ -90,6 +94,8 @@ export class Transport {
 
   disconnect(reason = 'Au revoir'): void {
     this.wantConnected = false; // stop auto-reconnect
+    this.reconnectWhenVisible = false;
+    this.pushWake = false;
     setStayAwake(false);
     this.unhookResume();
     this.stopKeepalive();
@@ -153,15 +159,43 @@ export class Transport {
   // (visible / network back / focus), check the link at once and reconnect
   // immediately instead of waiting on the exponential backoff.
   //
-  // Never reconnect while the UI is hidden: a Web Push can thaw the PWA in the
-  // background on Android; an identify there would drain server offline-PM
-  // history (mphistory) before the user opens the app.
+  // Never reconnect while the UI is hidden, or after a Web Push thaw without
+  // the user focusing the app — that would identify and drain mphistory.
   private isUiVisible(): boolean {
     if (typeof document === 'undefined') return true;
+    // Page Visibility API missing (node test shim) → treat as visible.
+    if (typeof document.visibilityState !== 'string') return true;
     return document.visibilityState === 'visible' && !document.hidden;
   }
+  private isUserForeground(): boolean {
+    if (!this.isUiVisible()) return false;
+    if (typeof document === 'undefined') return true;
+    // Phone + Web Push thaw: the OS can flip visibilityState to "visible"
+    // without the user opening the app. Requiring focus blocks that from
+    // identifying and draining mphistory. Desktop background tabs still
+    // reconnect on visibility alone unless a push just woke us.
+    const needFocus = this.pushWake || likelyMobile();
+    if (needFocus && typeof document.hasFocus === 'function' && !document.hasFocus())
+      return false;
+    return true;
+  }
+  private notePushWake = (): void => {
+    this.pushWake = true;
+    // Cancel a reconnect that may already be mid-backoff from a dead socket.
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.wantConnected) this.reconnectWhenVisible = true;
+  };
   private onResume = (): void => {
-    if (!this.wantConnected || !this.isUiVisible()) return;
+    if (!this.wantConnected) return;
+    if (!this.isUserForeground()) {
+      this.reconnectWhenVisible = true;
+      return;
+    }
+    this.pushWake = false;
+    this.reconnectWhenVisible = false;
     const rs = this.ws?.readyState;
     if (rs === WebSocket.OPEN) {
       // Socket looks open but may be a zombie after a freeze — probe it; the
@@ -172,7 +206,10 @@ export class Transport {
       this.reconnectNow();
     }
   };
-  private onVisible = (): void => { if (this.isUiVisible()) this.onResume(); };
+  private onVisible = (): void => {
+    if (this.isUserForeground()) this.onResume();
+    else if (this.wantConnected) this.reconnectWhenVisible = true;
+  };
   private hookResume(): void {
     if (this.resumeHooked || typeof window === 'undefined') return;
     this.resumeHooked = true;
@@ -183,7 +220,13 @@ export class Transport {
     window.addEventListener('online', this.onResume);
     window.addEventListener('focus', this.onResume);
     window.addEventListener('pageshow', this.onResume);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', this.onSwMessage);
+    }
   }
+  private onSwMessage = (ev: MessageEvent): void => {
+    if (ev.data?.type === 'orbit-push-wake') this.notePushWake();
+  };
   // Detach the resume listeners so a disconnected client can be GC'd (the closures
   // otherwise pin it, and every leaked client would keep listening for app life).
   private unhookResume(): void {
@@ -196,11 +239,18 @@ export class Transport {
     window.removeEventListener('online', this.onResume);
     window.removeEventListener('focus', this.onResume);
     window.removeEventListener('pageshow', this.onResume);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.removeEventListener('message', this.onSwMessage);
+    }
   }
 
   // Reconnect right now (bring any pending backoff forward), e.g. on resume.
   private reconnectNow(): void {
     if (!this.wantConnected) return;
+    if (!this.isUserForeground()) {
+      this.reconnectWhenVisible = true;
+      return;
+    }
     // Already up, or mid-handshake? Leave it — don't stack a second socket.
     const rs = this.ws?.readyState;
     if (rs === WebSocket.OPEN || rs === WebSocket.CONNECTING) return;
@@ -228,6 +278,9 @@ export class Transport {
         this.scheduleReconnect();
         return;
       }
+      // Don't PING while backgrounded / push-thawed without focus: that can keep
+      // a half-dead session alive and look "connected" without opening the app.
+      if (!this.isUserForeground()) return;
       this.sendRaw('PING :ka');
     }, this.keepaliveMs);
   }
@@ -323,13 +376,23 @@ export class Transport {
   // reconnecting in lockstep after a server restart.
   private scheduleReconnect(): void {
     if (!this.wantConnected || this.reconnectTimer) return;
+    // Background / push wake: wait until the user actually opens the app.
+    if (!this.isUserForeground()) {
+      this.reconnectWhenVisible = true;
+      return;
+    }
     const base = Math.min(this.maxBackoffMs, 1000 * 2 ** this.reconnectAttempts);
     const delay = Math.round(base * (0.75 + Math.random() * 0.5)); // ±25% jitter
     this.reconnectAttempts++;
     this.hooks.onReconnecting(Math.round(delay / 1000));
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
-      if (this.wantConnected) this.openSocket();
+      if (!this.wantConnected) return;
+      if (!this.isUserForeground()) {
+        this.reconnectWhenVisible = true;
+        return;
+      }
+      this.openSocket();
     }, delay);
   }
 

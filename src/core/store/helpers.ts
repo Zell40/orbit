@@ -169,6 +169,29 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     }
   }
 
+  function promoteLocalOutgoing(name: string, text?: string): void {
+    ensureBuffer(name);
+    patchBuffer(name, (b) => {
+      let i = -1;
+      for (let j = b.messages.length - 1; j >= 0; j--) {
+        const x = b.messages[j];
+        if (!x.self || !x.id.startsWith('local-')) continue;
+        if (x.kind !== 'privmsg' && x.kind !== 'action') continue;
+        if (text !== undefined && x.text !== text) continue;
+        i = j;
+        break;
+      }
+      if (i < 0) return b;
+      const msgs = b.messages.slice();
+      const cur = msgs[i];
+      // Drop the local- prefix so the receipt clock becomes a single "sent" tick
+      // (no server echo for offline / mphistory-queued PMs).
+      const id = cur.id.startsWith('local-') ? `queued-${cur.id.slice(6)}` : cur.id;
+      msgs[i] = { ...cur, rowId: cur.rowId ?? cur.id, id, msgid: cur.msgid || id };
+      return { ...b, messages: msgs };
+    });
+  }
+
   function addMessage(name: string, m: ChatMessage): void {
     if (isStatusService(name)) {
       name = SERVER;
@@ -332,7 +355,7 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     }
     set({ whois });
   }
-  return { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, tsOf, msgSig, sameReplayEvent, sysLine, serverLine, announceLine, patchWhois };
+  return { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, addMessage, promoteLocalOutgoing, tsOf, msgSig, sameReplayEvent, sysLine, serverLine, announceLine, patchWhois };
 }
 
 export type StoreHelpers = ReturnType<typeof makeHelpers>;

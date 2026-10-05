@@ -32,6 +32,8 @@ if (typeof g.document === 'undefined') {
   };
   g.document = {
     documentElement: el, body: el, head: el,
+    visibilityState: 'visible', hidden: false,
+    hasFocus: () => true,
     addEventListener: noop, removeEventListener: noop,
     createElement: () => ({ ...el, style: { ...el.style } }),
     getElementById: () => null, querySelector: () => null,

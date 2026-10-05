@@ -186,6 +186,57 @@ export function describeAlistAccess(raw: string): AlistAccessInfo {
   return { code, prefix: '', labelKey: '' };
 }
 
+/** ChanServ INVITE is typically AOP+ (XOP HOP on some nets). VOP cannot invite. */
+export function alistCanInvite(raw: string): boolean {
+  const { labelKey } = describeAlistAccess(raw);
+  return labelKey === 'founder' || labelKey === 'successor' || labelKey === 'sop'
+    || labelKey === 'aop' || labelKey === 'hop';
+}
+
+export type NickServSetOpt = {
+  set: string;
+  key: string;
+  match: RegExp;
+  /** Services-oper only — show if present, never toggle. */
+  locked?: boolean;
+};
+
+/** NickServ SET flags we expose as switches in Compte. NOEXPIRE stays read-only. */
+export const NICKSERV_SET_TOGGLES: NickServSetOpt[] = [
+  { set: 'AUTOOP', key: 'autoop', match: /auto-?op/i },
+  { set: 'CHANSTATS', key: 'chanstats', match: /chanstats|statistiques(\s+nickserv)?/i },
+  { set: 'FLEXIBLE', key: 'flexible', match: /flex/i },
+  { set: 'KILL', key: 'kill', match: /^(kill|protection)$/i },
+  { set: 'SECURE', key: 'secure', match: /secure|securis/i },
+  { set: 'PRIVATE', key: 'private', match: /private|priv[eé]/i },
+  { set: 'HIDEMAIL', key: 'hidemail', match: /hidemail|hide\s*e-?mail|masquer\s*(l['’]\s*)?e-?mail/i },
+  { set: 'KEEPMODES', key: 'keepmodes', match: /keepmodes|conserver les modes/i },
+];
+
+export function foldNickServToken(s: string): string {
+  return String(s || '').toLowerCase()
+    .replace(/[àáâä]/g, 'a').replace(/[éèêë]/g, 'e')
+    .replace(/[îï]/g, 'i').replace(/[ôö]/g, 'o')
+    .replace(/[ùûü]/g, 'u').replace(/ç/g, 'c')
+    .replace(/['’]/g, "'").trim();
+}
+
+/** Map NickServ INFO "Options:" pills to SET names that are currently ON. */
+export function parseNickServOptionPills(pills: string[]): Set<string> {
+  const on = new Set<string>();
+  for (const raw of pills || []) {
+    const t = foldNickServToken(raw);
+    if (!t) continue;
+    if (/noexpire|sans expiration|pas d[' ]expir/.test(t)) {
+      on.add('NOEXPIRE');
+      continue;
+    }
+    const hit = NICKSERV_SET_TOGGLES.find((opt) => opt.match.test(t));
+    if (hit) on.add(hit.set);
+  }
+  return on;
+}
+
 /** Read NickServ INFO via Anope JSON-RPC (same path as ChanServ). No IRC PM. */
 export async function fetchNickServInfo(account: string, nick = ''): Promise<NickServInfo | null> {
   const blob = await nickservRpc(account, nick, 'nsinfo');
@@ -241,7 +292,7 @@ export type NickServManageCmd = {
 
 export const NICKSERV_MANAGE_CMDS: NickServManageCmd[] = [
   { cmd: 'UPDATE', key: 'update' },
-  { cmd: 'SET', key: 'set', args: true },
+  { cmd: 'SET', key: 'set', args: true, hide: true },
   { cmd: 'AJOIN', key: 'ajoin', args: true },
   { cmd: 'GLIST', key: 'glist' },
   { cmd: 'GROUP', key: 'group', args: true },
@@ -271,5 +322,5 @@ export const NICKSERV_MANAGE_CMDS: NickServManageCmd[] = [
 
 /** Fallback when HELP RPC is unavailable — safe end-user set (no SA tools). */
 export const NICKSERV_MANAGE_FALLBACK = new Set([
-  'UPDATE', 'SET', 'AJOIN', 'GLIST', 'GROUP', 'UNGROUP', 'RECOVER', 'RESETPASS', 'DROP',
+  'UPDATE', 'AJOIN', 'GLIST', 'GROUP', 'UNGROUP', 'RECOVER', 'RESETPASS', 'DROP',
 ]);
