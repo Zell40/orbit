@@ -1290,8 +1290,19 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .join-denied__redirect {
   margin: .7rem 0 0; font-size: .92rem; line-height: 1.45; color: var(--ink); font-weight: 600;
 }
+.join-denied__acts {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: .45rem; margin-top: 1.1rem;
+}
+.join-denied__invite {
+  min-height: 38px; padding: .45rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+  border-radius: 10px; cursor: pointer;
+  background: var(--accent-soft); color: var(--accent-d); font: inherit; font-weight: 700;
+}
+.join-denied__invite:hover { filter: brightness(1.03); }
+.join-denied__invite:disabled { opacity: .65; cursor: wait; }
 .join-denied__close {
-  margin-top: 1.1rem; min-height: 38px; padding: .45rem 1.1rem;
+  min-height: 38px; padding: .45rem 1.1rem;
   border: 0; border-radius: 10px; cursor: pointer;
   background: var(--accent); color: #fff; font: inherit; font-weight: 700;
 }
@@ -2154,13 +2165,32 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nsinfo-row__v { margin: 0; font-size: .86rem; line-height: 1.4; color: var(--ink); font-weight: 600; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 .nsinfo-pills { display: flex; flex-wrap: wrap; gap: .3rem; }
 .nsinfo-pill { font-size: .72rem; font-weight: 700; padding: .14rem .45rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent-d); }
+.nsset { display: flex; flex-direction: column; gap: .22rem; }
+.nsset-row { display: flex; align-items: center; justify-content: space-between; gap: .7rem; min-height: 1.7rem; }
+.nsset-row__lab { font-size: .82rem; font-weight: 650; color: var(--ink); }
+.nsset-row--locked { opacity: .9; }
+.nsset-lock {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase;
+  color: var(--muted); background: color-mix(in srgb, var(--muted) 12%, var(--bg));
+  border-radius: 999px; padding: .16rem .45rem;
+}
 /* Cap at ~5 channel rows; the rest scrolls so Compte stays compact. */
 .nsaccess {
   display: flex; flex-direction: column; padding: .25rem .55rem .7rem; gap: .28rem;
-  max-height: calc(5 * 3.45rem + 4 * .28rem); overflow-y: auto; overscroll-behavior: contain;
+  max-height: min(22rem, 55vh); overflow-y: auto; overscroll-behavior: contain;
 }
-.nsaccess-row { display: flex; align-items: center; gap: .7rem; margin: 0; padding: .55rem .55rem; border: 0; border-radius: 12px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--border); cursor: pointer; text-align: left; font: inherit; color: inherit; transition: background .12s, box-shadow .12s, transform .12s; }
+.nsaccess-row {
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: .45rem .55rem;
+  margin: 0; padding: .55rem .55rem; border: 0; border-radius: 12px;
+  background: var(--bg); box-shadow: inset 0 0 0 1px var(--border);
+  color: inherit; transition: background .12s, box-shadow .12s;
+}
 .nsaccess-row:hover { background: var(--accent-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.nsaccess-main {
+  flex: 1 1 11rem; min-width: 0; display: flex; align-items: flex-start; gap: .55rem;
+  margin: 0; padding: 0; border: 0; background: transparent;
+  font: inherit; color: inherit; cursor: pointer; text-align: left;
+}
 .nsaccess-pfx { flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 9px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .95rem; font-weight: 800; background: var(--accent-soft); color: var(--accent-d); }
 .nsaccess-pfx--founder { background: color-mix(in srgb, #c9a227 22%, var(--bg)); color: #9a7410; }
 .nsaccess-pfx--successor { background: color-mix(in srgb, #7c3aed 18%, var(--bg)); color: #6d28d9; }
@@ -2169,12 +2199,26 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nsaccess-pfx--hop { background: color-mix(in srgb, #0f766e 18%, var(--bg)); color: #0f766e; }
 .nsaccess-pfx--vop { background: color-mix(in srgb, #64748b 16%, var(--bg)); color: #475569; }
 .nsaccess-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .12rem; }
-.nsaccess-chanline { display: flex; align-items: center; gap: .4rem; min-width: 0; }
-.nsaccess-chan { font-size: .92rem; font-weight: 800; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess-chanline { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .4rem; min-width: 0; }
+.nsaccess-chan { font-size: .92rem; font-weight: 800; color: var(--ink); min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 .nsaccess-keep { flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); background: color-mix(in srgb, var(--muted) 12%, var(--bg)); border-radius: 999px; padding: .12rem .4rem; }
-.nsaccess-desc { font-size: .76rem; color: var(--muted); line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.nsaccess-role { flex: none; display: inline-flex; align-items: center; gap: .28rem; font-size: .72rem; font-weight: 800; letter-spacing: .01em; color: var(--accent-d); background: var(--accent-soft); border-radius: 999px; padding: .22rem .55rem; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nsaccess-desc { font-size: .76rem; color: var(--muted); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nsaccess-meta { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .35rem; margin-left: auto; }
+.nsaccess-role { flex: none; display: inline-flex; align-items: center; gap: .28rem; font-size: .72rem; font-weight: 800; letter-spacing: .01em; color: var(--accent-d); background: var(--accent-soft); border-radius: 999px; padding: .22rem .55rem; }
 .nsaccess-role b { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 800; }
+.nsaccess-invite {
+  flex: none; font: inherit; font-size: .7rem; font-weight: 800;
+  color: var(--accent-d); background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-radius: 999px; padding: .2rem .55rem; cursor: pointer;
+}
+.nsaccess-invite:hover { background: var(--accent-soft); }
+@media (max-width: 540px) {
+  .nsinfo-row { grid-template-columns: 1fr; }
+  .nsaccess-row { flex-direction: column; align-items: stretch; }
+  .nsaccess-main { flex: 1 1 auto; width: 100%; }
+  .nsaccess-meta { margin-left: 2.55rem; justify-content: flex-start; }
+}
 .nsmanage { display: flex; flex-direction: column; gap: .55rem; padding: .15rem 0 .2rem; }
 .nsmanage__intro { margin: 0; font-size: .8rem; color: var(--muted); line-height: 1.4; }
 .nsmanage__grid { display: flex; flex-wrap: wrap; gap: .35rem; }

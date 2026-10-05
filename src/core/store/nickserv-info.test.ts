@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { parseNickServInfo, parseNickServAlist, describeAlistAccess } from './nickserv-info';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  parseNickServInfo, parseNickServAlist, describeAlistAccess, alistCanInvite,
+  parseNickServOptionPills, sendChanServInvite, NICKSERV_MANAGE_CMDS,
+} from './nickserv-info';
 
 const FR = `\u0002Informations pour le compte Harry\u0002 :
 Enregistré          : déc. 12 15:04:22 2019 CET (6 ans, 280 jours)
@@ -126,5 +129,57 @@ Fin de la liste d'accès aux salons.`;
     expect(describeAlistAccess('AOP')).toEqual({ code: 'AOP', prefix: '@', labelKey: 'aop' });
     expect(describeAlistAccess('Fondateurice')).toEqual({ code: 'Fondateurice', prefix: '~', labelKey: 'founder' });
     expect(describeAlistAccess('VOP')).toEqual({ code: 'VOP', prefix: '+', labelKey: 'vop' });
+  });
+});
+
+describe('alistCanInvite', () => {
+  it('allows founder through hop, refuses vop', () => {
+    expect(alistCanInvite('Fondateurice')).toBe(true);
+    expect(alistCanInvite('Fondateurice, QOP')).toBe(true);
+    expect(alistCanInvite('QOP')).toBe(true);
+    expect(alistCanInvite('SOP')).toBe(true);
+    expect(alistCanInvite('AOP')).toBe(true);
+    expect(alistCanInvite('HOP')).toBe(true);
+    expect(alistCanInvite('5')).toBe(true);
+    expect(alistCanInvite('4')).toBe(true);
+    expect(alistCanInvite('VOP')).toBe(false);
+    expect(alistCanInvite('3')).toBe(false);
+  });
+});
+
+describe('parseNickServOptionPills', () => {
+  it('maps INFO pills to SET names and locks NOEXPIRE', () => {
+    const on = parseNickServOptionPills([
+      'Auto-op', 'Chanstats', 'Disposition flexible', 'Protection', 'Sans expiration',
+    ]);
+    expect([...on].sort()).toEqual(['AUTOOP', 'CHANSTATS', 'FLEXIBLE', 'KILL', 'NOEXPIRE']);
+  });
+
+  it('maps English Kill/Secure/HideEmail pills', () => {
+    const on = parseNickServOptionPills(['Kill', 'Secure', 'HideEmail']);
+    expect(on.has('KILL')).toBe(true);
+    expect(on.has('SECURE')).toBe(true);
+    expect(on.has('HIDEMAIL')).toBe(true);
+    expect(on.has('NOEXPIRE')).toBe(false);
+  });
+});
+
+describe('NICKSERV_MANAGE_CMDS', () => {
+  it('hides SET so options live as switches, not a free-text command', () => {
+    expect(NICKSERV_MANAGE_CMDS.find((c) => c.cmd === 'SET')?.hide).toBe(true);
+  });
+});
+
+describe('sendChanServInvite', () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it('sends ChanServ INVITE then JOIN', () => {
+    const client = { privmsg: vi.fn(), join: vi.fn() };
+    sendChanServInvite(client, '#Aide.chat');
+    expect(client.privmsg).toHaveBeenCalledWith('ChanServ', 'INVITE #Aide.chat');
+    expect(client.join).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(700);
+    expect(client.join).toHaveBeenCalledWith('#Aide.chat');
   });
 });

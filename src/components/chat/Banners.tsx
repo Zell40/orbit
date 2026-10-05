@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
 import { activeStore, useActiveChat } from '@/core/networks';
+import { alistCanInvite, fetchNickServAlist, sendChanServInvite } from '@/core/store/nickserv-info';
 import { matchingVisualGames, usePluginRegistry } from '@/modules/registry';
 import { saveDirectReconnect, siteLoginHref, armLeaveWithoutPrompt } from '@/core/direct-reconnect';
 import { clearResume } from '@/core/resume';
@@ -200,7 +201,24 @@ export function JoinDeniedPanel() {
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const setActive = useActiveChat((s) => s.setActive);
   const client = useActiveChat((s) => s.client);
+  const account = useActiveChat((s) => s.account);
+  const nick = useActiveChat((s) => s.nick);
   const name = useActiveChat((s) => s.buffers[s.active]?.name || s.active);
+  const [canInvite, setCanInvite] = useState(false);
+  const [inviteBusy, setInviteBusy] = useState(false);
+
+  useEffect(() => {
+    setCanInvite(false);
+    if (!denied || denied.reasonKey !== 'invite' || !account) return;
+    let cancelled = false;
+    void fetchNickServAlist(account, nick).then((list) => {
+      if (cancelled || !list) return;
+      const row = list.find((r) => r.channel.toLowerCase() === name.toLowerCase());
+      setCanInvite(!!row && alistCanInvite(row.access));
+    });
+    return () => { cancelled = true; };
+  }, [denied, account, nick, name]);
+
   if (!denied) return null;
   const reason = t(`joinDenied.${denied.reasonKey}`);
   const redirectTo = denied.redirectTo;
@@ -214,14 +232,31 @@ export function JoinDeniedPanel() {
           {denied.flag ? <span className="join-denied__flag">{denied.flag}</span> : null}
         </p>
         {redirectTo ? <p className="join-denied__redirect">{t('joinDenied.redirected', { channel: redirectTo })}</p> : null}
-        <button type="button" className="join-denied__close" onClick={() => {
-          closeBuffer(name);
-          if (!goTo) return;
-          if (!redirectTo) client?.join(goTo);
-          setActive(goTo);
-        }}>
-          {goTo ? t('joinDenied.closeToRedirect', { channel: goTo }) : t('joinDenied.close')}
-        </button>
+        <div className="join-denied__acts">
+          {canInvite ? (
+            <button
+              type="button"
+              className="join-denied__invite"
+              disabled={inviteBusy}
+              onClick={() => {
+                if (!client || inviteBusy) return;
+                setInviteBusy(true);
+                sendChanServInvite(client, name);
+                window.setTimeout(() => setInviteBusy(false), 1200);
+              }}
+            >
+              {t('joinDenied.inviteCs')}
+            </button>
+          ) : null}
+          <button type="button" className="join-denied__close" onClick={() => {
+            closeBuffer(name);
+            if (!goTo) return;
+            if (!redirectTo) client?.join(goTo);
+            setActive(goTo);
+          }}>
+            {goTo ? t('joinDenied.closeToRedirect', { channel: goTo }) : t('joinDenied.close')}
+          </button>
+        </div>
       </div>
     </div>
   );

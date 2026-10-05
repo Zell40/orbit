@@ -42,7 +42,7 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
       const key = m[1].trim();
       const value = m[2].trim();
       const row: NickServInfoRow = { key, value };
-      if (/^options?$/i.test(key) && value) {
+      if (/^options?$/i.test(key)) {
         row.pills = value.split(/\s*,\s*/).map((p) => p.trim()).filter(Boolean);
       }
       rows.push(row);
@@ -186,11 +186,25 @@ export function describeAlistAccess(raw: string): AlistAccessInfo {
   return { code, prefix: '', labelKey: '' };
 }
 
-/** ChanServ INVITE is typically AOP+ (XOP HOP on some nets). VOP cannot invite. */
+/** ChanServ INVITE is typically HOP+ / ACCESS 4+. VOP cannot invite. */
 export function alistCanInvite(raw: string): boolean {
-  const { labelKey } = describeAlistAccess(raw);
-  return labelKey === 'founder' || labelKey === 'successor' || labelKey === 'sop'
-    || labelKey === 'aop' || labelKey === 'hop';
+  const { labelKey, code } = describeAlistAccess(raw);
+  if (labelKey === 'founder' || labelKey === 'successor' || labelKey === 'sop'
+    || labelKey === 'aop' || labelKey === 'hop') return true;
+  if (/\bqop\b/i.test(code)) return true;
+  const n = parseInt(code, 10);
+  return Number.isFinite(n) && n >= 4;
+}
+
+/** Ask ChanServ to INVITE us, then JOIN once the invite is likely in place. */
+export function sendChanServInvite(
+  client: { privmsg: (t: string, m: string) => void; join: (c: string) => void } | null,
+  chan: string,
+): void {
+  const name = String(chan || '').trim();
+  if (!client || !name) return;
+  client.privmsg('ChanServ', `INVITE ${name}`);
+  globalThis.setTimeout(() => client.join(name), 700);
 }
 
 export type NickServSetOpt = {

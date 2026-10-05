@@ -8,7 +8,7 @@ import { useActiveChat, activeStore } from '@/core/networks';
 import { ChangeNickField } from '../ChangeNickField';
 import {
   fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, describeAlistAccess, alistCanInvite,
-  parseNickServOptionPills, NICKSERV_SET_TOGGLES, NICKSERV_MANAGE_CMDS, NICKSERV_MANAGE_FALLBACK,
+  parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_MANAGE_CMDS, NICKSERV_MANAGE_FALLBACK,
   type NickServInfo, type NickServAccess, type NickServManageCmd,
 } from '@/core/store/nickserv-info';
 
@@ -176,7 +176,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
                 <dd className="nsinfo-row__v">
                   {row.pills
                     ? <NickServSetToggles pills={row.pills} onChanged={load} />
-                    : row.value || '—'}
+                    : (row.value || '—')}
                 </dd>
               </div>
             ))}
@@ -185,12 +185,6 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
       </div>
     </div>
   );
-}
-
-function requestChanServInvite(client: { privmsg: (t: string, m: string) => void; join: (c: string) => void } | null, chan: string) {
-  if (!client || !chan) return;
-  client.privmsg('ChanServ', `INVITE ${chan}`);
-  window.setTimeout(() => client.join(chan), 700);
 }
 
 function NickServSetToggles({ pills, onChanged }: { pills: string[]; onChanged: () => void }) {
@@ -270,7 +264,7 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
   }
 
   function inviteChan(ch: string) {
-    requestChanServInvite(client, ch);
+    sendChanServInvite(client, ch);
     setActive(ch);
     setModal('');
   }
@@ -297,29 +291,33 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
                   <button type="button" className="nsaccess-main" onClick={() => openChan(row.channel)}>
                     <span className={`nsaccess-pfx nsaccess-pfx--${acc.labelKey || 'other'}`} aria-hidden>{acc.prefix || '#'}</span>
                     <span className="nsaccess-txt">
-                      <span className="nsaccess-chan">{row.channel}</span>
-                      {row.noExpire ? (
-                        <span className="nsaccess-keep" title={t('settings.account.alistNoExpireHint')}>
-                          {t('settings.account.alistNoExpire')}
-                        </span>
-                      ) : null}
+                      <span className="nsaccess-chanline">
+                        <span className="nsaccess-chan">{row.channel}</span>
+                        {row.noExpire ? (
+                          <span className="nsaccess-keep" title={t('settings.account.alistNoExpireHint')}>
+                            {t('settings.account.alistNoExpire')}
+                          </span>
+                        ) : null}
+                      </span>
                       {row.description ? <span className="nsaccess-desc">{row.description}</span> : null}
                     </span>
                   </button>
-                  <span className="nsaccess-role">
-                    {acc.prefix ? <b>{acc.prefix}</b> : null}
-                    {role}
+                  <span className="nsaccess-meta">
+                    <span className="nsaccess-role">
+                      {acc.prefix ? <b>{acc.prefix}</b> : null}
+                      {role}
+                    </span>
+                    {canInvite ? (
+                      <button
+                        type="button"
+                        className="nsaccess-invite"
+                        title={t('settings.account.alistInviteHint')}
+                        onClick={() => inviteChan(row.channel)}
+                      >
+                        {t('settings.account.alistInvite')}
+                      </button>
+                    ) : null}
                   </span>
-                  {canInvite ? (
-                    <button
-                      type="button"
-                      className="nsaccess-invite"
-                      title={t('settings.account.alistInviteHint')}
-                      onClick={() => inviteChan(row.channel)}
-                    >
-                      {t('settings.account.alistInvite')}
-                    </button>
-                  ) : null}
                 </div>
               );
             })}

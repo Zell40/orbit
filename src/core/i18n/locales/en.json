@@ -457,6 +457,8 @@
       "alistEmpty": "No channels with ChanServ access.",
       "alistNoExpire": "No expire",
       "alistNoExpireHint": "This channel does not expire (ChanServ NOEXPIRE).",
+      "alistInvite": "Invite",
+      "alistInviteHint": "Ask ChanServ to invite you (+i), then join.",
       "alistRole": {
         "founder": "Founder",
         "successor": "Successor",
@@ -474,6 +476,19 @@
       "nsManageSent": "Command sent to NickServ.",
       "nsManageConfirm": "Send {{cmd}} to NickServ?",
       "nsManageArgs": "Arguments…",
+      "nsSet": {
+        "autoop": "Auto-op",
+        "chanstats": "Chanstats",
+        "flexible": "Flexible layout",
+        "kill": "Protection",
+        "secure": "Secure",
+        "private": "Private",
+        "hidemail": "Hide e-mail",
+        "keepmodes": "Keep modes",
+        "noexpire": "No expire",
+        "noexpireHint": "Reserved for services operators — not togglable here.",
+        "locked": "Locked"
+      },
       "nsCmd": {
         "update": "Refresh your status (memos, etc.).",
         "set": "Nickname options (e.g. HIDEMAIL ON).",
@@ -845,6 +860,7 @@
     "close": "Close channel",
     "full": "The channel has reached its member limit.",
     "invite": "This channel is invite-only.",
+    "inviteCs": "Request a ChanServ invite",
     "banned": "You are banned from this channel.",
     "key": "This channel requires a key.",
     "registered": "A registered nick is required to join.",

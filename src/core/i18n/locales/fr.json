@@ -457,6 +457,8 @@
       "alistEmpty": "Aucun salon avec un accès ChanServ.",
       "alistNoExpire": "Sans expiration",
       "alistNoExpireHint": "Ce salon n'expire pas (ChanServ NOEXPIRE).",
+      "alistInvite": "Inviter",
+      "alistInviteHint": "Demander une invitation ChanServ (salon +i), puis rejoindre.",
       "alistRole": {
         "founder": "Fondateur",
         "successor": "Successeur",
@@ -474,6 +476,19 @@
       "nsManageSent": "Commande envoyée à NickServ.",
       "nsManageConfirm": "Confirmer l’envoi de {{cmd}} à NickServ ?",
       "nsManageArgs": "Arguments…",
+      "nsSet": {
+        "autoop": "Auto-op",
+        "chanstats": "Chanstats",
+        "flexible": "Disposition flexible",
+        "kill": "Protection",
+        "secure": "Sécurisé",
+        "private": "Privé",
+        "hidemail": "Masquer l’e-mail",
+        "keepmodes": "Conserver les modes",
+        "noexpire": "Sans expiration",
+        "noexpireHint": "Réservé aux opérateurs de services — non modifiable ici.",
+        "locked": "Verrouillé"
+      },
       "nsCmd": {
         "update": "Rafraîchir ton statut (mémos, etc.).",
         "set": "Options du pseudo (ex. HIDEMAIL ON).",
@@ -846,6 +861,7 @@
     "close": "Fermer le salon",
     "full": "Le salon a atteint sa limite de membres.",
     "invite": "Le salon est sur invitation uniquement.",
+    "inviteCs": "Demander une invitation ChanServ",
     "banned": "Tu es banni de ce salon.",
     "key": "Ce salon nécessite une clé.",
     "registered": "Il faut un pseudo enregistré pour rejoindre ce salon.",
