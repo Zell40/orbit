@@ -76,7 +76,8 @@ export const EventGroup = memo(function EventGroup({ events }: { events: ChatMes
             <span className="eventgroup__verb">
               {sec.side === 'join' && t('events.joined', { count: sec.nicks.length })}
               {sec.side === 'online' && t('events.connected', { count: sec.nicks.length })}
-              {(sec.side === 'part' || sec.side === 'quit') && t('events.left', { count: sec.nicks.length })}
+              {sec.side === 'part' && t('events.left', { count: sec.nicks.length })}
+              {sec.side === 'quit' && t('events.quit', { count: sec.nicks.length })}
             </span>
           </span>
         </div>

@@ -4,6 +4,7 @@ import {
   clearPmPeerOffline,
   isPmPeerOffline,
   markPmPeerOffline,
+  maybeMphistoryQueuedHint,
   queryBufferKey,
   takePmPeerOnline,
 } from './pm-presence';
@@ -59,10 +60,39 @@ describe('pm-presence', () => {
     expect(lines).toEqual([{
       name: 'quen', text: expect.stringContaining('Quen'), kind: 'online', from: 'Quen',
     }]);
-    // Second call is a no-op (already consumed).
     announcePmOnline(buffers, (name, text, kind, from) => {
       lines.push({ name, text, kind, from });
     }, 'Quen', 1235);
     expect(lines).toHaveLength(1);
+  });
+
+  it('maybeMphistoryQueuedHint posts once when CAP is on and peer is offline', () => {
+    const lines: { name: string; text: string; kind: string }[] = [];
+    const buffers = { quen: buf('Quen') };
+    markPmPeerOffline('Quen');
+    const opts = {
+      hasMphistoryCap: true,
+      buffers,
+      order: ['quen'],
+      nick: 'Quen',
+      sysLine: (name: string, text: string, kind: string) => { lines.push({ name, text, kind }); },
+    };
+    expect(maybeMphistoryQueuedHint(opts)).toBe(true);
+    expect(lines[0]).toMatchObject({ name: 'quen', kind: 'info' });
+    expect(maybeMphistoryQueuedHint(opts)).toBe(false);
+    expect(lines).toHaveLength(1);
+  });
+
+  it('maybeMphistoryQueuedHint is a no-op without the CAP', () => {
+    const lines: unknown[] = [];
+    markPmPeerOffline('Quen');
+    expect(maybeMphistoryQueuedHint({
+      hasMphistoryCap: false,
+      buffers: { quen: buf('Quen') },
+      order: ['quen'],
+      nick: 'Quen',
+      sysLine: () => { lines.push(1); },
+    })).toBe(false);
+    expect(lines).toHaveLength(0);
   });
 });

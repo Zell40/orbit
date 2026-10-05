@@ -10,6 +10,7 @@ import { usePluginRegistry } from '@/modules/registry';
 import { isService, isStatusService, maskSecret, detectServiceLeak } from '../services';
 import { stripFormatting, tidyOutgoing } from './text';
 import { SERVER, newId, canon, isChannelName, isNoticeBuffer } from './context';
+import { maybeMphistoryQueuedHint } from './pm-presence';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -105,6 +106,17 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
             text: isService(t) ? maskSecret(body) : body,
             ts: Date.now(), kind: 'privmsg', self: true,
           });
+          if (!isChannelName(t) && !isService(t) && !isStatusService(t)) {
+            const s = get();
+            maybeMphistoryQueuedHint({
+              hasMphistoryCap: !!s.client?.ircv3.hasCap('entrenous/mphistory'),
+              buffers: s.buffers,
+              order: s.order,
+              friendsOnline: s.friendsOnline,
+              nick: t,
+              sysLine,
+            });
+          }
           break;
         }
         case 'notice': {
@@ -187,6 +199,18 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
       text: isService(active) ? maskSecret(text) : body,
       ts: Date.now(), kind: 'privmsg', self: true, replyTo: reply?.id, channelContext: ctx,
     });
+    // Offline PM + entrenous/mphistory: explain that the server will deliver later.
+    if (!isChannelName(active) && !isService(active) && !isNoticeBuffer(active)) {
+      const s = get();
+      maybeMphistoryQueuedHint({
+        hasMphistoryCap: !!s.client?.ircv3.hasCap('entrenous/mphistory'),
+        buffers: s.buffers,
+        order: s.order,
+        friendsOnline: s.friendsOnline,
+        nick: active,
+        sysLine,
+      });
+    }
   }
 
   return { sendInput };

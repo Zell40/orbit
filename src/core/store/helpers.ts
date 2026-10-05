@@ -25,6 +25,17 @@ export function findWhoisKey(table: Record<string, WhoisInfo>, nick: string): st
   return undefined;
 }
 
+/** Member-map key for a nick, ignoring CASEMAPPING (`Quen` vs `quen`). */
+export function findMemberKey(members: Record<string, Member>, nick: string): string | undefined {
+  if (!nick) return undefined;
+  if (members[nick]) return nick;
+  const folded = canon(nick);
+  for (const k of Object.keys(members)) {
+    if (canon(k) === folded) return k;
+  }
+  return undefined;
+}
+
 /** Remember a services account on a query buffer so PM rows can resolve avatars. */
 export function rememberQueryAccount(
   patchBuffer: (name: string, fn: (b: Buffer) => Buffer) => void,
@@ -151,8 +162,10 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     const s = get();
     for (const name of s.order) {
       const b = s.buffers[name];
-      const m = b.members[nick];
-      if (m) patchBuffer(name, (bb) => ({ ...bb, members: { ...bb.members, [nick]: { ...m, ...patch } } }));
+      const mk = findMemberKey(b.members, nick);
+      if (!mk) continue;
+      const m = b.members[mk];
+      patchBuffer(name, (bb) => ({ ...bb, members: { ...bb.members, [mk]: { ...m, ...patch } } }));
     }
   }
 

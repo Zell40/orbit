@@ -83,6 +83,15 @@ describe('membership handler', () => {
     expect(state.buffers['#b'].members['amy']).toBeDefined();
   });
 
+  it('QUIT removes a case-variant member key (Quen vs quen)', () => {
+    const { on, state, seed, lines } = setup();
+    seed('#a', ['Quen']);
+    on(':quen!u@h QUIT :Client closed');
+    expect(state.buffers['#a'].members['Quen']).toBeUndefined();
+    expect(Object.keys(state.buffers['#a'].members)).toEqual([]);
+    expect(lines.some((l) => l.kind === 'quit' && l.from === 'quen')).toBe(true);
+  });
+
   it('QUIT mirrors into an open PM and JOIN announces CONNEXION once', () => {
     const { on, state, seed, lines, k } = setup();
     seed('#a', ['bob']);

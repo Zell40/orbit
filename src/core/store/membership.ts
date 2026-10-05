@@ -6,12 +6,14 @@
 // dispatcher calls handleMembership(msg, me) before its command switch.
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
+import { getConfig } from '@/core/config';
 import { hostmask } from './text';
 import { SERVER, canon, isChannelName, inQuietBatch, trackBufferMuteSync } from './context';
 import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
-import { unregisterPushOnAccountLogout } from '@/platform/push';
+import { unregisterPushOnAccountLogout, refreshPush } from '@/platform/push';
 import { announcePmOnline, markPmPeerOffline, queryBufferKey } from './pm-presence';
+import { findMemberKey } from './helpers';
 import type { IrcMessage } from '../irc/types';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
@@ -68,7 +70,17 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         // Gives us account + realname up front, so no WHO needed for joiners.
         const joinAcct = msg.params[1] && msg.params[1] !== '*' && msg.params[1] !== '0' ? msg.params[1] : undefined;
         const joinReal = msg.params[2] || undefined;
-        patchBuffer(ch, (b) => ({ ...b, members: { ...b.members, [msg.nick]: { nick: msg.nick, user: msg.user || undefined, host: msg.host || undefined, prefix: '', account: joinAcct, realname: joinReal } } }));
+        patchBuffer(ch, (b) => {
+          const members = { ...b.members };
+          // Drop a case-variant ghost so QUIT/PART always find the same key later.
+          const prev = findMemberKey(members, msg.nick);
+          if (prev && prev !== msg.nick) delete members[prev];
+          members[msg.nick] = {
+            nick: msg.nick, user: msg.user || undefined, host: msg.host || undefined,
+            prefix: '', account: joinAcct, realname: joinReal,
+          };
+          return { ...b, members };
+        });
         if (self && joinReal) get().client?.setRealname(joinReal);
         // ZNC attach: no SASL 900 — our own extended-join carries the NickServ account.
         if (self && joinAcct) set({ account: joinAcct });
@@ -86,7 +98,9 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         const selfPart = !!me && canon(msg.nick) === canon(me);
         if (selfPart) forgetHistoryPrefetch(historyAsked, ch);
         patchBuffer(ch, (b) => {
-          const members = { ...b.members }; delete members[msg.nick];
+          const members = { ...b.members };
+          const mk = findMemberKey(members, msg.nick);
+          if (mk) delete members[mk];
           // Self-part → no longer a member: clear `joined` so we stop firing
           // chathistory/typing on a channel we left (CHATHISTORY would FAIL).
           return { ...b, members, joined: selfPart ? false : b.joined };
@@ -119,7 +133,9 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         } else {
           // Someone else was kicked — drop them from the member list + a notice.
           patchBuffer(ch, (b) => {
-            const members = { ...b.members }; delete members[target];
+            const members = { ...b.members };
+            const mk = findMemberKey(members, target);
+            if (mk) delete members[mk];
             return { ...b, members };
           });
           sysLine(ch, reason ? `${target}\n${reason}` : target, 'kick', msg.nick, '', tsOf(msg));
@@ -135,16 +151,16 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           : i18n.t('system.quit', { nick: msg.nick });
         let quitInQuery = false;
         for (const name of s.order) {
-          if (s.buffers[name].members[msg.nick]) {
-            patchBuffer(name, (b) => {
-              const members = { ...b.members }; delete members[msg.nick];
-              return { ...b, members };
-            });
-            const quitSince = s.buffers[name]?.sessionJoinedAt;
-            if (!inQuietBatch(msg) && !(quitSince && quitTs < quitSince - 2500)) {
-              sysLine(name, quitText, 'quit', msg.nick, hostmask(msg), quitTs);
-              if (!s.buffers[name].isChannel) quitInQuery = true;
-            }
+          const mk = findMemberKey(s.buffers[name].members, msg.nick);
+          if (!mk) continue;
+          patchBuffer(name, (b) => {
+            const members = { ...b.members }; delete members[mk];
+            return { ...b, members };
+          });
+          const quitSince = s.buffers[name]?.sessionJoinedAt;
+          if (!inQuietBatch(msg) && !(quitSince && quitTs < quitSince - 2500)) {
+            sysLine(name, quitText, 'quit', msg.nick, hostmask(msg), quitTs);
+            if (!s.buffers[name].isChannel) quitInQuery = true;
           }
         }
         // Open PM without a cached member entry still gets the QUIT line.
@@ -160,19 +176,26 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
       }
       case 'NICK': {
         const nn = msg.params[0];
-        if (msg.nick === me) set({ nick: nn, nickError: null });
+        if (msg.nick === me) {
+          set({ nick: nn, nickError: null });
+          // Keep the server's webpush device nick in sync so offline pushes follow /nick.
+          const account = get().account;
+          const client = get().client;
+          if (account && client && getConfig().features.push)
+            void refreshPush(client, account);
+        }
         const s = get();
         for (const name of s.order) {
           const b = s.buffers[name];
-          if (b.members[msg.nick]) {
-            patchBuffer(name, (bb) => {
-              const members = { ...bb.members };
-              members[nn] = { ...members[msg.nick], nick: nn };
-              delete members[msg.nick];
-              return { ...bb, members };
-            });
-            sysLine(name, nn, 'nick', msg.nick, '', tsOf(msg));
-          }
+          const mk = findMemberKey(b.members, msg.nick);
+          if (!mk) continue;
+          patchBuffer(name, (bb) => {
+            const members = { ...bb.members };
+            members[nn] = { ...members[mk], nick: nn };
+            delete members[mk];
+            return { ...bb, members };
+          });
+          sysLine(name, nn, 'nick', msg.nick, '', tsOf(msg));
         }
         return true;
       }
@@ -185,15 +208,16 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         const newId2 = `${newUser}@${newHost}`;
         const s = get();
         for (const name of s.order) {
-          const m = s.buffers[name].members[msg.nick];
-          if (!m) continue;
+          const mk = findMemberKey(s.buffers[name].members, msg.nick);
+          if (!mk) continue;
+          const m = s.buffers[name].members[mk];
           // Prefer the member's tracked host as the "old" value; fall back to the
           // source prefix (which carries the pre-change user@host).
           const oldId = `${m.user || msg.user}@${m.host || msg.host}`;
           patchBuffer(name, (bb) => {
-            const mm = bb.members[msg.nick];
+            const mm = bb.members[mk];
             if (!mm) return bb;
-            return { ...bb, members: { ...bb.members, [msg.nick]: { ...mm, user: newUser, host: newHost } } };
+            return { ...bb, members: { ...bb.members, [mk]: { ...mm, user: newUser, host: newHost } } };
           });
           if (oldId !== newId2) sysLine(name, `${oldId}\n${newId2}`, 'host', msg.nick, '', tsOf(msg));
         }
@@ -207,13 +231,13 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         const newReal = msg.params[0] ?? '';
         const s = get();
         for (const name of s.order) {
-          if (s.buffers[name].members[msg.nick]) {
-            patchBuffer(name, (bb) => {
-              const m = bb.members[msg.nick];
-              if (!m) return bb;
-              return { ...bb, members: { ...bb.members, [msg.nick]: { ...m, realname: newReal } } };
-            });
-          }
+          const mk = findMemberKey(s.buffers[name].members, msg.nick);
+          if (!mk) continue;
+          patchBuffer(name, (bb) => {
+            const m = bb.members[mk];
+            if (!m) return bb;
+            return { ...bb, members: { ...bb.members, [mk]: { ...m, realname: newReal } } };
+          });
         }
         if (get().whois[msg.nick]) patchWhois(msg.nick, (w) => ({ ...w, realname: newReal }));
         // Keep connect opts in sync so the next WS reconnect's USER reuses ASL.

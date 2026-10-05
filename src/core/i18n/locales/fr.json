@@ -708,6 +708,8 @@
     "joined_other": "sont entrés",
     "left_one": "est parti",
     "left_other": "sont partis",
+    "quit_one": "s'est déconnecté",
+    "quit_other": "se sont déconnectés",
     "connected_one": "est connecté",
     "connected_other": "sont connectés"
   },
@@ -716,6 +718,7 @@
     "part": "{{nick}} a quitté le salon",
     "quit": "{{nick}} s'est déconnecté",
     "online": "{{nick}} est connecté",
+    "mphistoryQueued": "Message enregistré : il sera remis à {{nick}} à sa reconnexion.",
     "kick": "{{target}} a été expulsé par {{by}}",
     "nick": "{{nick}} est désormais {{newnick}}",
     "modes": "{{nick}} a changé les modes : {{modes}}",
