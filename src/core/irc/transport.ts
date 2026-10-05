@@ -60,8 +60,6 @@ export class Transport {
   private connectTimer: ReturnType<typeof setTimeout> | null = null;
   private lastRx = 0;          // ms timestamp of the last inbound data
   private resumeHooked = false;
-  /** Socket died / push woke us while the UI was not in the foreground. */
-  private reconnectWhenVisible = false;
   /** Service-worker push wake: do not IRC-reconnect until the user focuses the app. */
   private pushWake = false;
   private sessionStartedAt = 0; // last RPL_WELCOME — a session that dies in seconds is not "healthy"
@@ -94,7 +92,6 @@ export class Transport {
 
   disconnect(reason = 'Au revoir'): void {
     this.wantConnected = false; // stop auto-reconnect
-    this.reconnectWhenVisible = false;
     this.pushWake = false;
     setStayAwake(false);
     this.unhookResume();
@@ -186,16 +183,11 @@ export class Transport {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    if (this.wantConnected) this.reconnectWhenVisible = true;
   };
   private onResume = (): void => {
     if (!this.wantConnected) return;
-    if (!this.isUserForeground()) {
-      this.reconnectWhenVisible = true;
-      return;
-    }
+    if (!this.isUserForeground()) return;
     this.pushWake = false;
-    this.reconnectWhenVisible = false;
     const rs = this.ws?.readyState;
     if (rs === WebSocket.OPEN) {
       // Socket looks open but may be a zombie after a freeze — probe it; the
@@ -208,7 +200,6 @@ export class Transport {
   };
   private onVisible = (): void => {
     if (this.isUserForeground()) this.onResume();
-    else if (this.wantConnected) this.reconnectWhenVisible = true;
   };
   private hookResume(): void {
     if (this.resumeHooked || typeof window === 'undefined') return;
@@ -247,10 +238,7 @@ export class Transport {
   // Reconnect right now (bring any pending backoff forward), e.g. on resume.
   private reconnectNow(): void {
     if (!this.wantConnected) return;
-    if (!this.isUserForeground()) {
-      this.reconnectWhenVisible = true;
-      return;
-    }
+    if (!this.isUserForeground()) return;
     // Already up, or mid-handshake? Leave it — don't stack a second socket.
     const rs = this.ws?.readyState;
     if (rs === WebSocket.OPEN || rs === WebSocket.CONNECTING) return;
@@ -377,10 +365,7 @@ export class Transport {
   private scheduleReconnect(): void {
     if (!this.wantConnected || this.reconnectTimer) return;
     // Background / push wake: wait until the user actually opens the app.
-    if (!this.isUserForeground()) {
-      this.reconnectWhenVisible = true;
-      return;
-    }
+    if (!this.isUserForeground()) return;
     const base = Math.min(this.maxBackoffMs, 1000 * 2 ** this.reconnectAttempts);
     const delay = Math.round(base * (0.75 + Math.random() * 0.5)); // ±25% jitter
     this.reconnectAttempts++;
@@ -388,10 +373,7 @@ export class Transport {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       if (!this.wantConnected) return;
-      if (!this.isUserForeground()) {
-        this.reconnectWhenVisible = true;
-        return;
-      }
+      if (!this.isUserForeground()) return;
       this.openSocket();
     }, delay);
   }
