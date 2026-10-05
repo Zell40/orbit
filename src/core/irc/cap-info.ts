@@ -27,5 +27,5 @@ export const CAP_INFO: Record<string, { icon: string; key: string }> = {
   'draft/account-registration': { icon: '🆕', key: 'accountRegistration' },
   'draft/pre-away': { icon: '🚦', key: 'preAway' },
   'draft/webpush': { icon: '📲', key: 'webpush' },
-  'entrenous/mphistory': { icon: '💬', key: 'mphistory' },
+  'entrenous/mphistory': { icon: '📬', key: 'mphistory' },
 };
