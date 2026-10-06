@@ -36,12 +36,6 @@ function foldAccount(s: string): string {
   return String(s || '').trim().toLowerCase();
 }
 
-function nsPreview(raw: string, n = 180): string {
-  const t = stripFormatting(raw).replace(/\s+/g, ' ').trim();
-  if (!t) return '';
-  return t.length > n ? `${t.slice(0, n)}…` : t;
-}
-
 function nsStatus(text: string, kind: MessageKind = 'warning'): void {
   const line = String(text || '').replace(/\s+/g, ' ').trim();
   if (!line || line === '[Compte NickServ]') return;
@@ -186,25 +180,13 @@ function queryNickServIrc(client: IrcClient, cmd: string, kind: NsKind, hardMs =
 
 async function ircFallback(cmd: string, kind: NsKind, deadline?: number): Promise<string | null> {
   const remain = deadline != null ? deadline - Date.now() : NS_IRC_HARD_MS;
-  if (remain < 800) {
-    nsStatus(`[Compte NickServ] IRC ${kind} ignoré (plus assez de temps).`);
-    return null;
-  }
+  if (remain < 800) return null;
   try {
     const { activeStore } = await import('@/core/networks');
     const client = activeStore()?.getState?.()?.client;
-    if (!client?.privmsg) {
-      nsStatus(`[Compte NickServ] IRC ${kind} impossible : pas de connexion.`);
-      return null;
-    }
-    nsStatus(`[Compte NickServ] fallback IRC /ns ${cmd}`, 'info');
-    const blob = await queryNickServIrc(client, cmd, kind, Math.min(NS_IRC_HARD_MS, remain));
-    const preview = nsPreview(blob || '');
-    if (preview) nsStatus(`[Compte NickServ] IRC ${kind} : ${preview}`, 'info');
-    else nsStatus(`[Compte NickServ] IRC ${kind} : aucune notice.`);
-    return blob;
-  } catch (e) {
-    nsStatus(`[Compte NickServ] IRC ${kind} erreur : ${e instanceof Error ? e.message : 'inconnue'}`);
+    if (!client?.privmsg) return null;
+    return await queryNickServIrc(client, cmd, kind, Math.min(NS_IRC_HARD_MS, remain));
+  } catch {
     return null;
   }
 }
@@ -395,7 +377,6 @@ async function nickservAccountRpc(account: string, nick: string): Promise<NsAcco
     try {
       data = JSON.parse(raw) as typeof data;
     } catch {
-      nsStatus(`[Compte NickServ] RPC HTTP ${r.status} : réponse non JSON ${nsPreview(raw)}`);
       return empty(r.status, 'non_json');
     }
     const notes = Array.isArray(data.debug?.notes)
@@ -404,16 +385,6 @@ async function nickservAccountRpc(account: string, nick: string): Promise<NsAcco
     const source = String(data.debug?.source || nick || account);
     const error = data?.ok ? '' : String(data.error || `http_${r.status}`);
     if (!data?.ok) {
-      const detail = String(data.detail || '');
-      const hint = error === 'bad_action'
-        ? ' — déploie chanserv-rpc.php (action nsaccount absente)'
-        : error === 'not_configured'
-          ? (detail === 'loaded'
-            ? ' — jeton vide ou encore CHANGE_ME dans chanserv-rpc.local.php'
-            : ' — chanserv-rpc.local.php absent du webroot (même jeton que wp_anope_sync)')
-          : '';
-      nsStatus(`[Compte NickServ] RPC HTTP ${r.status} ${error}${detail ? ` (${detail})` : ''}${hint}`);
-      for (const n of notes) nsStatus(`[Compte NickServ] ${n}`);
       return { info: '', glist: '', alist: '', ajoin: '', http: r.status, error, notes, source };
     }
     return {
@@ -428,9 +399,7 @@ async function nickservAccountRpc(account: string, nick: string): Promise<NsAcco
     };
   } catch (e) {
     const abort = e instanceof DOMException && e.name === 'AbortError';
-    const error = abort ? 'timeout_10s' : (e instanceof Error ? e.message : 'fetch');
-    nsStatus(`[Compte NickServ] RPC ${abort ? 'coupé après 10 s' : `échec ${error}`}`);
-    return empty(0, error);
+    return empty(0, abort ? 'timeout_10s' : (e instanceof Error ? e.message : 'fetch'));
   } finally {
     window.clearTimeout(to);
     endNickServRpc();
@@ -875,96 +844,54 @@ export async function loadNickServAccountSnapshot(
     const deadline = Date.now() + NS_ACCOUNT_WAIT_MS;
     const bundle = await nickservAccountRpc(account, nick);
     const rpcFailed = !!(bundle?.error);
-    if (bundle && !rpcFailed) {
-      nsStatus(
-        `[Compte NickServ] RPC HTTP ${bundle.http} source=${bundle.source} compte=${account}`,
-        'info',
-      );
-      for (const n of bundle.notes) nsStatus(`[Compte NickServ] ${n}`, /fail|vide|rpc /i.test(n) ? 'warning' : 'info');
-    } else if (!bundle) {
-      nsStatus('[Compte NickServ] RPC nsaccount : pas de réponse');
-    }
     const infoR = bundle && !rpcFailed ? (() => {
-      if (!bundle.info || rpcLooksDenied(bundle.info)) {
-        if (bundle.info) nsStatus(`[Compte NickServ] INFO RPC refusé : ${nsPreview(bundle.info)}`);
-        else if (!bundle.error) nsStatus('[Compte NickServ] INFO RPC vide');
-        return null;
-      }
+      if (!bundle.info || rpcLooksDenied(bundle.info)) return null;
       const parsed = parseNickServInfo(bundle.info, account);
-      if (!parsed.rows.length || !infoLooksPlausible(parsed)) {
-        nsStatus(`[Compte NickServ] INFO RPC illisible : ${nsPreview(bundle.info)}`);
-        return null;
-      }
-      nsStatus(`[Compte NickServ] INFO RPC ok (${parsed.rows.length} champs)`, 'info');
-      return parsed;
+      return parsed.rows.length && infoLooksPlausible(parsed) ? parsed : null;
     })() : null;
     const glistR = bundle && !rpcFailed ? (() => {
-      if (!bundle.glist || rpcLooksDenied(bundle.glist)) {
-        if (bundle.glist) nsStatus(`[Compte NickServ] GLIST RPC refusé : ${nsPreview(bundle.glist)}`);
-        return null;
-      }
+      if (!bundle.glist || rpcLooksDenied(bundle.glist)) return null;
       const nicks = parseNickServGlist(bundle.glist);
-      if (!glistLooksPlausible(nicks)) {
-        nsStatus(`[Compte NickServ] GLIST RPC illisible : ${nsPreview(bundle.glist)}`);
-        return null;
-      }
-      nsStatus(`[Compte NickServ] GLIST RPC ok (${nicks.length})`, 'info');
-      return nicks;
+      return glistLooksPlausible(nicks) ? nicks : null;
     })() : null;
     const alistR = bundle && !rpcFailed ? (() => {
-      if (!bundle.alist) {
-        nsStatus('[Compte NickServ] ALIST RPC vide');
-        return null;
-      }
+      if (!bundle.alist) return null;
       const rows = parseNickServAlist(bundle.alist);
-      if (rows.length) {
-        nsStatus(`[Compte NickServ] ALIST RPC ok (${rows.length} salons)`, 'info');
-        return rows;
-      }
-      if (rpcLooksDenied(bundle.alist)) {
-        nsStatus(`[Compte NickServ] ALIST RPC refusé : ${nsPreview(bundle.alist)}`);
-        return null;
-      }
-      nsStatus('[Compte NickServ] ALIST RPC : aucun salon', 'info');
+      if (rows.length) return rows;
+      if (rpcLooksDenied(bundle.alist)) return null;
       return isAlistEmpty(stripFormatting(bundle.alist).replace(/\s+/g, ' ').trim()) ? [] : [];
     })() : null;
     const ajoinR = bundle && !rpcFailed ? (() => {
-      if (!bundle.ajoin) {
-        nsStatus('[Compte NickServ] AJOIN RPC vide');
-        return null;
-      }
+      if (!bundle.ajoin) return null;
       const chans = parseNickServAjoin(bundle.ajoin);
-      if (chans.length) {
-        nsStatus(`[Compte NickServ] AJOIN RPC ok (${chans.length})`, 'info');
-        return chans;
-      }
+      if (chans.length) return chans;
       const fold = stripFormatting(bundle.ajoin).replace(/\s+/g, ' ').trim();
-      if (rpcLooksDenied(bundle.ajoin) && !isAjoinEmpty(fold)) {
-        nsStatus(`[Compte NickServ] AJOIN RPC refusé : ${nsPreview(bundle.ajoin)}`);
-        return null;
-      }
-      nsStatus('[Compte NickServ] AJOIN RPC : liste vide', 'info');
+      if (rpcLooksDenied(bundle.ajoin) && !isAjoinEmpty(fold)) return null;
       return [];
     })() : null;
     if (alistR) setAccessMarks(alistR.map((r) => r.channel));
     if (ajoinR) setAjoinMarks(ajoinR);
     partial = { info: infoR, glist: glistR ?? [], alist: alistR, ajoin: ajoinR };
-    const irc = { skipRpc: true as const, deadline };
-    if (!partial.info) {
-      const info = await fetchNickServInfo(account, nick, irc);
-      if (info) partial = { ...partial, info };
-    }
-    if (glistR == null) {
-      const glist = await fetchNickServGlist(account, nick, irc);
-      if (glist && glist.length) partial = { ...partial, glist };
-    }
-    if (partial.alist == null) {
-      const alist = await fetchNickServAlist(account, nick, true, irc);
-      if (alist != null) partial = { ...partial, alist };
-    }
-    if (partial.ajoin == null) {
-      const ajoin = await fetchNickServAjoin(account, nick, true, irc);
-      if (ajoin != null) partial = { ...partial, ajoin };
+    const rpcOk = !rpcFailed && !!(infoR || alistR != null || ajoinR != null);
+    nsStatus(`[Compte NickServ] rpc ${rpcOk ? 'ok' : 'non'}`, rpcOk ? 'info' : 'warning');
+    if (!rpcOk) {
+      const irc = { skipRpc: true as const, deadline };
+      if (!partial.info) {
+        const info = await fetchNickServInfo(account, nick, irc);
+        if (info) partial = { ...partial, info };
+      }
+      if (glistR == null) {
+        const glist = await fetchNickServGlist(account, nick, irc);
+        if (glist && glist.length) partial = { ...partial, glist };
+      }
+      if (partial.alist == null) {
+        const alist = await fetchNickServAlist(account, nick, true, irc);
+        if (alist != null) partial = { ...partial, alist };
+      }
+      if (partial.ajoin == null) {
+        const ajoin = await fetchNickServAjoin(account, nick, true, irc);
+        if (ajoin != null) partial = { ...partial, ajoin };
+      }
     }
     nsSnapCache = { key, at: Date.now(), data: partial };
     nsMarksKey = foldAccount(account);
@@ -976,10 +903,7 @@ export async function loadNickServAccountSnapshot(
     if (nsSnapInflight === work) nsSnapInflight = null;
   });
   const timed = new Promise<NickServAccountSnapshot>((resolve) => {
-    globalThis.setTimeout(() => {
-      nsStatus('[Compte NickServ] délai 30 s — affichage de ce qui a pu être chargé');
-      resolve(partial);
-    }, NS_ACCOUNT_WAIT_MS);
+    globalThis.setTimeout(() => resolve(partial), NS_ACCOUNT_WAIT_MS);
   });
   return await Promise.race([work, timed]);
 }
