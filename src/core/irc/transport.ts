@@ -156,23 +156,26 @@ export class Transport {
   // (visible / network back / focus), check the link at once and reconnect
   // immediately instead of waiting on the exponential backoff.
   //
-  // Never reconnect while the UI is hidden, or after a Web Push thaw without
-  // the user focusing the app — that would identify and drain mphistory.
+  // On phones / after a Web Push thaw, do not reconnect or keepalive while the
+  // UI is hidden — that would identify and drain mphistory. Desktop must keep
+  // the socket warm in the background (NAT + server ping timeout).
   private isUiVisible(): boolean {
     if (typeof document === 'undefined') return true;
     // Page Visibility API missing (node test shim) → treat as visible.
     if (typeof document.visibilityState !== 'string') return true;
     return document.visibilityState === 'visible' && !document.hidden;
   }
+  /** True when background IRC must stay silent (mobile freeze / push thaw). */
+  private suppressBackgroundIrc(): boolean {
+    return this.pushWake || likelyMobile();
+  }
   private isUserForeground(): boolean {
     if (!this.isUiVisible()) return false;
     if (typeof document === 'undefined') return true;
     // Phone + Web Push thaw: the OS can flip visibilityState to "visible"
     // without the user opening the app. Requiring focus blocks that from
-    // identifying and draining mphistory. Desktop background tabs still
-    // reconnect on visibility alone unless a push just woke us.
-    const needFocus = this.pushWake || likelyMobile();
-    if (needFocus && typeof document.hasFocus === 'function' && !document.hasFocus())
+    // identifying and draining mphistory.
+    if (this.suppressBackgroundIrc() && typeof document.hasFocus === 'function' && !document.hasFocus())
       return false;
     return true;
   }
@@ -266,9 +269,9 @@ export class Transport {
         this.scheduleReconnect();
         return;
       }
-      // Don't PING while backgrounded / push-thawed without focus: that can keep
-      // a half-dead session alive and look "connected" without opening the app.
-      if (!this.isUserForeground()) return;
+      // Mobile / push-thaw only: don't PING in the background (avoids a silent
+      // session). Desktop always keepalive so NAT and the ircd stay warm.
+      if (this.suppressBackgroundIrc() && !this.isUserForeground()) return;
       this.sendRaw('PING :ka');
     }, this.keepaliveMs);
   }
@@ -364,8 +367,9 @@ export class Transport {
   // reconnecting in lockstep after a server restart.
   private scheduleReconnect(): void {
     if (!this.wantConnected || this.reconnectTimer) return;
-    // Background / push wake: wait until the user actually opens the app.
-    if (!this.isUserForeground()) return;
+    // Mobile / push wake: wait until the user actually opens the app.
+    // Desktop reconnects in the background so the session survives alt-tab.
+    if (this.suppressBackgroundIrc() && !this.isUserForeground()) return;
     const base = Math.min(this.maxBackoffMs, 1000 * 2 ** this.reconnectAttempts);
     const delay = Math.round(base * (0.75 + Math.random() * 0.5)); // ±25% jitter
     this.reconnectAttempts++;
@@ -373,7 +377,7 @@ export class Transport {
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       if (!this.wantConnected) return;
-      if (!this.isUserForeground()) return;
+      if (this.suppressBackgroundIrc() && !this.isUserForeground()) return;
       this.openSocket();
     }, delay);
   }

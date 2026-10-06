@@ -277,6 +277,24 @@ describe('Transport — reconnect', () => {
     vi.advanceTimersByTime(60_000);
     expect(FakeWebSocket.instances).toHaveLength(1);
   });
+
+  it('keeps desktop keepalive and reconnect when the window is hidden', () => {
+    Object.defineProperty(navigator, 'userAgent', {
+      configurable: true,
+      value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36',
+    });
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    Object.defineProperty(document, 'hasFocus', { configurable: true, value: () => false });
+    const { t, rec } = setup();
+    t.connect('ws://x'); last()._open();
+    vi.advanceTimersByTime(45_000);
+    expect(last().sent).toContain('PING :ka\r\n');
+    last()._close();
+    expect(rec.reconnecting.length).toBeGreaterThan(0);
+    vi.advanceTimersByTime(60_000);
+    expect(FakeWebSocket.instances.length).toBeGreaterThan(1);
+  });
 });
 
 describe('Transport — disconnect', () => {
