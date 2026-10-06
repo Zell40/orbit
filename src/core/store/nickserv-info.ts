@@ -568,12 +568,30 @@ export type NickServSetOpt = {
 export const NICKSERV_SET_TOGGLES: NickServSetOpt[] = [
   { set: 'AUTOOP', key: 'autoop', match: /auto-?op/i },
   { set: 'CHANSTATS', key: 'chanstats', match: /chanstats|statistiques(\s+nickserv)?/i },
-  { set: 'LAYOUT', key: 'flexible', match: /flex|layout|disposition/i },
-  { set: 'PROTECT', key: 'kill', match: /^(kill|protection|protect)$/i },
-  { set: 'PRIVATE', key: 'private', match: /private|priv[eé]/i },
   { set: 'HIDE EMAIL', key: 'hidemail', match: /hidemail|hide\s*e-?mail|masquer\s*(l['’]\s*)?e-?mail/i },
+  { set: 'HIDE STATUS', key: 'hidestatus', match: /hidestatus|hide\s*status|masquer\s*(le\s*)?statut/i },
+  { set: 'HIDE USERMASK', key: 'hideusermask', match: /hideusermask|hide\s*usermask|masquer\s*(le\s*)?(user)?mask|masquer\s*l['’]h[oô]te/i },
+  { set: 'HIDE QUIT', key: 'hidequit', match: /hidequit|hide\s*quit|masquer\s*(le\s*)?quit/i },
   { set: 'KEEPMODES', key: 'keepmodes', match: /keepmodes|conserver les modes/i },
+  { set: 'LAYOUT', key: 'flexible', match: /flex|layout|disposition/i },
+  { set: 'NEVEROP', key: 'neverop', match: /neverop|jamais.?op|ne jamais.*op/i },
+  { set: 'PRIVATE', key: 'private', match: /private|priv[eé]/i },
+  { set: 'PROTECT', key: 'kill', match: /^(kill|protection|protect)$/i },
 ];
+
+/** NickServ SET options that take a value (not ON/OFF). PASSWORD stays on ChangePassword. */
+export const NICKSERV_SET_VALUES: Array<{ set: string; key: string; infoKey: RegExp; max: number }> = [
+  { set: 'DISPLAY', key: 'display', infoKey: /^(display|pseudo d['’]affichage|affichage)$/i, max: 32 },
+  { set: 'EMAIL', key: 'email', infoKey: /^(e-?mail|adresse e-?mail)$/i, max: 80 },
+  { set: 'GREET', key: 'greet', infoKey: /^(greet|message d['’]accueil|accueil)$/i, max: 200 },
+  { set: 'LANGUAGE', key: 'language', infoKey: /^(langue|language)$/i, max: 40 },
+  { set: 'URL', key: 'url', infoKey: /^url$/i, max: 200 },
+];
+
+export function nickServInfoValue(rows: NickServInfoRow[] | undefined, re: RegExp): string {
+  const row = (rows || []).find((r) => re.test(String(r.key || '').trim()));
+  return String(row?.value || '').trim();
+}
 
 export function foldNickServToken(s: string): string {
   return String(s || '').toLowerCase()
@@ -973,18 +991,19 @@ export async function nickServAjoinDel(account: string, nick: string, chan: stri
 }
 
 /** NickServ SET via RPC (no identify), else one IRC SET whose notices are swallowed. */
-export async function nickServSet(account: string, nick: string, option: string, on: boolean): Promise<void> {
+export async function nickServSet(account: string, nick: string, option: string, value: boolean | string): Promise<void> {
   const opt = String(option || '').trim();
   if (!opt) return;
-  const value = on ? 'ON' : 'OFF';
-  const rpc = await nickservRpc(account, nick, 'nsset', { option: opt, value });
+  const val = typeof value === 'boolean' ? (value ? 'ON' : 'OFF') : String(value).trim();
+  if (!val) return;
+  const rpc = await nickservRpc(account, nick, 'nsset', { option: opt, value: val });
   const fold = stripFormatting(rpc || '').replace(/\s+/g, ' ').trim();
   const denied = rpc == null || rpcLooksDenied(fold) || /^(syntaxe|syntax)\s*:/i.test(fold);
   if (denied) {
     markNickServAutoQuery(5000);
     try {
       const { activeStore } = await import('@/core/networks');
-      activeStore()?.getState?.()?.client?.privmsg('NickServ', `SET ${opt} ${value}`);
+      activeStore()?.getState?.()?.client?.privmsg('NickServ', `SET ${opt} ${val}`);
     } catch {
       /* ignore */
     }

@@ -223,6 +223,14 @@ describe('parseNickServOptionPills', () => {
     expect(on.has('PRIVATE')).toBe(true);
     expect(on.has('NOEXPIRE')).toBe(false);
   });
+
+  it('maps NEVEROP and HIDE STATUS pills', () => {
+    const on = parseNickServOptionPills(['NeverOp', 'HideStatus', 'HideUserMask', 'HideQuit']);
+    expect(on.has('NEVEROP')).toBe(true);
+    expect(on.has('HIDE STATUS')).toBe(true);
+    expect(on.has('HIDE USERMASK')).toBe(true);
+    expect(on.has('HIDE QUIT')).toBe(true);
+  });
 });
 
 describe('parseNickServGlist', () => {

@@ -11,9 +11,9 @@ import {
   fetchNickServHelp, fetchNickServList,
   nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
   describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServHelpIsOper,
-  parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
-  loadNickServAccountSnapshot, markNickServAutoQuery, NS_ACCOUNT_WAIT_MS, nickServSet,
-  type NickServInfo, type NickServAccessRow,
+  parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_SET_VALUES, NICKSERV_LIST_FLAGS,
+  loadNickServAccountSnapshot, markNickServAutoQuery, NS_ACCOUNT_WAIT_MS, nickServSet, nickServInfoValue,
+  type NickServInfo, type NickServAccessRow, type NickServInfoRow,
 } from '@/core/store/nickserv-info';
 
 export function AccountSection() {
@@ -230,7 +230,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
                 <dt className="nsinfo-row__k">{row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
-                    ? <NickServSetToggles account={account} nick={nick} pills={row.pills} onChanged={() => load({ force: true, silent: true })} />
+                    ? <NickServSetToggles account={account} nick={nick} pills={row.pills} rows={rows} onChanged={() => load({ force: true, silent: true })} />
                     : (row.value || '—')}
                 </dd>
               </div>
@@ -247,10 +247,11 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
 }
 
 function NickServSetToggles({
-  pills, account, nick, onChanged,
-}: { pills: string[]; account: string; nick: string; onChanged: () => void }) {
+  pills, rows, account, nick, onChanged,
+}: { pills: string[]; rows: NickServInfoRow[]; account: string; nick: string; onChanged: () => void }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState('');
+  const [draft, setDraft] = useState<Record<string, string>>({});
   const on = parseNickServOptionPills(pills);
   const noExpire = on.has('NOEXPIRE');
 
@@ -258,6 +259,16 @@ function NickServSetToggles({
     if (busy) return;
     setBusy(set);
     await nickServSet(account, nick, set, next);
+    setBusy('');
+    onChanged();
+  }
+
+  async function applyValue(set: string, max: number) {
+    if (busy) return;
+    const v = String(draft[set] ?? '').trim().slice(0, max);
+    if (!v) return;
+    setBusy(set);
+    await nickServSet(account, nick, set, v);
     setBusy('');
     onChanged();
   }
@@ -305,6 +316,41 @@ function NickServSetToggles({
           <span className="nsset-lock" title={t('settings.account.nsSet.noexpireHint')}>{t('settings.account.nsSet.locked')}</span>
         </div>
       ) : null}
+      {NICKSERV_SET_VALUES.map((opt) => {
+        const fromInfo = nickServInfoValue(rows, opt.infoKey);
+        const masked = opt.set === 'EMAIL' && /\*/.test(fromInfo);
+        const current = draft[opt.set] ?? (masked ? '' : fromInfo);
+        return (
+          <div className="nsset-field" key={opt.set}>
+            <span className="nsset-row__lab">
+              {t(`settings.account.nsSet.${opt.key}`)}
+              <button
+                type="button"
+                className="tipi"
+                title={t(`settings.account.nsSet.${opt.key}Hint`)}
+                aria-label={t(`settings.account.nsSet.${opt.key}Hint`)}
+              >i</button>
+            </span>
+            <div className="nsset-field__row">
+              <input
+                className="modal__input"
+                value={current}
+                maxLength={opt.max}
+                placeholder={t(`settings.account.nsSet.${opt.key}Placeholder`)}
+                disabled={busy === opt.set}
+                onChange={(e) => setDraft((d) => ({ ...d, [opt.set]: e.target.value }))}
+                onKeyDown={(e) => { if (e.key === 'Enter') void applyValue(opt.set, opt.max); }}
+              />
+              <button
+                type="button"
+                className="upbtn upbtn--primary"
+                disabled={busy === opt.set || !String(current).trim()}
+                onClick={() => void applyValue(opt.set, opt.max)}
+              >{t('settings.account.nsSet.apply')}</button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

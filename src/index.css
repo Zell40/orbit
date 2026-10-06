@@ -2188,6 +2188,10 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nssearch__hits { display: flex; flex-wrap: wrap; gap: .3rem; }
 .nsset-row { display: flex; align-items: center; justify-content: space-between; gap: .7rem; min-height: 1.7rem; }
 .nsset-row__lab { font-size: .82rem; font-weight: 650; color: var(--ink); display: inline-flex; align-items: center; gap: .35rem; min-width: 0; }
+.nsset-field { display: flex; flex-direction: column; gap: .28rem; padding-top: .35rem; }
+.nsset-field__row { display: flex; align-items: center; gap: .35rem; min-width: 0; }
+.nsset-field__row .modal__input { flex: 1; min-width: 0; }
+.nsset-field__row .upbtn { flex: none; }
 .tipi {
   flex: none; width: 1.05rem; height: 1.05rem; padding: 0; border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
