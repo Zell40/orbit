@@ -16,6 +16,9 @@
  * Opening the panel starts with OPER authentication. Once the session has
  * global oper (+o / RPL_YOUREOPER), tools for that ChanServ tier unlock.
  * Authenticated opers also get an "IRCOP" block in the nicklist right-click menu.
+ *
+ * After a successful OPER, login+password stay in RAM only (never storage) so
+ * auto-reconnect can re-OPER. DEOPER / a failed form login / tab close wipes them.
  */
 Orbit.plugin('orbit-ircop', (orbit, log) => {
   const { useState, useEffect, useRef, useLayoutEffect } = orbit.React;
@@ -123,6 +126,43 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
     anchor: null,
     subs: new Set(),
   };
+  // OPER credentials: RAM only, never on `store` (React/DevTools), never storage.
+  let operMem = null; // { name, pass } | null
+  let operReplayTimer = 0;
+  let operReplayTries = 0;
+
+  function forgetOper() {
+    operMem = null;
+    operReplayTries = 0;
+    if (operReplayTimer) { window.clearTimeout(operReplayTimer); operReplayTimer = 0; }
+  }
+  function rememberOper(name, pass) {
+    const n = String(name || '');
+    const p = String(pass || '');
+    operMem = (n && p) ? { name: n, pass: p } : null;
+  }
+  function sendOper(name, pass) {
+    orbit.irc.send('OPER ' + name + ' ' + pass);
+  }
+  function replayOper() {
+    if (!operMem || !operMem.name || !operMem.pass) return;
+    if (isOperSession()) return;
+    if (operReplayTries >= 2) return;
+    operReplayTries += 1;
+    store.authBusy = true;
+    store.authError = '';
+    notify();
+    sendOper(operMem.name, operMem.pass);
+  }
+  function scheduleReplay(ms) {
+    if (!operMem) return;
+    if (operReplayTimer) window.clearTimeout(operReplayTimer);
+    operReplayTimer = window.setTimeout(() => {
+      operReplayTimer = 0;
+      replayOper();
+    }, ms || 700);
+  }
+
   const notify = () => store.subs.forEach((f) => f());
   function useStore() {
     const [, set] = useState(0);
@@ -231,14 +271,24 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       store.authError = '';
       store.authOk = true;
       store.open = false;
+      operReplayTries = 0;
       notify();
     } else if (cmd === '491' || cmd === '464' || (cmd === '461' && fold(msg.params && msg.params[1]) === 'oper')) {
       store.authBusy = false;
       store.authError = (msg.params && msg.params[msg.params.length - 1]) || T('authFailed');
       store.authOk = false;
+      // Form login refused → drop RAM creds. Auto-replay may retry once (cloak/ident lag).
+      if (operReplayTries === 0) forgetOper();
+      else if (operMem && operReplayTries < 2) scheduleReplay(2000);
+      else forgetOper();
       notify();
     } else if (cmd === 'MODE') {
       notify();
+      if (operMem && store.authOk && orbit.state.get().status === 'registered' && !isOperSession()) {
+        forgetOper();
+        store.authOk = false;
+        notify();
+      }
     }
   });
 
@@ -249,14 +299,18 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       store.authError = '';
       store.csAccess = undefined;
       store.csTried = false;
+      operReplayTries = 0;
+      if (operReplayTimer) { window.clearTimeout(operReplayTimer); operReplayTimer = 0; }
       try { orbit.state.get().setEchoServerTo?.(null); } catch (_) { /* */ }
       notify();
     } else {
       refreshCsAccess();
+      scheduleReplay(700);
     }
   });
 
   orbit.on('connected', () => { refreshCsAccess(); });
+  window.addEventListener('pagehide', forgetOper);
   // Account may land after SASL / bouncer attach.
   setInterval(() => {
     if (orbit.state.account() && store.csAccess === undefined) refreshCsAccess();
@@ -289,16 +343,19 @@ Orbit.plugin('orbit-ircop', (orbit, log) => {
       notify();
       return;
     }
+    rememberOper(n, p);
+    operReplayTries = 0;
     store.authBusy = true;
     store.authError = '';
     store.authOk = false;
     notify();
-    orbit.irc.send('OPER ' + n + ' ' + p);
+    sendOper(n, p);
   }
 
   function deoper() {
     const nick = orbit.state.nick();
     if (nick) orbit.irc.send('MODE ' + nick + ' -o');
+    forgetOper();
     store.authOk = false;
     notify();
   }
