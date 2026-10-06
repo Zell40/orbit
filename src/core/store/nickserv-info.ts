@@ -62,21 +62,22 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
 async function nickservRpc(
   account: string,
   nick: string,
-  action: 'nsinfo' | 'nsalist' | 'nshelp',
+  action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist',
+  extra?: { pattern?: string; flags?: string[] },
 ): Promise<string | null> {
   if (!account) return null;
   const ctrl = new AbortController();
-  const to = window.setTimeout(() => ctrl.abort(), 6000);
+  const to = window.setTimeout(() => ctrl.abort(), 8000);
   try {
     const r = await fetch(CS_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ account, nick, action }),
+      body: JSON.stringify({ account, nick, action, ...extra }),
       signal: ctrl.signal,
     });
     const data = await r.json() as { ok?: boolean; info?: unknown; list?: unknown; help?: unknown };
     if (!data?.ok) return null;
-    const blob = action === 'nsalist' ? data.list : action === 'nshelp' ? data.help : data.info;
+    const blob = action === 'nsinfo' ? data.info : action === 'nshelp' ? data.help : data.list;
     if (blob == null) return null;
     return String(blob);
   } catch {
@@ -257,6 +258,77 @@ export async function fetchNickServInfo(account: string, nick = ''): Promise<Nic
   if (blob == null) return null;
   const parsed = parseNickServInfo(blob, account);
   return parsed.rows.length ? parsed : null;
+}
+
+export function isNickServNicksRow(key: string): boolean {
+  return /^(nicks?|pseudos?(?:\s+enregistr[ée]s?)?)$/i.test(String(key || '').trim());
+}
+
+const GLIST_SKIP = /^(liste des pseudos|nicknames registered|fin de|end of|syntaxe:|syntax:|num[eé]ro|pseudo|nick(?:name)?s?|compte|account)\b/i;
+const NICK_TOKEN = /^[A-Za-z\[\]\\^{|}`][A-Za-z0-9_\[\]\\^{|}`-]{0,31}$/;
+
+/** NickServ GLIST blob → grouped nicknames on the account. */
+export function parseNickServGlist(raw: string): string[] {
+  const nicks: string[] = [];
+  const seen = new Set<string>();
+  for (const line of String(raw || '').split(/\n/)) {
+    const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
+    if (!s || GLIST_SKIP.test(s)) continue;
+    const m = s.match(/^(?:\d+\s*[.)]\s*)?(\S+?)(?:\s+\([^)]*\))?$/);
+    const nick = m?.[1]?.replace(/[,.;:]+$/, '') || '';
+    if (!NICK_TOKEN.test(nick)) continue;
+    const fold = nick.toLowerCase();
+    if (seen.has(fold)) continue;
+    seen.add(fold);
+    nicks.push(nick);
+  }
+  return nicks;
+}
+
+export async function fetchNickServGlist(account: string, nick = ''): Promise<string[] | null> {
+  const blob = await nickservRpc(account, nick, 'nsglist');
+  if (blob == null) return null;
+  const nicks = parseNickServGlist(blob);
+  const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
+  if (!nicks.length && /syntaxe:|syntax:/i.test(fold)) return null;
+  return nicks;
+}
+
+/** NickServ LIST blob → matching nicknames (search). */
+export function parseNickServList(raw: string): { nicks: string[]; denied: boolean } {
+  const fold = stripFormatting(raw).replace(/\s+/g, ' ').trim();
+  if (/syntaxe:|syntax:|acc[eè]s refus|access denied|permission/i.test(fold)
+    && !/\d+\s*[.)]\s+\S+/.test(fold)) {
+    return { nicks: [], denied: /syntaxe:|syntax:|acc[eè]s refus|access denied|permission/i.test(fold) };
+  }
+  const nicks: string[] = [];
+  const seen = new Set<string>();
+  for (const line of String(raw || '').split(/\n/)) {
+    const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
+    if (!s || GLIST_SKIP.test(s)) continue;
+    if (/^(liste des|list of|matching)/i.test(s)) continue;
+    const m = s.match(/^(?:\d+\s*[.)]?\s+|[-•]\s*)(\S+)/) || s.match(/^(\S+)$/);
+    const nick = m?.[1]?.replace(/[,.;:]+$/, '') || '';
+    if (!NICK_TOKEN.test(nick)) continue;
+    const key = nick.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    nicks.push(nick);
+  }
+  return { nicks, denied: false };
+}
+
+export const NICKSERV_LIST_FLAGS = ['DISPLAY', 'NOEXPIRE', 'SUSPENDED', 'UNCONFIRMED'] as const;
+
+export async function fetchNickServList(
+  account: string,
+  nick: string,
+  pattern: string,
+  flags: string[] = [],
+): Promise<{ nicks: string[]; denied: boolean } | null> {
+  const blob = await nickservRpc(account, nick, 'nslist', { pattern, flags });
+  if (blob == null) return null;
+  return parseNickServList(blob);
 }
 
 /** Read NickServ ALIST via Anope JSON-RPC. No IRC PM. `[]` = none; `null` = failed. */

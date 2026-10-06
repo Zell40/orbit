@@ -87,6 +87,12 @@ const PATHS: Record<string, ReactNode> = {
       <path d="M21 12H9" />
     </>
   ),
+  refresh: (
+    <>
+      <path d="M21 12a9 9 0 1 1-2.6-6.4" />
+      <path d="M21 4v6h-6" />
+    </>
+  ),
   deafChan: (
     <>
       <path d="M11 5 6 9H3v6h3l5 4V5z" />

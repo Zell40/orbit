@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   parseNickServInfo, parseNickServAlist, describeAlistAccess, alistCanInvite,
-  parseNickServOptionPills, sendChanServInvite, NICKSERV_MANAGE_CMDS,
+  parseNickServOptionPills, sendChanServInvite, parseNickServGlist, parseNickServList,
 } from './nickserv-info';
 
 const FR = `\u0002Informations pour le compte Harry\u0002 :
@@ -164,9 +164,25 @@ describe('parseNickServOptionPills', () => {
   });
 });
 
-describe('NICKSERV_MANAGE_CMDS', () => {
-  it('hides SET so options live as switches, not a free-text command', () => {
-    expect(NICKSERV_MANAGE_CMDS.find((c) => c.cmd === 'SET')?.hide).toBe(true);
+describe('parseNickServGlist', () => {
+  it('reads grouped nicks from a French GLIST', () => {
+    const raw = `Liste des pseudos enregistrés sur le compte Zell :
+Zell (principal)
+Jessie
+Fin de la liste.`;
+    expect(parseNickServGlist(raw)).toEqual(['Zell', 'Jessie']);
+  });
+});
+
+describe('parseNickServList', () => {
+  it('reads numbered LIST hits and ignores help', () => {
+    const raw = `Liste des pseudos correspondant à *Bot* :
+Numéro  Pseudo
+1       BotServ
+2       TriviaBot
+Fin de la liste.`;
+    expect(parseNickServList(raw).nicks).toEqual(['BotServ', 'TriviaBot']);
+    expect(parseNickServList('Syntaxe: LIST modèle').denied).toBe(true);
   });
 });
 

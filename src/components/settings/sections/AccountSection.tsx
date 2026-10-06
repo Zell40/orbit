@@ -6,10 +6,12 @@ import { getTheme } from '@/themes';
 import { Turnstile } from '@/components/Turnstile';
 import { useActiveChat, activeStore } from '@/core/networks';
 import { ChangeNickField } from '../ChangeNickField';
+import { Icon } from '@/components/Icon';
 import {
-  fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, describeAlistAccess, alistCanInvite,
-  parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_MANAGE_CMDS, NICKSERV_MANAGE_FALLBACK,
-  type NickServInfo, type NickServAccess, type NickServManageCmd,
+  fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, fetchNickServGlist, fetchNickServList,
+  describeAlistAccess, alistCanInvite, isNickServNicksRow,
+  parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
+  type NickServInfo, type NickServAccess,
 } from '@/core/store/nickserv-info';
 
 export function AccountSection() {
@@ -80,7 +82,7 @@ export function AccountSection() {
         <ChangePassword />
         <NickServInfoCard account={account} nick={nick} />
         <NickServAlistCard account={account} nick={nick} />
-        <NickServManageCard account={account} nick={nick} />
+        <NickServSearchCard account={account} nick={nick} />
         <button className="set-leave" onClick={logout}>{t('settings.account.logoutAccount')}</button>
       </>
     );
@@ -136,50 +138,86 @@ export function AccountSection() {
   );
 }
 
+function RefreshIconBtn({ onClick, disabled, label }: { onClick: () => void; disabled?: boolean; label: string }) {
+  return (
+    <button
+      className="linkbtn nsinfo__refresh nsinfo__refresh--ico"
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={label}
+      aria-label={label}
+    >
+      <Icon name="refresh" size={16} />
+    </button>
+  );
+}
+
 function NickServInfoCard({ account, nick }: { account: string; nick: string }) {
   const { t } = useTranslation();
+  const client = useActiveChat((s) => s.client);
   const [phase, setPhase] = useState<'loading' | 'ok' | 'empty'>('loading');
   const [info, setInfo] = useState<NickServInfo | null>(null);
+  const [nicks, setNicks] = useState<string[]>([]);
   const gen = useRef(0);
 
-  const load = useCallback(() => {
+  const load = useCallback((withUpdate = false) => {
     const mine = ++gen.current;
     setPhase('loading');
-    void fetchNickServInfo(account, nick).then((parsed) => {
-      if (mine !== gen.current) return;
-      if (!parsed) { setInfo(null); setPhase('empty'); return; }
-      setInfo(parsed);
-      setPhase('ok');
-    });
-  }, [account, nick]);
+    if (withUpdate) client?.privmsg('NickServ', 'UPDATE');
+    const wait = withUpdate ? 700 : 0;
+    window.setTimeout(() => {
+      void Promise.all([
+        fetchNickServInfo(account, nick),
+        fetchNickServGlist(account, nick),
+      ]).then(([parsed, glist]) => {
+        if (mine !== gen.current) return;
+        if (!parsed) { setInfo(null); setNicks(glist || []); setPhase('empty'); return; }
+        setInfo(parsed);
+        const fromInfo = parsed.rows.find((r) => isNickServNicksRow(r.key))?.value
+          .split(/\s*,\s*/).map((s) => s.trim()).filter(Boolean) || [];
+        setNicks((glist && glist.length) ? glist : fromInfo);
+        setPhase('ok');
+      });
+    }, wait);
+  }, [account, nick, client]);
 
   useEffect(() => {
-    load();
+    load(false);
     return () => { gen.current++; };
   }, [load]);
+
+  const rows = (info?.rows || []).filter((row) => !isNickServNicksRow(row.key));
 
   return (
     <div className="scard nsinfo">
       <div className="scard__h">
         <span>🪪 {t('settings.account.nickservTitle')}</span>
-        <button className="linkbtn nsinfo__refresh" type="button" onClick={() => load()}
-          disabled={phase === 'loading'}>{t('profile.refresh')}</button>
+        <RefreshIconBtn
+          onClick={() => load(true)}
+          disabled={phase === 'loading'}
+          label={t('profile.refresh')}
+        />
       </div>
       <div className="scard__body">
         {phase === 'loading' && <div className="sfield"><div className="sfield__intro">{t('settings.account.nickservLoading')}</div></div>}
         {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.nickservUnavailable')}</div></div>}
         {phase === 'ok' && info && (
           <dl className="nsinfo-dl">
-            {info.rows.map((row, i) => (
+            {rows.map((row, i) => (
               <div className="nsinfo-row" key={`${row.key}-${i}`}>
                 <dt className="nsinfo-row__k">{row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
-                    ? <NickServSetToggles pills={row.pills} onChanged={load} />
+                    ? <NickServSetToggles pills={row.pills} onChanged={() => load(false)} />
                     : (row.value || '—')}
                 </dd>
               </div>
             ))}
+            <div className="nsinfo-row">
+              <dt className="nsinfo-row__k">{t('settings.account.glistLabel')}</dt>
+              <dd className="nsinfo-row__v">{nicks.length ? nicks.join(' ') : '—'}</dd>
+            </div>
           </dl>
         )}
       </div>
@@ -289,8 +327,11 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
     <div className="scard nsinfo">
       <div className="scard__h">
         <span>🏠 {t('settings.account.alistTitle')}</span>
-        <button className="linkbtn nsinfo__refresh" type="button" onClick={() => load()}
-          disabled={phase === 'loading'}>{t('profile.refresh')}</button>
+        <RefreshIconBtn
+          onClick={() => load()}
+          disabled={phase === 'loading'}
+          label={t('profile.refresh')}
+        />
       </div>
       <div className="scard__body">
         {phase === 'loading' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistLoading')}</div></div>}
@@ -344,113 +385,110 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
   );
 }
 
-function NickServManageCard({ account, nick }: { account: string; nick: string }) {
+function NickServSearchCard({ account, nick }: { account: string; nick: string }) {
   const { t } = useTranslation();
-  const client = useActiveChat((s) => s.client);
-  const [phase, setPhase] = useState<'loading' | 'ok' | 'fail'>('loading');
-  const [allowed, setAllowed] = useState<Set<string>>(NICKSERV_MANAGE_FALLBACK);
-  const [sel, setSel] = useState<NickServManageCmd | null>(null);
-  const [args, setArgs] = useState('');
-  const [flash, setFlash] = useState<'ok' | 'err' | null>(null);
+  const [allowed, setAllowed] = useState(false);
+  const [pattern, setPattern] = useState('');
+  const [flags, setFlags] = useState<Set<string>>(new Set());
+  const [phase, setPhase] = useState<'idle' | 'loading' | 'ok' | 'empty' | 'deny'>('idle');
+  const [hits, setHits] = useState<string[]>([]);
   const gen = useRef(0);
 
-  const load = useCallback(() => {
-    const mine = ++gen.current;
-    setPhase('loading');
+  useEffect(() => {
+    let live = true;
     void fetchNickServHelp(account, nick).then((cmds) => {
-      if (mine !== gen.current) return;
-      if (!cmds) {
-        setAllowed(NICKSERV_MANAGE_FALLBACK);
-        setPhase('fail');
-        return;
-      }
-      setAllowed(cmds);
-      setPhase('ok');
+      if (!live) return;
+      setAllowed(!!cmds && cmds.has('LIST'));
     });
+    return () => { live = false; };
   }, [account, nick]);
 
-  useEffect(() => {
-    load();
-    return () => { gen.current++; };
-  }, [load]);
-
-  const visible = NICKSERV_MANAGE_CMDS.filter((c) => {
-    if (c.hide || c.guestOnly) return false;
-    return allowed.has(c.cmd) || (phase === 'fail' && NICKSERV_MANAGE_FALLBACK.has(c.cmd));
-  });
-
-  function run() {
-    if (!client || !sel) return;
-    const arg = args.trim();
-    if (sel.args && !arg) return;
-    if (sel.danger && !window.confirm(t('settings.account.nsManageConfirm', { cmd: sel.cmd }))) return;
-    client.privmsg('NickServ', sel.args ? `${sel.cmd} ${arg}` : sel.cmd);
-    setFlash('ok');
-    window.setTimeout(() => setFlash(null), 2500);
+  function toggleFlag(flag: string) {
+    setFlags((prev) => {
+      const next = new Set(prev);
+      if (next.has(flag)) next.delete(flag); else next.add(flag);
+      return next;
+    });
   }
+
+  function search() {
+    const q = pattern.trim();
+    if (!q || phase === 'loading') return;
+    const mine = ++gen.current;
+    setPhase('loading');
+    void fetchNickServList(account, nick, q, [...flags]).then((res) => {
+      if (mine !== gen.current) return;
+      if (!res) { setHits([]); setPhase('deny'); return; }
+      if (res.denied) { setHits([]); setPhase('deny'); return; }
+      setHits(res.nicks);
+      setPhase(res.nicks.length ? 'ok' : 'empty');
+    });
+  }
+
+  if (!allowed) return null;
 
   return (
     <div className="scard nsinfo">
       <div className="scard__h">
-        <span>⚙️ {t('settings.account.nsManageTitle')}</span>
-        <button className="linkbtn nsinfo__refresh" type="button" onClick={() => load()}
-          disabled={phase === 'loading'}>{t('profile.refresh')}</button>
+        <span>🔎 {t('settings.account.nsSearchTitle')}</span>
       </div>
-      <div className="scard__body">
-        {phase === 'loading' && (
-          <div className="sfield"><div className="sfield__intro">{t('settings.account.nsManageLoading')}</div></div>
-        )}
-        {phase !== 'loading' && (
-          <div className="nsmanage">
-            <p className="nsmanage__intro">{t('settings.account.nsManageIntro')}</p>
-            {phase === 'fail' ? (
-              <p className="nsmanage__err">{t('settings.account.nsManageUnavailable')}</p>
-            ) : null}
-            {!visible.length ? (
-              <p className="nsmanage__intro">{t('settings.account.nsManageEmpty')}</p>
-            ) : (
-              <div className="nsmanage__grid" role="list">
-                {visible.map((c) => (
-                  <button
-                    key={c.cmd}
-                    type="button"
-                    role="listitem"
-                    className={`nsmanage__cmd${sel?.cmd === c.cmd ? ' is-on' : ''}${c.danger ? ' is-danger' : ''}`}
-                    onClick={() => { setSel(c); setArgs(''); setFlash(null); }}
-                  >
-                    {c.cmd}
-                  </button>
-                ))}
-              </div>
-            )}
-            {sel ? (
-              <div className="nsmanage__panel">
-                <p className="nsmanage__desc">{t(`settings.account.nsCmd.${sel.key}`)}</p>
-                <div className="nsmanage__row">
-                  {sel.args ? (
-                    <input
-                      className="modal__input"
-                      value={args}
-                      placeholder={t('settings.account.nsManageArgs')}
-                      aria-label={t('settings.account.nsManageArgs')}
-                      onChange={(e) => setArgs(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && run()}
-                    />
-                  ) : null}
-                  <button
-                    type="button"
-                    className={`upbtn upbtn--primary${sel.danger ? '' : ''}`}
-                    onClick={run}
-                    disabled={!!sel.args && !args.trim()}
-                  >
-                    {t('settings.account.nsManageRun')}
-                  </button>
-                </div>
-                {flash === 'ok' ? <p className="nsmanage__ok">{t('settings.account.nsManageSent')}</p> : null}
-              </div>
-            ) : null}
+      <div className="scard__body nssearch">
+        <p className="nssearch__intro">{t('settings.account.nsSearchIntro')}</p>
+        <div className="sfield">
+          <label className="sfield__label">{t('settings.account.nsSearchPattern')}</label>
+          <div className="sfield__row">
+            <input
+              className="modal__input"
+              value={pattern}
+              placeholder={t('settings.account.nsSearchPlaceholder')}
+              onChange={(e) => setPattern(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && search()}
+            />
+            <button
+              className={`upbtn upbtn--primary ${phase === 'loading' ? 'is-loading' : ''}`}
+              type="button"
+              onClick={search}
+              disabled={!pattern.trim() || phase === 'loading'}
+            >
+              {phase === 'loading' ? t('settings.account.nsSearchLoading') : t('settings.account.nsSearchRun')}
+            </button>
           </div>
-        )}
+        </div>
+        <div className="nsset nssearch__flags">
+          {NICKSERV_LIST_FLAGS.map((flag) => {
+            const on = flags.has(flag);
+            const key = flag.toLowerCase();
+            return (
+              <div className="nsset-row" key={flag}>
+                <span className="nsset-row__lab">
+                  {t(`settings.account.nsSearchFlag.${key}`)}
+                  <button
+                    type="button"
+                    className="tipi"
+                    title={t(`settings.account.nsSearchFlag.${key}Hint`)}
+                    aria-label={t(`settings.account.nsSearchFlag.${key}Hint`)}
+                  >i</button>
+                </span>
+                <button
+                  type="button"
+                  className={`switch${on ? ' is-on' : ''}`}
+                  role="switch"
+                  aria-checked={on}
+                  onClick={() => toggleFlag(flag)}
+                >
+                  <span className="switch__dot" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {phase === 'deny' ? <p className="nssearch__msg">{t('settings.account.nsSearchUnavailable')}</p> : null}
+        {phase === 'empty' ? <p className="nssearch__msg">{t('settings.account.nsSearchEmpty')}</p> : null}
+        {phase === 'ok' ? (
+          <div className="nssearch__hits">
+            {hits.map((n) => <span className="nsinfo-pill" key={n}>{n}</span>)}
+          </div>
+        ) : null}
       </div>
     </div>
   );

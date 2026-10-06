@@ -53,6 +53,8 @@ export interface AppConfig {
      *  members here (`?direct=1&channel=…`) so they only click Connect. Empty =
      *  Orbit’s own join form. */
     loginUrl?: string;
+    /** WordPress MonIdentité page — edit profile / account on the site. */
+    identityUrl?: string;
     links?: { label: string; url: string }[]; // extra links shown in Settings → About (rules, donate, …)
     accent?: string;    // optional accent colour override (the --accent CSS token)
     /** Boot / PWA handoff splash background (hex). Matches manifest background_color. */

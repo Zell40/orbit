@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { fetchProfileGecos } from './profile-gecos';
+import { fetchProfileGecos, fetchWpProfile } from './profile-gecos';
 
 describe('fetchProfileGecos', () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -35,5 +35,54 @@ describe('fetchProfileGecos', () => {
       json: async () => ({ exists: false, realname: null }),
     })));
     await expect(fetchProfileGecos('Nobody')).resolves.toBeUndefined();
+  });
+
+  it('reads WordPress account fields from the public profile API', async () => {
+    const fetch = vi.fn(async (url: string) => {
+      if (String(url).includes('wp-json/entrenous/v1/profile')) {
+        return {
+          ok: true,
+          json: async () => ({
+            exists: true,
+            login: 'Zell',
+            display_name: 'Zell',
+            age: 40,
+            sexe: 'Homme',
+            ville: 'Paris',
+            profile_url: 'https://www.reseau-entrenous.fr/user/zell/',
+            registered: '2012-03-14',
+          }),
+        };
+      }
+      return { ok: false, json: async () => ({}) };
+    });
+    vi.stubGlobal('fetch', fetch);
+    await expect(fetchWpProfile('Zell')).resolves.toEqual({
+      exists: true,
+      login: 'Zell',
+      displayName: 'Zell',
+      age: '40',
+      gender: 'Homme',
+      city: 'Paris',
+      profileUrl: 'https://www.reseau-entrenous.fr/user/zell/',
+      registered: '2012-03-14',
+    });
+  });
+
+  it('fills ASL from the same-origin proxy realname', async () => {
+    const fetch = vi.fn(async (url: string) => {
+      if (String(url).includes('wp-json')) throw new Error('cors');
+      if (String(url).includes('/accounts/api/profile_gecos/')) {
+        return { ok: true, json: async () => ({ ok: true, exists: true, realname: '33 - Femme - Lyon' }) };
+      }
+      return { ok: false, json: async () => ({}) };
+    });
+    vi.stubGlobal('fetch', fetch);
+    await expect(fetchWpProfile('ProxyNick')).resolves.toEqual({
+      exists: true,
+      age: '33',
+      gender: 'Femme',
+      city: 'Lyon',
+    });
   });
 });
