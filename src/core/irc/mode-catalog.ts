@@ -21,7 +21,7 @@ export interface UserFlag {
 export type ChanFlagGroup = 'classic' | 'extra';
 
 /** Why a channel flag is not toggleable in the Modes tab. */
-export type ChanFlagLock = 'services' | 'overview' | 'list';
+export type ChanFlagLock = 'services' | 'overview' | 'list' | 'exempts' | 'autoop';
 
 export interface ChanFlag {
   m: string;
@@ -87,6 +87,8 @@ export const CHAN_FLAGS: ChanFlag[] = [
   { m: 'A', key: 'allowInvite', group: 'extra' },
   { m: 'D', key: 'delayJoin', group: 'extra' },
   { m: 'g', key: 'chanfilter', group: 'extra', readonly: true, lock: 'list' },
+  { m: 'X', key: 'exemptchanops', group: 'extra', readonly: true, lock: 'exempts' },
+  { m: 'w', key: 'autoop', group: 'extra', readonly: true, lock: 'autoop' },
   { m: 'G', key: 'censor', group: 'extra' },
   { m: 'Q', key: 'noKick', group: 'extra' },
   { m: 'T', key: 'noNotice', group: 'extra' },
@@ -190,7 +192,7 @@ export function filterCatalog<T extends { m: string }>(
   return items.filter((item) => advertised.has(item.m));
 }
 
-/** Type-D flags the ircd has, plus +k (key) and +g (chanfilter list) when advertised. */
+/** Type-D flags the ircd has, plus list modes (+k/+g/+X/+w) when advertised. */
 export function advertisedChanFlags(
   typeD: Set<string>,
   typeB: Set<string> = new Set(),
@@ -198,7 +200,7 @@ export function advertisedChanFlags(
 ): ChanFlag[] {
   return CHAN_FLAGS.filter((f) => {
     if (f.m === 'k') return typeB.size ? typeB.has('k') : true;
-    if (f.m === 'g') return typeA.has('g');
+    if (f.m === 'g' || f.m === 'X' || f.m === 'w') return typeA.has(f.m);
     return typeD.size ? typeD.has(f.m) : BASE_CHAN_FLAGS.includes(f.m);
   });
 }

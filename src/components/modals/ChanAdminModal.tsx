@@ -14,6 +14,13 @@ import {
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
 import {
+  advertisedExemptions,
+  EXEMPT_PREFIXES,
+  explainExemptEntry,
+  formatExemptEntry,
+  parseExemptEntry,
+} from '@/core/irc/chan-exemptions';
+import {
   explainChanParam,
   formatModeToken,
   normalizeRedirectTarget,
@@ -118,7 +125,7 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
   flags: ChanFlag[]; modes: string; mlock?: string; chan: string;
   setChannelMode: (chan: string, letter: string, on: boolean) => void;
   onLockedClick?: (f: ChanFlag) => void;
-  onLockTip: (letter: string, lock: 'services' | 'overview' | 'list', pt: { clientX: number; clientY: number }) => void;
+  onLockTip: (letter: string, lock: 'services' | 'overview' | 'list' | 'exempts' | 'autoop', pt: { clientX: number; clientY: number }) => void;
   /** Simplified panel: drop the mode letter and spell the effect out instead. */
   plain?: boolean;
 }) {
@@ -130,14 +137,18 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
         const mlocked = !!(mlock && mlock.includes(f.m));
         const ro = !!f.readonly || mlocked;
         const lock = f.lock || (mlocked ? 'services' : (ro ? 'services' : undefined));
-        const jump = ro && !!onLockedClick && (f.m === 'k' || f.m === 'g');
+        const jump = ro && !!onLockedClick && (f.m === 'k' || f.m === 'g' || f.m === 'X' || f.m === 'w');
         const lockHint = lock === 'overview'
           ? t('modals.chanadmin.lockedOnOverview')
           : lock === 'list'
             ? t('modals.chanadmin.lockedOnFilters')
-            : lock === 'services'
-              ? t('modals.chanadmin.lockedByServices')
-              : '';
+            : lock === 'exempts'
+              ? t('modals.chanadmin.lockedOnExempts')
+              : lock === 'autoop'
+                ? t('modals.chanadmin.lockedOnAutoop')
+                : lock === 'services'
+                  ? t('modals.chanadmin.lockedByServices')
+                  : '';
         const title = plain
           ? `${t(`chanFlags.${f.key}.label`)}${lockHint ? ` · ${lockHint}` : ''}`
           : `+${f.m} · ${t(`chanFlags.${f.key}.label`)} — ${t(`chanFlags.${f.key}.desc`)}${lockHint ? ` · ${lockHint}` : ''}`;
@@ -162,7 +173,7 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
                 <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
               </>
             )}
-            {ro && lock && lock !== 'list' ? <LockTag kind={lock} /> : null}
+            {ro && (lock === 'services' || lock === 'overview') ? <LockTag kind={lock} /> : null}
           </label>
         );
       })}
@@ -174,7 +185,7 @@ function fmtDate(sec: number, locale: string): string {
   return new Date(sec * 1000).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-type Tab = 'overview' | 'modes' | 'bans' | 'invex' | 'filters';
+type Tab = 'overview' | 'modes' | 'bans' | 'invex' | 'filters' | 'exempts' | 'autoop';
 
 // A compact combobox for the extban type: a button + an overlay menu (grouped into
 // restrictions / match-by, filterable). Opening it doesn't push the value input, so
@@ -370,6 +381,8 @@ export function ChanAdminModal() {
   const exceptlist = useActiveChat((s) => s.exceptlists[s.active] || []);
   const invexlist = useActiveChat((s) => s.invexlists[s.active] || []);
   const filterlist = useActiveChat((s) => s.filterlists[s.active] || []);
+  const exemptlist = useActiveChat((s) => s.exemptlists[s.active] || []);
+  const autooplist = useActiveChat((s) => s.autooplists[s.active] || []);
   const loadBanList = useActiveChat((s) => s.loadBanList);
   const loadChannelMlock = useActiveChat((s) => s.loadChannelMlock);
   const loadChanServPublic = useActiveChat((s) => s.loadChanServPublic);
@@ -402,10 +415,13 @@ export function ChanAdminModal() {
   // The ban tab's two methods. A deployment that routes bans to a second-chance
   // channel wants that one in front, which is the whole point of the policy.
   const [banMethod, setBanMethod] = useState<'mask' | 'ext'>(redirectPolicy ? 'ext' : 'mask');
-  const [moreModes, setMoreModes] = useState(false);
+  const [moreModes, setMoreModes] = useState(true);
   const banField = useMaskField();
   const ebField = useMaskField();
   const [newfilter, setNewfilter] = useState('');
+  const [exemptPrefix, setExemptPrefix] = useState<string>('o');
+  const [autoopRank, setAutoopRank] = useState('o');
+  const [autoopMask, setAutoopMask] = useState('');
   const [ebType, setEbType] = useState('');
   const [ebDest, setEbDest] = useState(policyDest);
   const [ebInvert, setEbInvert] = useState(false);
@@ -461,11 +477,15 @@ export function ChanAdminModal() {
   const [keyVal, setKeyVal] = useState(curKey);
   const [limitVal, setLimitVal] = useState(curLimit);
   const [lockTip, setLockTip] = useState<{ letter: string; text: string; x: number; y: number } | null>(null);
-  const showLockTip = (letter: string, kind: 'services' | 'overview' | 'list' | 'topic', pt: { clientX: number; clientY: number }) => {
+  const showLockTip = (letter: string, kind: 'services' | 'overview' | 'list' | 'topic' | 'exempts' | 'autoop', pt: { clientX: number; clientY: number }) => {
     const text = kind === 'overview'
       ? t('modals.chanadmin.lockedOnOverview')
       : kind === 'list'
         ? t('modals.chanadmin.lockedOnFilters')
+        : kind === 'exempts'
+          ? t('modals.chanadmin.lockedOnExempts')
+          : kind === 'autoop'
+            ? t('modals.chanadmin.lockedOnAutoop')
         : kind === 'topic'
           ? t('modals.chanadmin.topicLockedByServices')
         : (mlock
@@ -503,9 +523,15 @@ export function ChanAdminModal() {
   const flags = advertisedChanFlags(ctx.typeD, ctx.typeB, ctx.typeA);
   const paramModes = filterCatalog(CHAN_PARAMS, new Set([...ctx.typeB, ...ctx.typeC]));
   const extraFlags = flags.filter((f) => f.group === 'extra');
-  const extraShown = extraFlags.filter((f) => moreModes || modes.includes(f.m) || f.lock === 'list' || (f.m === 'g' && filterlist.length > 0));
-  const paramsShown = paramModes.filter((p) => moreModes || !!(modeParams?.[p.m]));
-  const canShowMore = extraFlags.some((f) => f.lock !== 'list' && !modes.includes(f.m))
+  // Full panel: show every advertised flag/param. "Voir plus" only collapses extras.
+  const listLock = (f: ChanFlag) => f.lock === 'list' || f.lock === 'exempts' || f.lock === 'autoop';
+  const extraShown = moreModes ? extraFlags : extraFlags.filter((f) =>
+    modes.includes(f.m) || listLock(f)
+    || (f.m === 'g' && filterlist.length > 0)
+    || (f.m === 'X' && exemptlist.length > 0)
+    || (f.m === 'w' && autooplist.length > 0));
+  const paramsShown = moreModes ? paramModes : paramModes.filter((p) => !!(modeParams?.[p.m]));
+  const canShowMore = extraFlags.some((f) => !listLock(f) && !modes.includes(f.m))
     || paramModes.some((p) => !modeParams?.[p.m]);
   const moreBtn = canShowMore ? (
     <button type="button" className="ca-modes__more" onClick={() => setMoreModes((v) => !v)}>
@@ -532,7 +558,14 @@ export function ChanAdminModal() {
   const invexExts = ensureMatchingExtban(matchingExts, 'class');
   const hasInvex = ctx.typeA.has('I');
   const hasChanfilter = ctx.typeA.has('g');
-  const flagModes = filterlist.length > 0 && !modes.includes('g') ? `${modes}g` : modes;
+  const hasExempts = ctx.typeA.has('X');
+  const hasAutoop = ctx.typeA.has('w');
+  const allModeLetters = new Set([...ctx.typeA, ...ctx.typeB, ...ctx.typeC, ...ctx.typeD]);
+  const exemptionChoices = advertisedExemptions(allModeLetters);
+  let flagModes = modes;
+  if (filterlist.length > 0 && !flagModes.includes('g')) flagModes += 'g';
+  if (exemptlist.length > 0 && !flagModes.includes('X')) flagModes += 'X';
+  if (autooplist.length > 0 && !flagModes.includes('w')) flagModes += 'w';
   // +b ban, +e exempt — +I lives in its own tab (it is not a ban).
   const ebModes = (['b', 'e'] as const).filter((m) => m === 'b' || ctx.typeA.has(m));
   // The simplified panel never shows the +b/+e switch: an exception only makes
@@ -589,6 +622,37 @@ export function ChanAdminModal() {
   };
   const removeFilter = (mask: string) => {
     setChannelModeParam(chan, 'g', false, mask);
+    setTimeout(() => loadBanList(chan), 500);
+  };
+  const toggleExempt = (restriction: string, on: boolean) => {
+    const entry = formatExemptEntry(restriction, exemptPrefix || 'o');
+    if (on) {
+      // Replace any existing row for this restriction (different prefix).
+      for (const row of exemptlist) {
+        const p = parseExemptEntry(row.mask);
+        if (p && p.restriction === restriction) setChannelModeParam(chan, 'X', false, row.mask);
+      }
+      setChannelModeParam(chan, 'X', true, entry);
+    } else {
+      for (const row of exemptlist) {
+        const p = parseExemptEntry(row.mask);
+        if (p && p.restriction === restriction) setChannelModeParam(chan, 'X', false, row.mask);
+      }
+    }
+    setTimeout(() => loadBanList(chan), 500);
+  };
+  const addAutoop = () => {
+    const mask = autoopMask.trim();
+    if (!mask || !autoopRank) return;
+    const wire = /^[qaohv]:/i.test(mask)
+      ? mask
+      : `${autoopRank}:${/[@!]/.test(mask) || /^account:/i.test(mask) ? mask : `${mask}!*@*`}`;
+    setChannelModeParam(chan, 'w', true, wire);
+    setAutoopMask('');
+    setTimeout(() => loadBanList(chan), 500);
+  };
+  const removeAutoop = (mask: string) => {
+    setChannelModeParam(chan, 'w', false, mask);
     setTimeout(() => loadBanList(chan), 500);
   };
   const applyKey = () => { const v = keyVal.trim(); if (v) setChannelModeParam(chan, 'k', true, v); };
@@ -761,6 +825,8 @@ export function ChanAdminModal() {
             {tabBtn('bans', t('modals.chanadmin.bans', { n: banRows.length }))}
             {hasInvex && tabBtn('invex', t(simpleModes ? 'modals.chanadmin.simple.tabInvex' : 'modals.chanadmin.invexTab', { n: invexlist.length }))}
             {hasChanfilter && tabBtn('filters', t(simpleModes ? 'modals.chanadmin.simple.tabFilters' : 'modals.chanadmin.filtersTab', { n: filterlist.length }))}
+            {!simpleModes && hasExempts && tabBtn('exempts', t('modals.chanadmin.exemptsTab', { n: exemptlist.length }))}
+            {!simpleModes && hasAutoop && tabBtn('autoop', t('modals.chanadmin.autoopTab', { n: autooplist.length }))}
           </div>
 
           {tab === 'overview' && (
@@ -821,7 +887,12 @@ export function ChanAdminModal() {
                   flags={flags.filter((f) => f.group === 'classic')}
                   modes={flagModes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
                   onLockTip={showLockTip}
-                  onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); if (f.m === 'g') setTab('filters'); }}
+                  onLockedClick={(f) => {
+                    if (f.m === 'k') setTab('overview');
+                    if (f.m === 'g') setTab('filters');
+                    if (f.m === 'X') setTab('exempts');
+                    if (f.m === 'w') setTab('autoop');
+                  }}
                 />
               </>
             )}
@@ -830,7 +901,12 @@ export function ChanAdminModal() {
                 <h4 className="ca-h ca-h--next">{t('modals.chanadmin.extraModes')}</h4>
                 <FlagGrid flags={extraShown} modes={flagModes} mlock={mlock} chan={chan} setChannelMode={setChannelMode}
                   onLockTip={showLockTip}
-                  onLockedClick={(f) => { if (f.m === 'k') setTab('overview'); if (f.m === 'g') setTab('filters'); }} />
+                  onLockedClick={(f) => {
+                    if (f.m === 'k') setTab('overview');
+                    if (f.m === 'g') setTab('filters');
+                    if (f.m === 'X') setTab('exempts');
+                    if (f.m === 'w') setTab('autoop');
+                  }} />
               </>
             )}
             {paramsShown.length === 0 && moreBtn}
@@ -934,6 +1010,95 @@ export function ChanAdminModal() {
                 {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
                 <button className="friend__act friend__act--rm" title={t('modals.chanadmin.removeFilter')}
                   onClick={() => removeFilter(e.mask)}>✕</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {tab === 'exempts' && hasExempts && (
+        <div className="ca-pane">
+          <p className="ca-extexample">{t('modals.chanadmin.exemptsHint')}</p>
+          <div className="ca-param ca-extban-add">
+            <label className="ca-param__l" htmlFor="ca-exempt-pfx">{t('modals.chanadmin.exemptPrefix')}</label>
+            <select id="ca-exempt-pfx" className="modal__input ca-exempt-pfx" value={exemptPrefix}
+              onChange={(e) => setExemptPrefix(e.target.value)}>
+              {EXEMPT_PREFIXES.map((p) => (
+                <option key={p} value={p}>{t(`modals.chanadmin.exemptPrefixOpt.${p === '*' ? 'any' : p}`, p)}</option>
+              ))}
+            </select>
+          </div>
+          <div className="ca-flags ca-flags--plain ca-exempts">
+            {exemptionChoices.map((ex) => {
+              const hit = exemptlist.find((row) => parseExemptEntry(row.mask)?.restriction === ex.name);
+              const on = !!hit;
+              const pfx = hit ? (parseExemptEntry(hit.mask)?.prefix || exemptPrefix) : exemptPrefix;
+              return (
+                <label key={ex.name} className={`ca-flag${on ? ' is-on' : ''}`}
+                  title={`+X ${formatExemptEntry(ex.name, pfx)}`}>
+                  <input type="checkbox" checked={on}
+                    onChange={() => toggleExempt(ex.name, !on)} />
+                  <span className="ca-flag__txt">
+                    <span className="ca-flag__label">{t(`chanExemptions.${ex.key}.label`, ex.name)}</span>
+                    <span className="ca-flag__desc">{t(`chanExemptions.${ex.key}.desc`, '')}</span>
+                  </span>
+                  {on ? (
+                    <code className="ca-flag__m" title={formatExemptEntry(ex.name, pfx)}>
+                      {pfx === '*'
+                        ? t('modals.chanadmin.exemptPrefixOpt.any')
+                        : t(`modeline.exemptWho.${pfx}`, pfx)}
+                    </code>
+                  ) : null}
+                </label>
+              );
+            })}
+          </div>
+          {exemptlist.length > 0 && (
+            <ul className="ca-bans">
+              {exemptlist.map((e) => (
+                <li key={'X' + e.mask} className="ca-ban">
+                  <span className="ca-ban__mode">+X</span>
+                  <span className="ca-ban__mask" title={e.mask}>{explainExemptEntry(e.mask)}</span>
+                  {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
+                  <button className="friend__act friend__act--rm" title={t('modals.chanadmin.removeExempt')}
+                    onClick={() => { setChannelModeParam(chan, 'X', false, e.mask); setTimeout(() => loadBanList(chan), 500); }}>✕</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {tab === 'autoop' && hasAutoop && (
+        <div className="ca-pane">
+          <p className="ca-extexample">{t('modals.chanadmin.autoopHint')}</p>
+          <div className="ca-param ca-extban-add">
+            <select className="modal__input ca-exempt-pfx" value={autoopRank} aria-label={t('modals.chanadmin.autoopRank')}
+              onChange={(e) => setAutoopRank(e.target.value)}>
+              {(['q', 'a', 'o', 'h', 'v'] as const).map((p) => (
+                <option key={p} value={p}>{t(`modeline.prefix.${p}`)} (+{p})</option>
+              ))}
+            </select>
+            <input className="modal__input" value={autoopMask}
+              placeholder={t('modals.chanadmin.autoopPlaceholder')}
+              aria-label={t('modals.chanadmin.autoopPlaceholder')}
+              onChange={(e) => setAutoopMask(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addAutoop()} />
+            <button className="upbtn upbtn--primary" onClick={addAutoop}>{t('modals.chanadmin.addAutoop')}</button>
+          </div>
+          <div className="ca-extexample">
+            {t('modals.chanadmin.example')}{' '}
+            <code>+w {autoopRank}:{autoopMask.trim() || '*!*@example.com'}</code>
+          </div>
+          <ul className="ca-bans">
+            {autooplist.length === 0 && <li className="ca-bans__empty">{t('modals.chanadmin.noAutoop')}</li>}
+            {autooplist.map((e) => (
+              <li key={'w' + e.mask} className="ca-ban">
+                <span className="ca-ban__mode">+w</span>
+                <span className="ca-ban__mask">{e.mask}</span>
+                {e.by && <span className="ca-ban__by">{t('modals.chanadmin.by', { by: e.by })}</span>}
+                <button className="friend__act friend__act--rm" title={t('modals.chanadmin.removeAutoop')}
+                  onClick={() => removeAutoop(e.mask)}>✕</button>
               </li>
             ))}
           </ul>

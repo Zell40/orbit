@@ -111,6 +111,10 @@ export interface ChatState {
   exceptlists: Record<string, { mask: string; by: string; ts: number }[]>; // +e ban exceptions
   invexlists: Record<string, { mask: string; by: string; ts: number }[]>;  // +I invite exceptions
   filterlists: Record<string, { mask: string; by: string; ts: number }[]>; // +g chanfilter words
+  /** InspIRCd +X exemptchanops (`anticaps:o`, …). */
+  exemptlists: Record<string, { mask: string; by: string; ts: number }[]>;
+  /** InspIRCd +w autoop (`o:*!*@host`, …). */
+  autooplists: Record<string, { mask: string; by: string; ts: number }[]>;
   loadBanList: (channel: string) => void;
   loadChannelMlock: (channel: string) => void;
   /** Refresh ChanServ public INFO (TOPICLOCK, founder, …) into the buffer. */
@@ -277,6 +281,8 @@ export function createChatStore(ns = '') {
     exceptlists: {},
     invexlists: {},
     filterlists: {},
+    exemptlists: {},
+    autooplists: {},
     notifyLevel: loadNotify(ns),
     highlightWords: loadStr(HIGHLIGHT_KEY),
     drafts: {},
@@ -671,18 +677,22 @@ export function createChatStore(ns = '') {
     loadBanList(channel) {
       const key = canon(channel);
       const c = get().client;
-      // Reset all three lists; the 367/348/346 replies refill them.
+      // Reset list state; numerics refill them.
       set({
         banlists: { ...get().banlists, [key]: [] },
         exceptlists: { ...get().exceptlists, [key]: [] },
         invexlists: { ...get().invexlists, [key]: [] },
         filterlists: { ...get().filterlists, [key]: [] },
+        exemptlists: { ...get().exemptlists, [key]: [] },
+        autooplists: { ...get().autooplists, [key]: [] },
       });
       const typeA = (c?.server.isupport.CHANMODES || '').split(',')[0] || 'b';
       c?.modeList(channel, 'b');
-      if (typeA.includes('e')) c?.modeList(channel, 'e'); // ban exceptions, if supported
-      if (typeA.includes('I')) c?.modeList(channel, 'I'); // invite exceptions, if supported
-      if (typeA.includes('g')) c?.modeList(channel, 'g'); // chanfilter keywords, if supported
+      if (typeA.includes('e')) c?.modeList(channel, 'e');
+      if (typeA.includes('I')) c?.modeList(channel, 'I');
+      if (typeA.includes('g')) c?.modeList(channel, 'g');
+      if (typeA.includes('w')) c?.modeList(channel, 'w');
+      if (typeA.includes('X')) c?.modeList(channel, 'X');
     },
     loadChannelMlock(channel) {
       if (!isChannelName(channel)) return;

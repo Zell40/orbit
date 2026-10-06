@@ -313,8 +313,10 @@ export class IrcClient {
   // (re)connect's registration. '' = back (clears it).
   awayMessage = '';
   setAway(reason: string): void { this.awayMessage = reason; this.send(reason ? `AWAY :${reason}` : 'AWAY'); }
-  // Query a channel's ban/except/invex list (replies via 367/348/346).
-  modeList(channel: string, mode: 'b' | 'e' | 'I' | 'g'): void { this.send(`MODE ${channel} ${mode}`); }
+  // Query a channel list mode (replies via 367/348/346/941/910/954…).
+  modeList(channel: string, mode: 'b' | 'e' | 'I' | 'g' | 'w' | 'X'): void {
+    this.send(`MODE ${channel} ${mode}`);
+  }
   // WHOX: token(t)/channel(c)/nick(n)/flags(f)/account(a)/realname(r) so we can
   // map members → services account (avatars) and GECOS (EntreNous age/sexe/ville).
   // `r` must be last — it's the trailing parameter. Token 152 echoes back.

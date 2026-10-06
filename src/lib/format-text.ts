@@ -3,6 +3,7 @@
 // (which imports the store). format.tsx re-exports these for its consumers.
 import i18n from '../core/i18n';
 import { chanParamKey, explainChanParam } from '../core/irc/chan-param-explain';
+import { explainExemptEntry } from '../core/irc/chan-exemptions';
 
 export function fmtDuration(sec: number): string {
   if (sec < 60) return i18n.t('units.sec', { n: sec });
@@ -177,9 +178,13 @@ export function joinModeLabels(labels: string[]): string {
 }
 
 /** `+i (sur invitation uniquement)` — letter plus a short gloss.
- *  Never echo +g/-g keywords (chanfilter): they are often vulgar and visible to everyone. */
+ *  Never echo +g/-g keywords (chanfilter): they are often vulgar and visible to everyone.
+ *  +X entries are `restriction:rank` (flood:h) → human « exception au flood pour les halfops ». */
 export function formatModeFlagLine(letter: string, add: boolean, param?: string): string {
   const sign = add ? '+' : '-';
+  if (letter === 'X' && param && param !== '?') {
+    return `${sign}X (${explainExemptEntry(param)})`;
+  }
   const brief = modeFlagBrief(letter);
   const safeParam = letter === 'g' ? undefined : param;
   let detail = '';

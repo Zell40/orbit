@@ -83,6 +83,22 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
             : cur.filter((e) => e.mask !== c.param);
           set({ filterlists: { ...get().filterlists, [key]: next } });
           showCombined = true;
+        } else if (c.mode === 'w' && c.param) {
+          const key = canon(chan);
+          const cur = get().autooplists[key] || [];
+          const next = c.add
+            ? (cur.some((e) => e.mask === c.param) ? cur : [...cur, { mask: c.param, by: msg.nick || '', ts: tsOf(msg) }])
+            : cur.filter((e) => e.mask !== c.param);
+          set({ autooplists: { ...get().autooplists, [key]: next } });
+          showCombined = true;
+        } else if (c.mode === 'X' && c.param) {
+          const key = canon(chan);
+          const cur = get().exemptlists[key] || [];
+          const next = c.add
+            ? (cur.some((e) => e.mask === c.param) ? cur : [...cur, { mask: c.param, by: msg.nick || '', ts: tsOf(msg) }])
+            : cur.filter((e) => e.mask !== c.param);
+          set({ exemptlists: { ...get().exemptlists, [key]: next } });
+          showCombined = true;
         } else showCombined = true;
       } else {
         // type B/C param mode or type D flag → maintain the channel mode string

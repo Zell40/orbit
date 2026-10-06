@@ -338,6 +338,8 @@
       "topicLockedByServices": "Le sujet est verrouillé par les services. Il ne peut pas être modifié ici.",
       "lockedOnOverview": "Le mot de passe se change dans l’onglet Aperçu.",
       "lockedOnFilters": "Les mots filtrés se gèrent dans l’onglet Filtres.",
+      "lockedOnExempts": "Les exemptions d’ops se gèrent dans l’onglet Exemptions.",
+      "lockedOnAutoop": "L’auto-op se gère dans l’onglet Auto-op.",
       "lockedTagServices": "Services",
       "lockedTagOverview": "Aperçu",
       "extbans": "Bans étendus",
@@ -350,6 +352,25 @@
       "redirectHint": "Le salon cible doit exister, et tu dois y être opérateur (les opers sont exemptés). Pour exempter quelqu’un, l’exception +e doit utiliser le même masque de redirection.",
       "invertMatch": "Inverser la correspondance (!R, !compte…)",
       "invexTab": "Invex ({{n}})",
+      "exemptsTab": "Exemptions ({{n}})",
+      "exemptsHint": "Coche une restriction : les membres avec le rang choisi (ou plus) n’y sont plus soumis. Ex. anticaps + Opérateur → les ops peuvent écrire en majuscules.",
+      "exemptPrefix": "Rang minimum exempté",
+      "exemptPrefixOpt": {
+        "o": "Opérateur (+o)",
+        "h": "Modérateur (+h)",
+        "v": "Voice (+v)",
+        "a": "Admin (+a)",
+        "q": "Fondateur (+q)",
+        "any": "Tout le monde (*)"
+      },
+      "removeExempt": "Retirer l’exemption",
+      "autoopTab": "Auto-op ({{n}})",
+      "autoopHint": "Au join, accorde automatiquement un rang aux masques ou comptes listés (mode +w).",
+      "autoopRank": "Rang accordé",
+      "autoopPlaceholder": "nick!*@* ou account:Compte",
+      "addAutoop": "Ajouter",
+      "noAutoop": "Aucune entrée auto-op.",
+      "removeAutoop": "Retirer l’auto-op",
       "invexType": "Type d'exception",
       "noInvex": "Aucune exception d'invitation",
       "removeInvex": "Retirer l'exception",
@@ -899,6 +920,15 @@
       "h": "Modérateur",
       "v": "Voice"
     },
+    "exemptDetail": "exception {{what}} pour les {{who}}",
+    "exemptAny": "exception {{what}} pour tout le monde",
+    "exemptWho": {
+      "o": "opérateurs",
+      "h": "halfops",
+      "v": "voices",
+      "a": "admins",
+      "q": "fondateurs"
+    },
     "list": {
       "b": "bannissement",
       "e": "exception",
@@ -1098,6 +1128,16 @@
       "brief": "filtre",
       "desc": "Bloque les messages qui correspondent à un motif (+g)"
     },
+    "exemptchanops": {
+      "label": "Exemptions d’ops",
+      "brief": "exemptions",
+      "desc": "Exempte certains rangs des restrictions du salon (+X)"
+    },
+    "autoop": {
+      "label": "Auto-op",
+      "brief": "auto-op",
+      "desc": "Attribue un rang à l’arrivée selon une liste (+w)"
+    },
     "noKick": {
       "label": "Sans expulsion",
       "brief": "sans expulsion",
@@ -1281,6 +1321,25 @@
     "deleted": "Image supprimée",
     "playVideo": "Lire la vidéo",
     "ytPreview": "Aperçu YouTube"
+  },
+  "chanExemptions": {
+    "topiclock": { "label": "Sujet protégé", "what": "au sujet protégé", "desc": "Peut changer le sujet malgré +t" },
+    "anticaps": { "label": "Anti-majuscules", "what": "à l’anti-majuscules", "desc": "Peut écrire en majuscules malgré +B" },
+    "auditoriumSee": { "label": "Auditorium — voir", "what": "à l’auditorium (voir)", "desc": "Voit la liste des membres (+u)" },
+    "auditoriumVis": { "label": "Auditorium — visible", "what": "à l’auditorium (visible)", "desc": "Est visible des autres (+u)" },
+    "blockcolor": { "label": "Sans couleurs", "what": "au blocage des couleurs", "desc": "Peut envoyer des codes couleur malgré +c" },
+    "blockhighlight": { "label": "Anti-mentions", "what": "à l’anti-mentions", "desc": "Peut mentionner beaucoup de monde malgré +V" },
+    "delaymsg": { "label": "Délai de parole", "what": "au délai de parole", "desc": "Peut parler tout de suite malgré +d" },
+    "filter": { "label": "Filtre de salon", "what": "au filtre", "desc": "Peut dire des mots filtrés (+g)" },
+    "flood": { "label": "Anti-flood", "what": "au flood", "desc": "Peut écrire plus vite malgré +f" },
+    "nickflood": { "label": "Flood de pseudos", "what": "au flood de pseudos", "desc": "Peut changer de pseudo plus vite malgré +F" },
+    "noctcp": { "label": "Sans CTCP", "what": "au blocage des CTCP", "desc": "Peut envoyer des CTCP malgré +C" },
+    "nonick": { "label": "Pseudo verrouillé", "what": "au verrouillage de pseudo", "desc": "Peut changer de pseudo malgré +N" },
+    "nonotice": { "label": "Sans notices", "what": "au blocage des notices", "desc": "Peut envoyer des NOTICE malgré +T" },
+    "opmoderated": { "label": "Modéré vers les ops", "what": "à la modération ops", "desc": "Ses messages vont à tout le monde malgré +U" },
+    "regmoderated": { "label": "Enregistrés pour parler", "what": "à la modération enregistrés", "desc": "Peut parler sans compte malgré +M" },
+    "repeat": { "label": "Anti-répétition", "what": "à la répétition", "desc": "Peut répéter des messages malgré +E" },
+    "stripcolor": { "label": "Couleurs retirées", "what": "au retrait des couleurs", "desc": "Garde les codes couleur malgré +S" }
   },
   "chanParams": {
     "anticaps": {

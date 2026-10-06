@@ -170,6 +170,12 @@ describe('groupModeDisplay', () => {
       .toBe('a retiré -g (filtre)');
   });
 
+  it('explains +X restriction:rank as exception for a role', () => {
+    expect(formatModeFlagLine('X', true, 'flood:h')).toBe('+X (exception au flood pour les halfops)');
+    expect(formatModeFlagLine('X', true, 'repeat:h')).toBe('+X (exception à la répétition pour les halfops)');
+    expect(formatModeFlagLine('X', false, 'nickflood:o')).toBe('-X (exception au flood de pseudos pour les opérateurs)');
+  });
+
   it('consumes type-C params so each letter keeps its own value', () => {
     const g = groupModeDisplay('+FEjJ', ['5:10', '5:5', '5:10', '5']);
     expect(g).toHaveLength(4);

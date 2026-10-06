@@ -197,6 +197,20 @@ describe('catalogues', () => {
     expect(withg.find((f) => f.m === 'g')?.lock).toBe('list');
     expect(withg.some((f) => f.m === 'G')).toBe(false);
   });
+
+  it('lists +X exemptions and +w autoop when CHANMODES type A advertises them', () => {
+    expect(CHAN_FLAGS.find((f) => f.m === 'X')).toMatchObject({
+      key: 'exemptchanops', lock: 'exempts', readonly: true,
+    });
+    expect(CHAN_FLAGS.find((f) => f.m === 'w')).toMatchObject({
+      key: 'autoop', lock: 'autoop', readonly: true,
+    });
+    const none = advertisedChanFlags(new Set(['i']), new Set(['k']));
+    expect(none.some((f) => f.m === 'X' || f.m === 'w')).toBe(false);
+    const both = advertisedChanFlags(new Set(['i']), new Set(['k']), new Set(['X', 'w']));
+    expect(both.find((f) => f.m === 'X')?.lock).toBe('exempts');
+    expect(both.find((f) => f.m === 'w')?.lock).toBe('autoop');
+  });
 });
 
 describe('mlock tokens', () => {

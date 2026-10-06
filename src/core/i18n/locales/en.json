@@ -338,6 +338,8 @@
       "topicLockedByServices": "The topic is locked by services. It cannot be changed here.",
       "lockedOnOverview": "Change the password on the Overview tab.",
       "lockedOnFilters": "Filtered words are managed on the Filters tab.",
+      "lockedOnExempts": "Operator exemptions are managed on the Exemptions tab.",
+      "lockedOnAutoop": "Auto-op entries are managed on the Auto-op tab.",
       "lockedTagServices": "Services",
       "lockedTagOverview": "Overview",
       "extbans": "Extended bans",
@@ -350,6 +352,25 @@
       "redirectHint": "The target channel must exist, and you must be an operator there (IRC operators are exempt). To exempt someone, +e must use the same redirect mask.",
       "invertMatch": "Invert the match (!R, !account…)",
       "invexTab": "Invex ({{n}})",
+      "exemptsTab": "Exemptions ({{n}})",
+      "exemptsHint": "Tick a restriction: members at the chosen rank (or higher) are no longer subject to it. E.g. anticaps + Operator → ops may use caps.",
+      "exemptPrefix": "Minimum exempt rank",
+      "exemptPrefixOpt": {
+        "o": "Operator (+o)",
+        "h": "Halfop (+h)",
+        "v": "Voice (+v)",
+        "a": "Admin (+a)",
+        "q": "Founder (+q)",
+        "any": "Everyone (*)"
+      },
+      "removeExempt": "Remove exemption",
+      "autoopTab": "Auto-op ({{n}})",
+      "autoopHint": "On join, automatically grant a rank to matching masks or accounts (mode +w).",
+      "autoopRank": "Granted rank",
+      "autoopPlaceholder": "nick!*@* or account:Account",
+      "addAutoop": "Add",
+      "noAutoop": "No auto-op entries.",
+      "removeAutoop": "Remove auto-op",
       "invexType": "Exception type",
       "noInvex": "No invite exceptions yet",
       "removeInvex": "Remove exception",
@@ -898,6 +919,15 @@
       "h": "Moderator",
       "v": "Voice"
     },
+    "exemptDetail": "{{what}} exemption for {{who}}",
+    "exemptAny": "{{what}} exemption for everyone",
+    "exemptWho": {
+      "o": "operators",
+      "h": "halfops",
+      "v": "voiced users",
+      "a": "admins",
+      "q": "founders"
+    },
     "list": {
       "b": "ban",
       "e": "except",
@@ -1097,6 +1127,16 @@
       "brief": "filter",
       "desc": "Blocks messages that match a pattern (+g)"
     },
+    "exemptchanops": {
+      "label": "Operator exemptions",
+      "brief": "exemptions",
+      "desc": "Exempts ranks from channel restrictions (+X)"
+    },
+    "autoop": {
+      "label": "Auto-op",
+      "brief": "auto-op",
+      "desc": "Grants a rank on join from a list (+w)"
+    },
     "noKick": {
       "label": "No kicks",
       "brief": "no kicks",
@@ -1280,6 +1320,25 @@
     "deleted": "Image deleted",
     "playVideo": "Play video",
     "ytPreview": "YouTube preview"
+  },
+  "chanExemptions": {
+    "topiclock": { "label": "Protected topic", "what": "topic lock", "desc": "May change the topic despite +t" },
+    "anticaps": { "label": "Anti-caps", "what": "anti-caps", "desc": "May use capitals despite +B" },
+    "auditoriumSee": { "label": "Auditorium — see", "what": "auditorium (see)", "desc": "Can see the member list (+u)" },
+    "auditoriumVis": { "label": "Auditorium — visible", "what": "auditorium (visible)", "desc": "Visible to others (+u)" },
+    "blockcolor": { "label": "No colours", "what": "colour block", "desc": "May send colour codes despite +c" },
+    "blockhighlight": { "label": "Anti mass-highlight", "what": "mass-highlight", "desc": "May mention many people despite +V" },
+    "delaymsg": { "label": "Talk delay", "what": "talk delay", "desc": "May speak immediately despite +d" },
+    "filter": { "label": "Channel filter", "what": "filter", "desc": "May say filtered words (+g)" },
+    "flood": { "label": "Anti-flood", "what": "flood", "desc": "May speak faster despite +f" },
+    "nickflood": { "label": "Nick flood", "what": "nick flood", "desc": "May change nick faster despite +F" },
+    "noctcp": { "label": "No CTCP", "what": "CTCP block", "desc": "May send CTCP despite +C" },
+    "nonick": { "label": "Locked nick", "what": "nick lock", "desc": "May change nick despite +N" },
+    "nonotice": { "label": "No notices", "what": "notice block", "desc": "May send NOTICE despite +T" },
+    "opmoderated": { "label": "Op-moderated", "what": "op-moderated", "desc": "Messages reach everyone despite +U" },
+    "regmoderated": { "label": "Registered to talk", "what": "registered-only talk", "desc": "May talk without an account despite +M" },
+    "repeat": { "label": "Anti-repeat", "what": "repeat", "desc": "May repeat messages despite +E" },
+    "stripcolor": { "label": "Strip colours", "what": "colour strip", "desc": "Keeps colour codes despite +S" }
   },
   "chanParams": {
     "anticaps": {
