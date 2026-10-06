@@ -37,6 +37,8 @@ export interface Prefs {
   joinOnInvite: boolean;
   /** Plain-language channel Modes tab: no mode letters, only the common flags. */
   simpleModes: boolean;
+  /** Show parameterized extras next to channel modes (+f ~4:10, +E 5:60…). Off by default. */
+  showExtendedModes: boolean;
 }
 
 const KEY = 'orbit-prefs';
@@ -51,7 +53,7 @@ function defaults(): Prefs {
     compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: false,
-    readReceipts: true, joinOnInvite: false, simpleModes: true,
+    readReceipts: true, joinOnInvite: false, simpleModes: true, showExtendedModes: false,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };
 }

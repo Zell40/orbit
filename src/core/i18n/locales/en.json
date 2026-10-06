@@ -594,6 +594,8 @@
       "hoverActionsHint": "Quick react, reply and pin buttons when you hover a message.",
       "simpleModes": "Simplified channel panel",
       "simpleModesHint": "In “Manage channel”, show only the everyday settings, spelled out and without mode codes.",
+      "extendedModes": "Show extended channel modes",
+      "extendedModesHint": "Next to the channel name, also show mode parameters (+f ~4:10, +E 5:60…). Off by default.",
       "mono": "Monospace messages",
       "monoHint": "Fixed-width font so ASCII art and tables line up.",
       "bubbles": "Bubble messages",

@@ -366,6 +366,10 @@
       "compactHint": "Dichtere Nachrichten, mehr auf dem Bildschirm.",
       "hoverActions": "Aktionen beim Überfahren",
       "hoverActionsHint": "Reaktion, Antwort und Pin beim Überfahren einer Nachricht.",
+      "simpleModes": "Vereinfachtes Kanalpanel",
+      "simpleModesHint": "In „Kanal verwalten“ nur die üblichen Einstellungen anzeigen, ausgeschrieben und ohne Mode-Codes.",
+      "extendedModes": "Erweiterte Kanalmodes anzeigen",
+      "extendedModesHint": "Neben dem Kanalnamen auch Mode-Parameter anzeigen (+f ~4:10, +E 5:60…). Standardmäßig aus.",
       "mono": "Nachrichten in Monospace",
       "monoHint": "Feste Zeichenbreite, damit ASCII-Art und Tabellen ausgerichtet bleiben."
     },

@@ -42,6 +42,7 @@ export function ChanInfoModal() {
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const topicFull = useActiveChat((s) => s.prefs.topicSetterFull);
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
+  const showExtendedModes = useActiveChat((s) => s.prefs.showExtendedModes);
   const locale = i18n.language;
   const account = useActiveChat((s) => s.account);
   const nick = useActiveChat((s) => s.nick);
@@ -174,7 +175,7 @@ export function ChanInfoModal() {
 
         {buffer.modes && buffer.modes !== '+' && (
           <p className="chaninfo__modes">
-            <span className="topbar__modes" title={t('topbar.modes')}>{formatChannelModes(buffer.modes, buffer.modeParams)}</span>
+            <span className="topbar__modes" title={t('topbar.modes')}>{formatChannelModes(buffer.modes, showExtendedModes ? buffer.modeParams : undefined)}</span>
           </p>
         )}
       </div>

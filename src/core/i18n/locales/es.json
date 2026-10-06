@@ -366,6 +366,10 @@
       "compactHint": "Mensajes más densos, más en pantalla.",
       "hoverActions": "Acciones al pasar el cursor",
       "hoverActionsHint": "Botones de reacción, respuesta y fijar al pasar el cursor por un mensaje.",
+      "simpleModes": "Panel de canal simplificado",
+      "simpleModesHint": "En « Gestionar el canal », mostrar solo los ajustes habituales, en texto y sin códigos de modos.",
+      "extendedModes": "Mostrar modos extendidos del canal",
+      "extendedModesHint": "Junto al nombre del canal, también mostrar los parámetros de modos (+f ~4:10, +E 5:60…). Desactivado por defecto.",
       "mono": "Mensajes monoespaciados",
       "monoHint": "Fuente de ancho fijo para alinear el arte ASCII y las tablas."
     },

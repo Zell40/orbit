@@ -594,6 +594,8 @@
       "hoverActionsHint": "Boutons de réaction, réponse et épingle au survol d'un message.",
       "simpleModes": "Panneau de salon simplifié",
       "simpleModesHint": "Dans « Gérer le salon », n'affiche que les réglages courants, en toutes lettres et sans codes de modes.",
+      "extendedModes": "Afficher les modes étendus sur le salon",
+      "extendedModesHint": "À côté du nom du salon, ajoute les paramètres des modes (+f ~4:10, +E 5:60…). Désactivé par défaut.",
       "mono": "Messages à chasse fixe",
       "monoHint": "Police à largeur fixe pour aligner l'art ASCII et les tableaux.",
       "bubbles": "Messages en bulles",
