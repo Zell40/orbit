@@ -13,6 +13,11 @@ import {
   simpleChanFlags,
   type ChanFlag,
 } from '@/core/irc/mode-catalog';
+import {
+  explainChanParam,
+  formatModeToken,
+  normalizeRedirectTarget,
+} from '@/core/irc/chan-param-explain';
 import { setterMask, ago } from '@/lib/topic';
 import { TOPIC_SMILEY_GROUPS, TOPIC_SMILEYS, filterTopicSmileys, type TopicSmileyGroupId } from '../chat/composer/constants';
 import {
@@ -74,18 +79,24 @@ function ChannelParamRow({
   if (cur !== prev) { setPrev(cur); setVal(cur); }
   const on = !!cur;
   const lockHint = locked ? t('modals.chanadmin.lockedByServices') : '';
+  const shown = val.trim() || cur;
+  const token = formatModeToken(letter, shown);
+  const live = explainChanParam(letter, shown);
+  const tip = t(`chanParams.${i18nKey}.hint`, { defaultValue: t(`chanParams.${i18nKey}.desc`) });
   return (
     <div className={`ca-prow${on ? ' is-on' : ''}${locked ? ' is-ro' : ''}`}>
-      <label className="ca-prow__l" title={t(`chanParams.${i18nKey}.desc`)}
+      <label className="ca-prow__l"
         onClick={locked ? (e) => { e.preventDefault(); onLockedClick?.(e); } : undefined}>
-        <code className="ca-flag__m">+{letter}</code>
+        <code className="ca-flag__m">{token}</code>
         <span className="ca-prow__name">{t(`chanParams.${i18nKey}.label`)}</span>
         {locked ? <LockTag kind="services" /> : null}
+        <button type="button" className="tipi" title={tip} aria-label={tip}>i</button>
       </label>
+      {live ? <p className="ca-prow__live">{live}</p> : null}
       <div className="ca-prow__act">
         <input className="ca-prow__in" value={val} placeholder={hint} disabled={locked}
           aria-label={t(`chanParams.${i18nKey}.label`)}
-          title={lockHint || undefined}
+          title={lockHint || live || tip}
           onChange={(e) => setVal(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !locked) { const v = val.trim(); if (v) onApply(v); } }} />
         <button type="button" className="ca-prow__go" disabled={locked}
@@ -364,6 +375,8 @@ export function ChanAdminModal() {
   const loadChanServPublic = useActiveChat((s) => s.loadChanServPublic);
   const setChannelMode = useActiveChat((s) => s.setChannelMode);
   const setChannelModeParam = useActiveChat((s) => s.setChannelModeParam);
+  const account = useActiveChat((s) => s.account);
+  const nick = useActiveChat((s) => s.nick);
   const removeBan = useActiveChat((s) => s.removeBan);
   const modTopic = useActiveChat((s) => s.modTopic);
   const client = useActiveChat((s) => s.client);
@@ -582,6 +595,20 @@ export function ChanAdminModal() {
   const clearKey = () => { setChannelModeParam(chan, 'k', false, curKey || '*'); setKeyVal(''); };
   const applyLimit = () => { const n = parseInt(limitVal, 10); if (n > 0) setChannelModeParam(chan, 'l', true, String(n)); };
   const clearLimit = () => { setChannelModeParam(chan, 'l', false); setLimitVal(''); };
+
+  function applyParam(letter: string, add: boolean, value: string, typeB: boolean) {
+    let param = value;
+    if (letter === 'L' && add) param = normalizeRedirectTarget(param);
+    const me = buffer?.members?.[nick];
+    const opped = /[~&@]/.test(me?.prefixes || me?.prefix || '');
+    const viaCs = !!account && (letter === 'L' || !opped);
+    if (viaCs && client) {
+      const extra = add ? (param ? ` ${param}` : '') : (typeB && param ? ` ${param}` : '');
+      client.privmsg('ChanServ', `MODE ${chan} SET ${add ? '+' : '-'}${letter}${extra}`);
+      return;
+    }
+    setChannelModeParam(chan, letter, add, add ? param : (typeB ? param : ''));
+  }
 
   const pluginUi = usePluginRegistry((s) => s.ui);
   const pluginSections = pluginUi.filter((u) => u.slot === 'chanadmin_section');
@@ -822,8 +849,8 @@ export function ChanAdminModal() {
                     typeB={ctx.typeB.has(p.m)}
                     locked={mlock.includes(p.m)}
                     onLockedClick={(e) => showLockTip(p.m, 'services', e)}
-                    onApply={(value) => setChannelModeParam(chan, p.m, true, value)}
-                    onClear={(echo) => setChannelModeParam(chan, p.m, false, echo)}
+                    onApply={(value) => applyParam(p.m, true, value, ctx.typeB.has(p.m))}
+                    onClear={(echo) => applyParam(p.m, false, echo, ctx.typeB.has(p.m))}
                   />
                 ))}
               </div>

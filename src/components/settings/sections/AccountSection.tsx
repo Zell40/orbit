@@ -207,7 +207,15 @@ function NickServSetToggles({ pills, onChanged }: { pills: string[]; onChanged: 
         const active = on.has(opt.set);
         return (
           <div className="nsset-row" key={opt.set}>
-            <span className="nsset-row__lab">{t(`settings.account.nsSet.${opt.key}`)}</span>
+            <span className="nsset-row__lab">
+              {t(`settings.account.nsSet.${opt.key}`)}
+              <button
+                type="button"
+                className="tipi"
+                title={t(`settings.account.nsSet.${opt.key}Hint`)}
+                aria-label={t(`settings.account.nsSet.${opt.key}Hint`)}
+              >i</button>
+            </span>
             <button
               type="button"
               className={`switch${active ? ' is-on' : ''}${busy === opt.set ? ' is-locked' : ''}`}
@@ -224,7 +232,15 @@ function NickServSetToggles({ pills, onChanged }: { pills: string[]; onChanged: 
       })}
       {noExpire ? (
         <div className="nsset-row nsset-row--locked">
-          <span className="nsset-row__lab">{t('settings.account.nsSet.noexpire')}</span>
+          <span className="nsset-row__lab">
+            {t('settings.account.nsSet.noexpire')}
+            <button
+              type="button"
+              className="tipi"
+              title={t('settings.account.nsSet.noexpireHint')}
+              aria-label={t('settings.account.nsSet.noexpireHint')}
+            >i</button>
+          </span>
           <span className="nsset-lock" title={t('settings.account.nsSet.noexpireHint')}>{t('settings.account.nsSet.locked')}</span>
         </div>
       ) : null}

@@ -478,13 +478,21 @@
       "nsManageArgs": "Arguments…",
       "nsSet": {
         "autoop": "Auto-op",
+        "autoopHint": "ChanServ automatically gives you status (op, half-op…) on channels where you have access.",
         "chanstats": "Chanstats",
+        "chanstatsHint": "Count your messages for channel statistics (Chanstats).",
         "flexible": "Flexible layout",
+        "flexibleHint": "Allows a more flexible display of your account.",
         "kill": "Protection",
+        "killHint": "If someone takes your nick, NickServ disconnects them (kill protection).",
         "secure": "Secure",
+        "secureHint": "Identification only works from an already authorized host.",
         "private": "Private",
+        "privateHint": "Hides some of your account details from others (INFO).",
         "hidemail": "Hide e-mail",
+        "hidemailHint": "Hides your email address in NickServ INFO.",
         "keepmodes": "Keep modes",
+        "keepmodesHint": "Your user modes are remembered and restored at login.",
         "noexpire": "No expire",
         "noexpireHint": "Reserved for services operators — not togglable here.",
         "locked": "Locked"
@@ -1195,43 +1203,57 @@
   "chanParams": {
     "anticaps": {
       "label": "Anti-caps",
-      "desc": "Uppercase cap, e.g. 80:2 (+B)"
+      "desc": "Uppercase cap, e.g. 80:2 (+B): 80% over at least 2 characters",
+      "live": "{{pct}}% uppercase, at least {{n}} characters"
     },
     "delaymsg": {
       "label": "Talk delay",
-      "desc": "Seconds to wait before speaking (+d)"
+      "desc": "Seconds to wait before speaking (+d)",
+      "live": "Wait {{n}} seconds after joining before talking"
     },
     "repeat": {
       "label": "Anti-repeat",
-      "desc": "Limits repeated messages, e.g. 5:5 (+E)"
+      "desc": "Limits repeated messages, e.g. 5:5 (+E): 5 identical lines in 5 seconds",
+      "live": "{{n}} identical messages in {{sec}} seconds"
     },
     "flood": {
       "label": "Anti-flood",
-      "desc": "Message threshold, e.g. *5:10 (+f)"
+      "desc": "Message threshold, e.g. *5:10 (+f). * = kick+ban, ~ = notify ops",
+      "live": "{{n}} messages in {{sec}} seconds{{action}}",
+      "kick": " (kick)",
+      "ban": " (kick and ban)",
+      "notify": " (notify ops)"
     },
     "nickflood": {
       "label": "Nick flood",
-      "desc": "Nick changes, e.g. 5:10 (+F)"
+      "desc": "Nick changes, e.g. 5:10 (+F): 5 changes in 10 seconds",
+      "live": "{{n}} nick changes in {{sec}} seconds"
     },
     "history": {
       "label": "History",
-      "desc": "Lines and duration, e.g. 20:1d (+H)"
+      "desc": "Lines and duration, e.g. 20:1d (+H)",
+      "live": "{{n}} messages kept for {{dur}}"
     },
     "joinflood": {
       "label": "Join flood",
-      "desc": "Too-fast joins, e.g. 5:10 (+j)"
+      "desc": "Too-fast joins, e.g. 5:10 (+j): 5 users in 10 seconds",
+      "live": "{{n}} users in {{sec}} seconds"
     },
     "kicknorejoin": {
       "label": "No rejoin",
-      "desc": "Seconds before rejoining after a kick (+J)"
+      "desc": "Seconds before rejoining after a kick (+J)",
+      "live": "Cannot rejoin for {{n}} seconds after a kick"
     },
     "redirect": {
       "label": "Redirect",
-      "desc": "Fallback channel, e.g. #lobby (+L)"
+      "desc": "Fallback channel, e.g. #lobby (+L). You must be an operator on the target channel.",
+      "live": "Rejected users are sent to {{chan}}",
+      "hint": "InspIRCd only accepts +L if you are an operator on the target channel. Orbit sends it via ChanServ."
     },
     "antisnoop": {
       "label": "Anti-snoop",
-      "desc": "Max idle for watchers, e.g. 5m (+W)"
+      "desc": "Max idle for watchers, e.g. 5m (+W)",
+      "live": "Watchers idle longer than {{dur}}"
     }
   },
   "userFlags": {

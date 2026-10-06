@@ -293,7 +293,9 @@ export class IrcClient {
   // Set/clear a channel mode that carries a parameter (key +k, limit +l). -k needs
   // the current key echoed back; -l takes none. Caller passes the param when needed.
   setChannelModeParam(channel: string, mode: string, add: boolean, param = ''): void {
-    this.send(`MODE ${channel} ${add ? '+' : '-'}${mode}${param ? ` ${param}` : ''}`);
+    const extra = !param ? ''
+      : (/^[#:]/.test(param) || /\s/.test(param) ? ` :${param.replace(/^:/, '')}` : ` ${param}`);
+    this.send(`MODE ${channel} ${add ? '+' : '-'}${mode}${extra}`);
   }
   list(): void { this.send('LIST'); }
   whois(nick: string): void {
