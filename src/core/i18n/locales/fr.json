@@ -903,7 +903,19 @@
       "b": "bannissement",
       "e": "exception",
       "I": "invitation",
-      "g": "filtre"
+      "g": "filtre",
+      "w": "auto-op",
+      "X": "exemption ops",
+      "Z": "mode nommé"
+    },
+    "listBrief": {
+      "b": "bannissement",
+      "e": "exception de ban",
+      "I": "exception d’invitation",
+      "g": "filtre",
+      "w": "auto-op",
+      "X": "exemption d’ops",
+      "Z": "mode nommé"
     },
     "param": {
       "key": "clé",
@@ -1273,21 +1285,25 @@
   "chanParams": {
     "anticaps": {
       "label": "Anti-majuscules",
+      "brief": "anti-majuscules",
       "desc": "Plafond de majuscules, ex. 80:2 (+B) : 80 % sur au moins 2 caractères",
       "live": "{{pct}} % de majuscules, au moins {{n}} caractères"
     },
     "delaymsg": {
       "label": "Délai de parole",
+      "brief": "délai de parole",
       "desc": "Secondes d’attente avant de pouvoir parler (+d)",
       "live": "Attendre {{n}} secondes après l’entrée pour parler"
     },
     "repeat": {
       "label": "Anti-répétition",
+      "brief": "anti-répétition",
       "desc": "Limite les messages répétés, ex. 5:5 (+E) : 5 messages identiques en 5 secondes",
       "live": "{{n}} messages identiques en {{sec}} secondes"
     },
     "flood": {
       "label": "Anti-flood",
+      "brief": "anti-flood",
       "desc": "Seuil de messages, ex. *5:10 (+f). * = expulsion et ban, ~ = prévenir les ops",
       "live": "{{n}} messages en {{sec}} secondes{{action}}",
       "kick": " (expulsion)",
@@ -1296,32 +1312,38 @@
     },
     "nickflood": {
       "label": "Flood de pseudos",
+      "brief": "flood de pseudos",
       "desc": "Changements de pseudo, ex. 5:10 (+F) : 5 changements en 10 secondes",
       "live": "{{n}} changements de pseudo en {{sec}} secondes"
     },
     "history": {
       "label": "Historique",
+      "brief": "historique",
       "desc": "Lignes et durée, ex. 20:1d (+H)",
       "live": "{{n}} messages conservés pendant {{dur}}"
     },
     "joinflood": {
       "label": "Flood d’entrées",
+      "brief": "flood d’entrées",
       "desc": "Joins trop rapides, ex. 5:10 (+j) : 5 utilisateurs en 10 secondes",
       "live": "{{n}} utilisateurs en {{sec}} secondes"
     },
     "kicknorejoin": {
       "label": "Anti-rejoin",
+      "brief": "anti-rejoin",
       "desc": "Secondes avant de pouvoir revenir après un kick (+J)",
       "live": "Retour interdit pendant {{n}} secondes après un kick"
     },
     "redirect": {
       "label": "Redirection",
+      "brief": "redirection",
       "desc": "Salon de repli, ex. #accueil (+L). Il faut être opérateur sur ce salon cible.",
       "live": "Les personnes refusées vont sur {{chan}}",
       "hint": "InspIRCd n’accepte +L que si tu es opérateur sur le salon cible. Orbit l’envoie via ChanServ."
     },
     "antisnoop": {
       "label": "Anti-snoop",
+      "brief": "anti-snoop",
       "desc": "Idle max des observateurs, ex. 5m (+W)",
       "live": "Observateurs inactifs plus de {{dur}}"
     }

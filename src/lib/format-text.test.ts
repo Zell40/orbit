@@ -153,11 +153,29 @@ describe('groupModeDisplay', () => {
       .toBe('a appliqué +i (sur invitation uniquement)');
   });
 
+  it('formats InspIRCd param modes with a short gloss', () => {
+    expect(formatModeFlagLine('F', true)).toBe('+F (flood de pseudos)');
+    expect(formatModeFlagLine('E', true)).toBe('+E (anti-répétition)');
+    expect(formatModeFlagLine('j', true)).toBe('+j (flood d’entrées)');
+    expect(formatModeFlagLine('J', true)).toBe('+J (anti-rejoin)');
+    expect(formatModeFlagLine('F', true, '5:10')).toBe(
+      '+F (flood de pseudos : 5 changements de pseudo en 10 secondes)',
+    );
+  });
+
   it('never echoes chanfilter (+g) keywords in the mode line', () => {
     expect(formatModeFlagLine('g', true, 'salope')).toBe('+g (filtre)');
     expect(formatModeFlagLine('g', false, 'ta*mère')).toBe('-g (filtre)');
     expect(formatModeChange({ add: false, labels: ['Filtre de salon'], letters: ['g'], target: 'salope' }))
       .toBe('a retiré -g (filtre)');
+  });
+
+  it('consumes type-C params so each letter keeps its own value', () => {
+    const g = groupModeDisplay('+FEjJ', ['5:10', '5:5', '5:10', '5']);
+    expect(g).toHaveLength(4);
+    expect(g.map((x) => x.letters.join('') + (x.target || ''))).toEqual([
+      'F5:10', 'E5:5', 'j5:10', 'J5',
+    ]);
   });
 });
 

@@ -10,7 +10,7 @@ import { Icon } from '@/components/Icon';
 import {
   fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, fetchNickServGlist, fetchNickServList,
   fetchNickServAjoin, nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
-  describeAlistAccess, alistCanInvite, isNickServNicksRow,
+  describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServHelpIsOper,
   parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
   type NickServInfo, type NickServAccessRow,
 } from '@/core/store/nickserv-info';
@@ -478,6 +478,7 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
 function NickServSearchCard({ account, nick }: { account: string; nick: string }) {
   const { t } = useTranslation();
   const [allowed, setAllowed] = useState(false);
+  const [isOper, setIsOper] = useState(false);
   const [pattern, setPattern] = useState('');
   const [flags, setFlags] = useState<Set<string>>(new Set());
   const [phase, setPhase] = useState<'idle' | 'loading' | 'ok' | 'empty' | 'deny'>('idle');
@@ -489,6 +490,7 @@ function NickServSearchCard({ account, nick }: { account: string; nick: string }
     void fetchNickServHelp(account, nick).then((cmds) => {
       if (!live) return;
       setAllowed(!!cmds && cmds.has('LIST'));
+      setIsOper(nickServHelpIsOper(cmds));
     });
     return () => { live = false; };
   }, [account, nick]);
@@ -506,7 +508,7 @@ function NickServSearchCard({ account, nick }: { account: string; nick: string }
     if (!q || phase === 'loading') return;
     const mine = ++gen.current;
     setPhase('loading');
-    void fetchNickServList(account, nick, q, [...flags]).then((res) => {
+    void fetchNickServList(account, nick, q, isOper ? [...flags] : []).then((res) => {
       if (mine !== gen.current) return;
       if (!res) { setHits([]); setPhase('deny'); return; }
       if (res.denied) { setHits([]); setPhase('deny'); return; }
@@ -544,34 +546,36 @@ function NickServSearchCard({ account, nick }: { account: string; nick: string }
             </button>
           </div>
         </div>
-        <div className="nsset nssearch__flags">
-          {NICKSERV_LIST_FLAGS.map((flag) => {
-            const on = flags.has(flag);
-            const key = flag.toLowerCase();
-            return (
-              <div className="nsset-row" key={flag}>
-                <span className="nsset-row__lab">
-                  {t(`settings.account.nsSearchFlag.${key}`)}
+        {isOper ? (
+          <div className="nsset nssearch__flags">
+            {NICKSERV_LIST_FLAGS.map((flag) => {
+              const on = flags.has(flag);
+              const key = flag.toLowerCase();
+              return (
+                <div className="nsset-row" key={flag}>
+                  <span className="nsset-row__lab">
+                    {t(`settings.account.nsSearchFlag.${key}`)}
+                    <button
+                      type="button"
+                      className="tipi"
+                      title={t(`settings.account.nsSearchFlag.${key}Hint`)}
+                      aria-label={t(`settings.account.nsSearchFlag.${key}Hint`)}
+                    >i</button>
+                  </span>
                   <button
                     type="button"
-                    className="tipi"
-                    title={t(`settings.account.nsSearchFlag.${key}Hint`)}
-                    aria-label={t(`settings.account.nsSearchFlag.${key}Hint`)}
-                  >i</button>
-                </span>
-                <button
-                  type="button"
-                  className={`switch${on ? ' is-on' : ''}`}
-                  role="switch"
-                  aria-checked={on}
-                  onClick={() => toggleFlag(flag)}
-                >
-                  <span className="switch__dot" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                    className={`switch${on ? ' is-on' : ''}`}
+                    role="switch"
+                    aria-checked={on}
+                    onClick={() => toggleFlag(flag)}
+                  >
+                    <span className="switch__dot" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
         {phase === 'deny' ? <p className="nssearch__msg">{t('settings.account.nsSearchUnavailable')}</p> : null}
         {phase === 'empty' ? <p className="nssearch__msg">{t('settings.account.nsSearchEmpty')}</p> : null}
         {phase === 'ok' ? (

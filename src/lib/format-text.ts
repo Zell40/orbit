@@ -2,6 +2,7 @@
 // other leaf code can use them without pulling in the React-heavy format.tsx
 // (which imports the store). format.tsx re-exports these for its consumers.
 import i18n from '../core/i18n';
+import { chanParamKey, explainChanParam } from '../core/irc/chan-param-explain';
 
 export function fmtDuration(sec: number): string {
   if (sec < 60) return i18n.t('units.sec', { n: sec });
@@ -19,9 +20,11 @@ export function formatUserModes(modes: string): string {
 }
 
 const PREFIX_MODES = new Set(['q', 'a', 'o', 'h', 'v']);
-const LIST_MODES = new Set(['b', 'e', 'I', 'g']); // g = InspIRCd chanfilter
+/** Type A lists — InspIRCd adds g (chanfilter), w (autoop), X (exemptchanops), Z (namedmodes). */
+const LIST_MODES = new Set(['b', 'e', 'I', 'g', 'w', 'X', 'Z']);
 const ALWAYS_PARAM = new Set(['k']);
-const SET_PARAM = new Set(['l']);
+/** Type C (param when set) — +l plus InspIRCd flood/history/redirect family. */
+const SET_PARAM = new Set(['l', 'B', 'd', 'E', 'f', 'F', 'H', 'j', 'J', 'L', 'W']);
 const FLAG_LABEL: Record<string, string> = {
   i: 'invite', m: 'moderated', n: 'noExternal', t: 'topicLock', s: 'secret', p: 'private',
   c: 'blockColor', C: 'noCtcp', S: 'stripColor', r: 'registered', R: 'regOnly', M: 'regModerated',
@@ -34,6 +37,8 @@ function modeDisplayLabel(letter: string): string {
   if (PREFIX_MODES.has(letter)) return i18n.t(`modeline.prefix.${letter}`, letter);
   const flag = FLAG_LABEL[letter];
   if (flag) return i18n.t(`chanFlags.${flag}.label`, letter);
+  const pkey = chanParamKey(letter);
+  if (pkey) return i18n.t(`chanParams.${pkey}.label`, letter);
   if (LIST_MODES.has(letter)) return i18n.t(`modeline.list.${letter}`, letter);
   if (letter === 'k') return i18n.t('modeline.param.key', 'key');
   if (letter === 'l') return i18n.t('modeline.param.limit', 'limit');
@@ -42,17 +47,31 @@ function modeDisplayLabel(letter: string): string {
 
 function modeFlagBrief(letter: string): string {
   const flag = FLAG_LABEL[letter];
-  if (!flag) return modeDisplayLabel(letter);
-  const briefKey = `chanFlags.${flag}.brief`;
-  if (i18n.exists(briefKey)) return i18n.t(briefKey);
-  return i18n.t(`chanFlags.${flag}.label`, letter);
+  if (flag) {
+    const briefKey = `chanFlags.${flag}.brief`;
+    if (i18n.exists(briefKey)) return i18n.t(briefKey);
+    return i18n.t(`chanFlags.${flag}.label`, letter);
+  }
+  const pkey = chanParamKey(letter);
+  if (pkey) {
+    const briefKey = `chanParams.${pkey}.brief`;
+    if (i18n.exists(briefKey)) return i18n.t(briefKey);
+    return i18n.t(`chanParams.${pkey}.label`, letter);
+  }
+  if (LIST_MODES.has(letter)) {
+    const briefKey = `modeline.listBrief.${letter}`;
+    if (i18n.exists(briefKey)) return i18n.t(briefKey);
+    return i18n.t(`modeline.list.${letter}`, letter);
+  }
+  if (letter === 'k') return i18n.t('modeline.param.key', 'key');
+  if (letter === 'l') return i18n.t('modeline.param.limit', 'limit');
+  return modeDisplayLabel(letter);
 }
 
 function modeConsumesParam(letter: string, add: boolean): boolean {
   if (PREFIX_MODES.has(letter) || LIST_MODES.has(letter) || ALWAYS_PARAM.has(letter)) return true;
   return SET_PARAM.has(letter) && add;
 }
-
 /** One grouped MODE change for the callout (merge same nick, human-readable labels). */
 export interface ModeDisplayGroup {
   add: boolean;
@@ -163,9 +182,13 @@ export function formatModeFlagLine(letter: string, add: boolean, param?: string)
   const sign = add ? '+' : '-';
   const brief = modeFlagBrief(letter);
   const safeParam = letter === 'g' ? undefined : param;
-  const extra = safeParam && safeParam !== '?' ? ` : ${safeParam}` : '';
-  if (brief === letter && !extra) return `${sign}${letter}`;
-  return `${sign}${letter} (${brief}${extra})`;
+  let detail = '';
+  if (safeParam && safeParam !== '?') {
+    const explained = chanParamKey(letter) ? explainChanParam(letter, safeParam) : '';
+    detail = explained ? ` : ${explained}` : ` : ${safeParam}`;
+  }
+  if (brief === letter && !detail) return `${sign}${letter}`;
+  return `${sign}${letter} (${brief}${detail})`;
 }
 
 /** Natural-language clause for one grouped MODE change. */

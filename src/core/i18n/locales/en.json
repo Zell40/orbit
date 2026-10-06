@@ -902,7 +902,19 @@
       "b": "ban",
       "e": "except",
       "I": "invite",
-      "g": "filter"
+      "g": "filter",
+      "w": "auto-op",
+      "X": "op exemption",
+      "Z": "named mode"
+    },
+    "listBrief": {
+      "b": "ban",
+      "e": "ban exception",
+      "I": "invite exception",
+      "g": "filter",
+      "w": "auto-op",
+      "X": "op exemption",
+      "Z": "named mode"
     },
     "param": {
       "key": "key",
@@ -982,22 +994,27 @@
     },
     "moderated": {
       "label": "Moderated",
+      "brief": "moderated",
       "desc": "Only voiced users and ops can talk (+m)"
     },
     "noExternal": {
       "label": "No external messages",
+      "brief": "no external messages",
       "desc": "Only members can write (+n)"
     },
     "topicLock": {
       "label": "Protected topic",
+      "brief": "protected topic",
       "desc": "Only ops change the topic (+t)"
     },
     "secret": {
       "label": "Secret",
+      "brief": "secret",
       "desc": "Hidden from public lists (+s)"
     },
     "private": {
       "label": "Private",
+      "brief": "private",
       "desc": "Kept off listings, /whois hidden (+p)"
     },
     "keyed": {
@@ -1007,14 +1024,17 @@
     },
     "blockColor": {
       "label": "No colours",
+      "brief": "no colours",
       "desc": "Blocks colour/format codes (+c)"
     },
     "noCtcp": {
       "label": "No CTCP",
+      "brief": "no CTCP",
       "desc": "Blocks CTCP requests (+C)"
     },
     "stripColor": {
       "label": "Strip colours",
+      "brief": "strip colours",
       "desc": "Removes colour codes from messages (+S)"
     },
     "registered": {
@@ -1024,42 +1044,52 @@
     },
     "regOnly": {
       "label": "Accounts only",
+      "brief": "accounts only",
       "desc": "Must be registered to enter (+R)"
     },
     "regModerated": {
       "label": "Registered to talk",
+      "brief": "registered to talk",
       "desc": "Only registered accounts can talk (+M)"
     },
     "operOnly": {
       "label": "Operators only",
+      "brief": "operators only",
       "desc": "IRC operators only (+O)"
     },
     "tlsOnly": {
       "label": "TLS only",
+      "brief": "TLS only",
       "desc": "Secure connection required (+z)"
     },
     "noNickChange": {
       "label": "Locked nick",
+      "brief": "locked nick",
       "desc": "No nick changes allowed (+N)"
     },
     "noKnock": {
       "label": "No KNOCK",
+      "brief": "no KNOCK",
       "desc": "Blocks KNOCK requests to join an invite-only channel (+K)"
     },
     "permanent": {
       "label": "Permanent",
+      "brief": "permanent",
       "desc": "Channel persists with no members (+P)"
     },
     "allowInvite": {
       "label": "Free invites",
+      "brief": "free invites",
       "desc": "Anyone can invite (+A)"
     },
     "delayJoin": {
       "label": "Hidden joins",
+      "brief": "hidden joins",
       "desc": "Hides JOIN until the first message (+D)"
     },
     "censor": {
       "label": "Censor",
+      "brief": "censor",
       "desc": "Filters the server’s banned words (+G)"
     },
     "chanfilter": {
@@ -1069,22 +1099,27 @@
     },
     "noKick": {
       "label": "No kicks",
+      "brief": "no kicks",
       "desc": "Forbids KICK (+Q)"
     },
     "noNotice": {
       "label": "No notices",
+      "brief": "no notices",
       "desc": "Blocks channel NOTICE (+T)"
     },
     "auditorium": {
       "label": "Auditorium",
+      "brief": "auditorium",
       "desc": "Hides the member list (+u)"
     },
     "opModerated": {
       "label": "Op-moderated",
+      "brief": "op-moderated",
       "desc": "Blocked messages go to operators (+U)"
     },
     "blockHighlight": {
       "label": "Anti mass-highlight",
+      "brief": "anti mass-highlight",
       "desc": "Punishes mentioning too many members (+V)"
     }
   },
@@ -1249,21 +1284,25 @@
   "chanParams": {
     "anticaps": {
       "label": "Anti-caps",
+      "brief": "anti-caps",
       "desc": "Uppercase cap, e.g. 80:2 (+B): 80% over at least 2 characters",
       "live": "{{pct}}% uppercase, at least {{n}} characters"
     },
     "delaymsg": {
       "label": "Talk delay",
+      "brief": "talk delay",
       "desc": "Seconds to wait before speaking (+d)",
       "live": "Wait {{n}} seconds after joining before talking"
     },
     "repeat": {
       "label": "Anti-repeat",
+      "brief": "anti-repeat",
       "desc": "Limits repeated messages, e.g. 5:5 (+E): 5 identical lines in 5 seconds",
       "live": "{{n}} identical messages in {{sec}} seconds"
     },
     "flood": {
       "label": "Anti-flood",
+      "brief": "anti-flood",
       "desc": "Message threshold, e.g. *5:10 (+f). * = kick+ban, ~ = notify ops",
       "live": "{{n}} messages in {{sec}} seconds{{action}}",
       "kick": " (kick)",
@@ -1272,32 +1311,38 @@
     },
     "nickflood": {
       "label": "Nick flood",
+      "brief": "nick flood",
       "desc": "Nick changes, e.g. 5:10 (+F): 5 changes in 10 seconds",
       "live": "{{n}} nick changes in {{sec}} seconds"
     },
     "history": {
       "label": "History",
+      "brief": "history",
       "desc": "Lines and duration, e.g. 20:1d (+H)",
       "live": "{{n}} messages kept for {{dur}}"
     },
     "joinflood": {
       "label": "Join flood",
+      "brief": "join flood",
       "desc": "Too-fast joins, e.g. 5:10 (+j): 5 users in 10 seconds",
       "live": "{{n}} users in {{sec}} seconds"
     },
     "kicknorejoin": {
       "label": "No rejoin",
+      "brief": "no rejoin",
       "desc": "Seconds before rejoining after a kick (+J)",
       "live": "Cannot rejoin for {{n}} seconds after a kick"
     },
     "redirect": {
       "label": "Redirect",
+      "brief": "redirect",
       "desc": "Fallback channel, e.g. #lobby (+L). You must be an operator on the target channel.",
       "live": "Rejected users are sent to {{chan}}",
       "hint": "InspIRCd only accepts +L if you are an operator on the target channel. Orbit sends it via ChanServ."
     },
     "antisnoop": {
       "label": "Anti-snoop",
+      "brief": "anti-snoop",
       "desc": "Max idle for watchers, e.g. 5m (+W)",
       "live": "Watchers idle longer than {{dur}}"
     }

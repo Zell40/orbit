@@ -755,6 +755,14 @@ export async function fetchNickServHelp(account: string, nick = ''): Promise<Set
   return cmds.size ? cmds : null;
 }
 
+const NS_OPER_HELP = ['SASET', 'SAREGISTER', 'SUSPEND', 'UNSUSPEND', 'MASSSET', 'GETEMAIL'];
+
+/** NickServ HELP lists SA* / GETEMAIL only for services operators. */
+export function nickServHelpIsOper(cmds: Set<string> | null | undefined): boolean {
+  if (!cmds) return false;
+  return NS_OPER_HELP.some((c) => cmds.has(c));
+}
+
 /** UI catalog — `hide` = never surface (noise for end users). */
 export type NickServManageCmd = {
   cmd: string;
