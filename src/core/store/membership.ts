@@ -262,7 +262,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           const next = account ?? '';
           if (nickServSessionBusy()) {
             // anope.identify (JSON-RPC) can echo ACCOUNT * then ACCOUNT nick — do
-            // not drop the session or re-run AJOIN LIST.
+            // not drop the session mid-login.
             if (next && next.toLowerCase() !== String(prev || '').toLowerCase()) {
               set({ account: next });
             }

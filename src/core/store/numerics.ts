@@ -1,7 +1,6 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import { unregisterPushOnAccountLogout } from '@/platform/push';
-import { nickServSessionBusy } from './nickserv-info';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, umodeLettersFrom221 } from '../irc/modes';
 import { looksLikeMlock, mergeMlock, mlockLetters } from '../irc/mode-catalog';
