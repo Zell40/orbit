@@ -12,7 +12,7 @@ import {
   nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
   describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServHelpIsOper,
   parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
-  loadNickServAccountSnapshot, markNickServAutoQuery, NS_ACCOUNT_WAIT_MS,
+  loadNickServAccountSnapshot, markNickServAutoQuery, NS_ACCOUNT_WAIT_MS, nickServSet,
   type NickServInfo, type NickServAccessRow,
 } from '@/core/store/nickserv-info';
 
@@ -197,7 +197,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
       }).catch(() => {
         window.clearTimeout(failAt);
         if (mine !== gen.current) return;
-        if (!opts?.silent) setPhase('empty');
+        setPhase('empty');
       });
     }, wait);
   }, [account, nick, client]);
@@ -230,7 +230,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
                 <dt className="nsinfo-row__k">{row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
-                    ? <NickServSetToggles pills={row.pills} onChanged={() => load({ force: true, silent: true })} />
+                    ? <NickServSetToggles account={account} nick={nick} pills={row.pills} onChanged={() => load({ force: true, silent: true })} />
                     : (row.value || '—')}
                 </dd>
               </div>
@@ -246,28 +246,20 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
   );
 }
 
-function NickServSetToggles({ pills, onChanged }: { pills: string[]; onChanged: () => void }) {
+function NickServSetToggles({
+  pills, account, nick, onChanged,
+}: { pills: string[]; account: string; nick: string; onChanged: () => void }) {
   const { t } = useTranslation();
-  const client = useActiveChat((s) => s.client);
   const [busy, setBusy] = useState('');
-  const parsed = parseNickServOptionPills(pills);
-  const [local, setLocal] = useState<Set<string> | null>(null);
-  const on = local ?? parsed;
+  const on = parseNickServOptionPills(pills);
   const noExpire = on.has('NOEXPIRE');
 
-  useEffect(() => { setLocal(null); }, [pills]);
-
-  function toggle(set: string, next: boolean) {
-    if (!client || busy) return;
+  async function toggle(set: string, next: boolean) {
+    if (busy) return;
     setBusy(set);
-    setLocal(() => {
-      const cur = new Set(parsed);
-      if (next) cur.add(set);
-      else cur.delete(set);
-      return cur;
-    });
-    client.privmsg('NickServ', `SET ${set} ${next ? 'ON' : 'OFF'}`);
-    window.setTimeout(() => { setBusy(''); onChanged(); }, 900);
+    await nickServSet(account, nick, set, next);
+    setBusy('');
+    onChanged();
   }
 
   return (

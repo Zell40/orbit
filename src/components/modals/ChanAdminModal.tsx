@@ -168,13 +168,10 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
                 <span className="ca-flag__desc">{plainDesc(t(`chanFlags.${f.key}.desc`))}</span>
               </span>
             ) : (
-              <span className="ca-flag__txt">
-                <span className="ca-flag__label">
-                  <code className="ca-flag__m">+{f.m}</code>
-                  {t(`chanFlags.${f.key}.label`)}
-                </span>
-                <span className="ca-flag__desc">{plainDesc(t(`chanFlags.${f.key}.desc`))}</span>
-              </span>
+              <>
+                <code className="ca-flag__m">+{f.m}</code>
+                <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
+              </>
             )}
             {ro && (lock === 'services' || lock === 'overview') ? <LockTag kind={lock} /> : null}
           </label>
@@ -825,11 +822,11 @@ export function ChanAdminModal() {
             {/* "Modes", "bans étendus" and "invex" are the vocabulary of the
                 mode letters the simplified panel exists to hide. */}
             {tabBtn('modes', t(simpleModes ? 'modals.chanadmin.simple.tabModes' : 'modals.chanadmin.tabModes'))}
-            {tabBtn('bans', t('modals.chanadmin.bans', { n: banRows.length }))}
-            {hasInvex && tabBtn('invex', t(simpleModes ? 'modals.chanadmin.simple.tabInvex' : 'modals.chanadmin.invexTab', { n: invexlist.length }))}
-            {hasChanfilter && tabBtn('filters', t(simpleModes ? 'modals.chanadmin.simple.tabFilters' : 'modals.chanadmin.filtersTab', { n: filterlist.length }))}
-            {!simpleModes && hasExempts && tabBtn('exempts', t('modals.chanadmin.exemptsTab', { n: exemptlist.length }))}
-            {!simpleModes && hasAutoop && tabBtn('autoop', t('modals.chanadmin.autoopTab', { n: autooplist.length }))}
+            {tabBtn('bans', t('modals.chanadmin.bans'))}
+            {hasInvex && tabBtn('invex', t(simpleModes ? 'modals.chanadmin.simple.tabInvex' : 'modals.chanadmin.invexTab'))}
+            {hasChanfilter && tabBtn('filters', t(simpleModes ? 'modals.chanadmin.simple.tabFilters' : 'modals.chanadmin.filtersTab'))}
+            {!simpleModes && hasExempts && tabBtn('exempts', t('modals.chanadmin.exemptsTab'))}
+            {!simpleModes && hasAutoop && tabBtn('autoop', t('modals.chanadmin.autoopTab'))}
           </div>
 
           {tab === 'overview' && (

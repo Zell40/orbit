@@ -308,8 +308,8 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
 async function nickservRpc(
   account: string,
   nick: string,
-  action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist' | 'nsajoin',
-  extra?: { pattern?: string; flags?: string[]; op?: string; channel?: string; key?: string },
+  action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist' | 'nsajoin' | 'nsset',
+  extra?: { pattern?: string; flags?: string[]; op?: string; channel?: string; key?: string; option?: string; value?: string },
 ): Promise<string | null> {
   if (!account) return null;
   const ctrl = new AbortController();
@@ -564,14 +564,14 @@ export type NickServSetOpt = {
   locked?: boolean;
 };
 
-/** NickServ SET flags we expose as switches in Compte. Names = Anope SET (Entre Nous). NOEXPIRE stays read-only. */
+/** NickServ SET flags we expose as switches in Compte. Names match `/ns aide set` on Entre Nous. */
 export const NICKSERV_SET_TOGGLES: NickServSetOpt[] = [
   { set: 'AUTOOP', key: 'autoop', match: /auto-?op/i },
   { set: 'CHANSTATS', key: 'chanstats', match: /chanstats|statistiques(\s+nickserv)?/i },
   { set: 'LAYOUT', key: 'flexible', match: /flex|layout|disposition/i },
-  { set: 'PROTECT', key: 'kill', match: /^(kill|protect|protection)$/i },
+  { set: 'PROTECT', key: 'kill', match: /^(kill|protection|protect)$/i },
   { set: 'PRIVATE', key: 'private', match: /private|priv[eé]/i },
-  { set: 'HIDE', key: 'hidemail', match: /hide(mail)?|hide\s*e-?mail|masquer/i },
+  { set: 'HIDE EMAIL', key: 'hidemail', match: /hidemail|hide\s*e-?mail|masquer\s*(l['’]\s*)?e-?mail/i },
   { set: 'KEEPMODES', key: 'keepmodes', match: /keepmodes|conserver les modes/i },
 ];
 
@@ -756,6 +756,7 @@ export async function fetchNickServAlist(account: string, nick = '', force = fal
 
 function isAjoinNoise(s: string): boolean {
   return /^(fin de|end of|syntaxe|syntax|num[eé]ro|liste d(?:es|['’])\s*auto-?joins?|liste de join automatiques|ajoins?\s+for|auto-?joins?\s+(for|de))\b/i.test(s)
+    || /join automatiques de\b/i.test(s)
     || /acc[eè]s refus|access denied/i.test(s)
     || /cette commande g[eè]re|g[eè]re votre liste d['’]?auto/i.test(s)
     || /op[eé]rateurs? des services peuvent|tapez\s+\/?ns\b/i.test(s);
@@ -772,13 +773,15 @@ export function parseNickServAjoin(raw: string): string[] {
   for (const line of String(raw || '').split(/\n/)) {
     const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
     if (!s || isAjoinNoise(s) || isAjoinEmpty(s)) continue;
-    const m = s.match(/^(?:\d+\s*[:.)]?\s+)?([#&][^\s,]+)/);
-    if (!m) continue;
-    const channel = m[1].replace(/[,.;:]+$/, '');
-    const key = channel.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    chans.push(channel);
+    const found = s.match(/[#&][^\s,]+/g) || [];
+    for (const rawChan of found) {
+      const channel = rawChan.replace(/[,.;:]+$/, '');
+      if (!/^[#&]/.test(channel)) continue;
+      const key = channel.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      chans.push(channel);
+    }
   }
   return chans;
 }
@@ -967,6 +970,26 @@ export async function nickServAjoinAdd(account: string, nick: string, chan: stri
 
 export async function nickServAjoinDel(account: string, nick: string, chan: string): Promise<boolean> {
   return nickServAjoinMutate(account, nick, 'DEL', chan);
+}
+
+/** NickServ SET via RPC (no identify), else one IRC SET whose notices are swallowed. */
+export async function nickServSet(account: string, nick: string, option: string, on: boolean): Promise<void> {
+  const opt = String(option || '').trim();
+  if (!opt) return;
+  const value = on ? 'ON' : 'OFF';
+  const rpc = await nickservRpc(account, nick, 'nsset', { option: opt, value });
+  const fold = stripFormatting(rpc || '').replace(/\s+/g, ' ').trim();
+  const denied = rpc == null || rpcLooksDenied(fold) || /^(syntaxe|syntax)\s*:/i.test(fold);
+  if (denied) {
+    markNickServAutoQuery(5000);
+    try {
+      const { activeStore } = await import('@/core/networks');
+      activeStore()?.getState?.()?.client?.privmsg('NickServ', `SET ${opt} ${value}`);
+    } catch {
+      /* ignore */
+    }
+  }
+  nsSnapCache = null;
 }
 
 export type NickServAccessRow = NickServAccess & { ajoin: boolean };

@@ -219,7 +219,7 @@ describe('parseNickServOptionPills', () => {
   it('maps English Kill/Secure/HideEmail pills', () => {
     const on = parseNickServOptionPills(['Kill', 'HideEmail', 'Private']);
     expect(on.has('PROTECT')).toBe(true);
-    expect(on.has('HIDE')).toBe(true);
+    expect(on.has('HIDE EMAIL')).toBe(true);
     expect(on.has('PRIVATE')).toBe(true);
     expect(on.has('NOEXPIRE')).toBe(false);
   });
@@ -264,13 +264,12 @@ Fin de la liste d'auto-join.`;
 Cette commande gère votre liste d'auto join.`)).toEqual([]);
   });
 
-  it('parses Entre Nous “JOIN automatiques” numbered table', () => {
+  it('parses Entre Nous numbered AJOIN without colons', () => {
     const raw = `Liste de JOIN automatiques de Harry :
 Numéro Salon Clé
 1 #EntreJeunes.chat
 2 #_bo
-3 #Zell
-Fin de la liste d'auto-join.`;
+3 #Zell`;
     expect(parseNickServAjoin(raw)).toEqual(['#EntreJeunes.chat', '#_bo', '#Zell']);
   });
 });

@@ -817,9 +817,8 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 /* Topic and its setter share one row, spread across the header: the topic grows to
    fill, the setter sits at the right edge (where dead space used to be). */
 .topbar__sub { display: flex; align-items: baseline; gap: 1.2rem; min-width: 0; }
-.topbar__title { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: .5rem; min-width: 0; max-width: 100%; }
-.topbar__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.topbar__modes { flex: none; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .72rem; font-weight: 700; color: var(--muted); background: var(--bg-soft); border: 1px solid var(--border); padding: .08rem .4rem; border-radius: 6px; letter-spacing: 0; white-space: nowrap; }
+.topbar__title { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: .5rem; min-width: 0; max-width: 100%; overflow: hidden; }
+.topbar__modes { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .72rem; font-weight: 700; color: var(--muted); background: var(--bg-soft); border: 1px solid var(--border); padding: .08rem .4rem; border-radius: 6px; letter-spacing: 0; }
 .topbar__topic { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar__topic--muted { color: var(--faint); }
 .topbar__setby { flex: 0 1 auto; min-width: 0; max-width: 42%; font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2463,19 +2462,15 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .settings__content > * { flex: none; }
 
 /* Gérer le salon — same two-pane shell as Settings when a plugin adds a section */
-.settings--chanadmin {
-  width: min(980px, 96vw); height: min(760px, 92vh);
-}
 .settings--chanadmin .settings__navitem.is-on .settings__navic { color: #fff; }
 .settings--chanadmin .settings__content:not(.settings__content--plugin) {
   overflow: hidden; display: flex; flex-direction: column; padding-bottom: 1rem;
 }
 .settings--chanadmin .settings__content:not(.settings__content--plugin) > * { flex: 1 1 auto; min-height: 0; }
 .settings--chanadmin .ca-layout { height: 100%; display: flex; flex-direction: column; min-height: 0; }
-.settings--chanadmin .ca-topicrow { flex: none; }
 .settings--chanadmin .ca-main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .settings--chanadmin .ca-tabs { flex: none; }
-.settings--chanadmin .ca-pane { flex: 1; height: auto; min-height: 0; overflow-y: auto; }
+.settings--chanadmin .ca-pane { flex: 1; height: auto; min-height: 0; }
 .settings--chanadmin .settings__content--plugin { padding: 0; overflow: hidden; gap: 0; }
 .settings--chanadmin .settings__content--plugin > * { flex: 1 1 auto; min-height: 0; display: flex; max-width: 100%; }
 
@@ -3178,8 +3173,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-layout { display: block; }
 .ca-main { min-width: 0; }
 .ca-topicrow { margin: 0 0 1rem; min-width: 0; }
-.ca-tabs { display: flex; flex-wrap: wrap; gap: .15rem .2rem; margin: -.2rem 0 .85rem; border-bottom: 1px solid var(--border-2); }
-.ca-tab { appearance: none; border: 0; background: none; padding: .5rem .7rem; font: inherit; font-size: .84rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: .35rem; flex: none; white-space: nowrap; transition: color .15s, border-color .15s; }
+.ca-tabs { display: flex; gap: .1rem; margin: -.2rem 0 1rem; border-bottom: 1px solid var(--border-2); }
+.ca-tab { appearance: none; border: 0; background: none; padding: .5rem .85rem; font: inherit; font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: .4rem; transition: color .15s, border-color .15s; }
 .ca-tab:hover { color: var(--ink); }
 .ca-tab.is-on { color: var(--ink); border-bottom-color: var(--accent); }
 /* Both tabs render at the same fixed height so switching never resizes the modal;
@@ -3309,9 +3304,11 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-param__l:has(.ca-flag__m) { width: 9.5rem; display: inline-flex; align-items: center; gap: .35rem; }
 .ca-param .modal__input { flex: 1; min-width: 0; width: auto; }
 .ca-param .upbtn { flex: none; }
-/* Mode flags — readable cards (letter + label + description), not truncated rows. */
-.ca-flags { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: .45rem; }
-.ca-flag { display: flex; align-items: flex-start; gap: .5rem; padding: .55rem .7rem; border: 1px solid var(--border-2); border-radius: 10px; background: var(--bg-soft); cursor: pointer; transition: border-color .15s, background .15s; }
+/* Mode flags — card grid with on-state highlight + mode-letter chip */
+.ca-flags { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: .3rem; }
+/* Compact single-line rows: label always visible, description trails and truncates
+   (full text on hover via title) so all modes fit the fixed pane height. */
+.ca-flag { display: flex; align-items: center; gap: .5rem; padding: .3rem .55rem; border: 1px solid var(--border-2); border-radius: 9px; background: var(--bg-soft); cursor: pointer; transition: border-color .15s, background .15s; }
 .ca-flag:hover { border-color: var(--accent); }
 .ca-flag.is-on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg-soft)); }
 .ca-flag.is-ro { cursor: pointer; opacity: 1; }
@@ -3329,12 +3326,16 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   background: var(--bg); border-right: 1px solid var(--border-2); border-bottom: 1px solid var(--border-2);
   transform: translateX(-50%) rotate(45deg); }
 .ca-locktip.is-below::after { bottom: auto; top: -5px; transform: translateX(-50%) rotate(225deg); }
-.ca-flag input { flex: none; width: 15px; height: 15px; margin-top: .18rem; accent-color: var(--up-accent, #2a6bff); }
+.ca-flag input { flex: none; width: 15px; height: 15px; accent-color: var(--up-accent, #2a6bff); }
+/* Mode letter leads each row as a monospace badge (+C, +S…); it tints to the accent
+   when the mode is active. The label follows for readers who don't know the letters. */
 .ca-flag__m { flex: none; min-width: 2rem; text-align: center; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .74rem; font-weight: 700; padding: .1rem .3rem; border-radius: 5px; background: var(--bg-2, rgba(127,127,127,.16)); color: var(--muted); }
 .ca-prow .ca-flag__m { min-width: 0; text-align: left; white-space: nowrap; }
 .ca-flag.is-on .ca-flag__m { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-.ca-flag__label { font-size: .86rem; font-weight: 650; white-space: normal; overflow: visible; display: inline-flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
-/* Simplified panel (prefs.simpleModes): same card grid, without the +letter chip. */
+.ca-flag__label { flex: 1; min-width: 0; font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Simplified panel (prefs.simpleModes). The expert grid packs a letter chip and a
+   truncated label on one line and leans on the title tooltip for the rest; here
+   the description is the point, so rows grow and nothing needs a hover. */
 .ca-pane--simple { display: flex; flex-direction: column; gap: 1.1rem; padding-bottom: .65rem; }
 .ca-flags--plain { grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: .4rem; }
 .ca-flags--plain .ca-flag { align-items: flex-start; padding: .5rem .65rem; }
@@ -3587,17 +3588,17 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .emoji-pop { left: 0; right: 0; width: auto; max-height: min(46vh, 280px); }
   .emoji-pop__filter-lbl { display: none; }
 
-  /* Topbar: keep the full mode chip next to the name (wraps under if needed). */
+  /* Topbar: tighter, and drop the channel-mode chip (advanced info) so the
+     title/topic and the online pill always fit. */
   .topbar { padding: calc(.55rem + env(safe-area-inset-top, 0px)) .6rem .55rem; gap: .35rem; min-height: 56px; }
-  .topbar__modes { display: inline-flex; font-size: .66rem; }
+  .topbar__modes { display: none; }
   .topbar__setby { display: none; }
   /* Native two-line header: channel glyph · name over topic, then the stateful
      notify/pin toggles, member count, and a "⋮" overflow for the rest. */
   .topbar { gap: .5rem; }
   .topbar__av { display: grid; width: 36px; height: 36px; font-size: 1rem; border-radius: 11px; }
   .topbar__meta { overflow: hidden; }
-  .topbar__title { font-size: .86rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; overflow: visible; text-overflow: unset; white-space: normal; }
-  .topbar__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; max-width: 100%; }
+  .topbar__title { font-size: .86rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .topbar__pill { cursor: pointer; min-width: 0; padding: .38rem .6rem; }
   .topbar .topbar__hide-mobile { display: none; }   /* search / manage / leave / plugins collapse into ⋮ */
   .topbar .topbar__more { display: inline-flex; }
