@@ -2310,11 +2310,11 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .sfield__row { display: flex; gap: .5rem; }
 
 /* ── Server info + IRCv3 capabilities panel ───────────────────────────────── */
-.srv-info { margin: 0; padding: 0; display: flex; flex-direction: column; }
-.srv-row { display: flex; align-items: baseline; gap: .75rem; padding: .42rem .15rem; border-top: 1px solid var(--border); }
+.srv-info { margin: 0; padding: .2rem .95rem .55rem; display: flex; flex-direction: column; }
+.srv-row { display: grid; grid-template-columns: minmax(7.5rem, 32%) 1fr; align-items: baseline; gap: .75rem; padding: .48rem 0; border-top: 1px solid var(--border); }
 .srv-row:first-child { border-top: 0; }
-.srv-row__k { flex: none; width: 8.5rem; margin: 0; font-size: .8rem; color: var(--muted); }
-.srv-row__v { margin: 0; flex: 1; min-width: 0; font-size: .82rem; color: var(--ink); font-weight: 600; word-break: break-word; }
+.srv-row__k { margin: 0; font-size: .8rem; color: var(--muted); }
+.srv-row__v { margin: 0; min-width: 0; font-size: .82rem; color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
 .srv-row__v a { color: var(--accent-d); font-weight: 600; text-decoration: none; }
 .srv-row__v a:hover { text-decoration: underline; }
 .about-hero { display: flex; align-items: center; gap: .8rem; padding: .35rem .15rem .9rem; }

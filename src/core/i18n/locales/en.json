@@ -448,21 +448,6 @@
       "emailLabel": "Email",
       "loginTitle": "Log in",
       "leaveConfirm": "You’ll be disconnected from the chat. Leave now?",
-      "wpProfile": {
-        "title": "Public profile",
-        "wpTitle": "WordPress account",
-        "loading": "Loading profile…",
-        "missing": "No public profile found on reseau-entrenous.fr for this account.",
-        "guest": "Sign in to show your profile and WordPress account from reseau-entrenous.fr.",
-        "displayName": "Display name",
-        "gender": "Gender",
-        "ageValue": "{{age}}",
-        "login": "Username",
-        "site": "Site",
-        "registered": "Registered",
-        "openWeb": "View profile on the site",
-        "editWeb": "Edit on MonIdentité"
-      },
       "nickservTitle": "NickServ account",
       "nickservLoading": "Loading account details…",
       "nickservUnavailable": "Couldn’t load NickServ account details.",
@@ -561,6 +546,21 @@
         "getemail": "Find accounts by email (SA).",
         "list": "Search registered nicknames (SA)."
       }
+    },
+    "wpProfile": {
+      "title": "Public profile",
+      "wpTitle": "WordPress account",
+      "loading": "Loading profile…",
+      "missing": "No public profile found on reseau-entrenous.fr for this account.",
+      "guest": "Sign in to show your profile and WordPress account from reseau-entrenous.fr.",
+      "displayName": "Display name",
+      "gender": "Gender",
+      "ageValue": "{{age}}",
+      "login": "Username",
+      "site": "Site",
+      "registered": "Registered",
+      "openWeb": "View profile on the site",
+      "editWeb": "Edit on MonIdentité"
     },
     "appearance": {
       "theme": "Theme",
