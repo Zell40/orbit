@@ -172,9 +172,9 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
   const [nicks, setNicks] = useState<string[]>([]);
   const gen = useRef(0);
 
-  const load = useCallback((opts?: { withUpdate?: boolean; force?: boolean }) => {
+  const load = useCallback((opts?: { withUpdate?: boolean; force?: boolean; silent?: boolean }) => {
     const mine = ++gen.current;
-    setPhase('loading');
+    if (!opts?.silent) setPhase('loading');
     if (opts?.withUpdate) {
       markNickServAutoQuery();
       client?.privmsg('NickServ', 'UPDATE');
@@ -197,7 +197,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
       }).catch(() => {
         window.clearTimeout(failAt);
         if (mine !== gen.current) return;
-        setPhase('empty');
+        if (!opts?.silent) setPhase('empty');
       });
     }, wait);
   }, [account, nick, client]);
@@ -230,7 +230,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
                 <dt className="nsinfo-row__k">{row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
-                    ? <NickServSetToggles pills={row.pills} onChanged={() => load({ force: true })} />
+                    ? <NickServSetToggles pills={row.pills} onChanged={() => load({ force: true, silent: true })} />
                     : (row.value || '—')}
                 </dd>
               </div>
@@ -250,12 +250,22 @@ function NickServSetToggles({ pills, onChanged }: { pills: string[]; onChanged: 
   const { t } = useTranslation();
   const client = useActiveChat((s) => s.client);
   const [busy, setBusy] = useState('');
-  const on = parseNickServOptionPills(pills);
+  const parsed = parseNickServOptionPills(pills);
+  const [local, setLocal] = useState<Set<string> | null>(null);
+  const on = local ?? parsed;
   const noExpire = on.has('NOEXPIRE');
+
+  useEffect(() => { setLocal(null); }, [pills]);
 
   function toggle(set: string, next: boolean) {
     if (!client || busy) return;
     setBusy(set);
+    setLocal(() => {
+      const cur = new Set(parsed);
+      if (next) cur.add(set);
+      else cur.delete(set);
+      return cur;
+    });
     client.privmsg('NickServ', `SET ${set} ${next ? 'ON' : 'OFF'}`);
     window.setTimeout(() => { setBusy(''); onChanged(); }, 900);
   }

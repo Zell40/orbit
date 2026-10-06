@@ -564,15 +564,14 @@ export type NickServSetOpt = {
   locked?: boolean;
 };
 
-/** NickServ SET flags we expose as switches in Compte. NOEXPIRE stays read-only. */
+/** NickServ SET flags we expose as switches in Compte. Names = Anope SET (Entre Nous). NOEXPIRE stays read-only. */
 export const NICKSERV_SET_TOGGLES: NickServSetOpt[] = [
   { set: 'AUTOOP', key: 'autoop', match: /auto-?op/i },
   { set: 'CHANSTATS', key: 'chanstats', match: /chanstats|statistiques(\s+nickserv)?/i },
-  { set: 'FLEXIBLE', key: 'flexible', match: /flex/i },
-  { set: 'KILL', key: 'kill', match: /^(kill|protection)$/i },
-  { set: 'SECURE', key: 'secure', match: /secure|securis/i },
+  { set: 'LAYOUT', key: 'flexible', match: /flex|layout|disposition/i },
+  { set: 'PROTECT', key: 'kill', match: /^(kill|protect|protection)$/i },
   { set: 'PRIVATE', key: 'private', match: /private|priv[eé]/i },
-  { set: 'HIDEMAIL', key: 'hidemail', match: /hidemail|hide\s*e-?mail|masquer\s*(l['’]\s*)?e-?mail/i },
+  { set: 'HIDE', key: 'hidemail', match: /hide(mail)?|hide\s*e-?mail|masquer/i },
   { set: 'KEEPMODES', key: 'keepmodes', match: /keepmodes|conserver les modes/i },
 ];
 
@@ -756,7 +755,7 @@ export async function fetchNickServAlist(account: string, nick = '', force = fal
 }
 
 function isAjoinNoise(s: string): boolean {
-  return /^(fin de|end of|syntaxe|syntax|num[eé]ro|liste d(?:es|['’])\s*auto-?joins?|ajoins?\s+for|auto-?joins?\s+(for|de))\b/i.test(s)
+  return /^(fin de|end of|syntaxe|syntax|num[eé]ro|liste d(?:es|['’])\s*auto-?joins?|liste de join automatiques|ajoins?\s+for|auto-?joins?\s+(for|de))\b/i.test(s)
     || /acc[eè]s refus|access denied/i.test(s)
     || /cette commande g[eè]re|g[eè]re votre liste d['’]?auto/i.test(s)
     || /op[eé]rateurs? des services peuvent|tapez\s+\/?ns\b/i.test(s);
@@ -773,7 +772,7 @@ export function parseNickServAjoin(raw: string): string[] {
   for (const line of String(raw || '').split(/\n/)) {
     const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
     if (!s || isAjoinNoise(s) || isAjoinEmpty(s)) continue;
-    const m = s.match(/^(?:\d+\s*[:.)]\s*)?([#&][^\s,]+)/);
+    const m = s.match(/^(?:\d+\s*[:.)]?\s+)?([#&][^\s,]+)/);
     if (!m) continue;
     const channel = m[1].replace(/[,.;:]+$/, '');
     const key = channel.toLowerCase();

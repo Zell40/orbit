@@ -213,14 +213,14 @@ describe('parseNickServOptionPills', () => {
     const on = parseNickServOptionPills([
       'Auto-op', 'Chanstats', 'Disposition flexible', 'Protection', 'Sans expiration',
     ]);
-    expect([...on].sort()).toEqual(['AUTOOP', 'CHANSTATS', 'FLEXIBLE', 'KILL', 'NOEXPIRE']);
+    expect([...on].sort()).toEqual(['AUTOOP', 'CHANSTATS', 'LAYOUT', 'NOEXPIRE', 'PROTECT']);
   });
 
   it('maps English Kill/Secure/HideEmail pills', () => {
-    const on = parseNickServOptionPills(['Kill', 'Secure', 'HideEmail']);
-    expect(on.has('KILL')).toBe(true);
-    expect(on.has('SECURE')).toBe(true);
-    expect(on.has('HIDEMAIL')).toBe(true);
+    const on = parseNickServOptionPills(['Kill', 'HideEmail', 'Private']);
+    expect(on.has('PROTECT')).toBe(true);
+    expect(on.has('HIDE')).toBe(true);
+    expect(on.has('PRIVATE')).toBe(true);
     expect(on.has('NOEXPIRE')).toBe(false);
   });
 });
@@ -262,6 +262,16 @@ Fin de la liste d'auto-join.`;
     expect(parseNickServAjoin(raw)).toEqual(['#EntreNous', '#secret']);
     expect(parseNickServAjoin(`Syntaxe: AJOIN ADD [pseudo] salon [clé]
 Cette commande gère votre liste d'auto join.`)).toEqual([]);
+  });
+
+  it('parses Entre Nous “JOIN automatiques” numbered table', () => {
+    const raw = `Liste de JOIN automatiques de Harry :
+Numéro Salon Clé
+1 #EntreJeunes.chat
+2 #_bo
+3 #Zell
+Fin de la liste d'auto-join.`;
+    expect(parseNickServAjoin(raw)).toEqual(['#EntreJeunes.chat', '#_bo', '#Zell']);
   });
 });
 
