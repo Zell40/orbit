@@ -259,6 +259,19 @@ Fin de la liste.`;
     expect(parseNickServList(raw).nicks).toEqual(['BotServ', 'TriviaBot']);
     expect(parseNickServList('Syntaxe: LIST modèle').denied).toBe(true);
   });
+
+  it('reads Entre Nous LIST lines with (compte : …)', () => {
+    const raw = `Liste des entrées correspondantes à *act* :
+Actu (compte : Actu)
+Fin de la liste - 1/1 correspondances affichées.`;
+    expect(parseNickServList(raw)).toEqual({ nicks: ['Actu'], denied: false });
+    const many = `Liste des entrées correspondantes à *a* :
+Actu (compte : Actu)
+Alex (compte : Alex)
+Choixpeau (compte : Choixpeau) flamier (compte : flamier)
+Fin de la liste - 3/3 correspondances affichées.`;
+    expect(parseNickServList(many).nicks).toEqual(['Actu', 'Alex', 'Choixpeau', 'flamier']);
+  });
 });
 
 describe('sendChanServInvite', () => {

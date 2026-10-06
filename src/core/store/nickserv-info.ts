@@ -3,7 +3,7 @@ import type { IrcClient } from '@/core/irc/client';
 
 const CS_RPC = '/app/plugins/third/orbit-chanserv/chanserv-rpc.php';
 
-type NsKind = 'INFO' | 'ALIST' | 'GLIST' | 'AJOIN';
+type NsKind = 'INFO' | 'ALIST' | 'GLIST' | 'AJOIN' | 'LIST';
 
 type NsPending = {
   kind: NsKind;
@@ -44,7 +44,7 @@ function endNickServRpc(): void {
 /** User typed `/ns info` (etc.) — let the dump appear in chat. */
 export function noteManualNickServQuery(body: string): void {
   if (nsPending || nsIrcQueue.length) return;
-  if (/^\s*(INFO|ALIST|GLIST|AJOIN)\b/i.test(String(body || ''))) {
+  if (/^\s*(INFO|ALIST|GLIST|AJOIN|LIST)\b/i.test(String(body || ''))) {
     nsManualUntil = Date.now() + 15_000;
   }
 }
@@ -53,6 +53,7 @@ function nsDumpEnded(kind: NsKind, s: string): boolean {
   if (/^(fin de|end of)\b/i.test(s)) return true;
   if (kind === 'GLIST' && /\d+\s+pseudos?\s+(dans|in|on|apparten)/i.test(s)) return true;
   if (kind === 'AJOIN' && /fin de la liste d['’]?auto-?join|end of ajoin/i.test(s)) return true;
+  if (kind === 'LIST' && /correspondances?\s+affich/i.test(s)) return true;
   return false;
 }
 
@@ -521,23 +522,32 @@ export async function fetchNickServGlist(account: string, nick = ''): Promise<st
 /** NickServ LIST blob → matching nicknames (search). */
 export function parseNickServList(raw: string): { nicks: string[]; denied: boolean } {
   const fold = stripFormatting(raw).replace(/\s+/g, ' ').trim();
-  if (/syntaxe:|syntax:|acc[eè]s refus|access denied|permission/i.test(fold)
-    && !/\d+\s*[.)]\s+\S+/.test(fold)) {
-    return { nicks: [], denied: /syntaxe:|syntax:|acc[eè]s refus|access denied|permission/i.test(fold) };
+  const looksDenied = /syntaxe:|syntax:|acc[eè]s refus|access denied|permission/i.test(fold);
+  const looksHits = /\(\s*(?:compte|account)\s*:/i.test(fold) || /\d+\s*[.)]\s+\S+/.test(fold);
+  if (looksDenied && !looksHits) {
+    return { nicks: [], denied: true };
   }
   const nicks: string[] = [];
   const seen = new Set<string>();
-  for (const line of String(raw || '').split(/\n/)) {
-    const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
-    if (!s || GLIST_SKIP.test(s)) continue;
-    if (/^(liste des|list of|matching)/i.test(s)) continue;
-    const m = s.match(/^(?:\d+\s*[.)]?\s+|[-•]\s*)(\S+)/) || s.match(/^(\S+)$/);
-    const nick = m?.[1]?.replace(/[,.;:]+$/, '') || '';
-    if (!NICK_TOKEN.test(nick)) continue;
+  const push = (rawNick: string) => {
+    const nick = String(rawNick || '').replace(/[,.;:]+$/, '');
+    if (!NICK_TOKEN.test(nick)) return;
+    if (/^(pseudo|nick(?:name)?s?|expire|enregistr|compte|account|liste|list|fin)$/i.test(nick)) return;
     const key = nick.toLowerCase();
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return;
     seen.add(key);
     nicks.push(nick);
+  };
+  for (const line of String(raw || '').split(/\n/)) {
+    const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
+    if (!s || /^(liste des|list of|matching|fin de|end of|syntaxe:|syntax:|num[eé]ro)/i.test(s)) continue;
+    const withAcct = [...s.matchAll(/([A-Za-z\[\]\\^{|}`][A-Za-z0-9_\[\]\\^{|}`-]{0,31})\s*\(\s*(?:compte|account)\s*:/gi)];
+    if (withAcct.length) {
+      for (const m of withAcct) push(m[1]);
+      continue;
+    }
+    const m = s.match(/^(?:\d+\s*[.)]?\s+|[-•]\s*)(\S+)/) || s.match(/^(\S+)$/);
+    if (m) push(m[1]);
   }
   return { nicks, denied: false };
 }
@@ -550,9 +560,17 @@ export async function fetchNickServList(
   pattern: string,
   flags: string[] = [],
 ): Promise<{ nicks: string[]; denied: boolean } | null> {
-  const blob = await nickservRpc(account, nick, 'nslist', { pattern, flags });
-  if (blob == null) return null;
-  return parseNickServList(blob);
+  const q = String(pattern || '').trim();
+  if (!q) return { nicks: [], denied: false };
+  const extra = flags.map((f) => String(f || '').toUpperCase()).filter(Boolean);
+  const parse = (blob: string | null) => (blob == null ? null : parseNickServList(blob));
+  const rpc = await nickservRpc(account, nick, 'nslist', { pattern: q, flags: extra });
+  const fromRpc = parse(rpc);
+  if (fromRpc && !fromRpc.denied && fromRpc.nicks.length) return fromRpc;
+  const cmd = ['LIST', q, ...extra].join(' ');
+  const fromIrc = parse(await ircFallback(cmd, 'LIST'));
+  if (fromIrc && !fromIrc.denied) return fromIrc;
+  return fromIrc ?? fromRpc;
 }
 
 /** Read NickServ ALIST — JSON-RPC as the user, else `/ns alist` notices. */
