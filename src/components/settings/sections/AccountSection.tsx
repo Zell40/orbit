@@ -8,10 +8,11 @@ import { useActiveChat, activeStore } from '@/core/networks';
 import { ChangeNickField } from '../ChangeNickField';
 import { Icon } from '@/components/Icon';
 import {
-  fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, fetchNickServGlist, fetchNickServList,
-  fetchNickServAjoin, nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
+  fetchNickServHelp, fetchNickServList,
+  nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
   describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServHelpIsOper,
   parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
+  loadNickServAccountSnapshot, markNickServAutoQuery,
   type NickServInfo, type NickServAccessRow,
 } from '@/core/store/nickserv-info';
 
@@ -139,10 +140,10 @@ export function AccountSection() {
   );
 }
 
-function RefreshIconBtn({ onClick, disabled, label }: { onClick: () => void; disabled?: boolean; label: string }) {
+function RefreshIconBtn({ onClick, disabled, label, spinning }: { onClick: () => void; disabled?: boolean; label: string; spinning?: boolean }) {
   return (
     <button
-      className="linkbtn nsinfo__refresh nsinfo__refresh--ico"
+      className={`linkbtn nsinfo__refresh nsinfo__refresh--ico${spinning ? ' is-busy' : ''}`}
       type="button"
       onClick={onClick}
       disabled={disabled}
@@ -154,6 +155,15 @@ function RefreshIconBtn({ onClick, disabled, label }: { onClick: () => void; dis
   );
 }
 
+function NickServWait({ label }: { label: string }) {
+  return (
+    <div className="sfield nsinfo-wait">
+      <Icon name="refresh" size={18} />
+      <div className="sfield__intro">{label}</div>
+    </div>
+  );
+}
+
 function NickServInfoCard({ account, nick }: { account: string; nick: string }) {
   const { t } = useTranslation();
   const client = useActiveChat((s) => s.client);
@@ -162,29 +172,29 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
   const [nicks, setNicks] = useState<string[]>([]);
   const gen = useRef(0);
 
-  const load = useCallback((withUpdate = false) => {
+  const load = useCallback((opts?: { withUpdate?: boolean; force?: boolean }) => {
     const mine = ++gen.current;
     setPhase('loading');
-    if (withUpdate) client?.privmsg('NickServ', 'UPDATE');
-    const wait = withUpdate ? 700 : 0;
+    if (opts?.withUpdate) {
+      markNickServAutoQuery();
+      client?.privmsg('NickServ', 'UPDATE');
+    }
+    const wait = opts?.withUpdate ? 700 : 0;
     window.setTimeout(() => {
-      void Promise.all([
-        fetchNickServInfo(account, nick),
-        fetchNickServGlist(account, nick),
-      ]).then(([parsed, glist]) => {
+      void loadNickServAccountSnapshot(account, nick, { force: !!(opts?.force || opts?.withUpdate) }).then((snap) => {
         if (mine !== gen.current) return;
-        if (!parsed) { setInfo(null); setNicks(glist || []); setPhase('empty'); return; }
-        setInfo(parsed);
-        const fromInfo = parsed.rows.find((r) => isNickServNicksRow(r.key))?.value
+        if (!snap.info) { setInfo(null); setNicks(snap.glist); setPhase('empty'); return; }
+        setInfo(snap.info);
+        const fromInfo = snap.info.rows.find((r) => isNickServNicksRow(r.key))?.value
           .split(/\s*,\s*/).map((s) => s.trim()).filter(Boolean) || [];
-        setNicks((glist && glist.length) ? glist : fromInfo);
+        setNicks(snap.glist.length ? snap.glist : fromInfo);
         setPhase('ok');
       });
     }, wait);
   }, [account, nick, client]);
 
   useEffect(() => {
-    load(false);
+    load();
     return () => { gen.current++; };
   }, [load]);
 
@@ -195,13 +205,14 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
       <div className="scard__h">
         <span>🪪 {t('settings.account.nickservTitle')}</span>
         <RefreshIconBtn
-          onClick={() => load(true)}
+          onClick={() => load({ withUpdate: true })}
           disabled={phase === 'loading'}
+          spinning={phase === 'loading'}
           label={t('profile.refresh')}
         />
       </div>
       <div className="scard__body">
-        {phase === 'loading' && <div className="sfield"><div className="sfield__intro">{t('settings.account.nickservLoading')}</div></div>}
+        {phase === 'loading' && <NickServWait label={t('settings.account.nickservLoading')} />}
         {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.nickservUnavailable')}</div></div>}
         {phase === 'ok' && info && (
           <dl className="nsinfo-dl">
@@ -210,7 +221,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
                 <dt className="nsinfo-row__k">{row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
-                    ? <NickServSetToggles pills={row.pills} onChanged={() => load(false)} />
+                    ? <NickServSetToggles pills={row.pills} onChanged={() => load({ force: true })} />
                     : (row.value || '—')}
                 </dd>
               </div>
@@ -299,16 +310,13 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
   const [busy, setBusy] = useState('');
   const gen = useRef(0);
 
-  const load = useCallback((silent = false) => {
+  const load = useCallback((opts?: { silent?: boolean; force?: boolean }) => {
     const mine = ++gen.current;
-    if (!silent) setPhase('loading');
-    void Promise.all([
-      fetchNickServAlist(account, nick),
-      fetchNickServAjoin(account, nick),
-    ]).then(([alist, ajoin]) => {
+    if (!opts?.silent) setPhase('loading');
+    void loadNickServAccountSnapshot(account, nick, { force: !!opts?.force }).then((snap) => {
       if (mine !== gen.current) return;
-      if (alist == null && ajoin == null) { setRows([]); setPhase('fail'); return; }
-      const merged = mergeAlistAndAjoin(alist || [], ajoin || []);
+      if (snap.alist == null && snap.ajoin == null) { setRows([]); setPhase('fail'); return; }
+      const merged = mergeAlistAndAjoin(snap.alist || [], snap.ajoin || []);
       setRows(merged);
       setPhase(merged.length ? 'ok' : 'empty');
     });
@@ -338,7 +346,7 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
     const ok = await nickServAjoinAdd(account, nick, name, addKey.trim());
     setBusy('');
     if (ok) { setAddChan(''); setAddKey(''); }
-    load(true);
+    load({ silent: true, force: true });
   }
 
   async function delAjoin(ch: string) {
@@ -346,7 +354,7 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
     setBusy(ch);
     await nickServAjoinDel(account, nick, ch);
     setBusy('');
-    load(true);
+    load({ silent: true, force: true });
   }
 
   return (
@@ -354,14 +362,15 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
       <div className="scard__h">
         <span>🏠 {t('settings.account.alistTitle')}</span>
         <RefreshIconBtn
-          onClick={() => load()}
+          onClick={() => load({ force: true })}
           disabled={phase === 'loading'}
+          spinning={phase === 'loading'}
           label={t('profile.refresh')}
         />
       </div>
       <div className="scard__body">
         <p className="nsajoin__intro">{t('settings.account.ajoinIntro')}</p>
-        {phase === 'loading' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistLoading')}</div></div>}
+        {phase === 'loading' && <NickServWait label={t('settings.account.alistLoading')} />}
         {phase === 'fail' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistUnavailable')}</div></div>}
         {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistEmpty')}</div></div>}
         {phase === 'ok' && (

@@ -60,6 +60,26 @@ describe('parseNickServInfo', () => {
     expect(info.account).toBe('Harry');
     expect(info.rows[0]).toEqual({ key: 'Compte', value: 'Harry (ID : 1)' });
   });
+
+  it('ignores an AJOIN dump mixed into INFO', () => {
+    const mixed = `${FR}
+Liste de join automatiques de Harry :
+1 #EntreNous
+2 #secret
+Fin de la liste d'auto-join.`;
+    const info = parseNickServInfo(mixed, 'Harry');
+    expect(info.rows.map((r) => r.key)).toEqual([
+      'Enregistré',
+      'Dernière adresse',
+      'Vu pour la dernière fois',
+      'Adresse e-mail',
+      'vHost',
+      'Langue',
+      'Options',
+      'Nicks',
+    ]);
+    expect(info.rows.some((r) => /#EntreNous|#secret/.test(r.value))).toBe(false);
+  });
 });
 
 const ALIST_FR = `Salons auxquels le pseudo Harry a accès :
@@ -221,6 +241,15 @@ Harry Sun Oct 9 08:44:49 2022 (il y a 3 années, 363 jours) does not expire
 Lucas Thu Jan 1 00:00:00 1970 (il y a 56 années, 293 jours) does not expire
 2 pseudos dans le compte.`;
     expect(parseNickServGlist(raw)).toEqual(['Harry', 'Lucas']);
+  });
+
+  it('does not treat INFO field names as grouped nicks', () => {
+    const raw = `Informations pour le compte Harry :
+Enregistré          : déc. 12 15:04:22 2019 CET
+Adresse e-mail      : ha***@example.com
+vHost               : user/harry
+Options             : Kill, Secure`;
+    expect(parseNickServGlist(raw)).toEqual([]);
   });
 });
 

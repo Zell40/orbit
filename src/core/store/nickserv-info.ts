@@ -33,6 +33,15 @@ export function nickServSessionBusy(): boolean {
   return nsRpcBusy > 0;
 }
 
+/** Auto INFO/ALIST/GLIST/AJOIN in flight — hide those PRIVMSG/NOTICE from Status. */
+export function nickServAutoQueryActive(): boolean {
+  return !!nsPending || nsIrcQueue.length > 0 || Date.now() < nsSwallowUntil;
+}
+
+export function markNickServAutoQuery(ms = 3000): void {
+  nsSwallowUntil = Math.max(nsSwallowUntil, Date.now() + ms);
+}
+
 function beginNickServRpc(): void {
   nsRpcBusy++;
 }
@@ -52,7 +61,8 @@ export function noteManualNickServQuery(body: string): void {
 function nsDumpEnded(kind: NsKind, s: string): boolean {
   if (/^(fin de|end of)\b/i.test(s)) return true;
   if (kind === 'GLIST' && /\d+\s+pseudos?\s+(dans|in|on|apparten)/i.test(s)) return true;
-  if (kind === 'AJOIN' && /fin de la liste d['’]?auto-?join|end of ajoin/i.test(s)) return true;
+  if (kind === 'AJOIN' && /fin de la liste d['’]?auto-?join|end of ajoin|liste de join automatiques/i.test(s)
+    && /fin de|end of/i.test(s)) return true;
   if (kind === 'LIST' && /correspondances?\s+affich/i.test(s)) return true;
   return false;
 }
@@ -76,7 +86,7 @@ export function ingestNickServNotice(raw: string): boolean {
     nsPending.lines.push(raw);
     if (nsPending.idle) globalThis.clearTimeout(nsPending.idle);
     if (nsDumpEnded(nsPending.kind, s)) finishNickServQuery();
-    else nsPending.idle = globalThis.setTimeout(finishNickServQuery, 700);
+    else nsPending.idle = globalThis.setTimeout(finishNickServQuery, 1600);
   }
   if (Date.now() <= nsManualUntil) return false;
   return !!nsPending || Date.now() < nsSwallowUntil;
@@ -100,9 +110,9 @@ function pumpNickServIrc(): void {
     kind: job.kind,
     lines: [],
     done: (blob) => {
-      nsSwallowUntil = Date.now() + 400;
+      nsSwallowUntil = Date.now() + 2000;
       job.resolve(blob);
-      pumpNickServIrc();
+      globalThis.setTimeout(pumpNickServIrc, 1200);
     },
     idle: null,
     hard: globalThis.setTimeout(finishNickServQuery, 10_000),
@@ -216,6 +226,9 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
       continue;
     }
     if (isEndLine(s)) continue;
+    if (/^(fin de|end of)\b/i.test(s)) continue;
+    if (/auto-?join|liste de join automatiques|salons auxquels|canaux auxquels|liste d['’]acc[eè]s/i.test(s)) continue;
+    if (/^\d+\s*[:.)]?\s*[#&]/.test(s) || /^[#&]\S+$/.test(s)) continue;
     if (/^(syntaxe|syntax)\s*:/i.test(s)) continue;
     if (/op[eé]rateur des services|operat(?:eu)?r of services|services? (?:root|oper)/i.test(s)
       && !s.includes(':')) {
@@ -468,12 +481,20 @@ export function parseNickServOptionPills(pills: string[]): Set<string> {
   return on;
 }
 
+const INFO_KEY_OK = /^(compte|account|enregistr|registered|options?|e-?mail|adresse|vhost|pseudo|nicks?|langue|language|protection|url|statut|derni[eè]re|vu pour|last |hide|id\b)/i;
+
+function infoLooksPlausible(info: NickServInfo): boolean {
+  if (!info.rows.length) return false;
+  if (info.rows.some((r) => /auto-?join|ajoin|liste d['’]acc[eè]s|salons auxquels/i.test(r.key))) return false;
+  return info.rows.some((r) => INFO_KEY_OK.test(r.key));
+}
+
 /** Read NickServ INFO — JSON-RPC as the user, else `/ns info` notices. */
 export async function fetchNickServInfo(account: string, nick = ''): Promise<NickServInfo | null> {
   const parse = (blob: string | null) => {
     if (!blob || rpcLooksDenied(blob)) return null;
     const parsed = parseNickServInfo(blob, account);
-    return parsed.rows.length ? parsed : null;
+    return parsed.rows.length && infoLooksPlausible(parsed) ? parsed : null;
   };
   const rpc = await nickservRpc(account, nick, 'nsinfo');
   return parse(rpc) || parse(await ircFallback('INFO', 'INFO'));
@@ -496,7 +517,7 @@ export function parseNickServGlist(raw: string): string[] {
     const m = s.match(/^(?:\d+\s*[.)]\s*)?(\S+)/);
     const nick = m?.[1]?.replace(/[,.;:]+$/, '') || '';
     if (!NICK_TOKEN.test(nick)) continue;
-    if (/^(pseudo|nick(?:name)?s?|expire|enregistr)/i.test(nick)) continue;
+    if (/^(pseudo|nick(?:name)?s?|expire|enregistr|informations?|adresse|vhost|url|protection|options?|num[eé]ro|salon|langue|language|compte|account|derni[eè]re|e-?mail)$/i.test(nick)) continue;
     const fold = nick.toLowerCase();
     if (seen.has(fold)) continue;
     seen.add(fold);
@@ -505,11 +526,16 @@ export function parseNickServGlist(raw: string): string[] {
   return nicks;
 }
 
+function glistLooksPlausible(nicks: string[]): boolean {
+  return nicks.every((n) => !/^(informations?|adresse|vhost|url|protection|options?|num[eé]ro|salon|enregistr|langue|language|compte|account|derni[eè]re)$/i.test(n));
+}
+
 export async function fetchNickServGlist(account: string, nick = ''): Promise<string[] | null> {
   const parse = (blob: string | null) => {
     if (blob == null) return null;
     if (rpcLooksDenied(blob)) return null;
-    return parseNickServGlist(blob);
+    const nicks = parseNickServGlist(blob);
+    return glistLooksPlausible(nicks) ? nicks : null;
   };
   const rpc = await nickservRpc(account, nick, 'nsglist');
   const fromRpc = parse(rpc);
@@ -574,9 +600,8 @@ export async function fetchNickServList(
 }
 
 /** Read NickServ ALIST — JSON-RPC as the user, else `/ns alist` notices. */
-export async function fetchNickServAlist(account: string, nick = ''): Promise<NickServAccess[] | null> {
-  const key = `alist:${foldAccount(account)}:${foldAccount(nick)}`;
-  return onceFetch(key, async () => {
+export async function fetchNickServAlist(account: string, nick = '', force = false): Promise<NickServAccess[] | null> {
+  const run = async () => {
     const fromBlob = (blob: string | null): NickServAccess[] | null => {
       if (blob == null) return null;
       const rows = parseNickServAlist(blob);
@@ -595,7 +620,9 @@ export async function fetchNickServAlist(account: string, nick = ''): Promise<Ni
     if (rows == null) return null;
     setAccessMarks(rows.map((r) => r.channel));
     return rows;
-  });
+  };
+  if (force) return run();
+  return onceFetch(`alist:${foldAccount(account)}:${foldAccount(nick)}`, run);
 }
 
 function isAjoinNoise(s: string): boolean {
@@ -652,6 +679,54 @@ export async function fetchNickServAjoin(account: string, nick = '', force = fal
   return onceFetch(`ajoin:${foldAccount(account)}:${foldAccount(nick)}`, run);
 }
 
+export type NickServAccountSnapshot = {
+  info: NickServInfo | null;
+  glist: string[];
+  alist: NickServAccess[] | null;
+  ajoin: string[] | null;
+};
+
+let nsSnapInflight: Promise<NickServAccountSnapshot> | null = null;
+let nsSnapCache: { key: string; at: number; data: NickServAccountSnapshot } | null = null;
+const NS_SNAP_TTL_MS = 90_000;
+
+/** One snapshot for Compte: parallel RPC, queued IRC fallback so dumps cannot mix. */
+export async function loadNickServAccountSnapshot(
+  account: string,
+  nick = '',
+  opts?: { force?: boolean },
+): Promise<NickServAccountSnapshot> {
+  const empty: NickServAccountSnapshot = { info: null, glist: [], alist: null, ajoin: null };
+  if (!account) return empty;
+  const key = `${foldAccount(account)}:${foldAccount(nick)}`;
+  if (!opts?.force && nsSnapCache && nsSnapCache.key === key && Date.now() - nsSnapCache.at < NS_SNAP_TTL_MS) {
+    return nsSnapCache.data;
+  }
+  if (nsSnapInflight) {
+    const data = await nsSnapInflight;
+    if (!opts?.force) return data;
+  }
+  const run = (async (): Promise<NickServAccountSnapshot> => {
+    const [info, glist, alist, ajoin] = await Promise.all([
+      fetchNickServInfo(account, nick),
+      fetchNickServGlist(account, nick),
+      fetchNickServAlist(account, nick, !!opts?.force),
+      fetchNickServAjoin(account, nick, !!opts?.force),
+    ]);
+    const data: NickServAccountSnapshot = { info, glist: glist || [], alist, ajoin };
+    nsSnapCache = { key, at: Date.now(), data };
+    nsMarksKey = foldAccount(account);
+    nsMarksAt = Date.now();
+    return data;
+  })();
+  nsSnapInflight = run;
+  try {
+    return await run;
+  } finally {
+    if (nsSnapInflight === run) nsSnapInflight = null;
+  }
+}
+
 export async function refreshNickServMarks(account: string, nick = ''): Promise<void> {
   const key = foldAccount(account);
   if (!key) {
@@ -665,10 +740,8 @@ export async function refreshNickServMarks(account: string, nick = ''): Promise<
   if (key === nsMarksKey && Date.now() - nsMarksAt < NS_MARKS_COOLDOWN_MS) return;
   nsMarksInflight = (async () => {
     try {
-      await Promise.all([
-        fetchNickServAlist(account, nick),
-        fetchNickServAjoin(account, nick),
-      ]);
+      await fetchNickServAlist(account, nick);
+      await fetchNickServAjoin(account, nick);
       nsMarksKey = key;
       nsMarksAt = Date.now();
     } catch {
@@ -702,6 +775,7 @@ async function nickServAjoinMutate(
     const cmd = op === 'DEL' ? `AJOIN DEL ${name}` : `AJOIN ADD ${name}${key ? ` ${key}` : ''}`;
     await ircFallback(cmd, 'AJOIN');
   }
+  nsSnapCache = null;
   const list = await fetchNickServAjoin(account, nick, true);
   const has = (list || []).some((c) => c.toLowerCase() === name.toLowerCase());
   return op === 'DEL' ? !has : has;

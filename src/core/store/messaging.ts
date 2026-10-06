@@ -14,7 +14,7 @@ import { getConfig } from '../config';
 import { isService, isNickServ, isStatusService, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
 import { chanServInfoRevealActive, isChanServInfoNotice, noteManualChanServInfoCommand, parseChanServInfo } from './chanserv-info';
-import { ingestNickServNotice, noteManualNickServQuery } from './nickserv-info';
+import { ingestNickServNotice, noteManualNickServQuery, nickServAutoQueryActive } from './nickserv-info';
 import { extractFilehostToken, filehostTokenFresh } from './upload';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
@@ -176,6 +176,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       noteManualChanServInfoCommand(text);
     }
     if (self && msg.command === 'PRIVMSG' && /^nickserv$/i.test(target || '')) {
+      if (nickServAutoQueryActive()) return true;
       noteManualNickServQuery(text);
     }
     // ChanServ INFO/MODE (MLOCK) — capture for UI; hide auto-probes (orbit-chanserv / RPC fallback).
@@ -187,7 +188,7 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       if (isChanServInfoNotice(text) && !chanServInfoRevealActive()) return true;
     }
     if (msg.command === 'NOTICE' && /^nickserv$/i.test(msg.nick || '')) {
-      if (ingestNickServNotice(text)) return true;
+      if (ingestNickServNotice(text) || nickServAutoQueryActive()) return true;
     }
     // Plugin message filters: a plugin can hide a message from the chat
     // display (e.g. a service's machine-readable control lines). The plugin

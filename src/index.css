@@ -2168,6 +2168,11 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nsinfo__refresh--ico { width: 1.75rem; height: 1.75rem; display: grid; place-items: center; padding: 0; border-radius: 8px; }
 .nsinfo__refresh--ico:hover { text-decoration: none; background: var(--accent-soft); }
 .nsinfo__refresh--ico svg { display: block; }
+.nsinfo__refresh--ico.is-busy { opacity: 1; }
+.nsinfo__refresh--ico.is-busy svg { animation: c-spin .8s linear infinite; }
+.nsinfo-wait { display: flex; align-items: center; gap: .55rem; padding: .15rem .95rem .75rem; }
+.nsinfo-wait svg { flex: 0 0 auto; animation: c-spin .8s linear infinite; color: var(--accent); }
+.nsinfo-wait .sfield__intro { margin: 0; }
 .nsinfo-dl { margin: 0; padding: .1rem .95rem .75rem; display: flex; flex-direction: column; }
 .nsinfo-row { display: grid; grid-template-columns: minmax(7.2rem, 9.6rem) minmax(0, 1fr); gap: .35rem .75rem; padding: .42rem 0; border-top: 1px solid var(--border); }
 .nsinfo-row:first-child { border-top: 0; }
