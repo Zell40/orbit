@@ -470,7 +470,7 @@
       "loginTitle": "Log in",
       "leaveConfirm": "You’ll be disconnected from the chat. Leave now?",
       "nickservTitle": "NickServ account",
-      "nickservLoading": "Loading account details…",
+      "nickservLoading": "Loading account details (up to 30s)…",
       "nickservUnavailable": "Couldn’t load NickServ account details.",
       "glistLabel": "Nicknames registered on the account",
       "nsSearchTitle": "Account / nick search",
@@ -492,7 +492,7 @@
         "unconfirmedHint": "Nicks not yet confirmed by email."
       },
       "alistTitle": "Channel access",
-      "alistLoading": "Loading channel access…",
+      "alistLoading": "Loading channel access (up to 30s)…",
       "alistUnavailable": "Couldn’t load your ChanServ access list (ALIST).",
       "alistEmpty": "No channels with ChanServ access or auto-join.",
       "alistNoExpire": "No expire",

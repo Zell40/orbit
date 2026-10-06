@@ -17,6 +17,12 @@ let nsPending: NsPending | null = null;
 let nsManualUntil = 0;
 let nsSwallowUntil = 0;
 let nsRpcBusy = 0;
+
+export const NS_ACCOUNT_WAIT_MS = 30_000;
+const NS_RPC_MS = 15_000;
+const NS_IRC_HARD_MS = 22_000;
+const NS_IRC_IDLE_MS = 2_500;
+const NS_IRC_GAP_MS = 800;
 const nsIrcWaiters: Record<string, Promise<string>> = {};
 const nsFetchWaiters: Partial<Record<string, Promise<unknown>>> = {};
 let nsMarksInflight: Promise<void> | null = null;
@@ -86,7 +92,7 @@ export function ingestNickServNotice(raw: string): boolean {
     nsPending.lines.push(raw);
     if (nsPending.idle) globalThis.clearTimeout(nsPending.idle);
     if (nsDumpEnded(nsPending.kind, s)) finishNickServQuery();
-    else nsPending.idle = globalThis.setTimeout(finishNickServQuery, 1600);
+    else nsPending.idle = globalThis.setTimeout(finishNickServQuery, NS_IRC_IDLE_MS);
   }
   if (Date.now() <= nsManualUntil) return false;
   return !!nsPending || Date.now() < nsSwallowUntil;
@@ -96,6 +102,7 @@ type NsIrcJob = {
   client: IrcClient;
   cmd: string;
   kind: NsKind;
+  hardMs: number;
   resolve: (blob: string) => void;
 };
 
@@ -105,27 +112,27 @@ function pumpNickServIrc(): void {
   if (nsPending) return;
   const job = nsIrcQueue.shift();
   if (!job) return;
-  nsSwallowUntil = Date.now() + 12_000;
+  nsSwallowUntil = Date.now() + job.hardMs + 2_000;
   nsPending = {
     kind: job.kind,
     lines: [],
     done: (blob) => {
-      nsSwallowUntil = Date.now() + 2000;
+      nsSwallowUntil = Date.now() + 2_000;
       job.resolve(blob);
-      globalThis.setTimeout(pumpNickServIrc, 1200);
+      globalThis.setTimeout(pumpNickServIrc, NS_IRC_GAP_MS);
     },
     idle: null,
-    hard: globalThis.setTimeout(finishNickServQuery, 10_000),
+    hard: globalThis.setTimeout(finishNickServQuery, job.hardMs),
   };
   job.client.privmsg('NickServ', job.cmd);
 }
 
-function queryNickServIrc(client: IrcClient, cmd: string, kind: NsKind): Promise<string> {
+function queryNickServIrc(client: IrcClient, cmd: string, kind: NsKind, hardMs = NS_IRC_HARD_MS): Promise<string> {
   const key = `${kind}:${cmd.trim().toUpperCase()}`;
   const existing = nsIrcWaiters[key];
   if (existing) return existing;
   const p = new Promise<string>((resolve) => {
-    nsIrcQueue.push({ client, cmd, kind, resolve });
+    nsIrcQueue.push({ client, cmd, kind, hardMs, resolve });
     pumpNickServIrc();
   }).finally(() => {
     delete nsIrcWaiters[key];
@@ -134,16 +141,20 @@ function queryNickServIrc(client: IrcClient, cmd: string, kind: NsKind): Promise
   return p;
 }
 
-async function ircFallback(cmd: string, kind: NsKind): Promise<string | null> {
+async function ircFallback(cmd: string, kind: NsKind, deadline?: number): Promise<string | null> {
+  const remain = deadline != null ? deadline - Date.now() : NS_IRC_HARD_MS;
+  if (remain < 800) return null;
   try {
     const { activeStore } = await import('@/core/networks');
     const client = activeStore()?.getState?.()?.client;
     if (!client?.privmsg) return null;
-    return await queryNickServIrc(client, cmd, kind);
+    return await queryNickServIrc(client, cmd, kind, Math.min(NS_IRC_HARD_MS, remain));
   } catch {
     return null;
   }
 }
+
+type NsFetchOpts = { skipIrc?: boolean; skipRpc?: boolean; deadline?: number };
 
 function rpcLooksDenied(blob: string): boolean {
   const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
@@ -265,7 +276,7 @@ async function nickservRpc(
 ): Promise<string | null> {
   if (!account) return null;
   const ctrl = new AbortController();
-  const to = window.setTimeout(() => ctrl.abort(), 8000);
+  const to = window.setTimeout(() => ctrl.abort(), NS_RPC_MS);
   beginNickServRpc();
   try {
     const r = await fetch(CS_RPC, {
@@ -490,14 +501,19 @@ function infoLooksPlausible(info: NickServInfo): boolean {
 }
 
 /** Read NickServ INFO — JSON-RPC as the user, else `/ns info` notices. */
-export async function fetchNickServInfo(account: string, nick = ''): Promise<NickServInfo | null> {
+export async function fetchNickServInfo(account: string, nick = '', opts?: NsFetchOpts): Promise<NickServInfo | null> {
   const parse = (blob: string | null) => {
     if (!blob || rpcLooksDenied(blob)) return null;
     const parsed = parseNickServInfo(blob, account);
     return parsed.rows.length && infoLooksPlausible(parsed) ? parsed : null;
   };
-  const rpc = await nickservRpc(account, nick, 'nsinfo');
-  return parse(rpc) || parse(await ircFallback('INFO', 'INFO'));
+  let fromRpc: NickServInfo | null = null;
+  if (!opts?.skipRpc) {
+    fromRpc = parse(await nickservRpc(account, nick, 'nsinfo'));
+    if (fromRpc) return fromRpc;
+  }
+  if (opts?.skipIrc) return fromRpc;
+  return parse(await ircFallback('INFO', 'INFO', opts?.deadline));
 }
 
 export function isNickServNicksRow(key: string): boolean {
@@ -530,17 +546,20 @@ function glistLooksPlausible(nicks: string[]): boolean {
   return nicks.every((n) => !/^(informations?|adresse|vhost|url|protection|options?|num[eé]ro|salon|enregistr|langue|language|compte|account|derni[eè]re)$/i.test(n));
 }
 
-export async function fetchNickServGlist(account: string, nick = ''): Promise<string[] | null> {
+export async function fetchNickServGlist(account: string, nick = '', opts?: NsFetchOpts): Promise<string[] | null> {
   const parse = (blob: string | null) => {
     if (blob == null) return null;
     if (rpcLooksDenied(blob)) return null;
     const nicks = parseNickServGlist(blob);
     return glistLooksPlausible(nicks) ? nicks : null;
   };
-  const rpc = await nickservRpc(account, nick, 'nsglist');
-  const fromRpc = parse(rpc);
-  if (fromRpc && fromRpc.length) return fromRpc;
-  const fromIrc = parse(await ircFallback('GLIST', 'GLIST'));
+  let fromRpc: string[] | null = null;
+  if (!opts?.skipRpc) {
+    fromRpc = parse(await nickservRpc(account, nick, 'nsglist'));
+    if (fromRpc && fromRpc.length) return fromRpc;
+  }
+  if (opts?.skipIrc) return fromRpc;
+  const fromIrc = parse(await ircFallback('GLIST', 'GLIST', opts?.deadline));
   if (fromIrc) return fromIrc;
   return fromRpc;
 }
@@ -600,7 +619,7 @@ export async function fetchNickServList(
 }
 
 /** Read NickServ ALIST — JSON-RPC as the user, else `/ns alist` notices. */
-export async function fetchNickServAlist(account: string, nick = '', force = false): Promise<NickServAccess[] | null> {
+export async function fetchNickServAlist(account: string, nick = '', force = false, opts?: NsFetchOpts): Promise<NickServAccess[] | null> {
   const run = async () => {
     const fromBlob = (blob: string | null): NickServAccess[] | null => {
       if (blob == null) return null;
@@ -609,19 +628,22 @@ export async function fetchNickServAlist(account: string, nick = '', force = fal
       if (rpcLooksDenied(blob)) return null;
       return isAlistEmpty(stripFormatting(blob).replace(/\s+/g, ' ').trim()) ? [] : [];
     };
-    const rpc = await nickservRpc(account, nick, 'nsalist');
-    const fromRpc = fromBlob(rpc);
-    if (fromRpc && fromRpc.length) {
-      setAccessMarks(fromRpc.map((r) => r.channel));
-      return fromRpc;
+    let fromRpc: NickServAccess[] | null = null;
+    if (!opts?.skipRpc) {
+      fromRpc = fromBlob(await nickservRpc(account, nick, 'nsalist'));
+      if (fromRpc && fromRpc.length) {
+        setAccessMarks(fromRpc.map((r) => r.channel));
+        return fromRpc;
+      }
     }
-    const fromIrc = fromBlob(await ircFallback('ALIST', 'ALIST'));
+    if (opts?.skipIrc) return fromRpc;
+    const fromIrc = fromBlob(await ircFallback('ALIST', 'ALIST', opts?.deadline));
     const rows = fromIrc ?? fromRpc;
     if (rows == null) return null;
     setAccessMarks(rows.map((r) => r.channel));
     return rows;
   };
-  if (force) return run();
+  if (force || opts?.skipIrc || opts?.skipRpc) return run();
   return onceFetch(`alist:${foldAccount(account)}:${foldAccount(nick)}`, run);
 }
 
@@ -654,7 +676,7 @@ export function parseNickServAjoin(raw: string): string[] {
   return chans;
 }
 
-export async function fetchNickServAjoin(account: string, nick = '', force = false): Promise<string[] | null> {
+export async function fetchNickServAjoin(account: string, nick = '', force = false, opts?: NsFetchOpts): Promise<string[] | null> {
   const run = async () => {
     const fromBlob = (blob: string | null): string[] | null => {
       if (blob == null) return null;
@@ -663,19 +685,22 @@ export async function fetchNickServAjoin(account: string, nick = '', force = fal
       if (rpcLooksDenied(blob) && !isAjoinEmpty(stripFormatting(blob).replace(/\s+/g, ' ').trim())) return null;
       return [];
     };
-    const rpc = await nickservRpc(account, nick, 'nsajoin');
-    const fromRpc = fromBlob(rpc);
-    if (fromRpc && fromRpc.length) {
-      setAjoinMarks(fromRpc);
-      return fromRpc;
+    let fromRpc: string[] | null = null;
+    if (!opts?.skipRpc) {
+      fromRpc = fromBlob(await nickservRpc(account, nick, 'nsajoin'));
+      if (fromRpc && fromRpc.length) {
+        setAjoinMarks(fromRpc);
+        return fromRpc;
+      }
     }
-    const fromIrc = fromBlob(await ircFallback('AJOIN LIST', 'AJOIN'));
+    if (opts?.skipIrc) return fromRpc;
+    const fromIrc = fromBlob(await ircFallback('AJOIN LIST', 'AJOIN', opts?.deadline));
     const chans = fromIrc ?? fromRpc;
     if (chans == null) return null;
     setAjoinMarks(chans);
     return chans;
   };
-  if (force) return run();
+  if (force || opts?.skipIrc || opts?.skipRpc) return run();
   return onceFetch(`ajoin:${foldAccount(account)}:${foldAccount(nick)}`, run);
 }
 
@@ -690,7 +715,7 @@ let nsSnapInflight: Promise<NickServAccountSnapshot> | null = null;
 let nsSnapCache: { key: string; at: number; data: NickServAccountSnapshot } | null = null;
 const NS_SNAP_TTL_MS = 90_000;
 
-/** One snapshot for Compte: parallel RPC, queued IRC fallback so dumps cannot mix. */
+/** RPC in parallel, then IRC fallbacks (INFO first) until the 30s Compte deadline. */
 export async function loadNickServAccountSnapshot(
   account: string,
   nick = '',
@@ -706,25 +731,47 @@ export async function loadNickServAccountSnapshot(
     const data = await nsSnapInflight;
     if (!opts?.force) return data;
   }
-  const run = (async (): Promise<NickServAccountSnapshot> => {
-    const [info, glist, alist, ajoin] = await Promise.all([
-      fetchNickServInfo(account, nick),
-      fetchNickServGlist(account, nick),
-      fetchNickServAlist(account, nick, !!opts?.force),
-      fetchNickServAjoin(account, nick, !!opts?.force),
+  let partial: NickServAccountSnapshot = empty;
+  const work = (async (): Promise<NickServAccountSnapshot> => {
+    const deadline = Date.now() + NS_ACCOUNT_WAIT_MS;
+    const rpcOnly = { skipIrc: true as const };
+    const [infoR, glistR, alistR, ajoinR] = await Promise.all([
+      fetchNickServInfo(account, nick, rpcOnly),
+      fetchNickServGlist(account, nick, rpcOnly),
+      fetchNickServAlist(account, nick, !!opts?.force, rpcOnly),
+      fetchNickServAjoin(account, nick, !!opts?.force, rpcOnly),
     ]);
-    const data: NickServAccountSnapshot = { info, glist: glist || [], alist, ajoin };
-    nsSnapCache = { key, at: Date.now(), data };
+    partial = { info: infoR, glist: glistR ?? [], alist: alistR, ajoin: ajoinR };
+    const irc = { skipRpc: true as const, deadline };
+    if (!partial.info) {
+      const info = await fetchNickServInfo(account, nick, irc);
+      if (info) partial = { ...partial, info };
+    }
+    if (glistR == null) {
+      const glist = await fetchNickServGlist(account, nick, irc);
+      if (glist && glist.length) partial = { ...partial, glist };
+    }
+    if (partial.alist == null) {
+      const alist = await fetchNickServAlist(account, nick, true, irc);
+      if (alist != null) partial = { ...partial, alist };
+    }
+    if (partial.ajoin == null) {
+      const ajoin = await fetchNickServAjoin(account, nick, true, irc);
+      if (ajoin != null) partial = { ...partial, ajoin };
+    }
+    nsSnapCache = { key, at: Date.now(), data: partial };
     nsMarksKey = foldAccount(account);
     nsMarksAt = Date.now();
-    return data;
+    return partial;
   })();
-  nsSnapInflight = run;
-  try {
-    return await run;
-  } finally {
-    if (nsSnapInflight === run) nsSnapInflight = null;
-  }
+  nsSnapInflight = work;
+  void work.finally(() => {
+    if (nsSnapInflight === work) nsSnapInflight = null;
+  });
+  const timed = new Promise<NickServAccountSnapshot>((resolve) => {
+    globalThis.setTimeout(() => resolve(partial), NS_ACCOUNT_WAIT_MS);
+  });
+  return await Promise.race([work, timed]);
 }
 
 export async function refreshNickServMarks(account: string, nick = ''): Promise<void> {

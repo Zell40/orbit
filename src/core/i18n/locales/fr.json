@@ -470,7 +470,7 @@
       "loginTitle": "Se connecter",
       "leaveConfirm": "Vous serez déconnecté du tchat. Quitter maintenant ?",
       "nickservTitle": "Compte NickServ",
-      "nickservLoading": "Chargement des informations…",
+      "nickservLoading": "Chargement des informations (jusqu’à 30 s)…",
       "nickservUnavailable": "Impossible de charger les informations NickServ.",
       "glistLabel": "Pseudo enregistré sur le compte",
       "nsSearchTitle": "Recherche de compte / pseudo",
@@ -492,7 +492,7 @@
         "unconfirmedHint": "Pseudos pas encore confirmés par e-mail."
       },
       "alistTitle": "Accès aux salons",
-      "alistLoading": "Chargement des accès…",
+      "alistLoading": "Chargement des accès (jusqu’à 30 s)…",
       "alistUnavailable": "Impossible de charger tes accès ChanServ (ALIST).",
       "alistEmpty": "Aucun salon avec un accès ChanServ ni d’auto-join.",
       "alistNoExpire": "Sans expiration",

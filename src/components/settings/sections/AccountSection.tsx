@@ -12,7 +12,7 @@ import {
   nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
   describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServHelpIsOper,
   parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
-  loadNickServAccountSnapshot, markNickServAutoQuery,
+  loadNickServAccountSnapshot, markNickServAutoQuery, NS_ACCOUNT_WAIT_MS,
   type NickServInfo, type NickServAccessRow,
 } from '@/core/store/nickserv-info';
 
@@ -180,8 +180,13 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
       client?.privmsg('NickServ', 'UPDATE');
     }
     const wait = opts?.withUpdate ? 700 : 0;
+    const failAt = window.setTimeout(() => {
+      if (mine !== gen.current) return;
+      setPhase((p) => (p === 'loading' ? 'empty' : p));
+    }, NS_ACCOUNT_WAIT_MS);
     window.setTimeout(() => {
       void loadNickServAccountSnapshot(account, nick, { force: !!(opts?.force || opts?.withUpdate) }).then((snap) => {
+        window.clearTimeout(failAt);
         if (mine !== gen.current) return;
         if (!snap.info) { setInfo(null); setNicks(snap.glist); setPhase('empty'); return; }
         setInfo(snap.info);
@@ -189,6 +194,10 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
           .split(/\s*,\s*/).map((s) => s.trim()).filter(Boolean) || [];
         setNicks(snap.glist.length ? snap.glist : fromInfo);
         setPhase('ok');
+      }).catch(() => {
+        window.clearTimeout(failAt);
+        if (mine !== gen.current) return;
+        setPhase('empty');
       });
     }, wait);
   }, [account, nick, client]);
@@ -313,12 +322,21 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
   const load = useCallback((opts?: { silent?: boolean; force?: boolean }) => {
     const mine = ++gen.current;
     if (!opts?.silent) setPhase('loading');
+    const failAt = window.setTimeout(() => {
+      if (mine !== gen.current) return;
+      setPhase((p) => (p === 'loading' ? 'fail' : p));
+    }, NS_ACCOUNT_WAIT_MS);
     void loadNickServAccountSnapshot(account, nick, { force: !!opts?.force }).then((snap) => {
+      window.clearTimeout(failAt);
       if (mine !== gen.current) return;
       if (snap.alist == null && snap.ajoin == null) { setRows([]); setPhase('fail'); return; }
       const merged = mergeAlistAndAjoin(snap.alist || [], snap.ajoin || []);
       setRows(merged);
       setPhase(merged.length ? 'ok' : 'empty');
+    }).catch(() => {
+      window.clearTimeout(failAt);
+      if (mine !== gen.current) return;
+      setPhase('fail');
     });
   }, [account, nick]);
 
