@@ -213,7 +213,7 @@
     "chanadmin": {
       "title": "Kanalı yönet",
       "topic": "Kanal konusu…",
-      "bans": "Yasaklar ({{n}})",
+      "bans": "Yasaklar",
       "noBans": "Yasak yok.",
       "ban": "Yasakla",
       "unban": "Yasağı kaldır",
@@ -250,7 +250,7 @@
       "topicBy": "Belirleyen",
       "tabOverview": "Genel bakış",
       "tabModes": "Modlar",
-      "filtersTab": "Filtreler ({{n}})",
+      "filtersTab": "Filtreler",
       "noFilters": "Filtrelenmiş sözcük yok.",
       "filterPlaceholder": "sözcük veya kalıp (* ?)",
       "filterHint": "Bu glob kalıplarına uyan iletiler kanalda engellenir. Boşluk yok: bir ifade kötü*söz olur.",

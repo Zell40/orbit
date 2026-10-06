@@ -213,7 +213,7 @@
     "chanadmin": {
       "title": "Kanal verwalten",
       "topic": "Kanalthema…",
-      "bans": "Sperren ({{n}})",
+      "bans": "Sperren",
       "noBans": "Keine Sperren.",
       "ban": "Sperren",
       "unban": "Sperre aufheben",
@@ -250,7 +250,7 @@
       "topicBy": "Festgelegt von",
       "tabOverview": "Übersicht",
       "tabModes": "Modi",
-      "filtersTab": "Filter ({{n}})",
+      "filtersTab": "Filter",
       "noFilters": "Keine gefilterten Wörter.",
       "filterPlaceholder": "Wort oder Muster (* ?)",
       "filterHint": "Passende Glob-Muster werden im Kanal blockiert. Keine Leerzeichen: eine Phrase wird zu schlimm*wort.",

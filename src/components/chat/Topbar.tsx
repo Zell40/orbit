@@ -105,9 +105,16 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
         : <span className="topbar__av" style={isNotices && !noticeNick ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{isChannel ? '#' : isNotices && !noticeNick ? '!' : label[0]?.toUpperCase()}</span>}
       <div className="topbar__meta">
         <span className="topbar__title">
-          {isServer ? statusTitle : label}
+          <span className="topbar__name">{isServer ? statusTitle : label}</span>
           {!isServer && isChannel && modes && modes !== '+' && (
-            <span className="topbar__modes" title={t('topbar.modes')}>{modes}</span>
+            <>
+              <span className="topbar__modes topbar__modes--full" title={t('topbar.modes')}>
+                {formatChannelModes(modes, modeParams)}
+              </span>
+              <span className="topbar__modes topbar__modes--short" title={formatChannelModes(modes, modeParams)}>
+                {formatChannelModes(modes)}
+              </span>
+            </>
           )}
         </span>
         {isServer && (

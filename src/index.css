@@ -817,8 +817,10 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 /* Topic and its setter share one row, spread across the header: the topic grows to
    fill, the setter sits at the right edge (where dead space used to be). */
 .topbar__sub { display: flex; align-items: baseline; gap: 1.2rem; min-width: 0; }
-.topbar__title { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: .5rem; min-width: 0; max-width: 100%; overflow: hidden; }
-.topbar__modes { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .72rem; font-weight: 700; color: var(--muted); background: var(--bg-soft); border: 1px solid var(--border); padding: .08rem .4rem; border-radius: 6px; letter-spacing: 0; }
+.topbar__title { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; display: inline-flex; align-items: baseline; gap: .5rem; min-width: 0; max-width: 100%; }
+.topbar__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar__modes { flex: none; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .72rem; font-weight: 700; color: var(--muted); background: var(--bg-soft); border: 1px solid var(--border); padding: .08rem .4rem; border-radius: 6px; letter-spacing: 0; white-space: nowrap; }
+.topbar__modes--short { display: none; }
 .topbar__topic { flex: 1 1 auto; min-width: 0; color: var(--muted); font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar__topic--muted { color: var(--faint); }
 .topbar__setby { flex: 0 1 auto; min-width: 0; max-width: 42%; font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -3173,8 +3175,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .ca-layout { display: block; }
 .ca-main { min-width: 0; }
 .ca-topicrow { margin: 0 0 1rem; min-width: 0; }
-.ca-tabs { display: flex; gap: .1rem; margin: -.2rem 0 1rem; border-bottom: 1px solid var(--border-2); }
-.ca-tab { appearance: none; border: 0; background: none; padding: .5rem .85rem; font: inherit; font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: .4rem; transition: color .15s, border-color .15s; }
+.ca-tabs { display: flex; flex-wrap: nowrap; gap: .05rem; margin: -.2rem 0 .85rem; border-bottom: 1px solid var(--border-2); overflow-x: auto; scrollbar-width: none; }
+.ca-tabs::-webkit-scrollbar { display: none; }
+.ca-tab { appearance: none; border: 0; background: none; padding: .45rem .55rem; font: inherit; font-size: .82rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: .3rem; flex: none; white-space: nowrap; transition: color .15s, border-color .15s; }
 .ca-tab:hover { color: var(--ink); }
 .ca-tab.is-on { color: var(--ink); border-bottom-color: var(--accent); }
 /* Both tabs render at the same fixed height so switching never resizes the modal;
@@ -3494,8 +3497,8 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   /* The tabs wrap onto as many lines as they need. Scrolling them sideways kept
      the sheet narrow but hid the last entries behind a drag nobody makes: the
      row has to be readable in one glance. */
-  .ca-tabs { flex: none; flex-wrap: wrap; gap: .1rem .15rem; margin-bottom: .7rem; overflow: visible; }
-  .ca-tab { flex: none; padding: .45rem .5rem; font-size: .84rem; white-space: nowrap; }
+  .ca-tabs { flex: none; flex-wrap: nowrap; gap: .05rem; margin-bottom: .7rem; overflow-x: auto; }
+  .ca-tab { flex: none; padding: .4rem .45rem; font-size: .8rem; white-space: nowrap; }
   /* The fixed 26rem pane either clipped the sheet or left dead space under it. */
   .ca-pane { height: auto; flex: 1; min-height: 0; }
   .ca-bans { max-height: none; }
@@ -3588,17 +3591,18 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .emoji-pop { left: 0; right: 0; width: auto; max-height: min(46vh, 280px); }
   .emoji-pop__filter-lbl { display: none; }
 
-  /* Topbar: tighter, and drop the channel-mode chip (advanced info) so the
-     title/topic and the online pill always fit. */
+  /* Topbar: letters-only mode chip (no flood params), name can ellipsis. */
   .topbar { padding: calc(.55rem + env(safe-area-inset-top, 0px)) .6rem .55rem; gap: .35rem; min-height: 56px; }
-  .topbar__modes { display: none; }
+  .topbar__modes--full { display: none; }
+  .topbar__modes--short { display: inline-flex; font-size: .66rem; }
   .topbar__setby { display: none; }
   /* Native two-line header: channel glyph · name over topic, then the stateful
      notify/pin toggles, member count, and a "⋮" overflow for the rest. */
   .topbar { gap: .5rem; }
   .topbar__av { display: grid; width: 36px; height: 36px; font-size: 1rem; border-radius: 11px; }
   .topbar__meta { overflow: hidden; }
-  .topbar__title { font-size: .86rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar__title { font-size: .86rem; display: flex; flex-wrap: nowrap; align-items: baseline; gap: .35rem; overflow: hidden; text-overflow: unset; white-space: nowrap; }
+  .topbar__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; }
   .topbar__pill { cursor: pointer; min-width: 0; padding: .38rem .6rem; }
   .topbar .topbar__hide-mobile { display: none; }   /* search / manage / leave / plugins collapse into ⋮ */
   .topbar .topbar__more { display: inline-flex; }

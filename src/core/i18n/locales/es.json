@@ -213,7 +213,7 @@
     "chanadmin": {
       "title": "Administrar canal",
       "topic": "Tema del canal…",
-      "bans": "Expulsiones ({{n}})",
+      "bans": "Expulsiones",
       "noBans": "Sin expulsiones.",
       "ban": "Expulsar",
       "unban": "Levantar expulsión",
@@ -250,7 +250,7 @@
       "topicBy": "Puesto por",
       "tabOverview": "Resumen",
       "tabModes": "Modos",
-      "filtersTab": "Filtros ({{n}})",
+      "filtersTab": "Filtros",
       "noFilters": "Ninguna palabra filtrada.",
       "filterPlaceholder": "palabra o patrón (* ?)",
       "filterHint": "Los mensajes que coinciden con estos patrones glob se bloquean en el canal. Sin espacios: una frase se vuelve palabrota*fea.",

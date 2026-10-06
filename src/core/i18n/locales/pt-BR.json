@@ -213,7 +213,7 @@
     "chanadmin": {
       "title": "Gerenciar canal",
       "topic": "Tópico do canal…",
-      "bans": "Banimentos ({{n}})",
+      "bans": "Banimentos",
       "noBans": "Sem banimentos.",
       "ban": "Banir",
       "unban": "Remover banimento",
@@ -250,7 +250,7 @@
       "topicBy": "Definido por",
       "tabOverview": "Visão geral",
       "tabModes": "Modos",
-      "filtersTab": "Filtros ({{n}})",
+      "filtersTab": "Filtros",
       "noFilters": "Nenhuma palavra filtrada.",
       "filterPlaceholder": "palavra ou padrão (* ?)",
       "filterHint": "Mensagens que coincidem com estes padrões glob são bloqueadas no canal. Sem espaços: uma frase vira palavrão*feio.",

@@ -213,7 +213,7 @@
     "chanadmin": {
       "title": "Gestisci canale",
       "topic": "Argomento del canale…",
-      "bans": "Ban ({{n}})",
+      "bans": "Ban",
       "noBans": "Nessun ban.",
       "ban": "Banna",
       "unban": "Rimuovi ban",
@@ -250,7 +250,7 @@
       "topicBy": "Impostato da",
       "tabOverview": "Panoramica",
       "tabModes": "Modalità",
-      "filtersTab": "Filtri ({{n}})",
+      "filtersTab": "Filtri",
       "noFilters": "Nessuna parola filtrata.",
       "filterPlaceholder": "parola o motivo (* ?)",
       "filterHint": "I messaggi che corrispondono a questi glob vengono bloccati nel canale. Niente spazi: una frase diventa parolaccia*brutta.",
