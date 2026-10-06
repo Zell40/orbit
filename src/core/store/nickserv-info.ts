@@ -43,7 +43,8 @@ function nsPreview(raw: string, n = 180): string {
 }
 
 function nsStatus(text: string, kind: MessageKind = 'warning'): void {
-  if (!text) return;
+  const line = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!line || line === '[Compte NickServ]') return;
   void import('@/core/networks').then(({ activeStore }) => {
     const store = activeStore();
     if (!store) return;
@@ -53,7 +54,7 @@ function nsStatus(text: string, kind: MessageKind = 'warning'): void {
       id: newId(),
       bufferName: SERVER,
       from: '',
-      text,
+      text: line,
       ts: Date.now(),
       kind,
       self: false,
@@ -198,12 +199,9 @@ async function ircFallback(cmd: string, kind: NsKind, deadline?: number): Promis
     }
     nsStatus(`[Compte NickServ] fallback IRC /ns ${cmd}`, 'info');
     const blob = await queryNickServIrc(client, cmd, kind, Math.min(NS_IRC_HARD_MS, remain));
-    nsStatus(
-      blob
-        ? `[Compte NickServ] IRC ${kind} : ${nsPreview(blob)}`
-        : `[Compte NickServ] IRC ${kind} : aucune notice.`,
-      blob ? 'info' : 'warning',
-    );
+    const preview = nsPreview(blob || '');
+    if (preview) nsStatus(`[Compte NickServ] IRC ${kind} : ${preview}`, 'info');
+    else nsStatus(`[Compte NickServ] IRC ${kind} : aucune notice.`);
     return blob;
   } catch (e) {
     nsStatus(`[Compte NickServ] IRC ${kind} erreur : ${e instanceof Error ? e.message : 'inconnue'}`);
@@ -386,6 +384,8 @@ async function nickservAccountRpc(account: string, nick: string): Promise<NsAcco
     let data: {
       ok?: boolean;
       error?: unknown;
+      detail?: unknown;
+      file?: unknown;
       info?: unknown;
       glist?: unknown;
       alist?: unknown;
@@ -404,12 +404,15 @@ async function nickservAccountRpc(account: string, nick: string): Promise<NsAcco
     const source = String(data.debug?.source || nick || account);
     const error = data?.ok ? '' : String(data.error || `http_${r.status}`);
     if (!data?.ok) {
+      const detail = String(data.detail || '');
       const hint = error === 'bad_action'
-        ? ' (PHP nsaccount absent — déploie chanserv-rpc.php)'
+        ? ' — déploie chanserv-rpc.php (action nsaccount absente)'
         : error === 'not_configured'
-          ? ' (RPC Anope non configuré)'
+          ? (detail === 'loaded'
+            ? ' — jeton vide ou encore CHANGE_ME dans chanserv-rpc.local.php'
+            : ' — chanserv-rpc.local.php absent du webroot (même jeton que wp_anope_sync)')
           : '';
-      nsStatus(`[Compte NickServ] RPC HTTP ${r.status} erreur ${error}${hint}`);
+      nsStatus(`[Compte NickServ] RPC HTTP ${r.status} ${error}${detail ? ` (${detail})` : ''}${hint}`);
       for (const n of notes) nsStatus(`[Compte NickServ] ${n}`);
       return { info: '', glist: '', alist: '', ajoin: '', http: r.status, error, notes, source };
     }
@@ -871,17 +874,17 @@ export async function loadNickServAccountSnapshot(
   const work = (async (): Promise<NickServAccountSnapshot> => {
     const deadline = Date.now() + NS_ACCOUNT_WAIT_MS;
     const bundle = await nickservAccountRpc(account, nick);
-    if (bundle) {
+    const rpcFailed = !!(bundle?.error);
+    if (bundle && !rpcFailed) {
       nsStatus(
-        `[Compte NickServ] RPC HTTP ${bundle.http} source=${bundle.source} compte=${account}`
-        + (bundle.error ? ` erreur=${bundle.error}` : ''),
-        bundle.error ? 'warning' : 'info',
+        `[Compte NickServ] RPC HTTP ${bundle.http} source=${bundle.source} compte=${account}`,
+        'info',
       );
       for (const n of bundle.notes) nsStatus(`[Compte NickServ] ${n}`, /fail|vide|rpc /i.test(n) ? 'warning' : 'info');
-    } else {
+    } else if (!bundle) {
       nsStatus('[Compte NickServ] RPC nsaccount : pas de réponse');
     }
-    const infoR = bundle ? (() => {
+    const infoR = bundle && !rpcFailed ? (() => {
       if (!bundle.info || rpcLooksDenied(bundle.info)) {
         if (bundle.info) nsStatus(`[Compte NickServ] INFO RPC refusé : ${nsPreview(bundle.info)}`);
         else if (!bundle.error) nsStatus('[Compte NickServ] INFO RPC vide');
@@ -895,7 +898,7 @@ export async function loadNickServAccountSnapshot(
       nsStatus(`[Compte NickServ] INFO RPC ok (${parsed.rows.length} champs)`, 'info');
       return parsed;
     })() : null;
-    const glistR = bundle ? (() => {
+    const glistR = bundle && !rpcFailed ? (() => {
       if (!bundle.glist || rpcLooksDenied(bundle.glist)) {
         if (bundle.glist) nsStatus(`[Compte NickServ] GLIST RPC refusé : ${nsPreview(bundle.glist)}`);
         return null;
@@ -908,7 +911,7 @@ export async function loadNickServAccountSnapshot(
       nsStatus(`[Compte NickServ] GLIST RPC ok (${nicks.length})`, 'info');
       return nicks;
     })() : null;
-    const alistR = bundle ? (() => {
+    const alistR = bundle && !rpcFailed ? (() => {
       if (!bundle.alist) {
         nsStatus('[Compte NickServ] ALIST RPC vide');
         return null;
@@ -925,7 +928,7 @@ export async function loadNickServAccountSnapshot(
       nsStatus('[Compte NickServ] ALIST RPC : aucun salon', 'info');
       return isAlistEmpty(stripFormatting(bundle.alist).replace(/\s+/g, ' ').trim()) ? [] : [];
     })() : null;
-    const ajoinR = bundle ? (() => {
+    const ajoinR = bundle && !rpcFailed ? (() => {
       if (!bundle.ajoin) {
         nsStatus('[Compte NickServ] AJOIN RPC vide');
         return null;
