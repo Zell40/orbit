@@ -1,7 +1,7 @@
 import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import { unregisterPushOnAccountLogout } from '@/platform/push';
-import { refreshNickServMarks } from './nickserv-info';
+import { nickServSessionBusy, refreshNickServMarks } from './nickserv-info';
 import type { IrcMessage, Member } from '../irc/types';
 import { buildModeContext, parseModeChanges, applyChannelFlag, umodeLettersFrom221 } from '../irc/modes';
 import { looksLikeMlock, mergeMlock, mlockLetters } from '../irc/mode-catalog';
@@ -324,8 +324,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         return true;
       case '900': { // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
         const account = msg.params[2] || '';
+        const prev = get().account;
         set({ account });
-        if (account) void refreshNickServMarks(account, get().nick);
+        const same = account.trim().toLowerCase() === String(prev || '').trim().toLowerCase();
+        if (account && !same && !nickServSessionBusy()) {
+          void refreshNickServMarks(account, get().nick);
+        }
         return true;
       }
       case '901': { // RPL_LOGGEDOUT
