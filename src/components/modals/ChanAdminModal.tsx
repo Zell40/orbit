@@ -168,10 +168,13 @@ function FlagGrid({ flags, modes, mlock, chan, setChannelMode, onLockedClick, on
                 <span className="ca-flag__desc">{plainDesc(t(`chanFlags.${f.key}.desc`))}</span>
               </span>
             ) : (
-              <>
-                <code className="ca-flag__m">+{f.m}</code>
-                <span className="ca-flag__label">{t(`chanFlags.${f.key}.label`)}</span>
-              </>
+              <span className="ca-flag__txt">
+                <span className="ca-flag__label">
+                  <code className="ca-flag__m">+{f.m}</code>
+                  {t(`chanFlags.${f.key}.label`)}
+                </span>
+                <span className="ca-flag__desc">{plainDesc(t(`chanFlags.${f.key}.desc`))}</span>
+              </span>
             )}
             {ro && (lock === 'services' || lock === 'overview') ? <LockTag kind={lock} /> : null}
           </label>

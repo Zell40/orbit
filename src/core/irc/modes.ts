@@ -126,3 +126,16 @@ export function applyChannelFlag(
   }
   return { modes: letters.length ? '+' + letters.join('') : '', modeParams: mp };
 }
+
+/** 324-style chrome: `+PnrtECT 4:20`. The channel key (+k) is omitted. */
+export function formatChannelModes(modes: string, modeParams?: Record<string, string>): string {
+  const letters = String(modes || '').replace(/^\+/, '').replace(/[^A-Za-z]/g, '');
+  if (!letters) return '';
+  const params: string[] = [];
+  for (const ch of letters) {
+    if (ch === 'k') continue;
+    const p = modeParams?.[ch];
+    if (p) params.push(p);
+  }
+  return params.length ? `+${letters} ${params.join(' ')}` : `+${letters}`;
+}

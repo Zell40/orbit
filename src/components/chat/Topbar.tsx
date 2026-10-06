@@ -10,6 +10,7 @@ import { PluginBoundary } from '../PluginBoundary';
 import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
 import { UmodeBadges } from './UmodeBadges';
+import { formatChannelModes } from '@/core/irc/modes';
 
 /** Preferred order for left-cluster topbar plugins (invite → clock). */
 const TOPBAR_LEAD = ['invite', 'orbit-clock'] as const;
@@ -36,6 +37,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const bname = useActiveChat((s) => s.buffers[s.active]?.name);
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
   const modes = useActiveChat((s) => s.buffers[s.active]?.modes ?? '');
+  const modeParams = useActiveChat((s) => s.buffers[s.active]?.modeParams);
   const members = useActiveChat((s) => s.buffers[s.active]?.members);
   const search = useActiveChat((s) => s.search);
   const setSearch = useActiveChat((s) => s.setSearch);
@@ -103,9 +105,9 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
         : <span className="topbar__av" style={isNotices && !noticeNick ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{isChannel ? '#' : isNotices && !noticeNick ? '!' : label[0]?.toUpperCase()}</span>}
       <div className="topbar__meta">
         <span className="topbar__title">
-          {isServer ? statusTitle : label}
+          <span className="topbar__name">{isServer ? statusTitle : label}</span>
           {!isServer && isChannel && modes && modes !== '+' && (
-            <span className="topbar__modes" title={t('topbar.modes')}>{modes}</span>
+            <span className="topbar__modes" title={t('topbar.modes')}>{formatChannelModes(modes, modeParams)}</span>
           )}
         </span>
         {isServer && (

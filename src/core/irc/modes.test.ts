@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildModeContext, parseModeChanges, applyUserModes, umodeLettersFromSnapshot, umodeLettersFrom221 } from './modes';
+import { buildModeContext, parseModeChanges, applyUserModes, umodeLettersFromSnapshot, umodeLettersFrom221, formatChannelModes } from './modes';
 
 // CHANMODES "A,B,C,D": A=list (always param), B=param (always), C=setparam
 // (param on set only), D=flag (never). Plus prefix modes o→@, v→+.
@@ -52,5 +52,14 @@ describe('umodeLettersFrom221', () => {
   it('reads +modes from the second param, not the nick', () => {
     expect(umodeLettersFrom221(['Harry', '+ix'])).toBe('ix');
     expect(umodeLettersFrom221(['+ix'])).toBe('ix');
+  });
+});
+
+describe('formatChannelModes', () => {
+  it('appends type B/C params in letter order, without the channel key', () => {
+    expect(formatChannelModes('+PnrtECT', { E: '4:20' })).toBe('+PnrtECT 4:20');
+    expect(formatChannelModes('+klnt', { k: 'secret', l: '50' })).toBe('+klnt 50');
+    expect(formatChannelModes('+nt', {})).toBe('+nt');
+    expect(formatChannelModes('')).toBe('');
   });
 });

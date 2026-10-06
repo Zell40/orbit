@@ -10,6 +10,7 @@ import { bus } from '@/modules/bus';
 import { fetchChanServPublic } from '@/core/store/chanserv-info';
 import { Icon } from '../Icon';
 import { Modal } from './Modal';
+import { formatChannelModes } from '@/core/irc/modes';
 
 function fmtDate(sec: number, locale: string): string {
   if (!sec) return '';
@@ -173,7 +174,7 @@ export function ChanInfoModal() {
 
         {buffer.modes && buffer.modes !== '+' && (
           <p className="chaninfo__modes">
-            <span className="topbar__modes" title={t('topbar.modes')}>{buffer.modes}</span>
+            <span className="topbar__modes" title={t('topbar.modes')}>{formatChannelModes(buffer.modes, buffer.modeParams)}</span>
           </p>
         )}
       </div>
