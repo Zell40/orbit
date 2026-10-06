@@ -12,7 +12,7 @@ import { SERVER, canon, isChannelName, inQuietBatch, trackBufferMuteSync } from 
 import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
 import { unregisterPushOnAccountLogout, refreshPush } from '@/platform/push';
-import { nickServSessionBusy, refreshNickServMarks } from './nickserv-info';
+import { nickServSessionBusy } from './nickserv-info';
 import { announcePmOnline, markPmPeerOffline, queryBufferKey } from './pm-presence';
 import { findMemberKey } from './helpers';
 import type { IrcMessage } from '../irc/types';
@@ -271,9 +271,6 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           if (prev && !next && get().client) void unregisterPushOnAccountLogout(get().client!, prev);
           if (prev && !next) void import('../resume').then((m) => m.clearSaslResume());
           set({ account: next });
-          if (prev.toLowerCase() !== next.toLowerCase()) {
-            void refreshNickServMarks(next, get().nick);
-          }
         }
         return true;
       }

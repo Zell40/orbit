@@ -17,7 +17,7 @@ let nsPending: NsPending | null = null;
 let nsManualUntil = 0;
 let nsSwallowUntil = 0;
 let nsRpcBusy = 0;
-const nsIrcWaiters: Partial<Record<NsKind, Promise<string>>> = {};
+const nsIrcWaiters: Record<string, Promise<string>> = {};
 const nsFetchWaiters: Partial<Record<string, Promise<unknown>>> = {};
 let nsMarksInflight: Promise<void> | null = null;
 let nsMarksAt = 0;
@@ -43,6 +43,7 @@ function endNickServRpc(): void {
 
 /** User typed `/ns info` (etc.) — let the dump appear in chat. */
 export function noteManualNickServQuery(body: string): void {
+  if (nsPending || nsIrcQueue.length) return;
   if (/^\s*(INFO|ALIST|GLIST|AJOIN)\b/i.test(String(body || ''))) {
     nsManualUntil = Date.now() + 15_000;
   }
@@ -74,33 +75,51 @@ export function ingestNickServNotice(raw: string): boolean {
     nsPending.lines.push(raw);
     if (nsPending.idle) globalThis.clearTimeout(nsPending.idle);
     if (nsDumpEnded(nsPending.kind, s)) finishNickServQuery();
-    else nsPending.idle = globalThis.setTimeout(finishNickServQuery, 450);
+    else nsPending.idle = globalThis.setTimeout(finishNickServQuery, 700);
   }
   if (Date.now() <= nsManualUntil) return false;
   return !!nsPending || Date.now() < nsSwallowUntil;
 }
 
+type NsIrcJob = {
+  client: IrcClient;
+  cmd: string;
+  kind: NsKind;
+  resolve: (blob: string) => void;
+};
+
+const nsIrcQueue: NsIrcJob[] = [];
+
+function pumpNickServIrc(): void {
+  if (nsPending) return;
+  const job = nsIrcQueue.shift();
+  if (!job) return;
+  nsSwallowUntil = Date.now() + 12_000;
+  nsPending = {
+    kind: job.kind,
+    lines: [],
+    done: (blob) => {
+      nsSwallowUntil = Date.now() + 400;
+      job.resolve(blob);
+      pumpNickServIrc();
+    },
+    idle: null,
+    hard: globalThis.setTimeout(finishNickServQuery, 10_000),
+  };
+  job.client.privmsg('NickServ', job.cmd);
+}
+
 function queryNickServIrc(client: IrcClient, cmd: string, kind: NsKind): Promise<string> {
-  const existing = nsIrcWaiters[kind];
+  const key = `${kind}:${cmd.trim().toUpperCase()}`;
+  const existing = nsIrcWaiters[key];
   if (existing) return existing;
   const p = new Promise<string>((resolve) => {
-    if (nsPending) finishNickServQuery();
-    nsSwallowUntil = Date.now() + 10_000;
-    nsPending = {
-      kind,
-      lines: [],
-      done: (blob) => {
-        nsSwallowUntil = Date.now() + 400;
-        resolve(blob);
-      },
-      idle: null,
-      hard: globalThis.setTimeout(finishNickServQuery, 8000),
-    };
-    client.privmsg('NickServ', cmd);
+    nsIrcQueue.push({ client, cmd, kind, resolve });
+    pumpNickServIrc();
   }).finally(() => {
-    if (nsIrcWaiters[kind] === p) delete nsIrcWaiters[kind];
+    delete nsIrcWaiters[key];
   });
-  nsIrcWaiters[kind] = p;
+  nsIrcWaiters[key] = p;
   return p;
 }
 
@@ -118,9 +137,11 @@ async function ircFallback(cmd: string, kind: NsKind): Promise<string | null> {
 function rpcLooksDenied(blob: string): boolean {
   const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
   if (!fold) return true;
-  return (/syntaxe:|syntax:/i.test(fold) || /acc[eè]s refus|access denied|permission denied/i.test(fold))
-    && !/\d+\s*[:.)]?\s+!?[#&]/.test(fold)
-    && !/^[^:]{2,60}:\s+\S/m.test(fold);
+  const help = /syntaxe:|syntax:|acc[eè]s refus|access denied|permission denied|pas identifi|not identified|must be identified|information.{0,40}priv/i.test(fold);
+  if (!help) return false;
+  if (/\d+\s*[:.)]?\s+!?[#&]/.test(fold)) return false;
+  const withoutHelp = fold.replace(/(?:syntaxe|syntax)\s*:\s*\S+/gi, '');
+  return !/^[^:]{2,60}:\s+\S/m.test(withoutHelp);
 }
 
 const markListeners = new Set<() => void>();
@@ -194,6 +215,7 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
       continue;
     }
     if (isEndLine(s)) continue;
+    if (/^(syntaxe|syntax)\s*:/i.test(s)) continue;
     if (/op[eé]rateur des services|operat(?:eu)?r of services|services? (?:root|oper)/i.test(s)
       && !s.includes(':')) {
       rows.push({ key: 'Statut', value: s });
@@ -447,12 +469,13 @@ export function parseNickServOptionPills(pills: string[]): Set<string> {
 
 /** Read NickServ INFO — JSON-RPC as the user, else `/ns info` notices. */
 export async function fetchNickServInfo(account: string, nick = ''): Promise<NickServInfo | null> {
+  const parse = (blob: string | null) => {
+    if (!blob || rpcLooksDenied(blob)) return null;
+    const parsed = parseNickServInfo(blob, account);
+    return parsed.rows.length ? parsed : null;
+  };
   const rpc = await nickservRpc(account, nick, 'nsinfo');
-  let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
-  if (blob == null) blob = await ircFallback('INFO', 'INFO');
-  if (blob == null) return null;
-  const parsed = parseNickServInfo(blob, account);
-  return parsed.rows.length ? parsed : null;
+  return parse(rpc) || parse(await ircFallback('INFO', 'INFO'));
 }
 
 export function isNickServNicksRow(key: string): boolean {
@@ -482,14 +505,17 @@ export function parseNickServGlist(raw: string): string[] {
 }
 
 export async function fetchNickServGlist(account: string, nick = ''): Promise<string[] | null> {
+  const parse = (blob: string | null) => {
+    if (blob == null) return null;
+    if (rpcLooksDenied(blob)) return null;
+    return parseNickServGlist(blob);
+  };
   const rpc = await nickservRpc(account, nick, 'nsglist');
-  let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
-  if (blob == null) blob = await ircFallback('GLIST', 'GLIST');
-  if (blob == null) return null;
-  const nicks = parseNickServGlist(blob);
-  const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
-  if (!nicks.length && /syntaxe:|syntax:/i.test(fold)) return null;
-  return nicks;
+  const fromRpc = parse(rpc);
+  if (fromRpc && fromRpc.length) return fromRpc;
+  const fromIrc = parse(await ircFallback('GLIST', 'GLIST'));
+  if (fromIrc) return fromIrc;
+  return fromRpc;
 }
 
 /** NickServ LIST blob → matching nicknames (search). */
@@ -533,19 +559,24 @@ export async function fetchNickServList(
 export async function fetchNickServAlist(account: string, nick = ''): Promise<NickServAccess[] | null> {
   const key = `alist:${foldAccount(account)}:${foldAccount(nick)}`;
   return onceFetch(key, async () => {
+    const fromBlob = (blob: string | null): NickServAccess[] | null => {
+      if (blob == null) return null;
+      const rows = parseNickServAlist(blob);
+      if (rows.length) return rows;
+      if (rpcLooksDenied(blob)) return null;
+      return isAlistEmpty(stripFormatting(blob).replace(/\s+/g, ' ').trim()) ? [] : [];
+    };
     const rpc = await nickservRpc(account, nick, 'nsalist');
-    let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
-    if (blob == null) blob = await ircFallback('ALIST', 'ALIST');
-    if (blob == null) return null;
-    const rows = parseNickServAlist(blob);
-    if (rows.length) {
-      setAccessMarks(rows.map((r) => r.channel));
-      return rows;
+    const fromRpc = fromBlob(rpc);
+    if (fromRpc && fromRpc.length) {
+      setAccessMarks(fromRpc.map((r) => r.channel));
+      return fromRpc;
     }
-    const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
-    if (/syntaxe:|syntax:/i.test(fold)) return null;
-    setAccessMarks([]);
-    return [];
+    const fromIrc = fromBlob(await ircFallback('ALIST', 'ALIST'));
+    const rows = fromIrc ?? fromRpc;
+    if (rows == null) return null;
+    setAccessMarks(rows.map((r) => r.channel));
+    return rows;
   });
 }
 
@@ -580,13 +611,22 @@ export function parseNickServAjoin(raw: string): string[] {
 
 export async function fetchNickServAjoin(account: string, nick = '', force = false): Promise<string[] | null> {
   const run = async () => {
+    const fromBlob = (blob: string | null): string[] | null => {
+      if (blob == null) return null;
+      const chans = parseNickServAjoin(blob);
+      if (chans.length) return chans;
+      if (rpcLooksDenied(blob) && !isAjoinEmpty(stripFormatting(blob).replace(/\s+/g, ' ').trim())) return null;
+      return [];
+    };
     const rpc = await nickservRpc(account, nick, 'nsajoin');
-    let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
-    if (blob == null) blob = await ircFallback('AJOIN LIST', 'AJOIN');
-    if (blob == null) return null;
-    const chans = parseNickServAjoin(blob);
-    const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
-    if (!chans.length && /syntaxe:|syntax:/i.test(fold) && !isAjoinEmpty(fold)) return null;
+    const fromRpc = fromBlob(rpc);
+    if (fromRpc && fromRpc.length) {
+      setAjoinMarks(fromRpc);
+      return fromRpc;
+    }
+    const fromIrc = fromBlob(await ircFallback('AJOIN LIST', 'AJOIN'));
+    const chans = fromIrc ?? fromRpc;
+    if (chans == null) return null;
     setAjoinMarks(chans);
     return chans;
   };

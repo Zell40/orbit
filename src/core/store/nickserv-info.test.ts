@@ -147,6 +147,25 @@ Fin de la liste d'accès aux salons.`;
     ]);
   });
 
+  it('parses the Entre Nous webchat ALIST table (wrapped access line)', () => {
+    const raw = `Liste des salons auxquels Harry a accès :
+Numéro  Salon  Accès  Description
+1  !#Aide.chat  AOP
+2  !#Baccalaureat.chat  AOP
+3  !#Bannis.chat
+AOP Salon des utilisateurs bannis d'un salon officiel EntreNous.chat
+4  !#Echecs.chat  Fondateurice
+9  #monchan  Fondateurice
+Fin de la liste d'accès aux salons.`;
+    expect(parseNickServAlist(raw)).toEqual([
+      { channel: '#Aide.chat', access: 'AOP', description: '', noExpire: true },
+      { channel: '#Baccalaureat.chat', access: 'AOP', description: '', noExpire: true },
+      { channel: '#Bannis.chat', access: 'AOP', description: "Salon des utilisateurs bannis d'un salon officiel EntreNous.chat", noExpire: true },
+      { channel: '#Echecs.chat', access: 'Fondateurice', description: '', noExpire: true },
+      { channel: '#monchan', access: 'Fondateurice', description: '', noExpire: false },
+    ]);
+  });
+
   it('maps XOP tokens to prefixes', () => {
     expect(describeAlistAccess('AOP')).toEqual({ code: 'AOP', prefix: '@', labelKey: 'aop' });
     expect(describeAlistAccess('Fondateurice')).toEqual({ code: 'Fondateurice', prefix: '~', labelKey: 'founder' });

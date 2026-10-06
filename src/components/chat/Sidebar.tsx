@@ -12,7 +12,6 @@ import { toggleFriendsPanel } from './FriendsPanel';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
-import { subscribeNickServMarks, getNickServMarksRev, nickServMarksFor } from '@/core/store/nickserv-info';
 import { NetworkTabs } from './NetworkTabs';
 import { StatusMenu } from './StatusMenu';
 import { getConfig } from '@/core/config';
@@ -110,7 +109,6 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
   const serverName = useActiveChat((s) => s.serverName);
   const [over, setOver] = useState(false);
   const skipClick = useRef(false);
-  useSyncExternalStore(subscribeNickServMarks, getNickServMarksRev, getNickServMarksRev);
   if (!b) return null;
   const isServer = name === SERVER;
   const isNotices = isNoticeBuffer(name);
@@ -122,7 +120,6 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
   const channelTopic = b.isChannel ? stripFormatting(b.topic || '').trim() : '';
   const genericSub = !isServer && !isNotices && !channelTopic; // no real subtitle (topicless channel or a DM)
   const draggable = !!(canDrag && section);
-  const marks = b.isChannel ? nickServMarksFor(name) : { ajoin: false, access: false };
   const go = () => {
     if (skipClick.current) return;
     switchWithTransition(() => setActive(name));
@@ -170,16 +167,6 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
       <span className="room__body">
         <span className="room__nameline">
           <span className="room__name">{label}</span>
-          {marks.ajoin ? (
-            <span className="room__mark room__mark--ajoin" title={t('settings.account.ajoinHint')}>
-              {t('settings.account.ajoinPill')}
-            </span>
-          ) : null}
-          {marks.ajoin && marks.access ? (
-            <span className="room__mark room__mark--access" title={t('settings.account.accessPillHint')}>
-              {t('settings.account.accessPill')}
-            </span>
-          ) : null}
         </span>
         <span className={`room__sub${genericSub ? ' room__sub--generic' : ''}`}>{
           isServer ? (serverName || t('sidebar.system'))
