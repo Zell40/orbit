@@ -437,30 +437,37 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
         )}
         {phase !== 'loading' && phase !== 'fail' ? (
           <div className="nsajoin-add">
-            <input
-              className="modal__input"
-              value={addChan}
-              placeholder={t('settings.account.ajoinAddPlaceholder')}
-              disabled={!!busy}
-              onChange={(e) => setAddChan(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && void addAjoin()}
-            />
-            <input
-              className="modal__input nsajoin-key"
-              value={addKey}
-              placeholder={t('settings.account.ajoinKeyPlaceholder')}
-              disabled={!!busy}
-              onChange={(e) => setAddKey(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && void addAjoin()}
-            />
-            <button
-              className={`upbtn upbtn--primary ${busy === 'add' ? 'is-loading' : ''}`}
-              type="button"
-              onClick={() => void addAjoin()}
-              disabled={!addChan.trim() || !!busy}
-            >
-              {t('settings.account.ajoinAdd')}
-            </button>
+            <div className="nsajoin-add__lab">{t('settings.account.ajoinAddLabel')}</div>
+            <p className="nsajoin-add__hint">{t('settings.account.ajoinAddHint')}</p>
+            <div className="nsajoin-add__row">
+              <input
+                className="modal__input"
+                value={addChan}
+                placeholder={t('settings.account.ajoinAddPlaceholder')}
+                aria-label={t('settings.account.ajoinAddPlaceholder')}
+                disabled={!!busy}
+                onChange={(e) => setAddChan(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && void addAjoin()}
+              />
+              <input
+                className="modal__input nsajoin-key"
+                value={addKey}
+                placeholder={t('settings.account.ajoinKeyPlaceholder')}
+                aria-label={t('settings.account.ajoinKeyPlaceholder')}
+                disabled={!!busy}
+                onChange={(e) => setAddKey(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && void addAjoin()}
+              />
+              <button
+                className={`upbtn upbtn--primary ${busy === 'add' ? 'is-loading' : ''}`}
+                type="button"
+                onClick={() => void addAjoin()}
+                disabled={!addChan.trim() || !!busy}
+                title={t('settings.account.ajoinAddHint')}
+              >
+                {t('settings.account.ajoinAdd')}
+              </button>
+            </div>
           </div>
         ) : null}
       </div>
