@@ -1,6 +1,133 @@
 import { stripFormatting } from './text';
+import type { IrcClient } from '@/core/irc/client';
 
 const CS_RPC = '/app/plugins/third/orbit-chanserv/chanserv-rpc.php';
+
+type NsKind = 'INFO' | 'ALIST' | 'GLIST' | 'AJOIN';
+
+type NsPending = {
+  kind: NsKind;
+  lines: string[];
+  done: ((blob: string) => void) | null;
+  idle: ReturnType<typeof setTimeout> | null;
+  hard: ReturnType<typeof setTimeout> | null;
+};
+
+let nsPending: NsPending | null = null;
+let nsManualUntil = 0;
+let nsSwallowUntil = 0;
+
+/** User typed `/ns info` (etc.) — let the dump appear in chat. */
+export function noteManualNickServQuery(body: string): void {
+  if (/^\s*(INFO|ALIST|GLIST|AJOIN)\b/i.test(String(body || ''))) {
+    nsManualUntil = Date.now() + 15_000;
+  }
+}
+
+function nsDumpEnded(kind: NsKind, s: string): boolean {
+  if (/^(fin de|end of)\b/i.test(s)) return true;
+  if (kind === 'GLIST' && /\d+\s+pseudos?\s+(dans|in|on|apparten)/i.test(s)) return true;
+  if (kind === 'AJOIN' && /fin de la liste d['’]?auto-?join|end of ajoin/i.test(s)) return true;
+  return false;
+}
+
+function finishNickServQuery(): void {
+  const p = nsPending;
+  if (!p) return;
+  nsPending = null;
+  if (p.idle) globalThis.clearTimeout(p.idle);
+  if (p.hard) globalThis.clearTimeout(p.hard);
+  const done = p.done;
+  p.done = null;
+  done?.(p.lines.join('\n'));
+}
+
+/** Collect + optionally swallow NickServ NOTICE dumps from INFO / ALIST / GLIST / AJOIN. */
+export function ingestNickServNotice(raw: string): boolean {
+  const s = stripFormatting(raw).replace(/\s+/g, ' ').trim();
+  if (!s) return !!nsPending || Date.now() < nsSwallowUntil;
+  if (nsPending) {
+    nsPending.lines.push(raw);
+    if (nsPending.idle) globalThis.clearTimeout(nsPending.idle);
+    if (nsDumpEnded(nsPending.kind, s)) finishNickServQuery();
+    else nsPending.idle = globalThis.setTimeout(finishNickServQuery, 450);
+  }
+  if (Date.now() <= nsManualUntil) return false;
+  return !!nsPending || Date.now() < nsSwallowUntil;
+}
+
+function queryNickServIrc(client: IrcClient, cmd: string, kind: NsKind): Promise<string> {
+  return new Promise((resolve) => {
+    if (nsPending) finishNickServQuery();
+    nsSwallowUntil = Date.now() + 10_000;
+    nsPending = {
+      kind,
+      lines: [],
+      done: (blob) => {
+        nsSwallowUntil = Date.now() + 400;
+        resolve(blob);
+      },
+      idle: null,
+      hard: globalThis.setTimeout(finishNickServQuery, 8000),
+    };
+    client.privmsg('NickServ', cmd);
+  });
+}
+
+async function ircFallback(cmd: string, kind: NsKind): Promise<string | null> {
+  try {
+    const { activeStore } = await import('@/core/networks');
+    const client = activeStore()?.getState?.()?.client;
+    if (!client?.privmsg) return null;
+    return await queryNickServIrc(client, cmd, kind);
+  } catch {
+    return null;
+  }
+}
+
+function rpcLooksDenied(blob: string): boolean {
+  const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
+  if (!fold) return true;
+  return (/syntaxe:|syntax:/i.test(fold) || /acc[eè]s refus|access denied|permission denied/i.test(fold))
+    && !/\d+\s*[:.)]?\s+!?[#&]/.test(fold)
+    && !/^[^:]{2,60}:\s+\S/m.test(fold);
+}
+
+const markListeners = new Set<() => void>();
+let markRev = 0;
+const ajoinMarks = new Set<string>();
+const accessMarks = new Set<string>();
+
+function bumpMarks(): void {
+  markRev++;
+  markListeners.forEach((l) => l());
+}
+
+function setAjoinMarks(chans: string[]): void {
+  ajoinMarks.clear();
+  for (const c of chans) ajoinMarks.add(c.toLowerCase());
+  bumpMarks();
+}
+
+function setAccessMarks(chans: string[]): void {
+  accessMarks.clear();
+  for (const c of chans) accessMarks.add(c.toLowerCase());
+  bumpMarks();
+}
+
+export function subscribeNickServMarks(cb: () => void): () => void {
+  markListeners.add(cb);
+  return () => { markListeners.delete(cb); };
+}
+
+export function getNickServMarksRev(): number {
+  return markRev;
+}
+
+export function nickServMarksFor(chan: string): { ajoin: boolean; access: boolean } {
+  const k = String(chan || '').toLowerCase();
+  return { ajoin: ajoinMarks.has(k), access: accessMarks.has(k) };
+}
 
 export type NickServInfoRow = {
   key: string;
@@ -15,7 +142,7 @@ export type NickServInfo = {
 
 function isInfoHead(s: string): string | null {
   const m = s.match(
-    /^(?:informations?\s+(?:pour|sur|du)\s+(?:le\s+)?(?:compte\s+|pseudo\s+|nick\s+)?|info(?:rmation)?s?\s+(?:about|for|on)\s+(?:account\s+|nick(?:name)?\s+)?)["«“]?\s*(\S+?)\s*["»”]?\s*:?\s*$/i,
+    /^(?:informations?\s+(?:à propos (?:du|de|des)|a propos (?:du|de|des)|pour|sur|du)\s+(?:le\s+)?(?:compte\s+|pseudo\s+|nick\s+)?|info(?:rmation)?s?\s+(?:about|for|on)\s+(?:account\s+|nick(?:name)?\s+)?)["«“]?\s*(\S+?)\s*["»”]?\s*:?\s*$/i,
   );
   return m ? m[1].replace(/[.:]+$/, '') : null;
 }
@@ -37,6 +164,11 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
       continue;
     }
     if (isEndLine(s)) continue;
+    if (/op[eé]rateur des services|operat(?:eu)?r of services|services? (?:root|oper)/i.test(s)
+      && !s.includes(':')) {
+      rows.push({ key: 'Statut', value: s });
+      continue;
+    }
     const m = s.match(/^([^:]{2,60}):\s*(.*)$/);
     if (m) {
       const key = m[1].trim();
@@ -62,8 +194,8 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
 async function nickservRpc(
   account: string,
   nick: string,
-  action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist',
-  extra?: { pattern?: string; flags?: string[] },
+  action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist' | 'nsajoin',
+  extra?: { pattern?: string; flags?: string[]; op?: string; channel?: string; key?: string },
 ): Promise<string | null> {
   if (!account) return null;
   const ctrl = new AbortController();
@@ -96,7 +228,9 @@ export type NickServAccess = {
 
 function isAlistNoise(s: string): boolean {
   return /^(fin\s+de|end of|num[eé]ro|number\s+channel|n[°º]\b)/i.test(s)
-    || /a acc[eè]s|has access on|access list|liste d['’]acc[eè]s|salons auxquels|canaux auxquels/i.test(s);
+    || /a acc[eè]s|has access on|access list|liste d['’]acc[eè]s|salons auxquels|canaux auxquels/i.test(s)
+    || /^(syntaxe|syntax)\s*:/i.test(s)
+    || /acc[eè]s refus|access denied|permission denied/i.test(s);
 }
 
 function isAlistEmpty(s: string): boolean {
@@ -140,13 +274,30 @@ export function parseNickServAlist(raw: string): NickServAccess[] {
       pushAlistRow(rows, seen, eq[1], eq[2]);
       continue;
     }
+    const numberedBare = s.match(/^\d+\s*[:.)]?\s+(!?[#&]\S+)\s*$/);
+    if (numberedBare) {
+      pushAlistRow(rows, seen, numberedBare[1], '');
+      continue;
+    }
     const numbered = s.match(/^\d+\s+(!?[#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
     const simple = numbered ? null : s.match(/^(!?[#&]\S+)\s+(\S+)(?:\s+(.*))?$/);
     const m = numbered || simple;
     if (!m) {
       if (rows.length && !/^\d+/.test(s) && !/^(syntaxe|syntax)\b/i.test(s)) {
         const prev = rows[rows.length - 1];
-        prev.description = `${prev.description} ${s.replace(/^[()]|[()]$/g, '')}`.trim();
+        const leftover = s.replace(/^[()]|[()]$/g, '').trim();
+        if (!prev.access) {
+          const acc = leftover.match(
+            /^(Fondateur(?:ice)?|Successeur(?:\(e\))?|QOP|SOP|AOP|HOP|VOP|Founder|Successor|Owner)\b[,\s]*(.*)$/i,
+          );
+          if (acc) {
+            prev.access = acc[1];
+            const rest = acc[2].trim();
+            if (rest) prev.description = `${prev.description} ${rest}`.trim();
+            continue;
+          }
+        }
+        prev.description = `${prev.description} ${leftover}`.trim();
       }
       continue;
     }
@@ -252,9 +403,11 @@ export function parseNickServOptionPills(pills: string[]): Set<string> {
   return on;
 }
 
-/** Read NickServ INFO via Anope JSON-RPC (same path as ChanServ). No IRC PM. */
+/** Read NickServ INFO — JSON-RPC as the user, else `/ns info` notices. */
 export async function fetchNickServInfo(account: string, nick = ''): Promise<NickServInfo | null> {
-  const blob = await nickservRpc(account, nick, 'nsinfo');
+  const rpc = await nickservRpc(account, nick, 'nsinfo');
+  let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
+  if (blob == null) blob = await ircFallback('INFO', 'INFO');
   if (blob == null) return null;
   const parsed = parseNickServInfo(blob, account);
   return parsed.rows.length ? parsed : null;
@@ -264,7 +417,7 @@ export function isNickServNicksRow(key: string): boolean {
   return /^(nicks?|pseudos?(?:\s+enregistr[ée]s?)?)$/i.test(String(key || '').trim());
 }
 
-const GLIST_SKIP = /^(liste des pseudos|nicknames registered|fin de|end of|syntaxe:|syntax:|num[eé]ro|pseudo|nick(?:name)?s?|compte|account)\b/i;
+const GLIST_SKIP = /^(liste des pseudos|nicknames registered|pseudos appartenant|fin de|end of|syntaxe:|syntax:|num[eé]ro|pseudo\s+enregistr|nicks?\s+registered|\d+\s+pseudos?|compte|account)\b/i;
 const NICK_TOKEN = /^[A-Za-z\[\]\\^{|}`][A-Za-z0-9_\[\]\\^{|}`-]{0,31}$/;
 
 /** NickServ GLIST blob → grouped nicknames on the account. */
@@ -274,9 +427,10 @@ export function parseNickServGlist(raw: string): string[] {
   for (const line of String(raw || '').split(/\n/)) {
     const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
     if (!s || GLIST_SKIP.test(s)) continue;
-    const m = s.match(/^(?:\d+\s*[.)]\s*)?(\S+?)(?:\s+\([^)]*\))?$/);
+    const m = s.match(/^(?:\d+\s*[.)]\s*)?(\S+)/);
     const nick = m?.[1]?.replace(/[,.;:]+$/, '') || '';
     if (!NICK_TOKEN.test(nick)) continue;
+    if (/^(pseudo|nick(?:name)?s?|expire|enregistr)/i.test(nick)) continue;
     const fold = nick.toLowerCase();
     if (seen.has(fold)) continue;
     seen.add(fold);
@@ -286,7 +440,9 @@ export function parseNickServGlist(raw: string): string[] {
 }
 
 export async function fetchNickServGlist(account: string, nick = ''): Promise<string[] | null> {
-  const blob = await nickservRpc(account, nick, 'nsglist');
+  const rpc = await nickservRpc(account, nick, 'nsglist');
+  let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
+  if (blob == null) blob = await ircFallback('GLIST', 'GLIST');
   if (blob == null) return null;
   const nicks = parseNickServGlist(blob);
   const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
@@ -331,15 +487,134 @@ export async function fetchNickServList(
   return parseNickServList(blob);
 }
 
-/** Read NickServ ALIST via Anope JSON-RPC. No IRC PM. `[]` = none; `null` = failed. */
+/** Read NickServ ALIST — JSON-RPC as the user, else `/ns alist` notices. */
 export async function fetchNickServAlist(account: string, nick = ''): Promise<NickServAccess[] | null> {
-  const blob = await nickservRpc(account, nick, 'nsalist');
+  const rpc = await nickservRpc(account, nick, 'nsalist');
+  let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
+  if (blob == null) blob = await ircFallback('ALIST', 'ALIST');
   if (blob == null) return null;
   const rows = parseNickServAlist(blob);
-  if (rows.length) return rows;
+  if (rows.length) {
+    setAccessMarks(rows.map((r) => r.channel));
+    return rows;
+  }
   const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
   if (/syntaxe:|syntax:/i.test(fold)) return null;
+  setAccessMarks([]);
   return [];
+}
+
+function isAjoinNoise(s: string): boolean {
+  return /^(fin de|end of|syntaxe|syntax|num[eé]ro|liste d(?:es|['’])\s*auto-?joins?|ajoins?\s+for|auto-?joins?\s+(for|de))\b/i.test(s)
+    || /acc[eè]s refus|access denied/i.test(s)
+    || /cette commande g[eè]re|g[eè]re votre liste d['’]?auto/i.test(s)
+    || /op[eé]rateurs? des services peuvent|tapez\s+\/?ns\b/i.test(s);
+}
+
+function isAjoinEmpty(s: string): boolean {
+  return /aucun auto-?join|no auto-?join|liste d['’]auto-?join (est )?vide/i.test(s);
+}
+
+/** NickServ AJOIN LIST blob → channel names. */
+export function parseNickServAjoin(raw: string): string[] {
+  const chans: string[] = [];
+  const seen = new Set<string>();
+  for (const line of String(raw || '').split(/\n/)) {
+    const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
+    if (!s || isAjoinNoise(s) || isAjoinEmpty(s)) continue;
+    const m = s.match(/^(?:\d+\s*[:.)]\s*)?([#&][^\s,]+)/);
+    if (!m) continue;
+    const channel = m[1].replace(/[,.;:]+$/, '');
+    const key = channel.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    chans.push(channel);
+  }
+  return chans;
+}
+
+export async function fetchNickServAjoin(account: string, nick = ''): Promise<string[] | null> {
+  const rpc = await nickservRpc(account, nick, 'nsajoin');
+  let blob = rpc && !rpcLooksDenied(rpc) ? rpc : null;
+  if (blob == null) blob = await ircFallback('AJOIN LIST', 'AJOIN');
+  if (blob == null) return null;
+  const chans = parseNickServAjoin(blob);
+  const fold = stripFormatting(blob).replace(/\s+/g, ' ').trim();
+  if (!chans.length && /syntaxe:|syntax:/i.test(fold) && !isAjoinEmpty(fold)) return null;
+  setAjoinMarks(chans);
+  return chans;
+}
+
+export async function refreshNickServMarks(account: string, nick = ''): Promise<void> {
+  try {
+    if (!account) {
+      setAjoinMarks([]);
+      setAccessMarks([]);
+      return;
+    }
+    await Promise.all([
+      fetchNickServAlist(account, nick),
+      fetchNickServAjoin(account, nick),
+    ]);
+  } catch {
+    /* RPC / IRC unavailable — badges stay as last known. */
+  }
+}
+
+function normChan(raw: string): string {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  return /^[#&]/.test(s) ? s : `#${s}`;
+}
+
+async function nickServAjoinMutate(
+  account: string,
+  nick: string,
+  op: 'ADD' | 'DEL',
+  chan: string,
+  key = '',
+): Promise<boolean> {
+  const name = normChan(chan);
+  if (!name) return false;
+  const rpc = await nickservRpc(account, nick, 'nsajoin', {
+    op, channel: name, ...(key ? { key } : {}),
+  });
+  if (rpc == null || rpcLooksDenied(rpc)) {
+    const cmd = op === 'DEL' ? `AJOIN DEL ${name}` : `AJOIN ADD ${name}${key ? ` ${key}` : ''}`;
+    await ircFallback(cmd, 'AJOIN');
+  }
+  const list = await fetchNickServAjoin(account, nick);
+  const has = (list || []).some((c) => c.toLowerCase() === name.toLowerCase());
+  return op === 'DEL' ? !has : has;
+}
+
+export async function nickServAjoinAdd(account: string, nick: string, chan: string, key = ''): Promise<boolean> {
+  return nickServAjoinMutate(account, nick, 'ADD', chan, key);
+}
+
+export async function nickServAjoinDel(account: string, nick: string, chan: string): Promise<boolean> {
+  return nickServAjoinMutate(account, nick, 'DEL', chan);
+}
+
+export type NickServAccessRow = NickServAccess & { ajoin: boolean };
+
+/** Merge ALIST + AJOIN: auto-join is a badge, not an access level. */
+export function mergeAlistAndAjoin(alist: NickServAccess[], ajoin: string[]): NickServAccessRow[] {
+  const map = new Map<string, NickServAccessRow>();
+  for (const row of alist) {
+    const channel = String(row.channel || '').trim();
+    if (!channel) continue;
+    map.set(channel.toLowerCase(), { ...row, channel, ajoin: false });
+  }
+  for (const raw of ajoin) {
+    const channel = String(raw || '').trim();
+    if (!channel) continue;
+    const key = channel.toLowerCase();
+    const prev = map.get(key);
+    if (prev) prev.ajoin = true;
+    else map.set(key, { channel, access: '', description: '', noExpire: false, ajoin: true });
+  }
+  return [...map.values()].sort((a, b) => a.channel.localeCompare(b.channel, undefined, { sensitivity: 'base' }));
 }
 
 /** Commands from NickServ HELP (privilege-aware on Anope). */
@@ -379,7 +654,7 @@ export type NickServManageCmd = {
 export const NICKSERV_MANAGE_CMDS: NickServManageCmd[] = [
   { cmd: 'UPDATE', key: 'update' },
   { cmd: 'SET', key: 'set', args: true, hide: true },
-  { cmd: 'AJOIN', key: 'ajoin', args: true },
+  { cmd: 'AJOIN', key: 'ajoin', args: true, hide: true },
   { cmd: 'GLIST', key: 'glist' },
   { cmd: 'GROUP', key: 'group', args: true },
   { cmd: 'UNGROUP', key: 'ungroup', args: true },

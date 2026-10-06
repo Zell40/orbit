@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   parseNickServInfo, parseNickServAlist, describeAlistAccess, alistCanInvite,
   parseNickServOptionPills, sendChanServInvite, parseNickServGlist, parseNickServList,
+  parseNickServAjoin, mergeAlistAndAjoin,
 } from './nickserv-info';
 
 const FR = `\u0002Informations pour le compte Harry\u0002 :
@@ -52,6 +53,12 @@ describe('parseNickServInfo', () => {
     const info = parseNickServInfo('Information for account A:\nRegistered : now\nEnd of Info');
     expect(info.rows).toHaveLength(1);
     expect(info.account).toBe('A');
+  });
+
+  it('reads the French “à propos du pseudo” header', () => {
+    const info = parseNickServInfo('Informations à propos du pseudo Harry :\nCompte : Harry (ID : 1)');
+    expect(info.account).toBe('Harry');
+    expect(info.rows[0]).toEqual({ key: 'Compte', value: 'Harry (ID : 1)' });
   });
 });
 
@@ -125,6 +132,21 @@ Fin de la liste d'accès aux salons.`;
     expect(rows[6].description).toBe('Salon des ados sur serveur EntreNous.chat');
   });
 
+  it('recovers wrapped access on the next line (Entre Nous ALIST)', () => {
+    const raw = `Liste des salons auxquels Harry a accès :
+Numéro Salon Accès Description
+1 !#Aide.chat AOP
+3 !#Bannis.chat
+AOP Salon des utilisateurs bannis
+4 !#Echecs.chat Fondateurice
+Fin de la liste d'accès aux salons.`;
+    expect(parseNickServAlist(raw)).toEqual([
+      { channel: '#Aide.chat', access: 'AOP', description: '', noExpire: true },
+      { channel: '#Bannis.chat', access: 'AOP', description: 'Salon des utilisateurs bannis', noExpire: true },
+      { channel: '#Echecs.chat', access: 'Fondateurice', description: '', noExpire: true },
+    ]);
+  });
+
   it('maps XOP tokens to prefixes', () => {
     expect(describeAlistAccess('AOP')).toEqual({ code: 'AOP', prefix: '@', labelKey: 'aop' });
     expect(describeAlistAccess('Fondateurice')).toEqual({ code: 'Fondateurice', prefix: '~', labelKey: 'founder' });
@@ -171,6 +193,40 @@ Zell (principal)
 Jessie
 Fin de la liste.`;
     expect(parseNickServGlist(raw)).toEqual(['Zell', 'Jessie']);
+  });
+
+  it('reads Entre Nous GLIST table (nick + date + expire)', () => {
+    const raw = `Liste des pseudos appartenant à votre compte :
+Pseudo Enregistré Expire
+Harry Sun Oct 9 08:44:49 2022 (il y a 3 années, 363 jours) does not expire
+Lucas Thu Jan 1 00:00:00 1970 (il y a 56 années, 293 jours) does not expire
+2 pseudos dans le compte.`;
+    expect(parseNickServGlist(raw)).toEqual(['Harry', 'Lucas']);
+  });
+});
+
+describe('parseNickServAjoin', () => {
+  it('parses a numbered French AJOIN list and ignores help', () => {
+    const raw = `Liste d'auto join :
+1: #EntreNous
+2: #secret s3cret
+Fin de la liste d'auto-join.`;
+    expect(parseNickServAjoin(raw)).toEqual(['#EntreNous', '#secret']);
+    expect(parseNickServAjoin(`Syntaxe: AJOIN ADD [pseudo] salon [clé]
+Cette commande gère votre liste d'auto join.`)).toEqual([]);
+  });
+});
+
+describe('mergeAlistAndAjoin', () => {
+  it('adds AJOIN-only channels and marks overlap', () => {
+    const rows = mergeAlistAndAjoin(
+      [{ channel: '#Aide.chat', access: 'AOP', description: '', noExpire: true }],
+      ['#Aide.chat', '#monchan'],
+    );
+    expect(rows).toEqual([
+      { channel: '#Aide.chat', access: 'AOP', description: '', noExpire: true, ajoin: true },
+      { channel: '#monchan', access: '', description: '', noExpire: false, ajoin: true },
+    ]);
   });
 });
 

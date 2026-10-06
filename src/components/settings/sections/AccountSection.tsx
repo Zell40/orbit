@@ -9,9 +9,10 @@ import { ChangeNickField } from '../ChangeNickField';
 import { Icon } from '@/components/Icon';
 import {
   fetchNickServInfo, fetchNickServAlist, fetchNickServHelp, fetchNickServGlist, fetchNickServList,
+  fetchNickServAjoin, nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
   describeAlistAccess, alistCanInvite, isNickServNicksRow,
   parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
-  type NickServInfo, type NickServAccess,
+  type NickServInfo, type NickServAccessRow,
 } from '@/core/store/nickserv-info';
 
 export function AccountSection() {
@@ -292,17 +293,24 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
   const setActive = useActiveChat((s) => s.setActive);
   const setModal = useActiveChat((s) => s.setModal);
   const [phase, setPhase] = useState<'loading' | 'ok' | 'empty' | 'fail'>('loading');
-  const [rows, setRows] = useState<NickServAccess[]>([]);
+  const [rows, setRows] = useState<NickServAccessRow[]>([]);
+  const [addChan, setAddChan] = useState('');
+  const [addKey, setAddKey] = useState('');
+  const [busy, setBusy] = useState('');
   const gen = useRef(0);
 
-  const load = useCallback(() => {
+  const load = useCallback((silent = false) => {
     const mine = ++gen.current;
-    setPhase('loading');
-    void fetchNickServAlist(account, nick).then((list) => {
+    if (!silent) setPhase('loading');
+    void Promise.all([
+      fetchNickServAlist(account, nick),
+      fetchNickServAjoin(account, nick),
+    ]).then(([alist, ajoin]) => {
       if (mine !== gen.current) return;
-      if (!list) { setRows([]); setPhase('fail'); return; }
-      setRows(list);
-      setPhase(list.length ? 'ok' : 'empty');
+      if (alist == null && ajoin == null) { setRows([]); setPhase('fail'); return; }
+      const merged = mergeAlistAndAjoin(alist || [], ajoin || []);
+      setRows(merged);
+      setPhase(merged.length ? 'ok' : 'empty');
     });
   }, [account, nick]);
 
@@ -323,6 +331,24 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
     setModal('');
   }
 
+  async function addAjoin() {
+    const name = addChan.trim();
+    if (!name || busy) return;
+    setBusy('add');
+    const ok = await nickServAjoinAdd(account, nick, name, addKey.trim());
+    setBusy('');
+    if (ok) { setAddChan(''); setAddKey(''); }
+    load(true);
+  }
+
+  async function delAjoin(ch: string) {
+    if (busy) return;
+    setBusy(ch);
+    await nickServAjoinDel(account, nick, ch);
+    setBusy('');
+    load(true);
+  }
+
   return (
     <div className="scard nsinfo">
       <div className="scard__h">
@@ -334,22 +360,38 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
         />
       </div>
       <div className="scard__body">
+        <p className="nsajoin__intro">{t('settings.account.ajoinIntro')}</p>
         {phase === 'loading' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistLoading')}</div></div>}
         {phase === 'fail' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistUnavailable')}</div></div>}
         {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.alistEmpty')}</div></div>}
         {phase === 'ok' && (
           <div className="nsaccess">
             {rows.map((row) => {
+              const hasAccess = !!row.access;
               const acc = describeAlistAccess(row.access);
-              const role = acc.labelKey ? t(`settings.account.alistRole.${acc.labelKey}`) : acc.code;
-              const canInvite = alistCanInvite(row.access);
+              const role = hasAccess
+                ? (acc.labelKey ? t(`settings.account.alistRole.${acc.labelKey}`) : acc.code)
+                : '';
+              const canInvite = hasAccess && alistCanInvite(row.access);
               return (
                 <div className="nsaccess-row" key={row.channel}>
                   <button type="button" className="nsaccess-main" onClick={() => openChan(row.channel)}>
-                    <span className={`nsaccess-pfx nsaccess-pfx--${acc.labelKey || 'other'}`} aria-hidden>{acc.prefix || '#'}</span>
+                    <span className={`nsaccess-pfx nsaccess-pfx--${hasAccess ? (acc.labelKey || 'other') : 'ajoin'}`} aria-hidden>
+                      {hasAccess ? (acc.prefix || '#') : '↪'}
+                    </span>
                     <span className="nsaccess-txt">
                       <span className="nsaccess-chanline">
                         <span className="nsaccess-chan">{row.channel}</span>
+                        {row.ajoin ? (
+                          <span className="nsaccess-ajoin" title={t('settings.account.ajoinHint')}>
+                            {t('settings.account.ajoinPill')}
+                          </span>
+                        ) : null}
+                        {hasAccess ? (
+                          <span className="nsaccess-keep" title={t('settings.account.accessPillHint')}>
+                            {t('settings.account.accessPill')}
+                          </span>
+                        ) : null}
                         {row.noExpire ? (
                           <span className="nsaccess-keep" title={t('settings.account.alistNoExpireHint')}>
                             {t('settings.account.alistNoExpire')}
@@ -360,10 +402,12 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
                     </span>
                   </button>
                   <span className="nsaccess-meta">
-                    <span className="nsaccess-role">
-                      {acc.prefix ? <b>{acc.prefix}</b> : null}
-                      {role}
-                    </span>
+                    {hasAccess ? (
+                      <span className="nsaccess-role">
+                        {acc.prefix ? <b>{acc.prefix}</b> : null}
+                        {role}
+                      </span>
+                    ) : null}
                     {canInvite ? (
                       <button
                         type="button"
@@ -374,12 +418,51 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
                         {t('settings.account.alistInvite')}
                       </button>
                     ) : null}
+                    {row.ajoin ? (
+                      <button
+                        type="button"
+                        className="nsaccess-del"
+                        title={t('settings.account.ajoinDel')}
+                        disabled={busy === row.channel}
+                        onClick={() => void delAjoin(row.channel)}
+                      >
+                        {t('settings.account.ajoinDelShort')}
+                      </button>
+                    ) : null}
                   </span>
                 </div>
               );
             })}
           </div>
         )}
+        {phase !== 'loading' && phase !== 'fail' ? (
+          <div className="nsajoin-add">
+            <input
+              className="modal__input"
+              value={addChan}
+              placeholder={t('settings.account.ajoinAddPlaceholder')}
+              disabled={!!busy}
+              onChange={(e) => setAddChan(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && void addAjoin()}
+            />
+            <input
+              className="modal__input nsajoin-key"
+              value={addKey}
+              placeholder={t('settings.account.ajoinKeyPlaceholder')}
+              disabled={!!busy}
+              onChange={(e) => setAddKey(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && void addAjoin()}
+            />
+            <button
+              className={`upbtn upbtn--primary ${busy === 'add' ? 'is-loading' : ''}`}
+              type="button"
+              onClick={() => void addAjoin()}
+              disabled={!addChan.trim() || !!busy}
+            >
+              {t('settings.account.ajoinAdd')}
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

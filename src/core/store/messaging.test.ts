@@ -196,6 +196,22 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect((state.buffers['#entrenous.chat'] as { mlock?: string }).mlock).toBe('PtTVn');
   });
 
+  it('swallows auto ChanServ INFO dumps in the salon', () => {
+    const { on, added } = setup({
+      buffers: { '#entrenous.chat': { isChannel: true, joined: true, members: {} } },
+    });
+    on(':ChanServ!s@services NOTICE me :Informations à propos du salon #entrenous.chat :');
+    on(':ChanServ!s@services NOTICE me :Fondateurice : Zell');
+    expect(added).toHaveLength(0);
+  });
+
+  it('shows ChanServ INFO after a manual INFO command', () => {
+    const { on, added } = setup({ nick: 'me', active: '#entrenous.chat' });
+    on(':me!u@h PRIVMSG ChanServ :INFO #entrenous.chat', 'me');
+    on(':ChanServ!s@services NOTICE me :Informations à propos du salon #entrenous.chat :');
+    expect(added.some((a) => a.m.kind === 'notice' && /Informations/i.test(a.m.text))).toBe(true);
+  });
+
   it('sends ChanServ notices to Status instead of opening a PM', () => {
     const { on, added } = setup({
       active: 'chanserv',

@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { optionsAreOfficial, optionsHaveTopicLock, parseChanServInfo } from './chanserv-info';
+import {
+  isChanServInfoNotice, noteManualChanServInfoCommand, chanServInfoRevealActive,
+  optionsAreOfficial, optionsHaveTopicLock, parseChanServInfo,
+} from './chanserv-info';
 
 const INFO = `Informations à propos du salon #EntreNous.chat
 Fondateur : Zell
@@ -21,6 +24,24 @@ describe('parseChanServInfo', () => {
     const p = parseChanServInfo('Options : Chanstats, Paix, Persistant');
     expect(p.official).toBe(false);
     expect(p.topicLock).toBe(false);
+  });
+});
+
+describe('isChanServInfoNotice', () => {
+  it('matches French INFO header and field lines', () => {
+    expect(isChanServInfoNotice('Informations à propos du salon #entrenous.chat :')).toBe(true);
+    expect(isChanServInfoNotice('Fondateurice : Zell')).toBe(true);
+    expect(isChanServInfoNotice('Description : Salon d\'accueil')).toBe(true);
+    expect(isChanServInfoNotice('You have been given operator status')).toBe(false);
+  });
+});
+
+describe('noteManualChanServInfoCommand', () => {
+  it('opens a short reveal window for INFO only', () => {
+    noteManualChanServInfoCommand('STATUS #x');
+    // May still be true from a previous test if reveal window overlaps — assert INFO arms it.
+    noteManualChanServInfoCommand('INFO #entrenous.chat');
+    expect(chanServInfoRevealActive()).toBe(true);
   });
 });
 

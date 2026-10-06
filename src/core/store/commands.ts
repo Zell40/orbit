@@ -11,6 +11,8 @@ import { isService, isStatusService, maskSecret, detectServiceLeak } from '../se
 import { stripFormatting, tidyOutgoing } from './text';
 import { SERVER, newId, canon, isChannelName, isNoticeBuffer } from './context';
 import { maybeMphistoryQueuedHint } from './pm-presence';
+import { noteManualChanServInfoCommand } from './chanserv-info';
+import { noteManualNickServQuery } from './nickserv-info';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -99,6 +101,8 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         case 'msg': {
           const [t, ...m] = rest; const body = m.join(' ');
           if (!t || !body) break;
+          if (/^chanserv$/i.test(t)) noteManualChanServInfoCommand(body);
+          if (/^nickserv$/i.test(t)) noteManualNickServQuery(body);
           client.privmsg(t, body);
           const dest = isStatusService(t) ? SERVER : t;
           addMessage(dest, {
@@ -153,7 +157,11 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         }
         default: {
           const pc = usePluginRegistry.getState().commands.find((c) => c.name === cmd.toLowerCase());
-          if (pc) { try { pc.run(rest, arg); } catch (e) { console.error(`[plugins] /${cmd} threw`, e); } }
+          if (pc) {
+            if (/^(cs|chanserv)$/i.test(cmd)) noteManualChanServInfoCommand(arg);
+            if (/^(ns|nickserv)$/i.test(cmd)) noteManualNickServQuery(arg);
+            try { pc.run(rest, arg); } catch (e) { console.error(`[plugins] /${cmd} threw`, e); }
+          }
           else { if (active === SERVER) sysLine(SERVER, `» ${cmdline.slice(1)}`, 'system'); client.send(cmdline.slice(1)); } // raw passthrough (formatting stripped)
         }
       }
@@ -166,6 +174,8 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
     // formatting can't smuggle the password past the guard.
     const leak = detectServiceLeak(cmdline);
     if (leak && !isService(active)) {
+      if (/^chanserv$/i.test(leak.service)) noteManualChanServInfoCommand(leak.command);
+      if (/^nickserv$/i.test(leak.service)) noteManualNickServQuery(leak.command);
       client.privmsg(leak.service, leak.command);
       sysLine(active,
         i18n.t('security.leakGuard', { channel: active, service: leak.service }),

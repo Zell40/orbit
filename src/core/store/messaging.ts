@@ -13,7 +13,8 @@ import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, isStatusService, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
-import { parseChanServInfo } from './chanserv-info';
+import { chanServInfoRevealActive, isChanServInfoNotice, noteManualChanServInfoCommand, parseChanServInfo } from './chanserv-info';
+import { ingestNickServNotice, noteManualNickServQuery } from './nickserv-info';
 import { extractFilehostToken, filehostTokenFresh } from './upload';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
@@ -170,11 +171,23 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       const lc = msg.nick.toLowerCase();
       if (get().ignored.some((n) => n.toLowerCase() === lc)) return true;
     }
-    // ChanServ INFO/MODE (MLOCK) — capture lock letters before plugin filters hide the line.
+    // Manual ChanServ INFO (slash /cs or PRIVMSG) — allow the dump into chat for a short window.
+    if (self && msg.command === 'PRIVMSG' && /^chanserv$/i.test(target || '')) {
+      noteManualChanServInfoCommand(text);
+    }
+    if (self && msg.command === 'PRIVMSG' && /^nickserv$/i.test(target || '')) {
+      noteManualNickServQuery(text);
+    }
+    // ChanServ INFO/MODE (MLOCK) — capture for UI; hide auto-probes (orbit-chanserv / RPC fallback).
     if (msg.command === 'NOTICE' && /^chanserv$/i.test(msg.nick || '')) {
       applyChanServMlock(text);
       applyChanServPublic(text);
       if (mlockQueryActive()) return true;
+      // Auto INFO dumps must not land in the salon; only a manual INFO reveals them.
+      if (isChanServInfoNotice(text) && !chanServInfoRevealActive()) return true;
+    }
+    if (msg.command === 'NOTICE' && /^nickserv$/i.test(msg.nick || '')) {
+      if (ingestNickServNotice(text)) return true;
     }
     // Plugin message filters: a plugin can hide a message from the chat
     // display (e.g. a service's machine-readable control lines). The plugin

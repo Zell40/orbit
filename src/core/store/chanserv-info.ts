@@ -40,6 +40,36 @@ export function optionsHaveTopicLock(blob: string): boolean {
 
 const INFO_HEAD = /^(?:informations?\s+(?:à propos du salon|sur le salon|du salon|about(?: the)? channel|for|on)|info(?:rmation)?s?\s+(?:about|for|on))\s+(#\S+)/i;
 
+/** Anope INFO field keys (one NOTICE per line) — used to hide auto-probes in chat. */
+const INFO_FIELD = /^(fondateurice|fondateur|founder|description|desc|options?|enregistr[ée]e?|registered|derni[eè]re utilisation|last (?:used|use)|url|dernier (?:topic|sujet)|last topic|mode lock|mlock|verrouillage (?:des modes|du (?:sujet|topic))|bot|entr[ée]e|entry(?: msg|message)?|ban(nish)? type|type de ban|successor|success(?:eur|or)|email|e-mail|temps d'inactivit[ée]|inactivity|nombre de|number of|utilisateurs?|users?|topic|sujet)\s*:/i;
+
+const INFO_TAIL = /^(fin de|end of)\b/i;
+
+/** Window after a user-typed ChanServ INFO during which dumps may appear in chat. */
+let csInfoRevealUntil = 0;
+
+/** Call when the user explicitly asks ChanServ for INFO (`/cs info`, `/msg ChanServ INFO`, …). */
+export function noteManualChanServInfoCommand(body: string): void {
+  if (!/^\s*INFO\b/i.test(String(body || ''))) return;
+  csInfoRevealUntil = Date.now() + 15_000;
+}
+
+export function chanServInfoRevealActive(): boolean {
+  return Date.now() <= csInfoRevealUntil;
+}
+
+/** True for ChanServ INFO dump lines (header, fields, end) — not STATUS/OP replies. */
+export function isChanServInfoNotice(raw: string): boolean {
+  const s = stripFormatting(raw).replace(/\s+/g, ' ').trim();
+  if (!s) return false;
+  if (INFO_HEAD.test(s)) return true;
+  if (INFO_TAIL.test(s)) return true;
+  if (INFO_FIELD.test(s)) return true;
+  // Continuation / wrapped description without a new key.
+  if (/^[-–—•]\s+\S/.test(s) && s.length > 20) return true;
+  return false;
+}
+
 /** ChanServ INFO blob (FR/EN Anope) → founder / description / official. */
 export function parseChanServInfo(raw: string): ChanServPublicInfo {
   const out: ChanServPublicInfo = {};

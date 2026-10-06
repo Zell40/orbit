@@ -694,8 +694,15 @@ input, textarea { font-family: inherit; }
 .room__av[data-notices] { background: color-mix(in srgb, #7c3aed 18%, var(--bg, #fff)); color: #6d28d9; }
 .room__hash { font-size: 1.25rem; font-weight: 700; line-height: 1; }
 .room__body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
-.room__name { font-size: .96rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.room__nameline { display: flex; align-items: center; gap: .28rem; min-width: 0; }
+.room__name { font-size: .96rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .room.is-active .room__name { font-weight: 800; }
+.room__mark {
+  flex: none; font-size: .58rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+  border-radius: 999px; padding: .08rem .32rem; line-height: 1.2;
+}
+.room__mark--ajoin { background: color-mix(in srgb, #0f766e 18%, var(--bg)); color: #0f766e; }
+.room__mark--access { background: var(--accent-soft); color: var(--accent-d); }
 .room__sub { font-size: .78rem; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .room__badge {
   flex: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--accent);
@@ -2227,6 +2234,27 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
   border-radius: 999px; padding: .2rem .55rem; cursor: pointer;
 }
 .nsaccess-invite:hover { background: var(--accent-soft); }
+.nsaccess-pfx--ajoin { background: color-mix(in srgb, #0f766e 18%, var(--bg)); color: #0f766e; }
+.nsaccess-ajoin {
+  flex: none; font-size: .62rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+  color: #0f766e; background: color-mix(in srgb, #0f766e 16%, var(--bg));
+  border-radius: 999px; padding: .12rem .4rem;
+}
+.nsaccess-del {
+  flex: none; font: inherit; font-size: .7rem; font-weight: 800;
+  color: var(--danger, #b42318); background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--danger, #b42318) 40%, var(--border));
+  border-radius: 999px; padding: .2rem .55rem; cursor: pointer;
+}
+.nsaccess-del:hover { background: color-mix(in srgb, var(--danger, #b42318) 10%, var(--bg)); }
+.nsaccess-del:disabled { opacity: .5; cursor: default; }
+.nsajoin__intro { margin: 0 .55rem .45rem; font-size: .8rem; color: var(--muted); line-height: 1.4; }
+.nsajoin-add {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .4rem;
+  padding: .15rem .55rem .75rem;
+}
+.nsajoin-add .modal__input { flex: 1 1 8rem; min-width: 0; }
+.nsajoin-add .nsajoin-key { flex: 1 1 6rem; }
 @media (max-width: 540px) {
   .nsinfo-row { grid-template-columns: 1fr; }
   .nsaccess-row { flex-direction: column; align-items: stretch; }
