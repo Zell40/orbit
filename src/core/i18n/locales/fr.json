@@ -570,7 +570,7 @@
     },
     "wpProfile": {
       "title": "Profil public",
-      "wpTitle": "Compte WordPress",
+      "wpTitle": "Compte Web EntreNous",
       "loading": "Chargement du profil…",
       "missing": "Aucun profil public trouvé sur reseau-entrenous.fr pour ce compte.",
       "guest": "Identifie-toi pour afficher ton profil et ton compte WordPress du site reseau-entrenous.fr.",

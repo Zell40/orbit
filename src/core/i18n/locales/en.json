@@ -570,7 +570,7 @@
     },
     "wpProfile": {
       "title": "Public profile",
-      "wpTitle": "WordPress account",
+      "wpTitle": "EntreNous web account",
       "loading": "Loading profile…",
       "missing": "No public profile found on reseau-entrenous.fr for this account.",
       "guest": "Sign in to show your profile and WordPress account from reseau-entrenous.fr.",
