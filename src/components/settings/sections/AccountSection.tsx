@@ -10,11 +10,11 @@ import { Icon } from '@/components/Icon';
 import {
   fetchNickServHelp, fetchNickServList,
   nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
-  describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServHelpIsOper,
-  parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_SET_VALUES, NICKSERV_LIST_FLAGS,
+  describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServInfoLabelKind, nickServHelpIsOper,
+  parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_LIST_FLAGS,
   NICKSERV_INFO_HIDE_KEY, NICKSERV_LANGUAGE_INFO_KEY,
   loadNickServAccountSnapshot, markNickServAutoQuery, NS_ACCOUNT_WAIT_MS, nickServSet, nickServInfoValue,
-  fetchNickServLanguages, matchNickServLanguage,
+  fetchNickServLanguages, matchNickServLanguage, sortNickServLanguages,
   type NickServInfo, type NickServAccessRow, type NickServInfoRow, type NickServLanguage,
 } from '@/core/store/nickserv-info';
 
@@ -231,16 +231,19 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
         {phase === 'empty' && <div className="sfield"><div className="sfield__intro">{t('settings.account.nickservUnavailable')}</div></div>}
         {phase === 'ok' && info && (
           <dl className="nsinfo-dl">
-            {rows.map((row, i) => (
+            {rows.map((row, i) => {
+              const hostKind = nickServInfoLabelKind(row.key, rows, i);
+              return (
               <div className="nsinfo-row" key={`${row.key}-${i}`}>
-                <dt className="nsinfo-row__k">{row.key}</dt>
+                <dt className="nsinfo-row__k">{hostKind ? t(`settings.account.${hostKind}`) : row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
                     ? <NickServSetToggles account={account} nick={nick} pills={row.pills} rows={allRows} onChanged={() => load({ force: true, silent: true })} />
                     : (row.value || '—')}
                 </dd>
               </div>
-            ))}
+              );
+            })}
             <div className="nsinfo-row">
               <dt className="nsinfo-row__k">{t('settings.account.glistLabel')}</dt>
               <dd className="nsinfo-row__v">{nicks.length ? nicks.join(' ') : '—'}</dd>
@@ -257,23 +260,29 @@ function NickServSetToggles({
 }: { pills: string[]; rows: NickServInfoRow[]; account: string; nick: string; onChanged: () => void }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState('');
-  const [draft, setDraft] = useState<Record<string, string>>({});
   const [langs, setLangs] = useState<NickServLanguage[]>([]);
   const [langEdit, setLangEdit] = useState(false);
   const [langPick, setLangPick] = useState('');
   const [langLoading, setLangLoading] = useState(false);
+  const [greetOpen, setGreetOpen] = useState(false);
+  const [greetDraft, setGreetDraft] = useState('');
+  const [greetSaved, setGreetSaved] = useState('');
   const on = parseNickServOptionPills(pills);
   const noExpire = on.has('NOEXPIRE');
   const langFromInfo = nickServInfoValue(rows, NICKSERV_LANGUAGE_INFO_KEY);
-  const langMatch = matchNickServLanguage(langs, langFromInfo);
-  const langLabel = langMatch?.label || langFromInfo || '—';
+  const langList = sortNickServLanguages(langs);
+  const langMatch = matchNickServLanguage(langList, langFromInfo);
+  const langLabel = langMatch?.label || langFromInfo;
+  const greetFromInfo = nickServInfoValue(rows, /^(greet|message d['’]accueil|accueil)$/i);
+  const greetText = (greetFromInfo || greetSaved).trim();
+  const hasGreet = !!greetText;
 
   useEffect(() => {
     let alive = true;
     setLangLoading(true);
     void fetchNickServLanguages(account, nick).then((list) => {
       if (!alive) return;
-      setLangs(list);
+      setLangs(sortNickServLanguages(list));
       setLangLoading(false);
     }).catch(() => {
       if (!alive) return;
@@ -291,20 +300,21 @@ function NickServSetToggles({
     onChanged();
   }
 
-  async function applyValue(set: string, max: number) {
+  async function startLangEdit() {
     if (busy) return;
-    const v = String(draft[set] ?? '').trim().slice(0, max);
-    if (!v) return;
-    setBusy(set);
-    await nickServSet(account, nick, set, v);
-    setBusy('');
-    onChanged();
-  }
-
-  function startLangEdit() {
-    if (busy || langLoading || !langs.length) return;
-    const cur = langMatch?.code || langs[0]?.code || '';
-    setLangPick(cur);
+    let list = langList;
+    if (!list.length) {
+      setLangLoading(true);
+      try {
+        list = sortNickServLanguages(await fetchNickServLanguages(account, nick));
+        setLangs(list);
+      } catch {
+        list = [];
+      }
+      setLangLoading(false);
+    }
+    if (!list.length) return;
+    setLangPick(matchNickServLanguage(list, langFromInfo)?.code || list[0]?.code || '');
     setLangEdit(true);
   }
 
@@ -315,6 +325,34 @@ function NickServSetToggles({
     await nickServSet(account, nick, 'LANGUAGE', code);
     setBusy('');
     setLangEdit(false);
+    onChanged();
+  }
+
+  function startGreetEdit() {
+    if (busy) return;
+    setGreetDraft(greetText);
+    setGreetOpen(true);
+  }
+
+  async function applyGreet() {
+    const v = greetDraft.trim().slice(0, 200);
+    if (!v || busy) return;
+    setBusy('GREET');
+    await nickServSet(account, nick, 'GREET', v);
+    setGreetSaved(v);
+    setGreetOpen(false);
+    setBusy('');
+    onChanged();
+  }
+
+  async function deleteGreet() {
+    if (busy) return;
+    setBusy('GREET');
+    await nickServSet(account, nick, 'GREET', '');
+    setGreetSaved('');
+    setGreetDraft('');
+    setGreetOpen(false);
+    setBusy('');
     onChanged();
   }
 
@@ -379,74 +417,92 @@ function NickServSetToggles({
               disabled={busy === 'LANGUAGE'}
               aria-label={t('settings.account.nsSet.language')}
               onChange={(e) => setLangPick(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') setLangEdit(false); }}
             >
-              {langs.map((l) => (
+              {langList.map((l) => (
                 <option key={l.code} value={l.code}>{l.label}</option>
               ))}
             </select>
             <button
               type="button"
-              className="nsset-iconbtn"
+              className="nsset-btn nsset-btn--primary"
               disabled={busy === 'LANGUAGE' || !langPick}
-              title={t('settings.account.nsSet.languageApply')}
-              aria-label={t('settings.account.nsSet.languageApply')}
               onClick={() => void applyLanguage()}
             >
-              <Icon name="check" size={16} />
+              {t('settings.account.nsSet.validate')}
             </button>
           </div>
         ) : (
           <div className="nsset-row__val">
-            <span className="nsset-row__cur" title={langLabel}>
-              {langLoading && !langFromInfo ? t('settings.account.nsSet.languageLoading') : langLabel}
-            </span>
+            {langLabel ? <span className="nsset-row__cur" title={langLabel}>{langLabel}</span> : null}
             <button
               type="button"
-              className="nsset-iconbtn"
-              disabled={busy === 'LANGUAGE' || langLoading || !langs.length}
-              title={t('settings.account.nsSet.languageEdit')}
-              aria-label={t('settings.account.nsSet.languageEdit')}
-              onClick={startLangEdit}
+              className="nsset-btn"
+              disabled={busy === 'LANGUAGE'}
+              onClick={() => void startLangEdit()}
             >
-              <Icon name="pencil" size={14} />
+              {t('settings.account.nsSet.edit')}
             </button>
           </div>
         )}
       </div>
-      {NICKSERV_SET_VALUES.map((opt) => {
-        const fromInfo = nickServInfoValue(rows, opt.infoKey);
-        const current = draft[opt.set] ?? fromInfo;
-        return (
-          <div className="nsset-field" key={opt.set}>
-            <span className="nsset-row__lab">
-              {t(`settings.account.nsSet.${opt.key}`)}
-              <button
-                type="button"
-                className="tipi"
-                title={t(`settings.account.nsSet.${opt.key}Hint`)}
-                aria-label={t(`settings.account.nsSet.${opt.key}Hint`)}
-              >i</button>
-            </span>
-            <div className="nsset-field__row">
-              <input
-                className="modal__input"
-                value={current}
-                maxLength={opt.max}
-                placeholder={t(`settings.account.nsSet.${opt.key}Placeholder`)}
-                disabled={busy === opt.set}
-                onChange={(e) => setDraft((d) => ({ ...d, [opt.set]: e.target.value }))}
-                onKeyDown={(e) => { if (e.key === 'Enter') void applyValue(opt.set, opt.max); }}
-              />
-              <button
-                type="button"
-                className="upbtn upbtn--primary"
-                disabled={busy === opt.set || !String(current).trim()}
-                onClick={() => void applyValue(opt.set, opt.max)}
-              >{t('settings.account.nsSet.apply')}</button>
-            </div>
+      <div className="nsset-field nsset-field--greet">
+        <div className="nsset-row">
+          <span className="nsset-row__lab">
+            {t('settings.account.nsSet.greet')}
+            <button
+              type="button"
+              className="tipi"
+              title={t('settings.account.nsSet.greetHint')}
+              aria-label={t('settings.account.nsSet.greetHint')}
+            >i</button>
+          </span>
+          <div className="nsset-row__val">
+            {hasGreet && !greetOpen ? <span className="nsset-row__cur" title={greetText}>{greetText}</span> : null}
+            {hasGreet ? (
+              <>
+                <button type="button" className="nsset-btn" disabled={busy === 'GREET'} onClick={startGreetEdit}>
+                  {t('settings.account.nsSet.edit')}
+                </button>
+                <button type="button" className="nsset-btn nsset-btn--danger" disabled={busy === 'GREET'} onClick={() => void deleteGreet()}>
+                  {t('settings.account.nsSet.delete')}
+                </button>
+              </>
+            ) : (
+              !greetOpen ? (
+                <button type="button" className="nsset-btn" disabled={busy === 'GREET'} onClick={startGreetEdit}>
+                  {t('settings.account.nsSet.add')}
+                </button>
+              ) : null
+            )}
           </div>
-        );
-      })}
+        </div>
+        {greetOpen ? (
+          <div className="nsset-field__row nsset-field__row--thin">
+            <input
+              className="modal__input"
+              value={greetDraft}
+              maxLength={200}
+              placeholder={t('settings.account.nsSet.greetPlaceholder')}
+              disabled={busy === 'GREET'}
+              autoFocus
+              onChange={(e) => setGreetDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void applyGreet();
+                if (e.key === 'Escape') setGreetOpen(false);
+              }}
+            />
+            <button
+              type="button"
+              className="nsset-btn nsset-btn--primary"
+              disabled={busy === 'GREET' || !greetDraft.trim()}
+              onClick={() => void applyGreet()}
+            >
+              {hasGreet ? t('settings.account.nsSet.validate') : t('settings.account.nsSet.add')}
+            </button>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

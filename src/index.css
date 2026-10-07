@@ -2200,6 +2200,23 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
   flex: 1; min-width: 0; max-width: 13rem; width: auto; padding: .28rem .45rem;
   font-size: .8rem; height: auto; min-height: 1.7rem;
 }
+.nsset-btn {
+  flex: none; padding: .28rem .65rem; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--ink);
+  font: inherit; font-size: .78rem; font-weight: 750; cursor: pointer; white-space: nowrap;
+}
+.nsset-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-d); background: var(--accent-soft); }
+.nsset-btn:disabled { opacity: .45; cursor: default; }
+.nsset-btn--primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.nsset-btn--primary:hover:not(:disabled) { background: var(--accent-d); border-color: var(--accent-d); color: #fff; }
+.nsset-btn--danger {
+  color: var(--danger, #b42318);
+  border-color: color-mix(in srgb, var(--danger, #b42318) 40%, var(--border));
+}
+.nsset-btn--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger, #b42318) 10%, var(--bg));
+  color: var(--danger, #b42318);
+}
 .nsset-iconbtn {
   flex: none; width: 1.7rem; height: 1.7rem; padding: 0; border-radius: 8px;
   border: 1px solid var(--border); background: var(--bg); color: var(--ink);
@@ -2211,6 +2228,10 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nsset-field__row { display: flex; align-items: center; gap: .35rem; min-width: 0; }
 .nsset-field__row .modal__input { flex: 1; min-width: 0; }
 .nsset-field__row .upbtn { flex: none; }
+.nsset-field__row--thin .modal__input {
+  padding: .28rem .55rem; font-size: .8rem; min-height: 1.85rem; height: auto;
+}
+.nsset-field--greet { padding-top: .2rem; }
 .tipi {
   flex: none; width: 1.05rem; height: 1.05rem; padding: 0; border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
@@ -2294,6 +2315,11 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
   .nsaccess-row { flex-direction: column; align-items: stretch; }
   .nsaccess-main { flex: 1 1 auto; width: 100%; }
   .nsaccess-meta { margin-left: 2.55rem; justify-content: flex-start; }
+  .nsset-row { flex-wrap: wrap; }
+  .nsset-lang-edit { flex: 1 1 100%; }
+  .nsset-lang-edit__select { max-width: none; }
+  .nsset-row__cur { max-width: min(9rem, 38vw); }
+  .nsset-field__row--thin { flex-wrap: nowrap; }
 }
 .nsmanage { display: flex; flex-direction: column; gap: .55rem; padding: .15rem 0 .2rem; }
 .nsmanage__intro { margin: 0; font-size: .8rem; color: var(--muted); line-height: 1.4; }
@@ -2420,8 +2446,32 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .push-devices__error { font-size: .78rem; font-weight: 650; color: var(--danger); line-height: 1.35; margin-top: .3rem; overflow-wrap: break-word; }
 .push-devices__item .upbtn { align-self: flex-start; max-width: 100%; }
 .sbadge-ok { display: inline-flex; align-items: center; gap: .3rem; font-size: .82rem; font-weight: 800; color: var(--online-d, #15a36a); }
-.sprof-links { display: flex; flex-wrap: wrap; gap: .45rem; padding: .75rem .95rem .9rem; border-top: 1px solid var(--border); }
-.sprof-links a { text-decoration: none; }
+.sprof-links {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: .45rem;
+  padding: .75rem .95rem .9rem;
+  border-top: 1px solid var(--border);
+}
+.sprof-links a.upbtn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+  line-height: 1.2;
+  padding: .55rem .5rem;
+  font-size: .82rem;
+}
+.sprof-links a.upbtn--primary { flex: 1 1 0; }
+@media (max-width: 540px) {
+  .sprof-links { gap: .35rem; padding: .65rem .7rem .8rem; }
+  .sprof-links a.upbtn { font-size: .72rem; padding: .5rem .32rem; }
+}
 .set-leave { width: 100%; padding: .7rem; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg-soft); color: var(--danger); font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; transition: background .13s, color .13s, border-color .13s; }
 .set-leave:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 

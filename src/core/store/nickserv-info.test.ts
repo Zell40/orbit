@@ -3,6 +3,7 @@ import {
   parseNickServInfo, parseNickServAlist, describeAlistAccess, alistCanInvite,
   parseNickServOptionPills, sendChanServInvite, parseNickServGlist, parseNickServList,
   parseNickServAjoin, mergeAlistAndAjoin, parseNickServLanguages, matchNickServLanguage,
+  sortNickServLanguages, nickServInfoLabelKind,
 } from './nickserv-info';
 
 const FR = `\u0002Informations pour le compte Harry\u0002 :
@@ -79,6 +80,21 @@ Fin de la liste d'auto-join.`;
       'Nicks',
     ]);
     expect(info.rows.some((r) => /#EntreNous|#secret/.test(r.value))).toBe(false);
+  });
+});
+
+describe('nickServInfoLabelKind', () => {
+  it('maps last addr / vHost to real then hidden', () => {
+    const rows = [{ key: 'Dernière adresse' }, { key: 'vHost' }, { key: 'Options' }];
+    expect(nickServInfoLabelKind(rows[0].key, rows, 0)).toBe('hostReal');
+    expect(nickServInfoLabelKind(rows[1].key, rows, 1)).toBe('hostHidden');
+    expect(nickServInfoLabelKind(rows[2].key, rows, 2)).toBeNull();
+  });
+
+  it('splits two “Connecté depuis” rows into réel then caché', () => {
+    const rows = [{ key: 'Connecté depuis' }, { key: 'Connecté depuis' }];
+    expect(nickServInfoLabelKind(rows[0].key, rows, 0)).toBe('hostReal');
+    expect(nickServInfoLabelKind(rows[1].key, rows, 1)).toBe('hostHidden');
   });
 });
 
@@ -234,6 +250,21 @@ it_IT.UTF-8 (Italiano)`;
     expect(matchNickServLanguage(langs, 'français')?.code).toBe('fr_FR.UTF-8');
     expect(matchNickServLanguage(langs, 'Français (EntreNous)')?.code).toBe('fr_EN.UTF-8');
     expect(matchNickServLanguage(langs, 'fr_EN.UTF-8')?.label).toBe('Français (EntreNous)');
+  });
+
+  it('puts Français (EntreNous) first', () => {
+    const langs = parseNickServLanguages(`de_DE.UTF-8 (Deutsch)
+en_US.UTF-8 (English)
+fr_EN.UTF-8 (Français (EntreNous))
+fr_FR.UTF-8 (Français)
+it_IT.UTF-8 (Italiano)`);
+    expect(sortNickServLanguages(langs).map((l) => l.code)).toEqual([
+      'fr_EN.UTF-8',
+      'fr_FR.UTF-8',
+      'de_DE.UTF-8',
+      'en_US.UTF-8',
+      'it_IT.UTF-8',
+    ]);
   });
 });
 

@@ -640,15 +640,29 @@ export function matchNickServLanguage(langs: NickServLanguage[], current: string
   return best;
 }
 
+/** Français (EntreNous) first, then other French, then Anope’s remaining order. */
+export function sortNickServLanguages(langs: NickServLanguage[]): NickServLanguage[] {
+  const rank = (l: NickServLanguage) => {
+    const f = foldNickServToken(`${l.code} ${l.label}`);
+    if (f.includes('entrenous')) return 0;
+    if (l.code.toLowerCase().startsWith('fr_') || /\bfrancais\b|\bfrench\b/.test(f)) return 1;
+    return 2;
+  };
+  return langs
+    .map((l, i) => ({ l, i }))
+    .sort((a, b) => rank(a.l) - rank(b.l) || a.i - b.i)
+    .map((x) => x.l);
+}
+
 /** Live languages from Anope (HELP SET LANGUAGE), with IRC fallback. */
 export async function fetchNickServLanguages(account: string, nick = ''): Promise<NickServLanguage[]> {
   if (!account) return [];
   const rpc = await nickservRpc(account, nick, 'nshelp', { topic: 'SET LANGUAGE' });
   let langs = parseNickServLanguages(rpc || '');
-  if (langs.length) return langs;
+  if (langs.length) return sortNickServLanguages(langs);
   const irc = await ircFallback('HELP SET LANGUAGE', 'INFO');
   langs = parseNickServLanguages(irc || '');
-  return langs;
+  return sortNickServLanguages(langs);
 }
 
 export function foldNickServToken(s: string): string {
@@ -701,6 +715,26 @@ export async function fetchNickServInfo(account: string, nick = '', opts?: NsFet
 
 export function isNickServNicksRow(key: string): boolean {
   return /^(nicks?|pseudos?(?:\s+enregistr[ée]s?)?)$/i.test(String(key || '').trim());
+}
+
+const INFO_HOST_HIDDEN = /^(vhost|cloak|host cach|masque (affich|cach)|displayed host)/i;
+const INFO_HOST_REAL =
+  /^(derni[eè]re adresse|last addr|last (real )?host|connect[ée]s? depuis|host r[eé]el|real host|adresse r[eé]elle)$/i;
+
+/** Map Anope INFO host rows to Host réel / Host caché (same Anope key twice = réel then caché). */
+export function nickServInfoLabelKind(
+  key: string,
+  rows: Array<{ key: string }>,
+  index: number,
+): 'hostReal' | 'hostHidden' | null {
+  const k = String(key || '').trim();
+  if (INFO_HOST_HIDDEN.test(k)) return 'hostHidden';
+  if (!INFO_HOST_REAL.test(k)) return null;
+  const twins = rows
+    .map((r, i) => ({ i, k: String(r.key || '').trim() }))
+    .filter((x) => INFO_HOST_REAL.test(x.k) && !INFO_HOST_HIDDEN.test(x.k));
+  if (twins.length >= 2) return twins.findIndex((x) => x.i === index) === 0 ? 'hostReal' : 'hostHidden';
+  return 'hostReal';
 }
 
 const GLIST_SKIP = /^(liste des pseudos|nicknames registered|pseudos appartenant|fin de|end of|syntaxe:|syntax:|num[eé]ro|pseudo\s+enregistr|nicks?\s+registered|\d+\s+pseudos?|compte|account)\b/i;
@@ -1053,7 +1087,8 @@ export async function nickServSet(account: string, nick: string, option: string,
   const opt = String(option || '').trim();
   if (!opt) return;
   const val = typeof value === 'boolean' ? (value ? 'ON' : 'OFF') : String(value).trim();
-  if (!val) return;
+  const allowEmpty = typeof value !== 'boolean' && /^GREET$/i.test(opt);
+  if (!val && !allowEmpty) return;
   const rpc = await nickservRpc(account, nick, 'nsset', { option: opt, value: val });
   const fold = stripFormatting(rpc || '').replace(/\s+/g, ' ').trim();
   const denied = rpc == null || rpcLooksDenied(fold) || /^(syntaxe|syntax)\s*:/i.test(fold);
@@ -1061,7 +1096,7 @@ export async function nickServSet(account: string, nick: string, option: string,
     markNickServAutoQuery(5000);
     try {
       const { activeStore } = await import('@/core/networks');
-      activeStore()?.getState?.()?.client?.privmsg('NickServ', `SET ${opt} ${val}`);
+      activeStore()?.getState?.()?.client?.privmsg('NickServ', val ? `SET ${opt} ${val}` : `SET ${opt}`);
     } catch {
       /* ignore */
     }
