@@ -263,7 +263,6 @@ function NickServSetToggles({
   const [langs, setLangs] = useState<NickServLanguage[]>([]);
   const [langEdit, setLangEdit] = useState(false);
   const [langPick, setLangPick] = useState('');
-  const [langLoading, setLangLoading] = useState(false);
   const [greetOpen, setGreetOpen] = useState(false);
   const [greetDraft, setGreetDraft] = useState('');
   const [greetSaved, setGreetSaved] = useState('');
@@ -279,15 +278,12 @@ function NickServSetToggles({
 
   useEffect(() => {
     let alive = true;
-    setLangLoading(true);
     void fetchNickServLanguages(account, nick).then((list) => {
       if (!alive) return;
       setLangs(sortNickServLanguages(list));
-      setLangLoading(false);
     }).catch(() => {
       if (!alive) return;
       setLangs([]);
-      setLangLoading(false);
     });
     return () => { alive = false; };
   }, [account, nick]);
@@ -304,14 +300,12 @@ function NickServSetToggles({
     if (busy) return;
     let list = langList;
     if (!list.length) {
-      setLangLoading(true);
       try {
         list = sortNickServLanguages(await fetchNickServLanguages(account, nick));
         setLangs(list);
       } catch {
         list = [];
       }
-      setLangLoading(false);
     }
     if (!list.length) return;
     setLangPick(matchNickServLanguage(list, langFromInfo)?.code || list[0]?.code || '');
