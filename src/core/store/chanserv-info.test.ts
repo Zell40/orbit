@@ -1,8 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   isChanServInfoNotice, noteManualChanServInfoCommand, chanServInfoRevealActive,
+  resetChanServInfoNoticeState,
   optionsAreOfficial, optionsHaveTopicLock, parseChanServInfo,
 } from './chanserv-info';
+
+beforeEach(() => { resetChanServInfoNoticeState(); });
 
 const INFO = `Informations à propos du salon #EntreNous.chat
 Fondateur : Zell
@@ -32,6 +35,7 @@ describe('isChanServInfoNotice', () => {
     expect(isChanServInfoNotice('Informations à propos du salon #entrenous.chat :')).toBe(true);
     expect(isChanServInfoNotice('Fondateurice : Zell')).toBe(true);
     expect(isChanServInfoNotice('Description : Salon d\'accueil')).toBe(true);
+    expect(isChanServInfoNotice('Enregistré le : 22 juil. 2025 21:44:52')).toBe(true);
     expect(isChanServInfoNotice('You have been given operator status')).toBe(false);
   });
 });

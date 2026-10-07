@@ -1,10 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { makeMessaging } from './messaging';
 import { parseLine } from '../irc/parser';
 import { SERVER } from './context';
+import { resetChanServInfoNoticeState } from './chanserv-info';
 import type { ChatMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
+
+beforeEach(() => { resetChanServInfoNoticeState(); });
 
 function dummyJwt(claims: Record<string, unknown>): string {
   const b64 = (o: unknown) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
@@ -205,9 +208,11 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(added).toHaveLength(0);
   });
 
-  it('shows ChanServ INFO after a manual INFO command', () => {
+  it('shows ChanServ INFO after a manual INFO command', async () => {
+    const { noteManualChanServInfoCommand } = await import('./chanserv-info');
     const { on, added } = setup({ nick: 'me', active: '#entrenous.chat' });
-    on(':me!u@h PRIVMSG ChanServ :INFO #entrenous.chat', 'me');
+    // Reveal is armed by slash handlers (/cs, /msg), not by echo-message of probes.
+    noteManualChanServInfoCommand('INFO #entrenous.chat');
     on(':ChanServ!s@services NOTICE me :Informations à propos du salon #entrenous.chat :');
     expect(added.some((a) => a.m.kind === 'notice' && /Informations/i.test(a.m.text))).toBe(true);
   });

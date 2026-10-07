@@ -13,7 +13,7 @@ import { usePluginRegistry } from '@/modules/registry';
 import { getConfig } from '../config';
 import { isService, isNickServ, isStatusService, maskSecret, routeMessage, hasServiceTag, shouldPopupNickServ } from '../services';
 import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
-import { chanServInfoRevealActive, isChanServInfoNotice, noteManualChanServInfoCommand, parseChanServInfo } from './chanserv-info';
+import { chanServInfoRevealActive, isChanServInfoNotice, parseChanServInfo } from './chanserv-info';
 import { ingestNickServNotice, noteManualNickServQuery, nickServAutoQueryActive } from './nickserv-info';
 import { extractFilehostToken, filehostTokenFresh } from './upload';
 import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
@@ -171,10 +171,10 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       const lc = msg.nick.toLowerCase();
       if (get().ignored.some((n) => n.toLowerCase() === lc)) return true;
     }
-    // Manual ChanServ INFO (slash /cs or PRIVMSG) — allow the dump into chat for a short window.
-    if (self && msg.command === 'PRIVMSG' && /^chanserv$/i.test(target || '')) {
-      noteManualChanServInfoCommand(text);
-    }
+    // NickServ auto-probes (Compte) — swallow echo so Status stays clean.
+    // ChanServ INFO reveal is armed only from slash handlers in commands.ts:
+    // echo-message of plugin probes (orbit-chanserv RegisterWatch / panel) must
+    // NOT open a reveal window, or the dump lands in the salon.
     if (self && msg.command === 'PRIVMSG' && /^nickserv$/i.test(target || '')) {
       if (nickServAutoQueryActive()) return true;
       noteManualNickServQuery(text);

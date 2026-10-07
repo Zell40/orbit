@@ -45,7 +45,7 @@ export function Chat({ locked = false }: { locked?: boolean }) {
   // Conference sits in the main column under the topbar so chrome stays visible.
   const overlays = ui.filter((u) => u.slot === 'overlay');
   // In-column overlays: conference video + Petit Bac game HUD (under topbar).
-  const mainColumnPlugins = new Set(['orbit-conference', 'orbit-petitbac', 'orbit-callerid']);
+  const mainColumnPlugins = new Set(['orbit-conference', 'orbit-petitbac', 'orbit-callerid', 'orbit-memoserv']);
   const mainBanners = overlays.filter((u) => mainColumnPlugins.has(u.plugin)
     && !(hideVisual && visualPlugins.has(u.plugin)));
   const rootOverlays = overlays.filter((u) => !mainColumnPlugins.has(u.plugin)
