@@ -1,5 +1,6 @@
-// User preferences (General settings) — persisted in localStorage.
+// User preferences (General settings) — persisted per IRC identity in localStorage.
 import { getConfig } from '../core/config';
+import { getActiveOwner, idLsRead, idLsWrite } from '../lib/identity-storage';
 
 export interface Prefs {
   sound: boolean;        // play a blip on mention / private message
@@ -42,7 +43,6 @@ export interface Prefs {
 }
 
 const KEY = 'orbit-prefs';
-const LEGACY_KEY = 'tchatou-prefs';
 
 // Defaults come from config.json (so a deployment can preset compact/sound/etc.).
 function defaults(): Prefs {
@@ -61,17 +61,21 @@ function defaults(): Prefs {
 export function getPrefs(): Prefs {
   const d = defaults();
   try {
-    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
-    if (raw) {
-      if (!localStorage.getItem(KEY)) localStorage.setItem(KEY, raw);
-      return { ...d, ...JSON.parse(raw) };
+    // Per-account when identified; device-wide only before login (no owner).
+    const raw = idLsRead(KEY);
+    if (raw) return { ...d, ...JSON.parse(raw) };
+    // Guest / pre-login: allow reading the historical unscoped key once for UX,
+    // but never copy it into another account's bucket.
+    if (!getActiveOwner()) {
+      const legacy = localStorage.getItem(KEY) ?? localStorage.getItem('tchatou-prefs');
+      if (legacy) return { ...d, ...JSON.parse(legacy) };
     }
   } catch { /* ignore */ }
   return d;
 }
 
 export function savePrefs(p: Prefs): void {
-  try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* ignore */ }
+  idLsWrite(KEY, JSON.stringify(p));
 }
 
 // Density + text size are global layout concerns → reflect them on <html> (CSS

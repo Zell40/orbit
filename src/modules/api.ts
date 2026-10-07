@@ -16,6 +16,7 @@ import i18n from '../core/i18n';
 import { pluginNotify } from '../platform/notify';
 import { getTheme, setTheme, registerTheme, listPluginThemes, type Theme } from '../themes';
 import { getConfig, pluginDebug } from '../core/config';
+import { getActiveOwner, idKey } from '../lib/identity-storage';
 import { bus } from './bus';
 import { usePluginRegistry, type UiSlot, type MessageInfo, type UserActionCtx, type MemberMenuCtx, type FilterableMessage } from './registry';
 
@@ -114,6 +115,8 @@ export interface OrbitPluginApi {
   addSettingsSection: (opts: { label: string; icon?: string; render: () => ReactNode }) => () => void;
   /** Add a row/block inside the shared Settings → Modes hub (privacy modes, future plugins). */
   addSettingsMode: (opts: { render: () => ReactNode }) => () => void;
+  /** Add a row/block inside Settings → Appearance (theme-adjacent plugin prefs). */
+  addSettingsAppearance: (opts: { render: () => ReactNode }) => () => void;
   /** Add a section to Gérer le salon (left rail, next to native IRC admin). */
   addChanAdminSection: (opts: {
     label: string;
@@ -208,17 +211,28 @@ function makeApi(name: string): OrbitPluginApi {
       return () => { off(); el?.remove(); };
     },
     storage: {
+      // Scoped by active NickServ account / nick so plugin data (ACCEPT lists,
+      // game prefs…) does not leak between users on the same browser.
       get: <T,>(key: string, fallback?: T) => {
-        try { const v = localStorage.getItem(ns + key); return v === null ? fallback : (JSON.parse(v) as T); }
+        try {
+          const v = localStorage.getItem(idKey(ns + key, getActiveOwner()));
+          return v === null ? fallback : (JSON.parse(v) as T);
+        }
         catch { return fallback; }
       },
-      set: (key, value) => { try { localStorage.setItem(ns + key, JSON.stringify(value)); } catch { /* quota */ } },
+      set: (key, value) => {
+        try {
+          localStorage.setItem(idKey(ns + key, getActiveOwner()), JSON.stringify(value));
+        } catch { /* quota */ }
+      },
     },
     addUi: (slot, render) => usePluginRegistry.getState().addUi(slot, name, render),
     addSettingsSection: (opts) =>
       usePluginRegistry.getState().addUi('settings_section', name, opts.render, { label: opts.label, icon: opts.icon }),
     addSettingsMode: (opts) =>
       usePluginRegistry.getState().addUi('settings_mode', name, opts.render),
+    addSettingsAppearance: (opts) =>
+      usePluginRegistry.getState().addUi('settings_appearance', name, opts.render),
     addChanAdminSection: (opts) =>
       usePluginRegistry.getState().addUi('chanadmin_section', name, opts.render, {
         label: opts.label, icon: opts.icon, desc: opts.desc, nav: opts.nav, iconNav: opts.iconNav, attention: opts.attention,

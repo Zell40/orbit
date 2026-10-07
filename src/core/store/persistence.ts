@@ -1,6 +1,7 @@
 // localStorage-backed lists (ignored nicks, friends, muted channels, highlight
-// words). Pure persistence helpers — no store state.
-import { lsRead, lsWrite } from '@/lib/storage-keys';
+// words). Pure persistence helpers — no store state. Keys are scoped by the
+// active IRC identity (account/nick) so two users on one browser stay isolated.
+import { idLsRead, idLsWrite } from '@/lib/identity-storage';
 
 const IGNORE_KEY = 'orbit-ignored';
 const FRIENDS_KEY = 'orbit-friends';
@@ -10,16 +11,11 @@ const NOTIFY_KEY = 'orbit-notify';
 const PINS_KEY = 'orbit-pins';
 const CHAN_URLS_KEY = 'orbit-chan-urls';
 
-function loadRaw(key: string, legacy: string): string | null {
-  return lsRead(key, legacy);
-}
-
 export function loadStr(key: string): string[] {
-  const legacy = key.replace(/^orbit-/, 'tchatou-');
-  try { return JSON.parse(loadRaw(key, legacy) || '[]'); } catch { return []; }
+  try { return JSON.parse(idLsRead(key) || '[]'); } catch { return []; }
 }
 export function saveStr(key: string, list: string[]): void {
-  lsWrite(key, JSON.stringify(list));
+  idLsWrite(key, JSON.stringify(list));
 }
 
 // Per-channel notification level (canon key → 'all' | 'mentions' | 'mute').
@@ -29,17 +25,17 @@ export type NotifyLevel = 'all' | 'mentions' | 'mute';
 // two networks' same-named channels don't clobber each other in localStorage.
 export function loadNotify(ns = ''): Record<string, NotifyLevel> {
   try {
-    const raw = loadRaw(NOTIFY_KEY + ns, `tchatou-notify${ns}`);
+    const raw = idLsRead(NOTIFY_KEY + ns);
     if (raw) return JSON.parse(raw);
     if (ns) return {};
-    // Migrate legacy muted channels → level 'mute' (primary only).
+    // Seed from this identity's muted list only (never a shared unscoped dump).
     const seed: Record<string, NotifyLevel> = {};
     for (const c of loadStr(MUTED_KEY)) seed[c] = 'mute';
     return seed;
   } catch { return {}; }
 }
 export function saveNotify(map: Record<string, NotifyLevel>, ns = ''): void {
-  lsWrite(NOTIFY_KEY + ns, JSON.stringify(map));
+  idLsWrite(NOTIFY_KEY + ns, JSON.stringify(map));
 }
 
 // Pinned messages are client-local (IRC has no pin protocol) — a snapshot of the
@@ -47,21 +43,21 @@ export function saveNotify(map: Record<string, NotifyLevel>, ns = ''): void {
 export interface Pin { id: string; from: string; text: string; ts: number; }
 export function loadPins(ns = ''): Record<string, Pin[]> {
   try {
-    return JSON.parse(loadRaw(PINS_KEY + ns, `tchatou-pins${ns}`) || '{}');
+    return JSON.parse(idLsRead(PINS_KEY + ns) || '{}');
   } catch { return {}; }
 }
 export function savePins(map: Record<string, Pin[]>, ns = ''): void {
-  lsWrite(PINS_KEY + ns, JSON.stringify(map));
+  idLsWrite(PINS_KEY + ns, JSON.stringify(map));
 }
 
 export const PIN_CAP = 30; // most-recent pins kept per channel
 
 /** Last channel homepage (328) already shown as a chat card — survives refresh. */
 export function loadChanUrls(ns = ''): Record<string, string> {
-  try { return JSON.parse(loadRaw(CHAN_URLS_KEY + ns, '') || '{}'); } catch { return {}; }
+  try { return JSON.parse(idLsRead(CHAN_URLS_KEY + ns) || '{}'); } catch { return {}; }
 }
 export function saveChanUrls(map: Record<string, string>, ns = ''): void {
-  lsWrite(CHAN_URLS_KEY + ns, JSON.stringify(map));
+  idLsWrite(CHAN_URLS_KEY + ns, JSON.stringify(map));
 }
 
 // Pure reducers over the pin map — toggle a line in/out, or drop one. An empty

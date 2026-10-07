@@ -1,12 +1,17 @@
 // Persistent session resume (opt-in: config.features.sessionResume).
 //
 // localStorage holds ONLY non-secret context (nick, account label, channels,
-// GECOS). A MonIdentité member is re-authenticated by minting a JWT from the
-// HttpOnly `orbit_en_resume` cookie. A classic NickServ login parks the SASL
-// password in sessionStorage (same tab / F5 only — never localStorage), same
-// pattern as extra networks (`orbit-netpass`). A guest reconnects by nick.
+// GECOS), keyed per identity so two accounts on one browser keep separate
+// resume slots. `orbit-resume-last` points at the most recent owner for
+// auto-reconnect. A MonIdentité member is re-authenticated by minting a JWT
+// from the HttpOnly `orbit_en_resume` cookie. A classic NickServ login parks
+// the SASL password in sessionStorage (same tab / F5 only — never localStorage),
+// same pattern as extra networks (`orbit-netpass`). A guest reconnects by nick.
+
+import { idKey, resolveOwner } from '../lib/identity-storage';
 
 const KEY = 'orbit-resume';
+const LAST_KEY = 'orbit-resume-last';
 const MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000; // a fortnight; older sessions aren't auto-resumed
 
 export interface Resume {
@@ -23,38 +28,91 @@ export interface Resume {
   ts: number;
 }
 
-export function saveResume(r: Omit<Resume, 'v' | 'ts'>): void {
-  try {
-    if (!r.nick) return;
-    localStorage.setItem(KEY, JSON.stringify({ v: 1, ts: Date.now(), ...r }));
-  } catch { /* storage blocked/full — resume just won't happen */ }
+function resumeOwner(r: { account?: string; nick?: string }): string {
+  return resolveOwner(r.account, r.nick);
 }
 
-export function loadResume(): Resume | null {
+function parseResume(raw: string | null): Resume | null {
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
     const r = JSON.parse(raw) as Resume;
     if (r?.v !== 1 || typeof r.nick !== 'string' || !r.nick || typeof r.url !== 'string') return null;
-    if (typeof r.ts !== 'number' || Date.now() - r.ts > MAX_AGE_MS) { clearResume(); return null; }
+    if (typeof r.ts !== 'number' || Date.now() - r.ts > MAX_AGE_MS) return null;
     if (!Array.isArray(r.channels)) r.channels = [];
     r.account = typeof r.account === 'string' ? r.account : '';
     if (typeof r.realname !== 'string' || !r.realname.trim()) delete r.realname;
     else r.realname = r.realname.trim();
     r.bouncer = r.bouncer === true;
     return r;
+  } catch {
+    return null;
+  }
+}
+
+export function saveResume(r: Omit<Resume, 'v' | 'ts'>): void {
+  try {
+    if (!r.nick) return;
+    const owner = resumeOwner(r);
+    const payload = JSON.stringify({ v: 1, ts: Date.now(), ...r });
+    const scoped = idKey(KEY, owner);
+    localStorage.setItem(scoped, payload);
+    if (owner) localStorage.setItem(LAST_KEY, owner);
+    // Keep the legacy unscoped key as a mirror of the latest resume so older
+    // clients / cold paths that only know KEY still work once.
+    localStorage.setItem(KEY, payload);
+  } catch { /* storage blocked/full — resume just won't happen */ }
+}
+
+export function loadResume(): Resume | null {
+  try {
+    const last = localStorage.getItem(LAST_KEY) || '';
+    if (last) {
+      const scoped = parseResume(localStorage.getItem(idKey(KEY, last)));
+      if (scoped) return scoped;
+    }
+    // Legacy single-slot key (pre per-account).
+    const legacy = parseResume(localStorage.getItem(KEY));
+    if (legacy) {
+      // Promote into a scoped slot so the next save keeps isolation.
+      const owner = resumeOwner(legacy);
+      if (owner) {
+        try {
+          localStorage.setItem(idKey(KEY, owner), JSON.stringify(legacy));
+          localStorage.setItem(LAST_KEY, owner);
+        } catch { /* ignore */ }
+      }
+      return legacy;
+    }
+    return null;
   } catch { return null; }
 }
 
+function removeResumeSlots(owner?: string): void {
+  try {
+    if (owner) localStorage.removeItem(idKey(KEY, owner));
+    const last = localStorage.getItem(LAST_KEY) || '';
+    if (!owner || last === owner) localStorage.removeItem(LAST_KEY);
+    localStorage.removeItem(KEY);
+  } catch { /* ignore */ }
+}
+
 export function clearResume(): void {
-  try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+  try {
+    const last = localStorage.getItem(LAST_KEY) || '';
+    const legacy = parseResume(localStorage.getItem(KEY));
+    removeResumeSlots(last || resumeOwner(legacy || {}));
+  } catch { /* ignore */ }
   clearSaslResume();
   void expireResumeCookie();
 }
 
 /** Leave chat / `/logout`: wait until the HttpOnly cookie is expired. */
 export async function endSession(): Promise<void> {
-  try { localStorage.removeItem(KEY); } catch { /* ignore */ }
+  try {
+    const last = localStorage.getItem(LAST_KEY) || '';
+    const legacy = parseResume(localStorage.getItem(KEY));
+    removeResumeSlots(last || resumeOwner(legacy || {}));
+  } catch { /* ignore */ }
   clearSaslResume();
   await expireResumeCookie();
 }

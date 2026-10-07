@@ -130,6 +130,27 @@ describe('sasl resume (classic NickServ login)', () => {
   });
 });
 
+describe('per-account resume slots', () => {
+  beforeEach(() => { localStorage.clear(); });
+
+  it('keeps Zell and Nael resume slots separate; last writer wins auto-load', async () => {
+    const { saveResume, loadResume } = await import('./resume');
+    saveResume({
+      url: 'wss://irc.example/ws', nick: 'Zell', account: 'Zell',
+      channels: ['#EntreNous'],
+    });
+    saveResume({
+      url: 'wss://irc.example/ws', nick: 'Nael', account: 'Nael',
+      channels: ['#Jeux'],
+    });
+    expect(loadResume()?.account).toBe('Nael');
+    expect(loadResume()?.channels).toEqual(['#Jeux']);
+    // Zell's slot is still intact under its own key.
+    expect(localStorage.getItem('orbit-resume@zell')).toContain('#EntreNous');
+    expect(localStorage.getItem('orbit-resume@nael')).toContain('#Jeux');
+  });
+});
+
 describe('saslMatchesResume', () => {
   it('accepts a parked password when the live nick was suffix-mangled after connect', async () => {
     const { saslMatchesResume } = await import('./resume');

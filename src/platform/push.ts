@@ -7,6 +7,7 @@
 // notifications — even when the tab/PWA is backgrounded. Push-while-fully-closed
 // works for logged-in accounts (the server persists the subscription by account).
 import type { IrcClient } from '../core/irc/client';
+import { getActiveOwner, idLsRead, idLsRemove, idLsWrite } from '../lib/identity-storage';
 
 const PREF_KEY = 'orbit-push';
 const LEGACY_PUSH = 'tchatou-push';
@@ -23,14 +24,21 @@ export function isPushSupported(): boolean {
 
 export function pushEnabledPref(): boolean {
   try {
-    const v = localStorage.getItem(PREF_KEY) ?? localStorage.getItem(LEGACY_PUSH);
-    if (v === 'on' && !localStorage.getItem(PREF_KEY)) localStorage.setItem(PREF_KEY, 'on');
-    return v === 'on';
+    const scoped = idLsRead(PREF_KEY);
+    if (scoped != null) return scoped === 'on';
+    // Pre-login only: honour the historical device-wide flag (never copy into
+    // another account's bucket).
+    if (!getActiveOwner()) {
+      const v = localStorage.getItem(PREF_KEY) ?? localStorage.getItem(LEGACY_PUSH);
+      return v === 'on';
+    }
+    return false;
   } catch { return false; }
 }
 
 function setPref(on: boolean): void {
-  try { if (on) localStorage.setItem(PREF_KEY, 'on'); else localStorage.removeItem(PREF_KEY); } catch { /* ignore */ }
+  if (on) idLsWrite(PREF_KEY, 'on');
+  else idLsRemove(PREF_KEY);
 }
 
 // base64url (no padding) -> Uint8Array, for applicationServerKey.

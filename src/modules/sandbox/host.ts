@@ -10,6 +10,7 @@ import { createElement } from 'react';
 import { activeStore } from '@/core/networks';
 import { useThemeStore } from '@/themes';
 import { getConfig, pluginDebug, type PluginEntry } from '@/core/config';
+import { getActiveOwner, idKey } from '@/lib/identity-storage';
 import { bus } from '../bus';
 import { usePluginRegistry, type UiSlot } from '../registry';
 import { pluginNotify } from '@/platform/notify';
@@ -43,14 +44,17 @@ function themeVars(): Record<string, string> {
   return out;
 }
 
-// Per-plugin namespaced storage, kept in the app's localStorage (the sandbox has none).
+// Per-plugin + per-identity storage (sandbox has no localStorage of its own).
+function storageBucketKey(name: string): string {
+  return idKey(STORE_PREFIX + name, getActiveOwner());
+}
 function loadStorage(name: string): Record<string, unknown> {
-  try { return JSON.parse(localStorage.getItem(STORE_PREFIX + name) || '{}'); } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(storageBucketKey(name)) || '{}'); } catch { return {}; }
 }
 function persistStorage(name: string, key: string, value: unknown): void {
   const all = loadStorage(name);
   if (value === undefined) delete all[key]; else all[key] = value;
-  try { localStorage.setItem(STORE_PREFIX + name, JSON.stringify(all)); } catch { /* quota */ }
+  try { localStorage.setItem(storageBucketKey(name), JSON.stringify(all)); } catch { /* quota */ }
 }
 
 // An offscreen holder keeps each iframe attached (so it loads and stays alive) until

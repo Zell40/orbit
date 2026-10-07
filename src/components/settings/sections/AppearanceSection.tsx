@@ -4,6 +4,8 @@ import { LANGS, setLang, getLang } from '@/core/i18n';
 import { getConfig } from '@/core/config';
 import { getTheme, setTheme, usePluginThemes, type Theme } from '@/themes';
 import { useActiveChat } from '@/core/networks';
+import { usePluginRegistry } from '@/modules/registry';
+import { PluginBoundary } from '../../PluginBoundary';
 import { ToggleRow } from '../rows';
 
 const TEXT_SIZES: Array<{ v: number; label: string }> = [
@@ -18,6 +20,8 @@ export function AppearanceSection() {
   const [theme, setT] = useState<string>(getTheme());
   const [lang, setLangState] = useState(getLang());
   const pluginThemes = usePluginThemes();
+  const pluginUi = usePluginRegistry((s) => s.ui);
+  const appearanceItems = pluginUi.filter((u) => u.slot === 'settings_appearance');
   function pick(tm: string) { setT(tm); setTheme(tm); }
   function pickLang(code: string) { setLangState(code); setLang(code); }
 
@@ -91,6 +95,9 @@ export function AppearanceSection() {
             ))}
           </div></div>
         </div>
+        {appearanceItems.map((item) => (
+          <PluginBoundary key={item.id} render={item.render} label={`settings_appearance:${item.plugin}`} />
+        ))}
       </div>
     </div>
   );

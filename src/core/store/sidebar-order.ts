@@ -1,5 +1,6 @@
-// Sidebar conversation order: A–Z by default, then a user drag order (persisted).
-import { lsRead, lsWrite } from '@/lib/storage-keys';
+// Sidebar conversation order: A–Z by default, then a user drag order (persisted
+// per IRC identity + network).
+import { idLsRead, idLsWrite } from '@/lib/identity-storage';
 import { SERVER, isChannelName, isNoticeBuffer } from './context';
 
 export type SidebarSection = 'channels' | 'queries';
@@ -16,7 +17,7 @@ export function emptySidebarOrder(): SidebarOrder {
 
 export function loadSidebarOrder(ns = ''): SidebarOrder {
   try {
-    const raw = lsRead(KEY + ns);
+    const raw = idLsRead(KEY + ns);
     if (!raw) return emptySidebarOrder();
     const p = JSON.parse(raw) as Partial<SidebarOrder>;
     return {
@@ -29,7 +30,7 @@ export function loadSidebarOrder(ns = ''): SidebarOrder {
 }
 
 export function saveSidebarOrder(order: SidebarOrder, ns = ''): void {
-  lsWrite(KEY + ns, JSON.stringify({
+  idLsWrite(KEY + ns, JSON.stringify({
     channels: order.channels,
     queries: order.queries,
   }));

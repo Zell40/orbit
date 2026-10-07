@@ -26,6 +26,7 @@ import { closeMobileNav } from '../lib/mobile-nav';
 import { mergeMlock } from './irc/mode-catalog';
 import { fetchChannelMlock } from './store/mlock-rpc';
 import { fetchChanServPublic } from './store/chanserv-info';
+import { onOwnerChange, setActiveOwner } from '../lib/identity-storage';
 
 
 
@@ -317,6 +318,9 @@ export function createChatStore(ns = '') {
       // store; tear down the previous client first so it can't keep reconnecting
       // in the background and process every inbound line a second time.
       get().client?.disconnect();
+      // Scope prefs / lists / plugin storage to this account (or nick) immediately
+      // so a second user on the same browser does not inherit the previous session.
+      setActiveOwner(opts.saslAuthzid, opts.nick);
       // Ident (the "user" in nick!user@host): logged-in members show their nick;
       // guests show guestIdent, or the nick when server.guestIdentFromNick is on.
       if (!opts.username) opts.username = resolveConnectUsername(opts, getConfig().server);
@@ -407,6 +411,8 @@ export function createChatStore(ns = '') {
         // Drop stale NickServ identity as soon as the link is not live — a server
         // restart / services outage must not keep Settings showing "Connecté".
         // Re-filled by 900 / ACCOUNT / extended-JOIN / WHOIS 330 after reconnect.
+        // Keep the storage owner across disconnect so prefs/lists don't briefly
+        // fall back to the unscoped device bucket (and leak across accounts).
         if (st === 'closed' || st === 'error' || st === 'connecting' || st === 'sasl-failed') {
           if (get().account) set({ account: '' });
         }
@@ -1045,13 +1051,27 @@ export function createChatStore(ns = '') {
     },
   };
   });
-  // Keep truly-global state (prefs / friends / ignored / highlights) consistent
+  // Keep identity-scoped state (prefs / friends / ignored / highlights) consistent
   // across networks: any store that changes it dispatches, every store re-reads.
   if (typeof window !== 'undefined') {
     window.addEventListener('orbit:globalsync', () => store.setState({
       prefs: getPrefs(), friends: loadFriends(), ignored: loadIgnored(), highlightWords: loadStr(HIGHLIGHT_KEY),
     }));
   }
+  // When NickServ account / nick changes, reload this identity's persisted data.
+  onOwnerChange(() => {
+    const prefs = getPrefs();
+    applyPrefs(prefs);
+    store.setState({
+      prefs,
+      friends: loadFriends(),
+      ignored: loadIgnored(),
+      highlightWords: loadStr(HIGHLIGHT_KEY),
+      notifyLevel: loadNotify(ns),
+      pins: loadPins(ns),
+      sidebarOrder: loadSidebarOrder(ns),
+    });
+  });
   return store;
 }
 function syncGlobal() { if (typeof window !== 'undefined') window.dispatchEvent(new Event('orbit:globalsync')); }

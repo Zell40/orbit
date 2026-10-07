@@ -13,7 +13,7 @@ import type { ReactNode } from 'react';
 // launcher button can live (and move) anywhere without unmounting the panel.
 // 'user_badge' sits to the right of the nick in the app footer (guest/status chips).
 // 'topbar_end' sits immediately left of the leave (X) / overflow (⋮) controls.
-export type UiSlot = 'composer_button' | 'settings_section' | 'settings_mode' | 'chanadmin_section' | 'chanadmin_badge' | 'topbar_item' | 'topbar_more_item' | 'topbar_end' | 'sidebar_item' | 'sidebar_room' | 'footer_item' | 'nav_item' | 'navbar' | 'overlay' | 'user_badge';
+export type UiSlot = 'composer_button' | 'settings_section' | 'settings_mode' | 'settings_appearance' | 'chanadmin_section' | 'chanadmin_badge' | 'topbar_item' | 'topbar_more_item' | 'topbar_end' | 'sidebar_item' | 'sidebar_room' | 'footer_item' | 'nav_item' | 'navbar' | 'overlay' | 'user_badge';
 
 export interface PluginUi {
   id: string;

@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { getConfig } from '../core/config';
+import { getActiveOwner, idLsRead, idLsWrite, onOwnerChange } from '../lib/identity-storage';
 
-// Theme — persisted in localStorage, applied via [data-theme] on <html>.
+// Theme — persisted per IRC identity, applied via [data-theme] on <html>.
 // 'yomirc' is a retro classic-mIRC skin (monospace, flat nick list, 16-colour log).
 // 'orbit' / 'orbit-dark' are the built-in dark Orbit skins.
 export type Theme = 'light' | 'dark' | 'orbit' | 'orbit-dark' | 'yomirc' | 'yomirc-dark';
 
-const KEY = 'orbit-theme'; // also read by the pre-paint script in index.html
+const KEY = 'orbit-theme'; // also mirrored unscoped for cold-start paint before login
 const LEGACY_KEY = 'tchatou-theme';
 const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomirc-dark'];
 
@@ -32,18 +33,37 @@ function applyTheme(t: string): void {
   meta.setAttribute('content', bg || plugin || '#ffffff');
 }
 
+function normalizeTheme(t: string): string {
+  if (!t) return 'light';
+  // Built-ins must match the union; plugin themes are free-form ids.
+  if (THEMES.includes(t as Theme)) return t;
+  return t;
+}
+
 const savedTheme = (): string => {
   try {
-    let t = localStorage.getItem(KEY) || '';
-    if (!t) {
-      t = localStorage.getItem(LEGACY_KEY) || '';
-      if (t) localStorage.setItem(KEY, t);
+    const scoped = idLsRead(KEY);
+    if (scoped) return normalizeTheme(scoped);
+    if (!getActiveOwner()) {
+      let t = localStorage.getItem(KEY) || '';
+      if (!t) {
+        t = localStorage.getItem(LEGACY_KEY) || '';
+        if (t) localStorage.setItem(KEY, t);
+      }
+      return normalizeTheme(t || 'light');
     }
-    return THEMES.includes(t as Theme) ? t : 'light';
+    return 'light';
   } catch {
     return 'light';
   }
 };
+
+function persistTheme(t: string): void {
+  idLsWrite(KEY, t);
+  // Mirror last choice unscoped so the next cold start paints something sensible
+  // before the account is known.
+  try { localStorage.setItem(KEY, t); } catch { /* ignore */ }
+}
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
   theme: savedTheme(),
@@ -51,11 +71,11 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   // Apply to the DOM BEFORE set() so subscribers that read the live [data-theme]
   // (the sandbox host mirrors getComputedStyle vars into its iframes) see the new
   // theme, not the previous one.
-  setTheme: (t) => { localStorage.setItem(KEY, t); applyTheme(t); set({ theme: t }); },
+  setTheme: (t) => { persistTheme(t); applyTheme(t); set({ theme: t }); },
   registerTheme: (pt) => {
     set((s) => ({ pluginThemes: [...s.pluginThemes.filter((x) => x.id !== pt.id), pt] }));
     // A saved theme that IS this plugin's (registered after boot) takes effect now.
-    if (localStorage.getItem(KEY) === pt.id && get().theme !== pt.id) { applyTheme(pt.id); set({ theme: pt.id }); }
+    if (savedTheme() === pt.id && get().theme !== pt.id) { applyTheme(pt.id); set({ theme: pt.id }); }
     return () => set((s) => ({ pluginThemes: s.pluginThemes.filter((x) => x.id !== pt.id) }));
   },
 }));
@@ -72,7 +92,7 @@ export function usePluginThemes(): PluginTheme[] { return useThemeStore((s) => s
 
 // First-time visitors (no saved theme) adopt the config default once config loads.
 export function hydrateTheme(): void {
-  if (localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY)) return;
+  if (idLsRead(KEY) || localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY)) return;
   const d = getConfig().defaults.theme;
   const t = THEMES.includes(d as Theme) ? d : 'light';
   applyTheme(t);
@@ -81,3 +101,10 @@ export function hydrateTheme(): void {
 
 // Apply immediately on import so there's no flash of the wrong theme.
 applyTheme(getTheme());
+
+// Swap theme when the active NickServ account / nick changes.
+onOwnerChange(() => {
+  const t = savedTheme();
+  applyTheme(t);
+  useThemeStore.setState({ theme: t });
+});

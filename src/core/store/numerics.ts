@@ -12,6 +12,7 @@ import type { ChatState, KickInfo } from '../store';
 import { findWhoisKey, type StoreHelpers } from './helpers';
 import { loadChanUrls, saveChanUrls } from './persistence';
 import { announcePmOnline, isPmPeerOffline, markPmPeerOffline, maybeMphistoryQueuedHint, queryBufferKey } from './pm-presence';
+import { setActiveOwner } from '@/lib/identity-storage';
 
 interface NumericsDeps {
   get: StoreApi<ChatState>['getState'];
@@ -221,7 +222,10 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
           });
         }
         if (realname && who === get().nick) get().client?.setRealname(realname);
-        if (account && who === get().nick && !get().account) set({ account });
+        if (account && who === get().nick && !get().account) {
+          set({ account });
+          setActiveOwner(account, who);
+        }
         if (profileCache && (realname || account)) {
           const prev = profileCache.get(canon(who)) || {};
           profileCache.set(canon(who), {
@@ -324,11 +328,13 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       case '900': { // RPL_LOGGEDIN: <me> <nick!user@host> <account> :You are now logged in as …
         const account = msg.params[2] || '';
         set({ account });
+        setActiveOwner(account, get().nick);
         return true;
       }
       case '901': { // RPL_LOGGEDOUT
         const prevAccount = get().account;
         set({ account: '' });
+        setActiveOwner('', get().nick);
         if (prevAccount && get().client) void unregisterPushOnAccountLogout(get().client!, prevAccount);
         void import('../resume').then((m) => m.clearSaslResume());
         return true;
