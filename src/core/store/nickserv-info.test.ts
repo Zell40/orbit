@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   parseNickServInfo, parseNickServAlist, describeAlistAccess, alistCanInvite,
   parseNickServOptionPills, sendChanServInvite, parseNickServGlist, parseNickServList,
-  parseNickServAjoin, mergeAlistAndAjoin,
+  parseNickServAjoin, mergeAlistAndAjoin, parseNickServLanguages, matchNickServLanguage,
 } from './nickserv-info';
 
 const FR = `\u0002Informations pour le compte Harry\u0002 :
@@ -205,6 +205,35 @@ describe('alistCanInvite', () => {
     expect(alistCanInvite('4')).toBe(true);
     expect(alistCanInvite('VOP')).toBe(false);
     expect(alistCanInvite('3')).toBe(false);
+  });
+});
+
+describe('parseNickServLanguages', () => {
+  it('reads Anope HELP SET LANGUAGE codes and labels', () => {
+    const raw = `Syntaxe: SET LANGUAGE [langue]
+
+Les langues actuellement prises en charge sont :
+de_DE.UTF-8 (Deutsch)
+en_US.UTF-8 (English)
+es_ES.UTF-8 (Español)
+fr_EN.UTF-8 (Français (EntreNous))
+fr_FR.UTF-8 (Français)
+it_IT.UTF-8 (Italiano)`;
+    expect(parseNickServLanguages(raw)).toEqual([
+      { code: 'de_DE.UTF-8', label: 'Deutsch' },
+      { code: 'en_US.UTF-8', label: 'English' },
+      { code: 'es_ES.UTF-8', label: 'Español' },
+      { code: 'fr_EN.UTF-8', label: 'Français (EntreNous)' },
+      { code: 'fr_FR.UTF-8', label: 'Français' },
+      { code: 'it_IT.UTF-8', label: 'Italiano' },
+    ]);
+  });
+
+  it('matches INFO language text to a live entry', () => {
+    const langs = parseNickServLanguages('fr_FR.UTF-8 (Français)\nfr_EN.UTF-8 (Français (EntreNous))');
+    expect(matchNickServLanguage(langs, 'français')?.code).toBe('fr_FR.UTF-8');
+    expect(matchNickServLanguage(langs, 'Français (EntreNous)')?.code).toBe('fr_EN.UTF-8');
+    expect(matchNickServLanguage(langs, 'fr_EN.UTF-8')?.label).toBe('Français (EntreNous)');
   });
 });
 

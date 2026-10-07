@@ -309,7 +309,10 @@ async function nickservRpc(
   account: string,
   nick: string,
   action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist' | 'nsajoin' | 'nsset',
-  extra?: { pattern?: string; flags?: string[]; op?: string; channel?: string; key?: string; option?: string; value?: string },
+  extra?: {
+    pattern?: string; flags?: string[]; op?: string; channel?: string; key?: string;
+    option?: string; value?: string; topic?: string;
+  },
 ): Promise<string | null> {
   if (!account) return null;
   const ctrl = new AbortController();
@@ -579,18 +582,73 @@ export const NICKSERV_SET_TOGGLES: NickServSetOpt[] = [
   { set: 'PROTECT', key: 'kill', match: /^(kill|protection|protect)$/i },
 ];
 
-/** NickServ SET options that take a value (not ON/OFF). PASSWORD stays on ChangePassword. */
+/** NickServ SET options that take a free-text value (not ON/OFF).
+ *  EMAIL / URL / DISPLAY are managed on the EntreNous web account — not here.
+ *  LANGUAGE has its own row (dropdown from Anope HELP SET LANGUAGE). */
 export const NICKSERV_SET_VALUES: Array<{ set: string; key: string; infoKey: RegExp; max: number }> = [
-  { set: 'DISPLAY', key: 'display', infoKey: /^(display|pseudo d['’]affichage|affichage)$/i, max: 32 },
-  { set: 'EMAIL', key: 'email', infoKey: /^(e-?mail|adresse e-?mail)$/i, max: 80 },
   { set: 'GREET', key: 'greet', infoKey: /^(greet|message d['’]accueil|accueil)$/i, max: 200 },
-  { set: 'LANGUAGE', key: 'language', infoKey: /^(langue|language)$/i, max: 40 },
-  { set: 'URL', key: 'url', infoKey: /^url$/i, max: 200 },
 ];
+
+/** INFO rows that must not appear in Compte (web-only or edited elsewhere). */
+export const NICKSERV_INFO_HIDE_KEY =
+  /^(e-?mail|adresse e-?mail|url|display|pseudo d['’]affichage|affichage|langue|language)$/i;
+
+export const NICKSERV_LANGUAGE_INFO_KEY = /^(langue|language)$/i;
 
 export function nickServInfoValue(rows: NickServInfoRow[] | undefined, re: RegExp): string {
   const row = (rows || []).find((r) => re.test(String(r.key || '').trim()));
   return String(row?.value || '').trim();
+}
+
+export type NickServLanguage = { code: string; label: string };
+
+/** Parse `de_DE.UTF-8 (Deutsch)` lines from NickServ HELP SET LANGUAGE. */
+export function parseNickServLanguages(raw: string): NickServLanguage[] {
+  const out: NickServLanguage[] = [];
+  const seen = new Set<string>();
+  for (const line of String(raw || '').split(/\n/)) {
+    const s = stripFormatting(line).replace(/\s+/g, ' ').trim();
+    if (!s) continue;
+    const m = s.match(/^([a-z]{2}_[A-Z]{2}(?:\.[A-Za-z0-9_-]+)?)\s*(?:\((.+)\))?\s*$/);
+    if (!m) continue;
+    const code = m[1];
+    if (seen.has(code.toLowerCase())) continue;
+    seen.add(code.toLowerCase());
+    out.push({ code, label: (m[2] || code).trim() });
+  }
+  return out;
+}
+
+/** Resolve INFO's friendly language name to a code from the live Anope list. */
+export function matchNickServLanguage(langs: NickServLanguage[], current: string): NickServLanguage | null {
+  const c = String(current || '').trim();
+  if (!c || !langs.length) return null;
+  const fold = foldNickServToken(c);
+  const byCode = langs.find((l) => l.code.toLowerCase() === c.toLowerCase());
+  if (byCode) return byCode;
+  const byExact = langs.find((l) => foldNickServToken(l.label) === fold);
+  if (byExact) return byExact;
+  // Prefer the longest label that contains (or is contained by) the INFO text —
+  // so "Français (EntreNous)" wins over plain "Français".
+  let best: NickServLanguage | null = null;
+  for (const l of langs) {
+    const lf = foldNickServToken(l.label);
+    if (!lf) continue;
+    if (!(lf.includes(fold) || fold.includes(lf))) continue;
+    if (!best || lf.length > foldNickServToken(best.label).length) best = l;
+  }
+  return best;
+}
+
+/** Live languages from Anope (HELP SET LANGUAGE), with IRC fallback. */
+export async function fetchNickServLanguages(account: string, nick = ''): Promise<NickServLanguage[]> {
+  if (!account) return [];
+  const rpc = await nickservRpc(account, nick, 'nshelp', { topic: 'SET LANGUAGE' });
+  let langs = parseNickServLanguages(rpc || '');
+  if (langs.length) return langs;
+  const irc = await ircFallback('HELP SET LANGUAGE', 'INFO');
+  langs = parseNickServLanguages(irc || '');
+  return langs;
 }
 
 export function foldNickServToken(s: string): string {

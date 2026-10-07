@@ -12,8 +12,10 @@ import {
   nickServAjoinAdd, nickServAjoinDel, mergeAlistAndAjoin,
   describeAlistAccess, alistCanInvite, isNickServNicksRow, nickServHelpIsOper,
   parseNickServOptionPills, sendChanServInvite, NICKSERV_SET_TOGGLES, NICKSERV_SET_VALUES, NICKSERV_LIST_FLAGS,
+  NICKSERV_INFO_HIDE_KEY, NICKSERV_LANGUAGE_INFO_KEY,
   loadNickServAccountSnapshot, markNickServAutoQuery, NS_ACCOUNT_WAIT_MS, nickServSet, nickServInfoValue,
-  type NickServInfo, type NickServAccessRow, type NickServInfoRow,
+  fetchNickServLanguages, matchNickServLanguage,
+  type NickServInfo, type NickServAccessRow, type NickServInfoRow, type NickServLanguage,
 } from '@/core/store/nickserv-info';
 
 export function AccountSection() {
@@ -207,7 +209,11 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
     return () => { gen.current++; };
   }, [load]);
 
-  const rows = (info?.rows || []).filter((row) => !isNickServNicksRow(row.key));
+  const allRows = info?.rows || [];
+  // Hide e-mail / URL / display / language from the INFO dump — language is edited
+  // in the options list; the others only change on the EntreNous web account.
+  const rows = allRows.filter((row) =>
+    !isNickServNicksRow(row.key) && !NICKSERV_INFO_HIDE_KEY.test(String(row.key || '').trim()));
 
   return (
     <div className="scard nsinfo">
@@ -230,7 +236,7 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
                 <dt className="nsinfo-row__k">{row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
-                    ? <NickServSetToggles account={account} nick={nick} pills={row.pills} rows={rows} onChanged={() => load({ force: true, silent: true })} />
+                    ? <NickServSetToggles account={account} nick={nick} pills={row.pills} rows={allRows} onChanged={() => load({ force: true, silent: true })} />
                     : (row.value || '—')}
                 </dd>
               </div>
@@ -252,8 +258,30 @@ function NickServSetToggles({
   const { t } = useTranslation();
   const [busy, setBusy] = useState('');
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const [langs, setLangs] = useState<NickServLanguage[]>([]);
+  const [langEdit, setLangEdit] = useState(false);
+  const [langPick, setLangPick] = useState('');
+  const [langLoading, setLangLoading] = useState(false);
   const on = parseNickServOptionPills(pills);
   const noExpire = on.has('NOEXPIRE');
+  const langFromInfo = nickServInfoValue(rows, NICKSERV_LANGUAGE_INFO_KEY);
+  const langMatch = matchNickServLanguage(langs, langFromInfo);
+  const langLabel = langMatch?.label || langFromInfo || '—';
+
+  useEffect(() => {
+    let alive = true;
+    setLangLoading(true);
+    void fetchNickServLanguages(account, nick).then((list) => {
+      if (!alive) return;
+      setLangs(list);
+      setLangLoading(false);
+    }).catch(() => {
+      if (!alive) return;
+      setLangs([]);
+      setLangLoading(false);
+    });
+    return () => { alive = false; };
+  }, [account, nick]);
 
   async function toggle(set: string, next: boolean) {
     if (busy) return;
@@ -270,6 +298,23 @@ function NickServSetToggles({
     setBusy(set);
     await nickServSet(account, nick, set, v);
     setBusy('');
+    onChanged();
+  }
+
+  function startLangEdit() {
+    if (busy || langLoading || !langs.length) return;
+    const cur = langMatch?.code || langs[0]?.code || '';
+    setLangPick(cur);
+    setLangEdit(true);
+  }
+
+  async function applyLanguage() {
+    const code = langPick.trim();
+    if (!code || busy) return;
+    setBusy('LANGUAGE');
+    await nickServSet(account, nick, 'LANGUAGE', code);
+    setBusy('');
+    setLangEdit(false);
     onChanged();
   }
 
@@ -316,10 +361,61 @@ function NickServSetToggles({
           <span className="nsset-lock" title={t('settings.account.nsSet.noexpireHint')}>{t('settings.account.nsSet.locked')}</span>
         </div>
       ) : null}
+      <div className="nsset-row">
+        <span className="nsset-row__lab">
+          {t('settings.account.nsSet.language')}
+          <button
+            type="button"
+            className="tipi"
+            title={t('settings.account.nsSet.languageHint')}
+            aria-label={t('settings.account.nsSet.languageHint')}
+          >i</button>
+        </span>
+        {langEdit ? (
+          <div className="nsset-lang-edit">
+            <select
+              className="modal__input nsset-lang-edit__select"
+              value={langPick}
+              disabled={busy === 'LANGUAGE'}
+              aria-label={t('settings.account.nsSet.language')}
+              onChange={(e) => setLangPick(e.target.value)}
+            >
+              {langs.map((l) => (
+                <option key={l.code} value={l.code}>{l.label}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="nsset-iconbtn"
+              disabled={busy === 'LANGUAGE' || !langPick}
+              title={t('settings.account.nsSet.languageApply')}
+              aria-label={t('settings.account.nsSet.languageApply')}
+              onClick={() => void applyLanguage()}
+            >
+              <Icon name="check" size={16} />
+            </button>
+          </div>
+        ) : (
+          <div className="nsset-row__val">
+            <span className="nsset-row__cur" title={langLabel}>
+              {langLoading && !langFromInfo ? t('settings.account.nsSet.languageLoading') : langLabel}
+            </span>
+            <button
+              type="button"
+              className="nsset-iconbtn"
+              disabled={busy === 'LANGUAGE' || langLoading || !langs.length}
+              title={t('settings.account.nsSet.languageEdit')}
+              aria-label={t('settings.account.nsSet.languageEdit')}
+              onClick={startLangEdit}
+            >
+              <Icon name="pencil" size={14} />
+            </button>
+          </div>
+        )}
+      </div>
       {NICKSERV_SET_VALUES.map((opt) => {
         const fromInfo = nickServInfoValue(rows, opt.infoKey);
-        const masked = opt.set === 'EMAIL' && /\*/.test(fromInfo);
-        const current = draft[opt.set] ?? (masked ? '' : fromInfo);
+        const current = draft[opt.set] ?? fromInfo;
         return (
           <div className="nsset-field" key={opt.set}>
             <span className="nsset-row__lab">

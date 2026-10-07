@@ -2190,6 +2190,23 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .nssearch__hits { display: flex; flex-wrap: wrap; gap: .3rem; }
 .nsset-row { display: flex; align-items: center; justify-content: space-between; gap: .7rem; min-height: 1.7rem; }
 .nsset-row__lab { font-size: .82rem; font-weight: 650; color: var(--ink); display: inline-flex; align-items: center; gap: .35rem; min-width: 0; }
+.nsset-row__val { display: inline-flex; align-items: center; gap: .3rem; min-width: 0; justify-content: flex-end; }
+.nsset-row__cur {
+  font-size: .82rem; font-weight: 550; color: var(--muted);
+  max-width: min(12rem, 42vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.nsset-lang-edit { display: inline-flex; align-items: center; gap: .3rem; min-width: 0; flex: 1; justify-content: flex-end; }
+.nsset-lang-edit__select {
+  flex: 1; min-width: 0; max-width: 13rem; width: auto; padding: .28rem .45rem;
+  font-size: .8rem; height: auto; min-height: 1.7rem;
+}
+.nsset-iconbtn {
+  flex: none; width: 1.7rem; height: 1.7rem; padding: 0; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--ink);
+  display: inline-grid; place-items: center; cursor: pointer;
+}
+.nsset-iconbtn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-d); background: var(--accent-soft); }
+.nsset-iconbtn:disabled { opacity: .45; cursor: default; }
 .nsset-field { display: flex; flex-direction: column; gap: .28rem; padding-top: .35rem; }
 .nsset-field__row { display: flex; align-items: center; gap: .35rem; min-width: 0; }
 .nsset-field__row .modal__input { flex: 1; min-width: 0; }
