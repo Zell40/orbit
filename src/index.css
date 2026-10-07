@@ -1710,6 +1710,8 @@ html[data-actions="off"] .msg-actions { display: none; }
 .topbar__umode:hover { background: color-mix(in srgb, var(--danger, #d6465f) 22%, var(--bg)); }
 .topbar__umode-tip { position: absolute; top: calc(100% + 8px); right: 0; z-index: 40; width: max-content; max-width: min(260px, 70vw); padding: .5rem .65rem; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: .75rem; font-weight: 650; line-height: 1.35; text-align: left; box-shadow: 0 8px 22px -8px rgba(20,30,45,.45); pointer-events: none; }
 .topbar__umode-tip::before { content: ''; position: absolute; top: -5px; right: 12px; width: 8px; height: 8px; background: var(--ink); transform: rotate(45deg); }
+.topbar__privdeaf.is-on { background: var(--danger-soft, rgba(224,49,80,.14)); color: var(--danger, #d6465f); }
+.topbar__privdeaf.is-on:hover { background: color-mix(in srgb, var(--danger, #d6465f) 22%, var(--bg)); }
 .topbar__search:hover { background: var(--bg-soft-2); color: var(--ink); }
 /* Leave/close the current window (parts a channel, closes a DM) — far-right of the header. */
 .topbar__leave { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; transition: background .13s, color .13s; }

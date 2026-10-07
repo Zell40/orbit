@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
+import { advertisedUserModes } from '@/core/irc/mode-catalog';
 
-function DeafIcon({ letter, hint, onDisable }: { letter: 'd' | 'D'; hint: string; onDisable: () => void }) {
+function DeafChanBadge({ onDisable }: { onDisable: () => void }) {
   const { t } = useTranslation();
   const [flash, setFlash] = useState(true);
   const [hover, setHover] = useState(false);
@@ -13,24 +14,23 @@ function DeafIcon({ letter, hint, onDisable }: { letter: 'd' | 'D'; hint: string
     return () => window.clearTimeout(id);
   }, []);
   const show = flash || hover;
-  const label = letter === 'd' ? t('topbar.deafChan') : t('topbar.deafPriv');
   return (
     <button
       type="button"
       className={`topbar__umode${show ? ' is-tip' : ''}`}
-      title={hint}
-      aria-label={label}
+      title={t('topbar.deafChanTip')}
+      aria-label={t('topbar.deafChan')}
       onClick={onDisable}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <Icon name={letter === 'd' ? 'deafChan' : 'deafPriv'} size={18} />
-      {show && <span className="topbar__umode-tip" role="tooltip">{hint}</span>}
+      <Icon name="deafChan" size={18} />
+      {show && <span className="topbar__umode-tip" role="tooltip">{t('topbar.deafChanTip')}</span>}
     </button>
   );
 }
 
-/** +d / +D badges in the header: flash 5s on enable, hover to reread, click to unset. */
+/** Always-visible +D toggle; +d only when active (flash / click to clear). */
 export function UmodeBadges() {
   const { t } = useTranslation();
   const umodes = useActiveChat((s) => s.umodes);
@@ -38,22 +38,28 @@ export function UmodeBadges() {
   const um = umodes.replace(/^\+/, '');
   const deaf = um.includes('d');
   const privDeaf = um.includes('D');
-  if (!deaf && !privDeaf) return null;
+  const advertised = advertisedUserModes(client?.server.isupport ?? {}, client?.server.userModes);
+  const showPrivDeaf = !advertised.size || advertised.has('D');
+  if (!deaf && !showPrivDeaf) return null;
+
+  const tip = privDeaf ? t('topbar.deafPrivTip') : t('topbar.deafPrivEnableTip');
+
   return (
     <span className="topbar__umodes">
       {deaf && (
-        <DeafIcon
-          letter="d"
-          hint={t('topbar.deafChanTip')}
-          onDisable={() => client?.setUserModes('-d')}
-        />
+        <DeafChanBadge onDisable={() => client?.setUserModes('-d')} />
       )}
-      {privDeaf && (
-        <DeafIcon
-          letter="D"
-          hint={t('topbar.deafPrivTip')}
-          onDisable={() => client?.setUserModes('-D')}
-        />
+      {showPrivDeaf && (
+        <button
+          type="button"
+          className={`topbar__search topbar__privdeaf${privDeaf ? ' is-on' : ''}`}
+          title={tip}
+          aria-label={t('topbar.deafPriv')}
+          aria-pressed={privDeaf}
+          onClick={() => client?.setUserModes(privDeaf ? '-D' : '+D')}
+        >
+          <Icon name="deafPriv" size={19} />
+        </button>
       )}
     </span>
   );

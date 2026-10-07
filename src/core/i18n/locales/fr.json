@@ -60,9 +60,10 @@
     "topicExpand": "Voir le topic entier",
     "topicCollapse": "Réduire le topic",
     "deafChan": "Sourd aux salons (+d)",
-    "deafPriv": "Sourd aux privés (+D)",
+    "deafPriv": "Bloquer les messages privés (+D)",
     "deafChanTip": "Tu es sourd aux salons (+d) : tu n’y reçois plus les messages. Clique pour réentendre.",
-    "deafPrivTip": "Tu es sourd aux privés (+D) : tu ne reçois plus les messages privés. Clique pour réentendre."
+    "deafPrivTip": "Messages privés bloqués (+D). Clique pour les accepter à nouveau.",
+    "deafPrivEnableTip": "Accepter les messages privés. Clique pour les bloquer (+D)."
   },
   "connect": {
     "onlineBadge": "{{n}} personnes en ligne",
