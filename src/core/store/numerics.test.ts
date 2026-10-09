@@ -244,6 +244,24 @@ describe('store numerics handler', () => {
     expect(server.some((t) => t.includes('Harry'))).toBe(true);
   });
 
+  it('731 MONITOR offline announces once in an open PM on session resume', () => {
+    clearPmPeerOffline('bob');
+    const { handleNumerics, sys } = setup({
+      friendsOnline: {},
+      buffers: { bob: { name: 'bob', joined: false, messages: [] } },
+    });
+    expect(handleNumerics(mk('731', ['me', 'bob']))).toBe(true);
+    expect(sys).toEqual([{
+      name: 'bob',
+      text: expect.stringMatching(/bob/i),
+      kind: 'info',
+      from: 'bob',
+    }]);
+    // Second snapshot while still marked offline must stay quiet.
+    expect(handleNumerics(mk('731', ['me', 'bob']))).toBe(true);
+    expect(sys).toHaveLength(1);
+  });
+
   it('401 without a WHOIS tracker prints in an open query with that nick', () => {
     const { handleNumerics, sys, state } = setup({
       active: '#x',

@@ -2,9 +2,10 @@
 // line into their PM (if still open), watch them via MONITOR, and announce
 // CONNEXION when they come back — even if we share no channel with them.
 import i18n from '../i18n';
-import { canon, isPseudoBuffer } from './context';
+import { canon, isBouncerServiceNick, isPseudoBuffer } from './context';
 import { findMemberKey } from './helpers';
 import type { Buffer, MessageKind } from '../irc/types';
+import { isStatusService } from '../services';
 
 const offline = new Set<string>(); // CASEMAPPING-folded nicks awaiting a return notice
 /** Nicks for which we already showed the mphistory "will be delivered" hint this offline spell. */
@@ -25,6 +26,29 @@ export function queryBufferKey(
   const b = buffers[key];
   if (!b || b.isChannel || isPseudoBuffer(key)) return undefined;
   return key;
+}
+
+/** Nicks of open PM windows (sidebar order), excluding services / self. */
+export function listOpenQueryNicks(
+  buffers: Record<string, Buffer | undefined>,
+  order: string[],
+  myNick = '',
+): string[] {
+  const me = myNick ? canon(myNick) : '';
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const name of order) {
+    const b = buffers[name];
+    if (!b || b.isChannel || isPseudoBuffer(name)) continue;
+    const nick = (b.name || name).trim();
+    if (!nick || isBouncerServiceNick(nick) || isStatusService(nick)) continue;
+    const key = canon(nick);
+    if (me && key === me) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(nick);
+  }
+  return out;
 }
 
 export function markPmPeerOffline(nick: string): void {

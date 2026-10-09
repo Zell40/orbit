@@ -527,9 +527,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
           const qKey = queryBufferKey(get().buffers, t);
           if (!qKey || isPmPeerOffline(t)) continue;
           // Transition online→offline (PM-only, no shared-channel QUIT): show QUIT.
-          // Initial MONITOR snapshot while already offline: stay quiet, just arm CONNEXION.
+          // Initial MONITOR snapshot (session resume / reopen): say they're offline.
           if (wasOnline) {
             helpers.sysLine(qKey, i18n.t('system.quit', { nick: t }), 'quit', t, '', Date.now());
+          } else {
+            const display = get().buffers[qKey]?.name || t;
+            helpers.sysLine(qKey, i18n.t('system.offline', { nick: display }), 'info', display, '', Date.now());
           }
           markPmPeerOffline(t);
         }

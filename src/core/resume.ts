@@ -20,6 +20,8 @@ export interface Resume {
   nick: string;
   account: string; // '' for a guest
   channels: string[];
+  /** Open private-message windows (nicks) to reopen after F5 / session resume. */
+  queries?: string[];
   /** IRC GECOS, e.g. "40 - Homme - Paris" — restored on USER after reconnect. */
   realname?: string;
   /** True when this session logged in through a bouncer (PASS). Prefills the
@@ -27,6 +29,9 @@ export interface Resume {
   bouncer?: boolean;
   ts: number;
 }
+
+/** Cap persisted PMs so MONITOR / localStorage stay bounded. */
+export const MAX_RESUME_QUERIES = 40;
 
 function resumeOwner(r: { account?: string; nick?: string }): string {
   return resolveOwner(r.account, r.nick);
@@ -39,6 +44,13 @@ function parseResume(raw: string | null): Resume | null {
     if (r?.v !== 1 || typeof r.nick !== 'string' || !r.nick || typeof r.url !== 'string') return null;
     if (typeof r.ts !== 'number' || Date.now() - r.ts > MAX_AGE_MS) return null;
     if (!Array.isArray(r.channels)) r.channels = [];
+    if (!Array.isArray(r.queries)) r.queries = [];
+    else {
+      r.queries = r.queries
+        .map((n) => String(n || '').trim())
+        .filter(Boolean)
+        .slice(0, MAX_RESUME_QUERIES);
+    }
     r.account = typeof r.account === 'string' ? r.account : '';
     if (typeof r.realname !== 'string' || !r.realname.trim()) delete r.realname;
     else r.realname = r.realname.trim();

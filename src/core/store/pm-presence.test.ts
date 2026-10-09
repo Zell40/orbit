@@ -4,6 +4,7 @@ import {
   clearPmPeerOffline,
   isMphistoryStored,
   isPmPeerOffline,
+  listOpenQueryNicks,
   markMphistoryStored,
   markPmPeerOffline,
   queryBufferKey,
@@ -44,6 +45,18 @@ describe('pm-presence', () => {
     expect(queryBufferKey(buffers, 'Quen')).toBe('quen');
     expect(queryBufferKey(buffers, 'nobody')).toBeUndefined();
     expect(queryBufferKey(buffers, '#x')).toBeUndefined();
+  });
+
+  it('listOpenQueryNicks lists PM windows and skips channels / services / self', () => {
+    const buffers = {
+      quen: buf('Quen'),
+      bob: buf('bob'),
+      '#x': buf('#x', true),
+      $server: buf('$server'),
+      nickserv: buf('NickServ'),
+    };
+    expect(listOpenQueryNicks(buffers, ['#x', 'quen', 'nickserv', 'bob', '$server'], 'Me')).toEqual(['Quen', 'bob']);
+    expect(listOpenQueryNicks(buffers, ['quen'], 'Quen')).toEqual([]);
   });
 
   it('takePmPeerOnline fires once after markPmPeerOffline', () => {

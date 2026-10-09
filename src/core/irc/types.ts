@@ -163,6 +163,8 @@ export interface ConnectOptions {
   /** webircgateway HOST (e.g. `bnc.example.org:+8066`) — must precede NICK/USER. */
   bouncerHost?: string;
   channels?: string[];
+  /** Open PM nicks to restore after session resume (Orbit UI; IRC client ignores). */
+  queries?: string[];
 }
 
 // Connection lifecycle states the client reports via the 'status' event. ('idle'

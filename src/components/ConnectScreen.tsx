@@ -465,6 +465,14 @@ export function ConnectScreen() {
         setProfileBusy(false);
       }
     }
+    // Same identity as the parked resume → reopen its PM windows.
+    const resumeQueries = (() => {
+      if (!lastResume?.queries?.length) return undefined;
+      const fold = (s: string) => s.toLowerCase();
+      const ids = [lastResume.nick, lastResume.account].filter(Boolean).map(fold);
+      if (!ids.includes(fold(nk))) return undefined;
+      return lastResume.queries;
+    })();
     connect({
       url: cfg.server.url,
       nick: nk,
@@ -473,6 +481,7 @@ export function ConnectScreen() {
       passkey: passkey || undefined,
       ...(passkey || identifying ? { saslAuthzid: nk } : {}),
       channels,
+      ...(resumeQueries ? { queries: resumeQueries } : {}),
     });
     // Drop ?nick=&channel=&age=… so Jitsi external_api.js (which JSON.parse()s
     // the parent query string) does not treat a nick like "zerfrf" as JSON.

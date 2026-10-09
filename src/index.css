@@ -2311,6 +2311,16 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 }
 .nsaccess-del:hover { background: color-mix(in srgb, var(--danger, #b42318) 10%, var(--bg)); }
 .nsaccess-del:disabled { opacity: .5; cursor: default; }
+.nsaccess-ajoin-add {
+  flex: none; font: inherit; font-size: .7rem; font-weight: 800;
+  color: #0f766e; background: var(--bg);
+  border: 1px solid color-mix(in srgb, #0f766e 42%, var(--border));
+  border-radius: 999px; padding: .2rem .45rem .2rem .38rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .18rem;
+}
+.nsaccess-ajoin-add:hover { background: color-mix(in srgb, #0f766e 12%, var(--bg)); }
+.nsaccess-ajoin-add:disabled { opacity: .5; cursor: default; }
+.nsaccess-ajoin-add svg { display: block; flex: none; }
 .nsajoin__intro { margin: 0 .55rem .45rem; font-size: .8rem; color: var(--muted); line-height: 1.4; }
 .nsajoin-add {
   display: flex; flex-direction: column; gap: .28rem;

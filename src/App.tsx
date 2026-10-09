@@ -13,7 +13,8 @@ import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks'
 import { useChat } from './core/store';
 import { sidebarNavOrder } from './core/store/sidebar-order';
 import { getPrefs } from './ui/prefs';
-import { saveResume } from './core/resume';
+import { saveResume, MAX_RESUME_QUERIES } from './core/resume';
+import { listOpenQueryNicks } from './core/store/pm-presence';
 import { shouldSkipClosePrompt, armLeaveWithoutPrompt } from './core/direct-reconnect';
 import { consumeSiteBouncerAttempt, bouncerAuthFailHref } from './core/bouncer';
 
@@ -71,26 +72,30 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
 
-  // Persist NON-secret session context (nick, account label, open channels, GECOS)
+  // Persist NON-secret session context (nick, account, open channels + PMs, GECOS)
   // while registered, so reopening the tab can resume it (see core/resume + main.tsx).
   // Recomputes only when that signature actually changes, not on every message.
   const resumeSig = useChat((s) => {
     if (!getConfig().features.sessionResume || s.status !== 'registered') return '';
     const channels = s.order.filter((n) => s.buffers[n]?.isChannel && s.buffers[n]?.joined);
+    const queries = listOpenQueryNicks(s.buffers, s.order, s.nick).slice(0, MAX_RESUME_QUERIES);
     let realname = '';
     for (const name of s.order) {
       const rn = s.buffers[name]?.members[s.nick]?.realname;
       if (rn && /\d/.test(rn) && rn.includes('-')) { realname = rn; break; }
     }
     return JSON.stringify({
-      nick: s.nick, account: s.account || '', channels, realname,
+      nick: s.nick, account: s.account || '', channels, queries, realname,
       url: s.connectUrl || getConfig().server.url,
       bouncer: s.viaBouncer,
     });
   });
   useEffect(() => {
     if (!resumeSig) return;
-    saveResume(JSON.parse(resumeSig) as { nick: string; account: string; channels: string[]; realname?: string; url: string; bouncer?: boolean });
+    saveResume(JSON.parse(resumeSig) as {
+      nick: string; account: string; channels: string[]; queries?: string[];
+      realname?: string; url: string; bouncer?: boolean;
+    });
   }, [resumeSig]);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives

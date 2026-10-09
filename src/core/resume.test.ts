@@ -137,16 +137,18 @@ describe('per-account resume slots', () => {
     const { saveResume, loadResume } = await import('./resume');
     saveResume({
       url: 'wss://irc.example/ws', nick: 'Zell', account: 'Zell',
-      channels: ['#EntreNous'],
+      channels: ['#EntreNous'], queries: ['Alice'],
     });
     saveResume({
       url: 'wss://irc.example/ws', nick: 'Nael', account: 'Nael',
-      channels: ['#Jeux'],
+      channels: ['#Jeux'], queries: ['Bob', 'Carol'],
     });
     expect(loadResume()?.account).toBe('Nael');
     expect(loadResume()?.channels).toEqual(['#Jeux']);
+    expect(loadResume()?.queries).toEqual(['Bob', 'Carol']);
     // Zell's slot is still intact under its own key.
     expect(localStorage.getItem('orbit-resume@zell')).toContain('#EntreNous');
+    expect(localStorage.getItem('orbit-resume@zell')).toContain('Alice');
     expect(localStorage.getItem('orbit-resume@nael')).toContain('#Jeux');
   });
 });

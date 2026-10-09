@@ -561,6 +561,14 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
     load({ silent: true, force: true });
   }
 
+  async function addAjoinChan(ch: string) {
+    if (!ch || busy) return;
+    setBusy(ch);
+    await nickServAjoinAdd(account, nick, ch);
+    setBusy('');
+    load({ silent: true, force: true });
+  }
+
   async function delAjoin(ch: string) {
     if (busy) return;
     setBusy(ch);
@@ -649,7 +657,18 @@ function NickServAlistCard({ account, nick }: { account: string; nick: string })
                       >
                         {t('settings.account.ajoinDelShort')}
                       </button>
-                    ) : null}
+                    ) : (
+                      <button
+                        type="button"
+                        className="nsaccess-ajoin-add"
+                        title={t('settings.account.ajoinAdd')}
+                        disabled={!!busy}
+                        onClick={() => void addAjoinChan(row.channel)}
+                      >
+                        <Icon name="plus" size={12} />
+                        {t('settings.account.ajoinPill')}
+                      </button>
+                    )}
                   </span>
                 </div>
               );

@@ -844,6 +844,7 @@
     "part": "{{nick}} a quitté le salon",
     "quit": "{{nick}} s'est déconnecté",
     "online": "{{nick}} est connecté",
+    "offline": "{{nick}} n’est pas en ligne.",
     "mphistoryQueued": "Message enregistré : il sera remis à {{nick}} à sa reconnexion.",
     "kick": "{{target}} a été expulsé par {{by}}",
     "nick": "{{nick}} est désormais {{newnick}}",

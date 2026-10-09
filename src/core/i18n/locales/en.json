@@ -844,6 +844,7 @@
     "part": "{{nick}} left the channel",
     "quit": "{{nick}} disconnected",
     "online": "{{nick}} is online",
+    "offline": "{{nick}} is not online.",
     "mphistoryQueued": "Message saved: it will be delivered to {{nick}} when they reconnect.",
     "kick": "{{target}} was kicked by {{by}}",
     "nick": "{{nick}} is now {{newnick}}",

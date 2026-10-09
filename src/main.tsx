@@ -195,6 +195,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
           channels: paramChannels.length
             ? paramChannels
             : (resume?.channels?.length ? resume.channels : cfg.startup.channels),
+          ...(resume?.queries?.length ? { queries: resume.queries } : {}),
         })
         cleanUrl()
       } else {

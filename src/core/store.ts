@@ -10,7 +10,7 @@ import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends,
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick, trackBufferMuteSync } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { findWhoisKey, makeHelpers, rememberQueryAccount } from './store/helpers';
-import { clearPmPeerOffline } from './store/pm-presence';
+import { clearPmPeerOffline, listOpenQueryNicks } from './store/pm-presence';
 import { isService, isStatusService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
@@ -409,6 +409,13 @@ export function createChatStore(ns = '') {
       // on connect; without this, that JOIN would steal the active buffer.
       const landOn = (opts.channels ?? []).map((c) => c.trim()).find(Boolean);
       if (landOn) get().setActive(landOn);
+      // Re-open PM windows from the last session (F5 / session resume).
+      for (const raw of opts.queries ?? []) {
+        const q = String(raw || '').trim();
+        if (!q || isChannelName(q) || isPseudoBuffer(q) || isBouncerServiceNick(q) || isStatusService(q)) continue;
+        if (canon(q) === canon(opts.nick)) continue;
+        ensureBuffer(q);
+      }
       client.on('status', (st) => {
         // Drop stale NickServ identity as soon as the link is not live — a server
         // restart / services outage must not keep Settings showing "Connecté".
@@ -461,9 +468,15 @@ export function createChatStore(ns = '') {
               client.whois(client.nick);
             }, 500);
           }
-          // Watch our friends via MONITOR (server pushes 730/731 on presence change).
-          const fr = get().friends;
-          if (fr.length) client.ircv3.monitor('+', fr.join(','));
+          // Watch friends + open PMs via MONITOR (730/731 → online/offline in the PM).
+          {
+            const s = get();
+            const watch = Array.from(new Set([
+              ...s.friends,
+              ...listOpenQueryNicks(s.buffers, s.order, s.nick),
+            ])).slice(0, 80);
+            if (watch.length) client.ircv3.monitor('+', watch.join(','));
+          }
           // Subscribe to account-profile metadata so cards show avatar/bio/etc.
           client.ircv3.subscribeMetadata(['avatar', 'bio', 'pronouns', 'timezone', 'url']);
           // On a RECONNECT, rejoin every channel we still have open (the client
@@ -508,7 +521,11 @@ export function createChatStore(ns = '') {
         const s = get();
         for (const name of s.order) {
           const b = s.buffers[name];
-          if (!b?.isChannel) continue;
+          if (!b?.isChannel) {
+            // So MONITOR's post-reconnect snapshot can re-announce offline peers.
+            if (b && !isPseudoBuffer(name)) clearPmPeerOffline(name);
+            continue;
+          }
           for (const [nick, m] of Object.entries(b.members || {})) {
             if (m.realname || m.account) {
               profileCache.set(canon(nick), {
