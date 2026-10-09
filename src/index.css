@@ -532,6 +532,13 @@ input, textarea { font-family: inherit; }
   .sidebar .appbar__nav { order: 3; flex: 1 1 100%; }
   .appbar__me { padding: .3rem; }
   .tab { max-width: none; }
+  /* Aide (?) next to settings — icon-only, same hit target as the gear. */
+  .sidebar .appbar__user-acts .tab {
+    width: 40px; height: 40px; flex: none; max-width: none; padding: 0;
+    flex-direction: row; gap: 0; border-radius: 11px;
+  }
+  .sidebar .appbar__user-acts .tab__lb { display: none; }
+  .sidebar .appbar__user-acts .tab__ic svg { width: 20px; height: 20px; }
   .sidebar {
     position: fixed; top: 0; bottom: 0; left: 0; width: min(86vw, 320px); z-index: 60;
     transform: translateX(-102%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
@@ -555,6 +562,7 @@ input, textarea { font-family: inherit; }
 }
 /* account chip + settings (left) */
 .appbar__user { display: flex; align-items: center; gap: .05rem; flex: 0 1 auto; min-width: 0; }
+.appbar__user-acts { display: flex; align-items: center; gap: .05rem; flex: none; }
 .appbar__me {
   display: flex; align-items: center; gap: .55rem; flex: 0 1 auto; min-width: 0;
   border: 0; background: transparent; color: inherit; cursor: pointer;

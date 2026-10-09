@@ -28,11 +28,16 @@ function useMediaQuery(query: string): boolean {
   );
 }
 
-/** Radio / games stay next to Accueil·Amis; helpdesk is always the last tab. */
+function isHelpdeskPlugin(plugin: string): boolean {
+  const n = plugin.toLowerCase();
+  return n === 'helpdesk' || n.includes('helpdesk');
+}
+
+/** Radio / games stay next to Accueil·Amis; helpdesk last on desktop nav. */
 function sortNavItems<T extends { plugin: string }>(items: T[]): T[] {
   const rank = (p: string) => {
     const n = p.toLowerCase();
-    if (n === 'helpdesk' || n.includes('helpdesk')) return 90;
+    if (isHelpdeskPlugin(n)) return 90;
     if (n.includes('ircop')) return 80;
     if (n.includes('radio')) return 10;
     if (n.includes('games')) return 20;
@@ -53,11 +58,21 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
   const footerItems = usePluginRegistry((s) => s.ui);
   const footerVisible = variant === (useMediaQuery('(max-width: 880px)') ? 'drawer' : 'desktop');
   const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
+  // Mobile drawer: Aide sits next to settings so the bottom nav stays lighter.
+  const isDrawer = variant === 'drawer';
+  const navAll = sortNavItems(footerItems.filter((u) => u.slot === 'nav_item'));
+  const helpdeskBesideSettings = isDrawer ? navAll.filter((u) => isHelpdeskPlugin(u.plugin)) : [];
+  const navForBar = isDrawer ? navAll.filter((u) => !isHelpdeskPlugin(u.plugin)) : navAll;
   return (
     <footer className="appbar">
       <div className="appbar__user">
-        <button className="appbar__act" onClick={() => setModal('settings')}
-          title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
+        <div className="appbar__user-acts">
+          {footerVisible && helpdeskBesideSettings.map((u) => (
+            <PluginBoundary key={u.id} render={u.render} label="nav_item" />
+          ))}
+          <button className="appbar__act" onClick={() => setModal('settings')}
+            title={t('nav.settings')} aria-label={t('nav.settings')}><Icon name="settings" size={20} /></button>
+        </div>
         <div className="appbar__chip">
           <button className={`appbar__me ${away ? 'is-away' : ''}`} title={t('sidebar.status')}
             onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setStatusAnchor((a) => (a ? null : r)); }}>
@@ -79,7 +94,7 @@ export function TabBar({ variant = 'desktop' }: { variant?: 'desktop' | 'drawer'
           <span className="tab__lb">{t('nav.home')}</span>
         </button>
         <TabFriends />
-        {footerVisible && sortNavItems(footerItems.filter((u) => u.slot === 'nav_item')).map((u) => <PluginBoundary key={u.id} render={u.render} label="nav_item" />)}
+        {footerVisible && navForBar.map((u) => <PluginBoundary key={u.id} render={u.render} label="nav_item" />)}
       </nav>
       <div className="appbar__actions">
         {footerVisible && footerItems.filter((u) => u.slot === 'footer_item').map((u) => <PluginBoundary key={u.id} render={u.render} label="footer_item" />)}
