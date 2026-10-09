@@ -1825,16 +1825,21 @@ html[data-actions="off"] .msg-actions { display: none; }
 .audcard__act:hover { text-decoration: underline; }
 .composer textarea { flex: 1; border: 0; background: none; color: var(--ink); font: inherit; font-size: 1rem; resize: none; outline: none; max-height: 140px; line-height: 1.45; padding: .5rem .2rem; }
 .composer textarea::placeholder { color: var(--faint); }
-/* Rich (WYSIWYG) composer — shows real bold/italic/colour, never the codes */
-.composer__rich { position: relative; flex: 1; min-width: 0; min-height: 24px; max-height: 140px; overflow-y: auto;
+/* Rich (WYSIWYG) composer — shows real bold/italic/colour, never the codes.
+   min-height matches .composer__add (36px): an empty contentEditable has no
+   line box until focus, so without this the field collapses and the hint
+   sits too low until the user clicks or the window refreshes layout. */
+.composer__rich { position: relative; flex: 1; min-width: 0; min-height: 36px; max-height: 140px; overflow-y: auto;
   border: 0; background: none; color: var(--ink); font: inherit; font-size: 1rem; line-height: 1.45;
   padding: .5rem .2rem; outline: none; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* Placeholder is taken out of the text flow (absolute) so it never displaces the
-   caret when the field empties out — otherwise the cursor jumps while erasing. */
-/* Start the placeholder a few px right of the content edge so the empty caret
-   (which sits at padding-left) isn't drawn on top of the first letter. */
+   caret when the field empties out — otherwise the cursor jumps while erasing.
+   Vertically centered in the field (not a fixed top) so it lines up with the
+   attach / emoji / send icons even before first focus. */
 .composer__rich.is-empty::before { content: attr(data-ph); color: var(--faint); pointer-events: none;
-  position: absolute; left: calc(.2rem + 3px); top: .5rem; }
+  position: absolute; left: calc(.2rem + 3px); right: .2rem; top: 0; bottom: 0;
+  display: flex; align-items: center;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .composer__rich--console { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92rem; }
 .composer__send {
   flex: none; width: 38px; height: 38px; border: 0; border-radius: 10px; color: #fff; font-size: 1rem; background: var(--accent);
@@ -3661,10 +3666,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .composer__send { width: 34px; height: 34px; border-radius: 9px; }
   .composer__rich, .composer textarea {
     flex: 1 1 auto; order: 0; min-width: 0; max-height: 32vh;
-    padding: .4rem .2rem; font-size: 16px;
+    min-height: 32px; padding: .4rem .2rem; font-size: 16px;
   }
   .composer__rich.is-empty { overflow: hidden; }
-  .composer__rich.is-empty::before { left: calc(.15rem + 2px); top: .4rem; }
+  .composer__rich.is-empty::before { left: calc(.15rem + 2px); }
   .composer__fmt-toggle { display: inline-flex; align-items: center; justify-content: center; }
   .composer__attach-pop { left: .2rem; }
   /* Send stays the compact icon (➤) — the long label overflows a phone row. */

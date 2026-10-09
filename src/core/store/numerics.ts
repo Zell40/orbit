@@ -9,7 +9,7 @@ import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } fr
 import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
-import { findWhoisKey, type StoreHelpers } from './helpers';
+import { findMemberKey, findWhoisKey, type StoreHelpers } from './helpers';
 import { loadChanUrls, saveChanUrls } from './persistence';
 import {
   announcePmOnline,
@@ -195,30 +195,36 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const flags = msg.params[6] ?? '';
         if (isChannelName(chan)) {
           patchBuffer(chan, (b) => {
-            const m = b.members[who];
+            const mk = findMemberKey(b.members, who) || who;
+            const m = b.members[mk];
             if (!m) return b;
-            return { ...b, members: { ...b.members, [who]: { ...m, user: msg.params[2] || m.user, host: msg.params[3] || m.host, oper: flags.includes('*'), bot: flags.includes('B'), away: flags.startsWith('G') } } };
+            return { ...b, members: { ...b.members, [mk]: { ...m, user: msg.params[2] || m.user, host: msg.params[3] || m.host, oper: flags.includes('*'), bot: flags.includes('B'), away: flags.startsWith('G') } } };
           });
         }
         return true;
       }
-      case '354': { // RPL_WHOSPCRPL (WHOX): <me> <token> <chan> <nick> <flags> <account> [:<realname>]
+      case '354': { // RPL_WHOSPCRPL (WHOX): <me> <token> <chan> <nick> <user> <host> <flags> <account> [:<realname>]
         if (msg.params[1] !== '152') break; // not our query
         const chan = msg.params[2];
         const who = msg.params[3];
-        const flags = msg.params[4] ?? '';
-        const account = msg.params[5] && msg.params[5] !== '0' ? msg.params[5] : undefined;
-        const realname = msg.params[6]?.trim() || undefined;
+        const user = msg.params[4] || undefined;
+        const host = msg.params[5] || undefined;
+        const flags = msg.params[6] ?? '';
+        const account = msg.params[7] && msg.params[7] !== '0' ? msg.params[7] : undefined;
+        const realname = msg.params[8]?.trim() || undefined;
         if (isChannelName(chan)) {
           patchBuffer(chan, (b) => {
-            const m = b.members[who];
+            const mk = findMemberKey(b.members, who) || who;
+            const m = b.members[mk];
             if (!m) return b;
             return {
               ...b,
               members: {
                 ...b.members,
-                [who]: {
+                [mk]: {
                   ...m,
+                  ...(user ? { user } : {}),
+                  ...(host ? { host } : {}),
                   oper: flags.includes('*'),
                   bot: flags.includes('B'),
                   away: flags.startsWith('G'),

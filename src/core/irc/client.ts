@@ -317,8 +317,9 @@ export class IrcClient {
   modeList(channel: string, mode: 'b' | 'e' | 'I' | 'g' | 'w' | 'X'): void {
     this.send(`MODE ${channel} ${mode}`);
   }
-  // WHOX: token(t)/channel(c)/nick(n)/flags(f)/account(a)/realname(r) so we can
-  // map members → services account (avatars) and GECOS (EntreNous age/sexe/ville).
-  // `r` must be last — it's the trailing parameter. Token 152 echoes back.
-  who(target: string): void { this.send(`WHO ${target} %tcnfar,152`); }
+  // WHOX: token(t)/channel(c)/nick(n)/user(u)/host(h)/flags(f)/account(a)/realname(r)
+  // so we can map members → services account (avatars), GECOS (EntreNous age/sexe/ville),
+  // and nick!user@host (topic setter mask, ban match). `r` must be last — trailing.
+  // Token 152 echoes back.
+  who(target: string): void { this.send(`WHO ${target} %tcnuhfar,152`); }
 }
