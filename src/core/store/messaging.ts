@@ -162,9 +162,9 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
         return true; // swallow the companion turnstile lines
       }
       const umodeNote = translateUmodeNotice(text, get().nick);
-      if (umodeNote) {
-        serverLine(umodeNote, 'info');
-        return true;
+      if (umodeNote !== null) {
+        if (umodeNote) serverLine(umodeNote, 'info');
+        return true; // recognised (+D/+d) — hide raw / avoid wrong polarity
       }
       serverLine(text, 'info');
       return true;

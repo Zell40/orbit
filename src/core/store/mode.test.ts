@@ -43,6 +43,21 @@ describe('MODE handler', () => {
     expect(serverLines[0].kind).toBe('umode');
   });
 
+  it('warns when +D (block PMs) turns on, not on a later -D', () => {
+    const { on, state, serverLines } = setup();
+    on(':srv MODE me +D', 'me');
+    expect(state.umodes).toContain('D');
+    expect(serverLines).toHaveLength(1);
+    expect(serverLines[0].kind).toBe('info');
+    expect(serverLines[0].text).toMatch(/\+D|priv/i);
+    serverLines.length = 0;
+    on(':srv MODE me -D', 'me');
+    expect(state.umodes).not.toContain('D');
+    // Unblock keeps the generic modes line — no « tu as activé ».
+    expect(serverLines[0]?.kind).toBe('umode');
+    expect(serverLines[0]?.text).not.toMatch(/activé|enabled/i);
+  });
+
   it('matches our nick case-insensitively and with a ZNC [bnc] suffix', () => {
     const { on, state } = setup();
     on(':srv MODE Harry +x', 'harry');

@@ -690,7 +690,11 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       // Tag unknown ones with their RPL name so it's recognised rather than a bare number.
       const label = numerics?.name(code);
       const umodeNote = translateUmodeNotice(serverText, get().nick);
-      serverLine(umodeNote || (label && !serverText ? `[${label}]` : msg.params.slice(1).join(' ')), 'info');
+      if (umodeNote !== null) {
+        if (umodeNote) serverLine(umodeNote, 'info');
+        return true;
+      }
+      serverLine(label && !serverText ? `[${label}]` : msg.params.slice(1).join(' '), 'info');
       return true;
     }
 

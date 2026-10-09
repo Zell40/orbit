@@ -99,10 +99,11 @@ const PATHS: Record<string, ReactNode> = {
       <path d="M22 9l-6 6M16 9l6 6" />
     </>
   ),
+  // Chat bubble + slash — must not look like MemoServ's envelope.
   deafPriv: (
     <>
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="m3 7 9 6 9-6" />
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      <path d="M4.2 4.2 19.8 19.8" />
     </>
   ),
 };

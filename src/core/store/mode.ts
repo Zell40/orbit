@@ -34,12 +34,25 @@ export function makeMode({ get, set, helpers }: ModeDeps) {
       const selfNick = get().client?.nick || me;
       if (isOwnNick(chan, me) || isOwnNick(chan, selfNick)) {
         const change = msg.params[1] ?? '';
-        const next = applyUserModes(get().umodes, change);
+        const prev = get().umodes;
+        const next = applyUserModes(prev, change);
         set({ umodes: next });
-        const named = change.replace(/[+-]/g, '').split('').map((c) => i18n.t(`umodes.${c}`, '')).filter(Boolean);
-        serverLine(named.length
-          ? i18n.t('system.yourModesNamed', { modes: next, change, names: named.join(', ') })
-          : i18n.t('system.yourModes', { modes: next, change }), 'umode');
+        // Warn when +D / +d turns ON (topbar toggle). Do this from MODE, not from
+        // the ircd NOTICE — some builds mention "+D" / "private deaf" on disable too.
+        const hadD = prev.includes('D');
+        const hasD = next.includes('D');
+        const hadChanDeaf = prev.includes('d');
+        const hasChanDeaf = next.includes('d');
+        if (!hadD && hasD) {
+          serverLine(i18n.t('system.privDeafOn', { nick: selfNick || me }), 'info');
+        } else if (!hadChanDeaf && hasChanDeaf) {
+          serverLine(i18n.t('system.deafOn', { nick: selfNick || me }), 'info');
+        } else {
+          const named = change.replace(/[+-]/g, '').split('').map((c) => i18n.t(`umodes.${c}`, '')).filter(Boolean);
+          serverLine(named.length
+            ? i18n.t('system.yourModesNamed', { modes: next, change, names: named.join(', ') })
+            : i18n.t('system.yourModes', { modes: next, change }), 'umode');
+        }
       }
       return true;
     }
