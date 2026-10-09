@@ -14,6 +14,7 @@ import { modeStringWithoutBans, splitModeAndBans } from '@/lib/format-text';
 import { SERVER, isupport, canon, isChannelName, openBatches, historyCollect, inHistoryBatch, takeBufferMuteSync, takeAnyPendingBufferMuteSync } from './context';
 import { skipHistoryCommand, skipHistoryModeLine } from './history-noise';
 import { handleWebPushListMessage, failPushDeviceList, isPushDeviceListLoading, onWebPushServerAck, notePushActionFailure } from '@/platform/push';
+import { markMphistoryStored, markPmPeerOffline, showMphistoryStoredHint } from './pm-presence';
 import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -342,6 +343,23 @@ export function makeHandler(ctx: HandlerCtx) {
         }
         if (msg.command === 'NOTE' && (cmd === 'WEBPUSH' || (isPushDeviceListLoading() && desc.includes('WEBPUSH')))) {
           failPushDeviceList();
+          break;
+        }
+        // m_ircv3_mphistory: NOTE PRIVMSG MPHISTORY_STORED <nick> :…
+        // Arrives before the core 401 when the offline PM was actually queued.
+        if (msg.command === 'NOTE' && cmd === 'PRIVMSG' && code === 'MPHISTORY_STORED') {
+          const nick = msg.params[2] || '';
+          if (nick && !isChannelName(nick)) {
+            helpers.ensureBuffer(nick);
+            helpers.promoteLocalOutgoing(nick);
+            markPmPeerOffline(nick);
+            markMphistoryStored(nick);
+            showMphistoryStoredHint({
+              buffers: get().buffers,
+              nick,
+              sysLine,
+            });
+          }
           break;
         }
         // Manual composer /command → active buffer; otherwise Status (auto Orbit

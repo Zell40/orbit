@@ -1,7 +1,8 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { makeNumerics } from './numerics';
 import { saveChanUrls } from './persistence';
 import { Numerics } from '../irc/numerics';
+import { clearPmPeerOffline, markMphistoryStored } from './pm-presence';
 import type { IrcMessage } from '../irc/types';
 import type { ChatState } from '../store';
 import type { StoreHelpers } from './helpers';
@@ -78,7 +79,13 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
 }
 
 describe('store numerics handler', () => {
-  afterEach(() => { saveChanUrls({}); });
+  beforeEach(() => {
+    clearPmPeerOffline('bob');
+  });
+  afterEach(() => {
+    clearPmPeerOffline('bob');
+    saveChanUrls({});
+  });
 
   it('433 ERR_NICKNAMEINUSE sets nickError and a line in the active window', () => {
     const { handleNumerics, state, sys } = setup({ nickError: null });
@@ -234,7 +241,7 @@ describe('store numerics handler', () => {
     expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-1');
   });
 
-  it('401 with mphistory CAP promotes the clock and soft-hints instead of warning', () => {
+  it('401 with mphistory CAP alone still warns (no NOTE MPHISTORY_STORED)', () => {
     const { handleNumerics, sys, state } = setup({
       active: '#x',
       client: {
@@ -243,6 +250,23 @@ describe('store numerics handler', () => {
         setRealname: () => {},
         ircv3: { hasCap: (c: string) => c === 'entrenous/mphistory' },
       },
+      buffers: {
+        bob: {
+          name: 'bob',
+          messages: [{ self: true, id: 'local-9', kind: 'privmsg', text: 'yo' }],
+        },
+      },
+    });
+    expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
+    expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-9');
+    expect(sys.some((l) => l.name === 'bob' && String(l.text).includes('⚠️'))).toBe(true);
+    expect(sys.some((l) => l.name === 'bob' && l.kind === 'info')).toBe(false);
+  });
+
+  it('401 after MPHISTORY_STORED soft-hints instead of warning', () => {
+    markMphistoryStored('bob');
+    const { handleNumerics, sys, state } = setup({
+      active: '#x',
       buffers: {
         bob: {
           name: 'bob',

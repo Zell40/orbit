@@ -9,6 +9,11 @@ import type { Buffer, MessageKind } from '../irc/types';
 const offline = new Set<string>(); // CASEMAPPING-folded nicks awaiting a return notice
 /** Nicks for which we already showed the mphistory "will be delivered" hint this offline spell. */
 const mphistHintShown = new Set<string>();
+/**
+ * Nicks for which the server confirmed offline storage via
+ * `NOTE PRIVMSG MPHISTORY_STORED` (until they come back / we clear offline).
+ */
+const mphistStored = new Set<string>();
 
 export function queryBufferKey(
   buffers: Record<string, Buffer | undefined>,
@@ -29,6 +34,7 @@ export function clearPmPeerOffline(nick: string): void {
     const key = canon(nick);
     offline.delete(key);
     mphistHintShown.delete(key);
+    mphistStored.delete(key);
   }
 }
 
@@ -42,6 +48,24 @@ export function takePmPeerOnline(nick: string): boolean {
   if (!offline.has(key)) return false;
   offline.delete(key);
   mphistHintShown.delete(key);
+  mphistStored.delete(key);
+  return true;
+}
+
+/** Server confirmed this nick's PM was queued by m_ircv3_mphistory. */
+export function markMphistoryStored(nick: string): void {
+  if (nick) mphistStored.add(canon(nick));
+}
+
+export function isMphistoryStored(nick: string): boolean {
+  return !!nick && mphistStored.has(canon(nick));
+}
+
+/** True once: a MPHISTORY_STORED NOTE was seen for this nick this offline spell. */
+export function takeMphistoryStored(nick: string): boolean {
+  const key = canon(nick);
+  if (!mphistStored.has(key)) return false;
+  mphistStored.delete(key);
   return true;
 }
 
@@ -77,28 +101,20 @@ export function announcePmOnline(
 }
 
 /**
- * Once per offline spell: tell the sender that mphistory will deliver their PM
- * when the peer reconnects. Only when the CAP is negotiated.
+ * Once per offline spell: soft-hint that mphistory queued the PM.
+ * Call only after `NOTE … MPHISTORY_STORED` (or when consuming that mark on 401).
  */
-export function maybeMphistoryQueuedHint(opts: {
-  hasMphistoryCap: boolean;
+export function showMphistoryStoredHint(opts: {
   buffers: Record<string, Buffer | undefined>;
-  order: string[];
-  friendsOnline?: Record<string, boolean>;
   nick: string;
   sysLine: SysLine;
 }): boolean {
-  const { hasMphistoryCap, buffers, order, friendsOnline, nick, sysLine } = opts;
-  if (!hasMphistoryCap || !nick) return false;
+  const { buffers, nick, sysLine } = opts;
+  if (!nick) return false;
   const qKey = queryBufferKey(buffers, nick);
   if (!qKey) return false;
   const key = canon(nick);
   if (mphistHintShown.has(key)) return false;
-  const monitorOff = friendsOnline?.[nick.toLowerCase()] === false;
-  const offline = isPmPeerOffline(nick) || monitorOff || nickAbsentFromChannels(buffers, order, nick);
-  if (!offline) return false;
-  // Only hint when we know they left (quit/MONITOR), not merely "not in our channels".
-  if (!isPmPeerOffline(nick) && !monitorOff) return false;
   mphistHintShown.add(key);
   const display = buffers[qKey]?.name || nick;
   sysLine(qKey, i18n.t('system.mphistoryQueued', { nick: display }), 'info');

@@ -2,10 +2,13 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   announcePmOnline,
   clearPmPeerOffline,
+  isMphistoryStored,
   isPmPeerOffline,
+  markMphistoryStored,
   markPmPeerOffline,
-  maybeMphistoryQueuedHint,
   queryBufferKey,
+  showMphistoryStoredHint,
+  takeMphistoryStored,
   takePmPeerOnline,
 } from './pm-presence';
 import type { Buffer } from '../irc/types';
@@ -66,33 +69,32 @@ describe('pm-presence', () => {
     expect(lines).toHaveLength(1);
   });
 
-  it('maybeMphistoryQueuedHint posts once when CAP is on and peer is offline', () => {
+  it('showMphistoryStoredHint posts once per offline spell', () => {
     const lines: { name: string; text: string; kind: string }[] = [];
     const buffers = { quen: buf('Quen') };
-    markPmPeerOffline('Quen');
     const opts = {
-      hasMphistoryCap: true,
       buffers,
-      order: ['quen'],
       nick: 'Quen',
       sysLine: (name: string, text: string, kind: string) => { lines.push({ name, text, kind }); },
     };
-    expect(maybeMphistoryQueuedHint(opts)).toBe(true);
+    expect(showMphistoryStoredHint(opts)).toBe(true);
     expect(lines[0]).toMatchObject({ name: 'quen', kind: 'info' });
-    expect(maybeMphistoryQueuedHint(opts)).toBe(false);
+    expect(showMphistoryStoredHint(opts)).toBe(false);
     expect(lines).toHaveLength(1);
   });
 
-  it('maybeMphistoryQueuedHint is a no-op without the CAP', () => {
-    const lines: unknown[] = [];
-    markPmPeerOffline('Quen');
-    expect(maybeMphistoryQueuedHint({
-      hasMphistoryCap: false,
-      buffers: { quen: buf('Quen') },
-      order: ['quen'],
-      nick: 'Quen',
-      sysLine: () => { lines.push(1); },
-    })).toBe(false);
-    expect(lines).toHaveLength(0);
+  it('markMphistoryStored / takeMphistoryStored is one-shot', () => {
+    expect(isMphistoryStored('bob')).toBe(false);
+    markMphistoryStored('bob');
+    expect(isMphistoryStored('bob')).toBe(true);
+    expect(takeMphistoryStored('bob')).toBe(true);
+    expect(isMphistoryStored('bob')).toBe(false);
+    expect(takeMphistoryStored('bob')).toBe(false);
+  });
+
+  it('clearPmPeerOffline clears mphistory stored mark', () => {
+    markMphistoryStored('bob');
+    clearPmPeerOffline('bob');
+    expect(isMphistoryStored('bob')).toBe(false);
   });
 });

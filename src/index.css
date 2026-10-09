@@ -3663,9 +3663,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .emoji-pop { left: 0; right: 0; width: auto; max-height: min(46vh, 280px); }
   .emoji-pop__filter-lbl { display: none; }
 
-  /* Topbar: keep the name ellipsis; mode extras are gated by prefs.showExtendedModes. */
+  /* Topbar: keep the name ellipsis — modes (+ETFj…) move into ⋮ so the salon
+     name stays visible; +D block-PM also lives in ⋮ (not the crowded bar). */
   .topbar { padding: calc(.55rem + env(safe-area-inset-top, 0px)) .6rem .55rem; gap: .35rem; min-height: 56px; }
-  .topbar__modes { font-size: .66rem; }
+  .topbar__modes { display: none; }
   .topbar__setby { display: none; }
   /* Native two-line header: channel glyph · name over topic, then the stateful
      notify/pin toggles, member count, and a "⋮" overflow for the rest. */
@@ -3675,8 +3676,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   .topbar__title { font-size: .86rem; display: flex; flex-wrap: nowrap; align-items: baseline; gap: .35rem; overflow: hidden; text-overflow: unset; white-space: nowrap; }
   .topbar__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; }
   .topbar__pill { cursor: pointer; min-width: 0; padding: .38rem .6rem; }
-  .topbar .topbar__hide-mobile { display: none; }   /* search / manage / leave / plugins collapse into ⋮ */
+  .topbar .topbar__hide-mobile { display: none; }   /* search / manage / leave / +D / plugins → ⋮ */
   .topbar .topbar__more { display: inline-flex; }
+  .nmenu__item--static { cursor: default; pointer-events: none; opacity: .92; }
+  .nmenu__modes { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 700; letter-spacing: 0; }
 
   /* Topic banner under topbar: compact square thumbnail */
   .chan-hero { grid-template-columns: 64px 1fr; padding: .4rem .65rem .4rem .5rem; gap: .6rem; }

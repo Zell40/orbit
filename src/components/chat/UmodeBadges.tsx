@@ -52,7 +52,7 @@ export function UmodeBadges() {
       {showPrivDeaf && (
         <button
           type="button"
-          className={`topbar__search topbar__privdeaf${privDeaf ? ' is-on' : ''}`}
+          className={`topbar__search topbar__privdeaf topbar__hide-mobile${privDeaf ? ' is-on' : ''}`}
           title={tip}
           aria-label={t('topbar.deafPriv')}
           aria-pressed={privDeaf}

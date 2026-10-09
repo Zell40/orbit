@@ -11,7 +11,14 @@ import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import { findWhoisKey, type StoreHelpers } from './helpers';
 import { loadChanUrls, saveChanUrls } from './persistence';
-import { announcePmOnline, isPmPeerOffline, markPmPeerOffline, maybeMphistoryQueuedHint, queryBufferKey } from './pm-presence';
+import {
+  announcePmOnline,
+  isPmPeerOffline,
+  markPmPeerOffline,
+  queryBufferKey,
+  showMphistoryStoredHint,
+  takeMphistoryStored,
+} from './pm-presence';
 import { setActiveOwner } from '@/lib/identity-storage';
 
 interface NumericsDeps {
@@ -549,14 +556,11 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         if (nk && get().buffers[canon(nk)]) {
           helpers.promoteLocalOutgoing(nk);
           markPmPeerOffline(nk);
-          // mphistory: server may have queued the PRIVMSG — soft hint, not a scare.
-          if (get().client?.ircv3?.hasCap('entrenous/mphistory')) {
-            const s = get();
-            maybeMphistoryQueuedHint({
-              hasMphistoryCap: true,
-              buffers: s.buffers,
-              order: s.order,
-              friendsOnline: s.friendsOnline,
+          // Soft-hint only when the server confirmed storage (NOTE MPHISTORY_STORED
+          // before this 401). CAP alone is not enough — no account → lost message.
+          if (takeMphistoryStored(nk)) {
+            showMphistoryStoredHint({
+              buffers: get().buffers,
               nick: nk,
               sysLine: helpers.sysLine,
             });

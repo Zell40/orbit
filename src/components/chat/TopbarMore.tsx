@@ -5,10 +5,12 @@ import { isBouncerServiceNick } from '@/core/store';
 import { useActiveChat } from '@/core/networks';
 import { usePluginRegistry } from '@/modules/registry';
 import { PluginBoundary } from '../PluginBoundary';
+import { advertisedUserModes } from '@/core/irc/mode-catalog';
+import { formatChannelModes } from '@/core/irc/modes';
 
 // Mobile overflow ("⋮") for the topbar's one-shot channel actions. A phone header
-// can't hold every button, so search / manage / leave collapse in here; the notify
-// and pin buttons stay inline because their glyph carries state (mute, pin count).
+// can't hold every button, so search / manage / leave / +D collapse in here; the
+// notify and pin buttons stay inline because their glyph carries state.
 // Plugins may add `topbar_more_item` rows (e.g. conference on mobile).
 export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, showInfo, onSearch }:
   { bname: string; isChannel: boolean; isNotices?: boolean; amOp: boolean; showManage?: boolean; showInfo?: boolean; onSearch: () => void }) {
@@ -16,6 +18,18 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, show
   const setModal = useActiveChat((s) => s.setModal);
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const openUser = useActiveChat((s) => s.openUser);
+  const client = useActiveChat((s) => s.client);
+  const umodes = useActiveChat((s) => s.umodes);
+  const modes = useActiveChat((s) => s.buffers[s.active]?.modes ?? '');
+  const modeParams = useActiveChat((s) => s.buffers[s.active]?.modeParams);
+  const showExtendedModes = useActiveChat((s) => s.prefs.showExtendedModes);
+  const um = umodes.replace(/^\+/, '');
+  const privDeaf = um.includes('D');
+  const advertised = advertisedUserModes(client?.server.isupport ?? {}, client?.server.userModes);
+  const showPrivDeaf = !advertised.size || advertised.has('D');
+  const modeLabel = isChannel && modes && modes !== '+'
+    ? formatChannelModes(modes, showExtendedModes ? modeParams : undefined)
+    : '';
   // Select the stable `ui` array — never `.filter()` inside the selector (new
   // array every read → zustand Object.is → infinite re-render / React #185).
   const pluginUi = usePluginRegistry((s) => s.ui);
@@ -50,6 +64,30 @@ export function TopbarMore({ bname, isChannel, isNotices, amOp, showManage, show
             <span className="nmenu__ic" aria-hidden><Icon name="search" size={18} /></span>
             <span className="nmenu__txt"><b>{t('topbar.search')}</b></span>
           </button>
+          {showPrivDeaf && (
+            <button
+              className={`nmenu__item${privDeaf ? ' is-on' : ''}`}
+              role="menuitemcheckbox"
+              aria-checked={privDeaf}
+              onClick={() => run(() => client?.setUserModes(privDeaf ? '-D' : '+D'))}
+            >
+              <span className="nmenu__ic" aria-hidden><Icon name="deafPriv" size={18} /></span>
+              <span className="nmenu__txt">
+                <b>{t('topbar.deafPriv')}</b>
+                <span>{privDeaf ? t('topbar.deafPrivTip') : t('topbar.deafPrivEnableTip')}</span>
+              </span>
+              {privDeaf ? <span className="nmenu__check" aria-hidden>✓</span> : null}
+            </button>
+          )}
+          {modeLabel ? (
+            <div className="nmenu__item nmenu__item--static" role="note" title={t('topbar.modes')}>
+              <span className="nmenu__ic" aria-hidden>#</span>
+              <span className="nmenu__txt">
+                <b>{t('topbar.modes')}</b>
+                <span className="nmenu__modes">{modeLabel}</span>
+              </span>
+            </div>
+          ) : null}
           {moreRest.map((u) => (
             <div key={u.id} role="none" onClick={() => setOpen(false)}>
               <PluginBoundary render={u.render} label="topbar_more_item" />
