@@ -23,6 +23,7 @@ import {
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
 import { announcePmOnline } from './pm-presence';
+import { shouldHideGardianStatsNotice } from './gardian-stats';
 import { stripFormatting } from './text';
 import type { ChatMessage, IrcMessage, MessageKind } from '../irc/types';
 import type { StoreApi } from 'zustand';
@@ -173,6 +174,10 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     if (!self && msg.nick) {
       const lc = msg.nick.toLowerCase();
       if (get().ignored.some((n) => n.toLowerCase() === lc)) return true;
+    }
+    // Gardian login stats: once per session (RPC identify must not re-show it).
+    if (msg.command === 'NOTICE' && shouldHideGardianStatsNotice(msg.nick || '', text)) {
+      return true;
     }
     // NickServ auto-probes (Compte) — swallow echo so Status stays clean.
     // ChanServ INFO reveal is armed only from slash handlers in commands.ts:

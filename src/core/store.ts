@@ -26,6 +26,7 @@ import { closeMobileNav } from '../lib/mobile-nav';
 import { mergeMlock } from './irc/mode-catalog';
 import { fetchChannelMlock } from './store/mlock-rpc';
 import { fetchChanServPublic } from './store/chanserv-info';
+import { resetGardianStatsGate } from './store/gardian-stats';
 import { onOwnerChange, setActiveOwner } from '../lib/identity-storage';
 
 
@@ -393,6 +394,7 @@ export function createChatStore(ns = '') {
       if (filehost.timer) clearTimeout(filehost.timer);
       filehost.resolve = null; filehost.reject = null; filehost.timer = null;
       filehost.lateToken = null; filehost.lateAt = 0; filehost.awaitingLate = false;
+      resetGardianStatsGate();
       set({
         client, nick: opts.nick, status: 'connecting',
         connectUrl: opts.url,
