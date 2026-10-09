@@ -9,10 +9,30 @@ import { stripFormatting } from '@/core/store/text';
 import { getConfig } from '@/core/config';
 import { useTheme } from '@/themes';
 import { useActiveChat } from '@/core/networks';
+import { bus } from '@/modules/bus';
 import { MODE_LETTER_ROLE } from '@/lib/roles';
 import { CtxChip, ReplyQuote } from './affordances';
 import { jumpToMessage } from './msg-jump';
 import { firstOfRun } from './msg-runs';
+
+const SYS_ACTION_RE = /^\x01ACTION:([A-Za-z0-9_-]+)\x01([\s\S]*)$/;
+
+function SysActionIconBtn({ action, label }: { action: string; label: string }) {
+  return (
+    <button
+      type="button"
+      className="sysline--safe__btn"
+      title={label}
+      aria-label={label}
+      onClick={() => bus.emit('sysline:action', { action })}
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"
+        stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3 5 6.5v5.2c0 4.2 2.8 7.4 7 8.8 4.2-1.4 7-4.6 7-8.8V6.5L12 3z" />
+      </svg>
+    </button>
+  );
+}
 
 export function ChannelUrlCard({ text, channel, ts }: { text: string; channel?: string; ts?: number }) {
   const { t } = useTranslation();
@@ -460,7 +480,7 @@ export const UmodeGroup = memo(function UmodeGroup({ messages }: { messages: Cha
 // as its own status line. The container routes every kind that isn't a
 // privmsg/action here; MsgRow handles the message rows.
 export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
   const mirc = useTheme().startsWith('yomirc');
   const isConsole = useActiveChat((s) => s.active === SERVER);
@@ -652,6 +672,27 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
             <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
           <span className="sysline--safe__body">{body}</span>
+        </div>
+      );
+    }
+    // Interactive tip: \x01ACTION:id\x01…\x01ICON\x01… → blue panel + clickable shield (bus: sysline:action).
+    const actionMatch = m.text.match(SYS_ACTION_RE);
+    if (actionMatch) {
+      const action = actionMatch[1];
+      const parts = actionMatch[2].split('\x01ICON\x01');
+      const label = (i18n.language || 'fr').startsWith('fr')
+        ? 'Liste blanche des messages privés'
+        : 'Private-message allow list';
+      return (
+        <div className="sysline sysline--safe sysline--safe-action" role="status">
+          <span className="sysline--safe__body">
+            {parts.map((part, i) => (
+              <Fragment key={i}>
+                {part}
+                {i < parts.length - 1 ? <SysActionIconBtn action={action} label={label} /> : null}
+              </Fragment>
+            ))}
+          </span>
         </div>
       );
     }

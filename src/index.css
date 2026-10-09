@@ -963,6 +963,23 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .sysline--safe::before { display: none; }
 .sysline--safe__icon { width: 18px; height: 18px; flex: none; margin-top: .12rem; color: #dc2626; }
 .sysline--safe__body { flex: 1; min-width: 0; }
+.sysline--safe-action { align-items: center; }
+.sysline--safe__btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: -0.35em; margin: 0 .2rem; padding: .2rem;
+  border: 1px solid color-mix(in srgb, #0ea5e9 42%, var(--border, rgba(0,0,0,.12)));
+  border-radius: 8px;
+  background: color-mix(in srgb, #0ea5e9 18%, var(--bg, #fff));
+  color: var(--accent-d, #0284c7);
+  cursor: pointer; line-height: 0;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.sysline--safe__btn:hover {
+  background: color-mix(in srgb, #0ea5e9 28%, var(--bg, #fff));
+  border-color: #0ea5e9;
+  color: #0369a1;
+}
+.sysline--safe__btn:focus-visible { outline: 2px solid #0ea5e9; outline-offset: 2px; }
 
 
 /* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE / USER MODE): SMS-style width. */
