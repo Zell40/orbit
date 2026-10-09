@@ -2258,10 +2258,10 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
   color: var(--muted); background: color-mix(in srgb, var(--muted) 12%, var(--bg));
   border-radius: 999px; padding: .16rem .45rem;
 }
-/* Cap at ~5 channel rows; the rest scrolls so Compte stays compact. */
+/* No inner scroll — Compte already scrolls via .settings__content; a second
+   bar on this list sat flush against the pane scrollbar and looked broken. */
 .nsaccess {
   display: flex; flex-direction: column; padding: .25rem .55rem .35rem; gap: .28rem;
-  max-height: min(22rem, 55vh); overflow-y: auto; overscroll-behavior: contain;
 }
 .nsaccess-row {
   display: flex; flex-wrap: wrap; align-items: flex-start; gap: .45rem .55rem;
