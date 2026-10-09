@@ -82,6 +82,22 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(added[0].name).toBe('bob'); // PM buffer keyed by sender
   });
 
+  it('advances DM peerReadTs on a live reply (non-Orbit implicit read)', () => {
+    const { on, state } = setup({
+      buffers: {
+        bob: {
+          isChannel: false, joined: false, members: {},
+          peerReadTs: 0,
+          messages: [
+            { kind: 'privmsg', from: 'me', text: "T'es par la ?", ts: 500, self: true },
+          ],
+        },
+      },
+    });
+    on(':bob!u@h PRIVMSG me :Ouep');
+    expect((state.buffers['bob'] as { peerReadTs?: number }).peerReadTs).toBe(1000);
+  });
+
   it('opens a query for a U-lined HelpServ PRIVMSG instead of the active channel', () => {
     const { on, added } = setup({ active: '#entrenous.chat' });
     on('@entrenous.chat/service :EcoutE!hs@services PRIVMSG me :Le ticket #2 est maintenant ouvert.');

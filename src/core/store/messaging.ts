@@ -16,7 +16,10 @@ import { mergeMlock, parseMlockNotice } from '../irc/mode-catalog';
 import { chanServInfoRevealActive, isChanServInfoNotice, parseChanServInfo } from './chanserv-info';
 import { ingestNickServNotice, noteManualNickServQuery, nickServAutoQueryActive } from './nickserv-info';
 import { extractFilehostToken, filehostTokenFresh } from './upload';
-import { SERVER, newId, isupport, canon, isChannelName, historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch } from './context';
+import {
+  SERVER, newId, isupport, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick,
+  historyCollect, multilineCollect, inHistoryBatch, inMultilineBatch,
+} from './context';
 import { resolveNoticeDest, noticeIsChannelEcho, sharedChannelsWith, noticeScopeFor, noticeIsServerOrigin } from './notices';
 import { rememberQueryAccount } from './helpers';
 import { announcePmOnline } from './pm-presence';
@@ -331,8 +334,13 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       announcePmOnline(get().buffers, sysLine, msg.nick, cm.ts);
     }
     addMessage(bufferName, cm);
-    // Channel "seen": a live reply from someone else (not JOIN, not history).
-    if (!self && kind !== 'notice' && isChannelName(bufferName)) {
+    // Peer "seen" without Orbit TAGMSG: a live reply (channel or DM) from someone
+    // else advances peerReadTs so our earlier ticks go ✓✓. Orbit clients still
+    // send +entrenous/displayed when they open the PM (earlier, without reply);
+    // non-Orbit clients never do — a PRIVMSG/ACTION is the only signal we get.
+    if (!self && (kind === 'privmsg' || kind === 'action')
+        && !isPseudoBuffer(bufferName) && !isService(bufferName)
+        && !isBouncerServiceNick(bufferName)) {
       const seenAt = cm.ts;
       patchBuffer(bufferName, (b) => (seenAt > (b.peerReadTs || 0) ? { ...b, peerReadTs: seenAt } : b));
     }
