@@ -241,7 +241,7 @@ describe('store numerics handler', () => {
     expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-1');
   });
 
-  it('401 with mphistory CAP alone still warns (no NOTE MPHISTORY_STORED)', () => {
+  it('401 with mphistory CAP alone still warns once (no NOTE MPHISTORY_STORED)', () => {
     const { handleNumerics, sys, state } = setup({
       active: '#x',
       client: {
@@ -258,8 +258,10 @@ describe('store numerics handler', () => {
       },
     });
     expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
+    // Follow-up 401 (e.g. MARKREAD to the same offline nick) must not duplicate.
+    expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
     expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-9');
-    expect(sys.some((l) => l.name === 'bob' && String(l.text).includes('⚠️'))).toBe(true);
+    expect(sys.filter((l) => l.name === 'bob' && String(l.text).includes('⚠️'))).toHaveLength(1);
     expect(sys.some((l) => l.name === 'bob' && l.kind === 'info')).toBe(false);
   });
 

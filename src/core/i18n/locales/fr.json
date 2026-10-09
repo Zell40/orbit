@@ -1213,7 +1213,7 @@
     "challengeUnreachable": "Impossible de contacter le service de vérification."
   },
   "numerics": {
-    "401": "« {{nick}} » est déconnecté ou n’existe pas.",
+    "401": "« {{nick}} » est déconnecté.",
     "402": "Ce serveur n’existe pas.",
     "403": "Ce salon n’existe pas.",
     "404": "Impossible d’écrire dans ce salon (banni ou modéré).",

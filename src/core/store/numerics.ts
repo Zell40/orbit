@@ -17,6 +17,7 @@ import {
   markPmPeerOffline,
   queryBufferKey,
   showMphistoryStoredHint,
+  showOfflinePeerWarn,
   takeMphistoryStored,
 } from './pm-presence';
 import { setActiveOwner } from '@/lib/identity-storage';
@@ -566,8 +567,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
             });
             return true;
           }
-          const warn = `⚠️ ${i18n.t('numerics.401', { nick: nk })}`;
-          sysLine(nk, warn, 'system');
+          // One warn per offline spell — a follow-up MARKREAD/TAGMSG 401 is noise.
+          showOfflinePeerWarn({
+            buffers: get().buffers,
+            nick: nk,
+            sysLine: helpers.sysLine,
+          });
           return true;
         }
         serverLine(nk ? `${nk}: ${i18n.t('numerics.401', { nick: nk })}` : i18n.t('numerics.401'), 'info');

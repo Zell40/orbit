@@ -1212,7 +1212,7 @@
     "challengeUnreachable": "Could not reach the verification service."
   },
   "numerics": {
-    "401": "{{nick}} is offline or does not exist.",
+    "401": "{{nick}} is offline.",
     "402": "That server does not exist.",
     "403": "That channel does not exist.",
     "404": "Can’t write in this channel (banned or moderated).",

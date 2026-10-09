@@ -8,6 +8,7 @@ import {
   markPmPeerOffline,
   queryBufferKey,
   showMphistoryStoredHint,
+  showOfflinePeerWarn,
   takeMphistoryStored,
   takePmPeerOnline,
 } from './pm-presence';
@@ -96,5 +97,20 @@ describe('pm-presence', () => {
     markMphistoryStored('bob');
     clearPmPeerOffline('bob');
     expect(isMphistoryStored('bob')).toBe(false);
+  });
+
+  it('showOfflinePeerWarn posts once per offline spell', () => {
+    const lines: { name: string; text: string; kind: string }[] = [];
+    const buffers = { bob: buf('bob') };
+    const opts = {
+      buffers,
+      nick: 'bob',
+      sysLine: (name: string, text: string, kind: string) => { lines.push({ name, text, kind }); },
+    };
+    expect(showOfflinePeerWarn(opts)).toBe(true);
+    expect(lines[0]).toMatchObject({ name: 'bob', kind: 'system' });
+    expect(String(lines[0].text)).toContain('⚠️');
+    expect(showOfflinePeerWarn(opts)).toBe(false);
+    expect(lines).toHaveLength(1);
   });
 });

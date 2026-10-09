@@ -29,7 +29,6 @@ export function AudioAttachment({ url }: { url: string }) {
 /* Element-style image attachment: friendly caption bar + collapsible thumbnail + lightbox. */
 export function ImageAttachment({ url, defaultShown = false }: { url: string; defaultShown?: boolean }) {
   const { t } = useTranslation();
-  const [shown, setShown] = useState(defaultShown);
   const [zoom, setZoom] = useState(false);
   const [gone, setGone] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,6 +36,9 @@ export function ImageAttachment({ url, defaultShown = false }: { url: string; de
     const b = s.buffers[s.active];
     return !!b && !b.isChannel && !isPseudoBuffer(b.name);
   });
+  // Own messages + all images in a PM (incl. mphistory reinject) start expanded.
+  // Channels keep click-to-load so a random image URL can't harvest every viewer's IP.
+  const [shown, setShown] = useState(defaultShown || inQuery);
   const deleteHostedFile = useActiveChat((s) => s.deleteHostedFile);
   const canDelete = inQuery && shown && !gone && !!hostedFileName(url);
   const ref = useRef<HTMLDivElement>(null);

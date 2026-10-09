@@ -14,6 +14,8 @@ const mphistHintShown = new Set<string>();
  * `NOTE PRIVMSG MPHISTORY_STORED` (until they come back / we clear offline).
  */
 const mphistStored = new Set<string>();
+/** Nicks for which we already showed the plain offline/401 warning this spell. */
+const offlineWarnShown = new Set<string>();
 
 export function queryBufferKey(
   buffers: Record<string, Buffer | undefined>,
@@ -35,6 +37,7 @@ export function clearPmPeerOffline(nick: string): void {
     offline.delete(key);
     mphistHintShown.delete(key);
     mphistStored.delete(key);
+    offlineWarnShown.delete(key);
   }
 }
 
@@ -49,6 +52,7 @@ export function takePmPeerOnline(nick: string): boolean {
   offline.delete(key);
   mphistHintShown.delete(key);
   mphistStored.delete(key);
+  offlineWarnShown.delete(key);
   return true;
 }
 
@@ -116,7 +120,29 @@ export function showMphistoryStoredHint(opts: {
   const key = canon(nick);
   if (mphistHintShown.has(key)) return false;
   mphistHintShown.add(key);
+  offlineWarnShown.add(key); // stored path supersedes the plain offline warn
   const display = buffers[qKey]?.name || nick;
   sysLine(qKey, i18n.t('system.mphistoryQueued', { nick: display }), 'info');
+  return true;
+}
+
+/**
+ * Once per offline spell: plain "nick is offline" after a 401 without MPHISTORY_STORED.
+ * Suppresses duplicates from a follow-up MARKREAD/TAGMSG 401 on the same nick.
+ */
+export function showOfflinePeerWarn(opts: {
+  buffers: Record<string, Buffer | undefined>;
+  nick: string;
+  sysLine: SysLine;
+}): boolean {
+  const { buffers, nick, sysLine } = opts;
+  if (!nick) return false;
+  const qKey = queryBufferKey(buffers, nick);
+  if (!qKey) return false;
+  const key = canon(nick);
+  if (offlineWarnShown.has(key) || mphistHintShown.has(key)) return false;
+  offlineWarnShown.add(key);
+  const display = buffers[qKey]?.name || nick;
+  sysLine(qKey, `⚠️ ${i18n.t('numerics.401', { nick: display })}`, 'system');
   return true;
 }
