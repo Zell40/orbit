@@ -9,19 +9,19 @@ describe('setterMask', () => {
 
   it('expands a bare nick from the nicklist', () => {
     const members: Record<string, Member> = {
-      Zell: { nick: 'Zell', user: 'zell', host: 'user.entrenous.chat' },
+      Zell: { nick: 'Zell', user: 'zell', host: 'user.entrenous.chat', prefix: '' },
     };
     expect(setterMask('Zell', members)).toBe('Zell!zell@user.entrenous.chat');
   });
 
   it('matches nick case-insensitively', () => {
     const members: Record<string, Member> = {
-      zell: { nick: 'zell', user: 'u', host: 'h' },
+      zell: { nick: 'zell', user: 'u', host: 'h', prefix: '' },
     };
     expect(setterMask('Zell', members)).toBe('Zell!u@h');
   });
 
   it('returns the bare nick when user@host is unknown', () => {
-    expect(setterMask('Zell[orbit]', { 'Zell[orbit]': { nick: 'Zell[orbit]' } })).toBe('Zell[orbit]');
+    expect(setterMask('Zell[orbit]', { 'Zell[orbit]': { nick: 'Zell[orbit]', prefix: '' } })).toBe('Zell[orbit]');
   });
 });

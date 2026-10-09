@@ -15,8 +15,8 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
   const server: string[] = [];
   const serverKind: string[] = [];
   let whois: Record<string, { nick: string; loading: boolean; notFound?: boolean }> = {};
-  const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string; url?: string }> =
-    (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string; url?: string }>) || {};
+  const buffers: Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string; url?: string; members?: Record<string, { nick: string; user?: string; host?: string; account?: string; prefix?: string }> }> =
+    (over.buffers as Record<string, { name: string; joined: boolean; joinDenied?: unknown; messages: unknown[]; mlock?: string; url?: string; members?: Record<string, { nick: string; user?: string; host?: string; account?: string; prefix?: string }> }>) || {};
   const state = {
     client: { numerics: new Numerics(), whowas: (_nk: string) => {}, setRealname: () => {} },
     active: '#x', account: '', ircNetwork: '', channels: [], listLoading: false, away: false,
@@ -127,7 +127,7 @@ describe('store numerics handler', () => {
       },
     });
     handleNumerics(mk('354', ['me', '152', '#x', 'Zell', 'zell', 'user.entrenous.chat', 'H', 'Zell', '']));
-    expect(state.buffers['#x'].members.Zell).toMatchObject({
+    expect(state.buffers['#x']!.members!.Zell).toMatchObject({
       user: 'zell',
       host: 'user.entrenous.chat',
       account: 'Zell',
