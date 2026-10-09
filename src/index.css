@@ -804,7 +804,7 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 .main:has(.main__room-bg[data-rg-pic]) .hostline,
 .main:has(.main__room-bg[data-rg-pic]) .inviteline,
 .main:has(.main__room-bg[data-rg-pic]) .topicline,
-.main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert) {
+.main:has(.main__room-bg[data-rg-pic]) .sysline:not(.sysline--mode):not(.sysline--alert):not(.sysline--safe) {
   background: color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -949,6 +949,20 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 .sysline--alert::before { display: none; }
 .sysline--alert__icon { width: 18px; height: 18px; flex: none; margin-top: .12rem; color: #ea8209; }
 .sysline--alert__body { flex: 1; }
+/* Safety tip — blue panel (same family as parental-control badge) + red triangle */
+.sysline--safe {
+  display: flex; align-items: flex-start; gap: .55rem;
+  margin: .35rem 1.1rem; padding: .55rem .75rem .55rem .7rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, #0ea5e9 14%, var(--bg, #fff));
+  border: 1px solid color-mix(in srgb, #0ea5e9 35%, var(--border, rgba(0,0,0,.12)));
+  color: var(--ink, inherit);
+  font-size: .88rem; font-weight: 600; line-height: 1.45;
+  overflow-wrap: anywhere; word-break: break-word;
+}
+.sysline--safe::before { display: none; }
+.sysline--safe__icon { width: 18px; height: 18px; flex: none; margin-top: .12rem; color: #dc2626; }
+.sysline--safe__body { flex: 1; min-width: 0; }
 
 
 /* Callouts (INFO / NOTICE / MOTD / WARN / ACTU / MODE / USER MODE): SMS-style width. */
