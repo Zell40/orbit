@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "home": "Home",
     "settings": "Impostazioni",
@@ -368,8 +368,10 @@
       "hoverActionsHint": "Pulsanti di reazione, risposta e fissaggio al passaggio su un messaggio.",
       "simpleModes": "Pannello canale semplificato",
       "simpleModesHint": "In « Gestisci canale », mostra solo le impostazioni comuni, per esteso e senza codici di mode.",
+      "channelModes": "Mostra i mode del canale",
+      "channelModesHint": "Accanto al nome del canale nella barra in alto. Disattivato di default.",
       "extendedModes": "Mostra i mode estesi del canale",
-      "extendedModesHint": "Accanto al nome del canale, mostra anche i parametri dei mode (+f ~4:10, +E 5:60…). Disattivato di default.",
+      "extendedModesHint": "Accanto al nome del canale, mostra anche i parametri dei mode (+f ~4:10, +E 5:60…). Richiede i mode del canale. Disattivato di default.",
       "mono": "Messaggi a spaziatura fissa",
       "monoHint": "Carattere a larghezza fissa per allineare ASCII art e tabelle."
     },

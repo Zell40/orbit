@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "home": "Ana sayfa",
     "settings": "Ayarlar",
@@ -368,8 +368,10 @@
       "hoverActionsHint": "Bir mesajın üzerine gelince hızlı tepki, yanıt ve sabitleme düğmeleri.",
       "simpleModes": "Sadeleştirilmiş kanal paneli",
       "simpleModesHint": "« Kanalı yönet » içinde yalnızca günlük ayarları, açık metin ve mode kodları olmadan göster.",
+      "channelModes": "Kanal mode’larını göster",
+      "channelModesHint": "Üst çubukta kanal adının yanında. Varsayılan kapalı.",
       "extendedModes": "Kanalda genişletilmiş mode’ları göster",
-      "extendedModesHint": "Kanal adının yanında mode parametrelerini de göster (+f ~4:10, +E 5:60…). Varsayılan kapalı.",
+      "extendedModesHint": "Kanal adının yanında mode parametrelerini de göster (+f ~4:10, +E 5:60…). Kanal mode’ları gerekir. Varsayılan kapalı.",
       "mono": "Eş aralıklı mesajlar",
       "monoHint": "ASCII sanatı ve tabloların hizalanması için sabit genişlikli yazı tipi."
     },

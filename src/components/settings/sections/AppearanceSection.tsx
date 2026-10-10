@@ -15,6 +15,7 @@ const TEXT_SIZES: Array<{ v: number; label: string }> = [
 export function AppearanceSection() {
   const clock24 = useActiveChat((s) => s.prefs.clock24);
   const textScale = useActiveChat((s) => s.prefs.textScale);
+  const showChannelModes = useActiveChat((s) => s.prefs.showChannelModes);
   const setPref = useActiveChat((s) => s.setPref);
   const { t } = useTranslation();
   const [theme, setT] = useState<string>(getTheme());
@@ -65,7 +66,14 @@ export function AppearanceSection() {
         <ToggleRow icon="🏷️" label={t('settings.appearance.topicFull')} hint={t('settings.appearance.topicFullHint')} prefKey="topicSetterFull" />
         <ToggleRow icon="🖱️" label={t('settings.appearance.hoverActions')} hint={t('settings.appearance.hoverActionsHint')} prefKey="hoverActions" />
         <ToggleRow icon="🎛️" label={t('settings.appearance.simpleModes')} hint={t('settings.appearance.simpleModesHint')} prefKey="simpleModes" />
-        <ToggleRow icon="#️⃣" label={t('settings.appearance.extendedModes')} hint={t('settings.appearance.extendedModesHint')} prefKey="showExtendedModes" />
+        <ToggleRow icon="#️⃣" label={t('settings.appearance.channelModes')} hint={t('settings.appearance.channelModesHint')} prefKey="showChannelModes" />
+        <ToggleRow
+          icon="🔢"
+          label={t('settings.appearance.extendedModes')}
+          hint={t('settings.appearance.extendedModesHint')}
+          prefKey="showExtendedModes"
+          disabled={!showChannelModes}
+        />
         <ToggleRow icon="⌨️" label={t('settings.appearance.mono')} hint={t('settings.appearance.monoHint')} prefKey="monoMessages" />
         <ToggleRow icon="🙈" label={t('settings.notifications.hideJoins')} hint={t('settings.notifications.hideJoinsHint')} prefKey="hideJoinQuit" />
         <ToggleRow icon="⚙️" label={t('settings.notifications.hideModes')} hint={t('settings.notifications.hideModesHint')} prefKey="hideModes" />

@@ -2399,6 +2399,8 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 
 /* consistent setting row: icon · text · control */
 .srow { display: flex; align-items: center; gap: .8rem; padding: .7rem .95rem; border-top: 1px solid var(--border); min-height: 56px; }
+.srow.is-disabled { opacity: .55; }
+.srow.is-disabled .switch { cursor: not-allowed; }
 .scard__body .ocid-srow { padding: .7rem .95rem; }
 .scard__body > .srow:first-child, .scard__body > .sfield:first-child { border-top: 0; }
 .srow__ic { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: var(--accent-soft); color: var(--accent-d); font-size: 1.1rem; }

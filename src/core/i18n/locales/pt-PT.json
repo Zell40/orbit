@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "home": "Início",
     "settings": "Definições",
@@ -368,8 +368,10 @@
       "hoverActionsHint": "Botões de reação, resposta e fixar ao passar o rato sobre uma mensagem.",
       "simpleModes": "Painel do canal simplificado",
       "simpleModesHint": "Em « Gerir o canal », mostra só os ajustes comuns, por extenso e sem códigos de modos.",
+      "channelModes": "Mostrar modos do canal",
+      "channelModesHint": "Junto ao nome do canal na barra superior. Desativado por predefinição.",
       "extendedModes": "Mostrar modos alargados no canal",
-      "extendedModesHint": "Junto ao nome do canal, também mostra os parâmetros dos modos (+f ~4:10, +E 5:60…). Desativado por predefinição.",
+      "extendedModesHint": "Junto ao nome do canal, também mostra os parâmetros dos modos (+f ~4:10, +E 5:60…). Requer modos do canal. Desativado por predefinição.",
       "mono": "Mensagens monoespaçadas",
       "monoHint": "Tipo de letra de largura fixa para alinhar arte ASCII e tabelas."
     },

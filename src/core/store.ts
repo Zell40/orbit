@@ -1143,6 +1143,9 @@ export function createChatStore(ns = '') {
     resetReg,
     setPref(key, value) {
       const prefs = { ...get().prefs, [key]: value };
+      // Top-bar channel modes: extended parameters require the base modes line.
+      if (key === 'showChannelModes' && value === false) prefs.showExtendedModes = false;
+      if (key === 'showExtendedModes' && value === true && !prefs.showChannelModes) return;
       savePrefs(prefs);
       applyPrefs(prefs);
       set({ prefs });

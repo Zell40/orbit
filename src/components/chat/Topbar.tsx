@@ -38,6 +38,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const isChannel = useActiveChat((s) => !!s.buffers[s.active]?.isChannel);
   const modes = useActiveChat((s) => s.buffers[s.active]?.modes ?? '');
   const modeParams = useActiveChat((s) => s.buffers[s.active]?.modeParams);
+  const showChannelModes = useActiveChat((s) => s.prefs.showChannelModes);
   const showExtendedModes = useActiveChat((s) => s.prefs.showExtendedModes);
   const members = useActiveChat((s) => s.buffers[s.active]?.members);
   const search = useActiveChat((s) => s.search);
@@ -107,7 +108,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       <div className="topbar__meta">
         <span className="topbar__title">
           <span className="topbar__name">{isServer ? statusTitle : label}</span>
-          {!isServer && isChannel && modes && modes !== '+' && (
+          {!isServer && isChannel && showChannelModes && modes && modes !== '+' && (
             <span className="topbar__modes" title={t('topbar.modes')}>
               {formatChannelModes(modes, showExtendedModes ? modeParams : undefined)}
             </span>

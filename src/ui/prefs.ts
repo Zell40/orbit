@@ -38,7 +38,9 @@ export interface Prefs {
   joinOnInvite: boolean;
   /** Plain-language channel Modes tab: no mode letters, only the common flags. */
   simpleModes: boolean;
-  /** Show parameterized extras next to channel modes (+f ~4:10, +E 5:60…). Off by default. */
+  /** Show channel modes (+nt etc.) next to the room name in the top bar. Off by default. */
+  showChannelModes: boolean;
+  /** Show parameterized extras next to channel modes (+f ~4:10, +E 5:60…). Off by default; requires showChannelModes. */
   showExtendedModes: boolean;
 }
 
@@ -53,9 +55,16 @@ function defaults(): Prefs {
     compact: d.compact, clock24: d.clock24,
     textScale: 1, linkPreviews: true, hoverActions: true, confirmClose: false, monoMessages: false,
     bubbleMessages: true, topicSetterFull: false, showStatus: false, noticeInbox: false,
-    readReceipts: true, joinOnInvite: false, simpleModes: true, showExtendedModes: false,
+    readReceipts: true, joinOnInvite: false, simpleModes: true,
+    showChannelModes: false, showExtendedModes: false,
     uploadTtlHours: getConfig().filehost?.retentionHours ?? 24,
   };
+}
+
+function normalizePrefs(p: Prefs): Prefs {
+  // Extended mode parameters only make sense when the modes line is shown.
+  if (!p.showChannelModes && p.showExtendedModes) return { ...p, showExtendedModes: false };
+  return p;
 }
 
 export function getPrefs(): Prefs {
@@ -63,12 +72,12 @@ export function getPrefs(): Prefs {
   try {
     // Per-account when identified; device-wide only before login (no owner).
     const raw = idLsRead(KEY);
-    if (raw) return { ...d, ...JSON.parse(raw) };
+    if (raw) return normalizePrefs({ ...d, ...JSON.parse(raw) });
     // Guest / pre-login: allow reading the historical unscoped key once for UX,
     // but never copy it into another account's bucket.
     if (!getActiveOwner()) {
       const legacy = localStorage.getItem(KEY) ?? localStorage.getItem('tchatou-prefs');
-      if (legacy) return { ...d, ...JSON.parse(legacy) };
+      if (legacy) return normalizePrefs({ ...d, ...JSON.parse(legacy) });
     }
   } catch { /* ignore */ }
   return d;
