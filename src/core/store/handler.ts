@@ -175,7 +175,20 @@ export function makeHandler(ctx: HandlerCtx) {
         sysLine(SERVER, line, 'system');
         const active = get().active;
         if (active && active !== SERVER) sysLine(active, line, 'system');
-        set({ serverError: reason });
+        // Prefer the server reason on the join form / site redirect (ERROR can
+        // arrive after status closed — refresh sticky connectFail message).
+        const patch: { serverError: string; connectFail?: { status: 'sasl-failed' | 'error' | 'closed'; message: string } } = {
+          serverError: reason,
+        };
+        if (!get().everRegistered) {
+          const prev = get().connectFail;
+          const st = get().status;
+          const failSt = prev?.status === 'sasl-failed' || st === 'sasl-failed'
+            ? 'sasl-failed' as const
+            : (st === 'error' ? 'error' as const : 'closed' as const);
+          patch.connectFail = { status: failSt, message: reason };
+        }
+        set(patch);
         break;
       }
       case 'WALLOPS': // :src WALLOPS :message — network-wide oper broadcast

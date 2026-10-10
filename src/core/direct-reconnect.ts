@@ -45,6 +45,20 @@ export function siteLoginHref(loginUrl: string, opts: { nick?: string; channels?
   return u.toString();
 }
 
+/** Site page after Orbit refused the connection (SASL / link error). */
+export function siteAuthFailHref(
+  loginUrl: string,
+  opts: { nick?: string; channels?: string[]; code: string },
+): string {
+  const u = new URL(loginUrl, 'https://placeholder.invalid');
+  u.searchParams.set('erreur', opts.code);
+  const channels = (opts.channels || []).map((c) => String(c || '').trim()).filter(Boolean);
+  if (channels.length) u.searchParams.set('channel', channels.join(','));
+  const nick = (opts.nick || '').trim();
+  if (nick) u.searchParams.set('nick', nick);
+  return u.toString();
+}
+
 let skipClosePrompt = false;
 
 /** Next navigation is intentional (leave bouncer → site login) — don't nag. */

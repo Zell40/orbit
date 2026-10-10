@@ -328,6 +328,8 @@ export function ConnectScreen() {
   const [recover, setRecover] = useState(false);
   const connect = useActiveChat((s) => s.connect);
   const status = useActiveChat((s) => s.status);
+  const connectFail = useActiveChat((s) => s.connectFail);
+  const serverError = useActiveChat((s) => s.serverError);
   const bouncerPrefs = loadBouncerPrefs();
   const lastResume = loadResume();
   const directPref = peekDirectReconnect();
@@ -411,11 +413,13 @@ export function ConnectScreen() {
     if (required && aslTried) return ' is-bad';
     return '';
   }
-  const errors: Record<string, string> = {
+  const statusErrors: Record<string, string> = {
     error: t('connect.error_error'),
     closed: t('connect.error_closed'),
     'sasl-failed': t('connect.error_sasl'),
   };
+  // Prefer sticky connectFail (survives closed-after-sasl) then live server ERROR text.
+  const connectErrorText = (connectFail?.message || serverError || statusErrors[status] || '').trim();
 
   // Passkey sign-in is offered only when the deployment enables it AND the browser
   // supports WebAuthn; the server must also advertise SASL WEBAUTHN (checked live at
@@ -725,7 +729,7 @@ export function ConnectScreen() {
             </details>
           )}
 
-          {errors[status] && <div className="cjoin__err">⚠ {errors[status]}</div>}
+          {connectErrorText ? <div className="cjoin__err" role="alert">⚠ {connectErrorText}</div> : null}
         </form>
 
         <div className="cjoin__links">

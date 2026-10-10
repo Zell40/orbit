@@ -15,7 +15,7 @@ import { sidebarNavOrder } from './core/store/sidebar-order';
 import { getPrefs } from './ui/prefs';
 import { saveResume, MAX_RESUME_QUERIES } from './core/resume';
 import { listOpenQueryNicks } from './core/store/pm-presence';
-import { shouldSkipClosePrompt, armLeaveWithoutPrompt } from './core/direct-reconnect';
+import { shouldSkipClosePrompt, armLeaveWithoutPrompt, siteAuthFailHref } from './core/direct-reconnect';
 import { consumeSiteBouncerAttempt, bouncerAuthFailHref } from './core/bouncer';
 
 export default function App() {
@@ -51,6 +51,27 @@ export default function App() {
       zncUser: attempt.zncUser,
     }));
   }, [status, everRegistered, viaBouncer]);
+
+  // Site handoff / MonIdentité keycard failed (SASL or link): back to the site
+  // with ?erreur= so the login page can explain. Orbit join-form failures stay here.
+  const connectFail = useChat((s) => s.connectFail);
+  const connectViaSite = useChat((s) => s.connectViaSite);
+  useEffect(() => {
+    if (everRegistered) return;
+    if (status !== 'sasl-failed' && status !== 'error' && status !== 'closed') return;
+    if (!connectViaSite || viaBouncer) return; // bouncer has its own bounce-back above
+    if (!connectFail) return;
+    const s = useChat.getState();
+    const cfg = getConfig().branding;
+    const base = (cfg.identityUrl || cfg.loginUrl || '').trim();
+    if (!base) return;
+    const channels = s.order
+      .filter((k) => s.buffers[k]?.isChannel)
+      .map((k) => s.buffers[k].name);
+    const code = connectFail.status === 'sasl-failed' ? 'orbit_sasl' : 'orbit_conn';
+    armLeaveWithoutPrompt();
+    location.assign(siteAuthFailHref(base, { nick: s.nick, channels, code }));
+  }, [status, everRegistered, viaBouncer, connectViaSite, connectFail]);
 
   // Guard against an accidental tab close/reload while a session is (or has been)
   // live — the browser shows its native "Leave site?" prompt so you don't lose the

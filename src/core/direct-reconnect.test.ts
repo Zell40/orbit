@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { peekDirectReconnect, saveDirectReconnect, clearDirectReconnect, siteLoginHref } from './direct-reconnect';
+import {
+  peekDirectReconnect, saveDirectReconnect, clearDirectReconnect,
+  siteLoginHref, siteAuthFailHref,
+} from './direct-reconnect';
 import { matchingVisualGames, type VisualDisplayGame } from '../modules/registry';
 
 describe('direct reconnect (leave bouncer)', () => {
@@ -32,6 +35,17 @@ describe('direct reconnect (leave bouncer)', () => {
       nick: 'Harry',
       channels: ['#Baccalaureat.chat', '#Echecs.chat'],
     })).toBe('https://www.reseau-entrenous.fr/mon-entrenous/identite/?direct=1&channel=%23Baccalaureat.chat%2C%23Echecs.chat&nick=Harry');
+  });
+
+  it('sends SASL / link failures back to MonIdentité with ?erreur=', () => {
+    expect(siteAuthFailHref('https://www.reseau-entrenous.fr/mon-entrenous/identite/', {
+      nick: 'Harry',
+      channels: ['#rencontre'],
+      code: 'orbit_sasl',
+    })).toBe('https://www.reseau-entrenous.fr/mon-entrenous/identite/?erreur=orbit_sasl&channel=%23rencontre&nick=Harry');
+    expect(siteAuthFailHref('https://www.reseau-entrenous.fr/mon-entrenous/identite/', {
+      code: 'orbit_conn',
+    })).toBe('https://www.reseau-entrenous.fr/mon-entrenous/identite/?erreur=orbit_conn');
   });
 });
 

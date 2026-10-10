@@ -96,9 +96,13 @@ export interface ChatState {
   serverName: string;    // the ircd's own hostname (RPL_MYINFO / 004), for the Status title
   ircNetwork: string;    // ISUPPORT NETWORK (e.g. EntreNous.chat)
   serverError: string;   // last ERROR reason from the server (for the connect screen)
+  /** Sticky pre-register failure for the join form / site redirect (survives closed-after-sasl). */
+  connectFail: { status: 'sasl-failed' | 'error' | 'closed'; message: string } | null;
   reconnectIn: number;   // seconds until the next auto-reconnect (0 = not reconnecting)
   everRegistered: boolean; // true after the first successful registration (keeps the chat UI mounted during reconnects)
   autoConnecting: boolean; // a handoff (e.g. the site entry form) is connecting for us; show a splash, not the join form
+  /** True when this connect came from the site handoff / keycard (not Orbit join form). */
+  connectViaSite: boolean;
   connectUrl: string;      // WebSocket URL of the current/last connect() (network or bouncer)
   viaBouncer: boolean;     // this session authenticated with PASS (ZNC / KiwiBNC), not NickServ SASL
   historyLoading: Record<string, boolean>; // buffer key → chathistory request in flight
@@ -290,9 +294,11 @@ export function createChatStore(ns = '') {
     serverName: '',
     ircNetwork: '',
     serverError: '',
+    connectFail: null,
     reconnectIn: 0,
     everRegistered: false,
     autoConnecting: false,
+    connectViaSite: false,
     connectUrl: '',
     viaBouncer: false,
     historyLoading: {},
@@ -422,6 +428,7 @@ export function createChatStore(ns = '') {
         client, nick: opts.nick, status: 'connecting',
         connectUrl: opts.url,
         viaBouncer: !!opts.serverPassword,
+        connectViaSite: !!opts.fromSite,
         umodes: '',
         echoServerTo: null,
         userCmdEchoUntil: 0,
@@ -429,6 +436,8 @@ export function createChatStore(ns = '') {
         parentalControls: false,
         wantedNick: (opts.nick || '').trim(),
         nickRecoverOffer: null,
+        serverError: '',
+        connectFail: null,
       });
       // Land on the first requested salon. The ircd auto-joins #EntreNous.chat
       // on connect; without this, that JOIN would steal the active buffer.
@@ -453,6 +462,17 @@ export function createChatStore(ns = '') {
         set({ status: st, nick: client.nick });
         if (st === 'registered') refreshNickRecoverOffer();
         else if (st === 'closed' || st === 'error' || st === 'sasl-failed') set({ nickRecoverOffer: null });
+        // Sticky pre-register failure (closed must not erase a prior sasl-failed).
+        if (!get().everRegistered && (st === 'sasl-failed' || st === 'error' || st === 'closed')) {
+          const prev = get().connectFail;
+          if (!(st === 'closed' && prev?.status === 'sasl-failed')) {
+            const fallback = st === 'sasl-failed' ? i18n.t('connect.error_sasl')
+              : st === 'error' ? i18n.t('connect.error_error')
+                : i18n.t('connect.error_closed');
+            const message = (get().serverError || '').trim() || fallback;
+            set({ connectFail: { status: st, message } });
+          }
+        }
         // Once we leave 'connecting' (registered, or an auth/connection failure),
         // a handoff is no longer in flight: drop the splash so failures fall back
         // to the join form (with the nick/channel still prefilled from the URL).
@@ -470,7 +490,7 @@ export function createChatStore(ns = '') {
         }
         if (st === 'registered') {
           const wasReconnect = get().everRegistered;
-          set({ reconnectIn: 0, serverError: '', everRegistered: true, friendsOnline: {} });
+          set({ reconnectIn: 0, serverError: '', connectFail: null, everRegistered: true, friendsOnline: {} });
           // Keep the parked password aligned with the nick we actually registered
           // under (433 may have suffix-mangled it), so a later F5 still matches.
           if (getConfig().features.sessionResume && opts.password && !opts.keycard

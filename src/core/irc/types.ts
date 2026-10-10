@@ -165,6 +165,11 @@ export interface ConnectOptions {
   channels?: string[];
   /** Open PM nicks to restore after session resume (Orbit UI; IRC client ignores). */
   queries?: string[];
+  /**
+   * Connect started from the site handoff / MonIdentité keycard (not the Orbit
+   * join form). Failures redirect back to the site with `?erreur=…`.
+   */
+  fromSite?: boolean;
 }
 
 // Connection lifecycle states the client reports via the 'status' event. ('idle'

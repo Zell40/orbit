@@ -109,6 +109,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
         serverPassword: handoff.password,
         channels,
         realname: handoff.realname,
+        fromSite: true,
       }))
       cleanUrl()
     } else {
@@ -128,6 +129,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
       saslAuthzid: handoff.account || nick,
       realname: handoff.realname,
       channels,
+      fromSite: true,
     })
     cleanUrl()
   } else if (cfg.features.sessionResume) {
@@ -148,6 +150,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
         .split(',').map((c) => c.trim()).filter(Boolean)
       let password: string | undefined
       let keycard = false
+      let fromSite = false
       let resumeNick = nick || resume?.nick || ''
       let resumeAccount = resume?.account || ''
       let resumeRealname = resume?.realname
@@ -160,6 +163,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
       if (sasl && saslMatchesResume(sasl, resume, nick)) {
         password = sasl.password
         keycard = false
+        fromSite = false
         resumeNick = resumeNick || sasl.nick
         resumeAccount = resumeAccount || sasl.account || sasl.nick
         go = true
@@ -171,6 +175,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
           if (mint.ok && (!nick || nick.toLowerCase() === mint.card.nick.toLowerCase())) {
             password = mint.card.keycard
             keycard = true
+            fromSite = true
             resumeNick = mint.card.nick
             if (mint.card.account) resumeAccount = mint.card.account
             if (mint.card.realname) resumeRealname = mint.card.realname
@@ -196,6 +201,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
             ? paramChannels
             : (resume?.channels?.length ? resume.channels : cfg.startup.channels),
           ...(resume?.queries?.length ? { queries: resume.queries } : {}),
+          ...(fromSite ? { fromSite: true } : {}),
         })
         cleanUrl()
       } else {
