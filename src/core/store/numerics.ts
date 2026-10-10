@@ -685,7 +685,7 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         set({
           nickError: { nick: wanted, code: msg.command, text },
           // RECOVER then NICK can race the ghost — let the user click again.
-          ...(offer?.pending ? { nickRecoverOffer: { ...offer, pending: false } } : {}),
+          ...(offer?.pending ? { nickRecoverOffer: { ...offer, pending: false, done: false } } : {}),
         });
         sysLine(get().active || SERVER, `⚠️ ${text}`, 'system');
         if (get().prefs.sound) blip();

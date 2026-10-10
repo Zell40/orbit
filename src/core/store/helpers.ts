@@ -76,6 +76,7 @@ function joinCoalescedText(prev: string, next: string): string {
 
 /** JOIN/TOPIC/… replayed by event-playback after the live line already landed. */
 const REPLAY_EVENT_KINDS = new Set(['join', 'part', 'quit', 'topic', 'nick', 'host', 'mode', 'kick', 'ban']);
+const PRESENCE_REPLAY_KINDS = new Set(['join', 'part', 'quit']);
 const REPLAY_DUP_MS = 90_000;
 
 function isReplayEvent(m: ChatMessage): boolean {
@@ -87,6 +88,36 @@ export function sameReplayEvent(a: ChatMessage, b: ChatMessage): boolean {
     && canon(a.from) === canon(b.from)
     && a.text === b.text
     && Math.abs(a.ts - b.ts) <= REPLAY_DUP_MS;
+}
+
+function kickTargetNick(m: ChatMessage): string {
+  // Live/history kick text: "target" or "target\nreason".
+  return String(m.text || '').split('\n')[0]?.trim() || '';
+}
+
+/**
+ * True when a later leave/join means `prior` and `incoming` are different visits
+ * (rapid reconnect), not the same event replayed by CHATHISTORY / +H.
+ */
+export function presenceInterrupted(
+  messages: ChatMessage[],
+  priorIdx: number,
+  incoming: ChatMessage,
+): boolean {
+  if (!PRESENCE_REPLAY_KINDS.has(incoming.kind)) return false;
+  const nick = canon(incoming.from);
+  if (!nick || priorIdx < 0) return false;
+  for (let j = priorIdx + 1; j < messages.length; j++) {
+    const x = messages[j];
+    if (incoming.kind === 'join') {
+      if ((x.kind === 'part' || x.kind === 'quit') && canon(x.from) === nick) return true;
+      if (x.kind === 'kick' && canon(kickTargetNick(x)) === nick) return true;
+    } else if (x.kind === 'join' && canon(x.from) === nick) {
+      // part/quit after a re-join = a new leave, not a replay of the old one.
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Latest PRIVMSG/ACTION from someone else — drives the double-tick on our own
@@ -247,9 +278,11 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
       }
       // Live JOIN/TOPIC vs CHATHISTORY event-playback: same event, different id
       // and often a few seconds of clock skew (sysLine used to stamp Date.now()).
+      // Presence: a QUIT then quick re-JOIN must NOT collapse onto the first JOIN
+      // (same nick + same i18n text within 90s looked like a replay).
       if (isReplayEvent(m)) {
         const i = b.messages.findIndex((x) => sameReplayEvent(x, m));
-        if (i !== -1) {
+        if (i !== -1 && !presenceInterrupted(b.messages, i, m)) {
           const cur = b.messages[i];
           if ((m.msgid && !cur.msgid) || m.ts < cur.ts || (m.mask && !cur.mask)) {
             const msgs = b.messages.slice();

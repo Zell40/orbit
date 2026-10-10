@@ -28,31 +28,52 @@ export function NickRecoverPrompt() {
   const nick = useActiveChat((s) => s.nick);
   const confirm = useActiveChat((s) => s.confirmNickRecover);
   const dismiss = useActiveChat((s) => s.dismissNickRecover);
+  // Success: keep the popup ~10s then close (user can dismiss sooner).
+  useEffect(() => {
+    if (!offer?.done || offer.dismissed) return;
+    const tmr = window.setTimeout(() => dismiss(), 10_000);
+    return () => window.clearTimeout(tmr);
+  }, [offer?.done, offer?.dismissed, dismiss]);
   if (!offer || offer.dismissed || !account) return null;
   const target = offer.target;
+  const done = !!offer.done;
   return (
     <div className="guestprompt" role="dialog" aria-labelledby="nick-recover-title" aria-describedby="nick-recover-desc">
-      <button type="button" className="guestprompt__x" onClick={dismiss} disabled={offer.pending}
+      <button type="button" className="guestprompt__x" onClick={dismiss} disabled={offer.pending && !done}
         aria-label={t('modals.closeButton')}>✕</button>
-      <h2 id="nick-recover-title" className="guestprompt__title">{t('banners.nickRecoverTitle')}</h2>
+      <h2 id="nick-recover-title" className="guestprompt__title">
+        {done ? t('banners.nickRecoverDoneTitle') : t('banners.nickRecoverTitle')}
+      </h2>
       <p id="nick-recover-desc" className="guestprompt__txt">
-        {t('banners.nickRecoverBody', { account, nick: target, current: nick })}
+        {done
+          ? t('banners.nickRecoverDoneBody', { nick: target })
+          : t('banners.nickRecoverBody', { account, nick: target, current: nick })}
       </p>
-      <div className="guestprompt__actions">
-        <button
-          type="button"
-          className={`guestprompt__primary${offer.pending ? ' is-busy' : ''}`}
-          disabled={offer.pending}
-          aria-busy={offer.pending || undefined}
-          onClick={() => confirm()}
-        >
-          {offer.pending ? <span className="guestprompt__spin" aria-hidden /> : null}
-          {offer.pending ? t('banners.nickRecoverPending') : t('banners.nickRecoverAction')}
-        </button>
-      </div>
-      <button type="button" className="guestprompt__later" onClick={dismiss} disabled={offer.pending}>
-        {t('banners.nickRecoverLater')}
-      </button>
+      {done ? (
+        <div className="guestprompt__actions">
+          <button type="button" className="guestprompt__primary" onClick={dismiss}>
+            {t('banners.nickRecoverClose')}
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="guestprompt__actions">
+            <button
+              type="button"
+              className={`guestprompt__primary${offer.pending ? ' is-busy' : ''}`}
+              disabled={offer.pending}
+              aria-busy={offer.pending || undefined}
+              onClick={() => confirm()}
+            >
+              {offer.pending ? <span className="guestprompt__spin" aria-hidden /> : null}
+              {offer.pending ? t('banners.nickRecoverPending') : t('banners.nickRecoverAction')}
+            </button>
+          </div>
+          <button type="button" className="guestprompt__later" onClick={dismiss} disabled={offer.pending}>
+            {t('banners.nickRecoverLater')}
+          </button>
+        </>
+      )}
     </div>
   );
 }

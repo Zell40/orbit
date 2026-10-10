@@ -9,21 +9,52 @@ describe('shouldOfferNickRecover', () => {
       nick: 'Zell742',
       wantedNick: 'Zell',
       offer: null,
-    })).toEqual({ target: 'Zell', pending: false, dismissed: false });
+    })).toEqual({ target: 'Zell', pending: false, dismissed: false, done: false });
   });
 
-  it('clears when the nick already matches', () => {
+  it('marks done when the nick matches after a recover attempt', () => {
     expect(shouldOfferNickRecover({
       status: 'registered',
       account: 'Zell',
       nick: 'Zell',
       wantedNick: 'Zell',
-      offer: { target: 'Zell', pending: false, dismissed: false },
+      offer: { target: 'Zell', pending: true, dismissed: false, done: false },
+    })).toEqual({ target: 'Zell', pending: false, dismissed: false, done: true });
+  });
+
+  it('keeps a done success state until dismissed', () => {
+    const done = { target: 'Zell', pending: false, dismissed: false, done: true };
+    expect(shouldOfferNickRecover({
+      status: 'registered',
+      account: 'Zell',
+      nick: 'Zell',
+      wantedNick: 'Zell',
+      offer: done,
+    })).toEqual(done);
+  });
+
+  it('clears when the nick already matches without an active offer', () => {
+    expect(shouldOfferNickRecover({
+      status: 'registered',
+      account: 'Zell',
+      nick: 'Zell',
+      wantedNick: 'Zell',
+      offer: null,
+    })).toBeNull();
+  });
+
+  it('clears a dismissed success popup', () => {
+    expect(shouldOfferNickRecover({
+      status: 'registered',
+      account: 'Zell',
+      nick: 'Zell',
+      wantedNick: 'Zell',
+      offer: { target: 'Zell', pending: false, dismissed: true, done: true },
     })).toBeNull();
   });
 
   it('keeps a dismissed offer so it does not reappear', () => {
-    const dismissed = { target: 'Zell', pending: false, dismissed: true };
+    const dismissed = { target: 'Zell', pending: false, dismissed: true, done: false };
     expect(shouldOfferNickRecover({
       status: 'registered',
       account: 'Zell',

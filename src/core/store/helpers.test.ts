@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { makeHelpers, rememberQueryAccount } from './helpers';
+import { makeHelpers, rememberQueryAccount, presenceInterrupted, sameReplayEvent } from './helpers';
 import type { ChatState } from '../store';
 import type { ChatMessage, Member, WhoisInfo } from '../irc/types';
 
@@ -216,5 +216,42 @@ describe('rememberQueryAccount', () => {
     expect(state.buffers.aidemoi.members['AideMoi']?.account).toBe('harry');
     rememberQueryAccount(helpers.patchBuffer, '#Aide.chat', 'bob', 'bobacct');
     expect(state.buffers['#aide.chat'].members.bob).toBeUndefined();
+  });
+});
+
+describe('presence replay dedup', () => {
+  const join = (nick: string, ts: number, id: string): ChatMessage => ({
+    id, bufferName: '#Aide.chat', from: nick, text: `${nick} est entré`, ts, kind: 'join', self: false,
+  });
+  const quit = (nick: string, ts: number, id: string): ChatMessage => ({
+    id, bufferName: '#Aide.chat', from: nick, text: `${nick} s'est déconnecté`, ts, kind: 'quit', self: false,
+  });
+
+  it('sameReplayEvent still matches a JOIN replayed within 90s', () => {
+    expect(sameReplayEvent(join('Zell363', 1000, 'a'), join('Zell363', 5000, 'b'))).toBe(true);
+  });
+
+  it('presenceInterrupted after QUIT so a rapid re-JOIN is a new visit', () => {
+    const msgs = [join('Zell363', 1000, 'j1'), quit('Zell363', 2000, 'q1')];
+    expect(presenceInterrupted(msgs, 0, join('Zell363', 3000, 'j2'))).toBe(true);
+    expect(presenceInterrupted([join('Zell363', 1000, 'j1')], 0, join('Zell363', 3000, 'j2'))).toBe(false);
+  });
+
+  it('keeps a second JOIN after QUIT on the timeline', () => {
+    const { helpers, state } = setup();
+    state.buffers['#aide.chat'].sessionJoinedAt = 1;
+    helpers.addMessage('#Aide.chat', join('Zell363', 10_000, 'j1'));
+    helpers.addMessage('#Aide.chat', quit('Zell363', 11_000, 'q1'));
+    helpers.addMessage('#Aide.chat', join('Zell363', 12_000, 'j2'));
+    const kinds = state.buffers['#aide.chat'].messages.map((m) => `${m.kind}:${m.id}`);
+    expect(kinds).toEqual(['join:j1', 'quit:q1', 'join:j2']);
+  });
+
+  it('still collapses a true JOIN replay without an intervening leave', () => {
+    const { helpers, state } = setup();
+    state.buffers['#aide.chat'].sessionJoinedAt = 1;
+    helpers.addMessage('#Aide.chat', join('Quen', 50_100, 'live-join'));
+    helpers.addMessage('#Aide.chat', join('Quen', 48_200, 'hist-join'));
+    expect(state.buffers['#aide.chat'].messages.filter((m) => m.kind === 'join')).toHaveLength(1);
   });
 });
