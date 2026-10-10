@@ -17,6 +17,7 @@ function setup() {
         unread: 0,
         highlight: false,
         joined: true,
+        sessionJoinedAt: undefined as number | undefined,
       },
       aidemoi: {
         name: 'AideMoi',
