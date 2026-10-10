@@ -117,8 +117,11 @@ describe('membership handler', () => {
     expect(state.buffers['#a'].members['bobby']).toBeDefined();
     expect(state.buffers['#a'].members['bob']).toBeUndefined();
     expect(lines).toContainEqual({ name: '#a', text: 'bobby', kind: 'nick', from: 'bob' });
+    const client = { nick: 'me' };
+    state.client = client;
     on(':me!u@h NICK me2');
     expect(state.nick).toBe('me2');
+    expect(client.nick).toBe('me2');
   });
 
   it('CHGHOST updates user@host and emits a host line', () => {

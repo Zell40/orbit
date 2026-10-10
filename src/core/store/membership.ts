@@ -179,9 +179,13 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
         const nn = msg.params[0];
         if (msg.nick === me) {
           set({ nick: nn, nickError: null });
+          // Keep IrcClient.nick in sync — MODE/WHOIS/queryUserModes use it.
+          // Without this, RECOVER /nick leaves setUserModes targeting the ghost nick
+          // (silent no-op, no Status error).
+          const client = get().client;
+          if (client && nn) client.nick = nn;
           // Keep the server's webpush device nick in sync so offline pushes follow /nick.
           const account = get().account;
-          const client = get().client;
           if (account && client && getConfig().features.push)
             void refreshPush(client, account);
           get().refreshNickRecoverOffer?.();
