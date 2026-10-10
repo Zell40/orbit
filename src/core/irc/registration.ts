@@ -167,8 +167,8 @@ export class Registration {
         this.host.setStatus('sasl-failed');
         this.endCap();
         return;
-      case '433': // ERR_NICKNAMEINUSE — auto-suffix while still registering
-      case '432': // ERR_ERRONEUSNICKNAME
+      case '433': // ERR_NICKNAMEINUSE — temp suffix so we still register (SASL may
+      case '432': // ERR_ERRONEUSNICKNAME     already be ok). Orbit then offers manual RECOVER.
         if (!this.host.isRegistered()) {
           const nick = `${this.host.opts().nick}${Math.floor(Math.random() * 900 + 100)}`;
           this.host.setNick(nick);

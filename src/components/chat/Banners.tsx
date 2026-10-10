@@ -20,6 +20,40 @@ function openChannelNames(): string[] {
   return names;
 }
 
+/** SASL ok but nick held by a ghost — manual NickServ RECOVER (never auto). */
+export function NickRecoverPrompt() {
+  const { t } = useTranslation();
+  const offer = useActiveChat((s) => s.nickRecoverOffer);
+  const account = useActiveChat((s) => s.account);
+  const nick = useActiveChat((s) => s.nick);
+  const confirm = useActiveChat((s) => s.confirmNickRecover);
+  const dismiss = useActiveChat((s) => s.dismissNickRecover);
+  if (!offer || offer.dismissed || !account) return null;
+  const target = offer.target;
+  return (
+    <div className="guestprompt" role="dialog" aria-labelledby="nick-recover-title" aria-describedby="nick-recover-desc">
+      <button type="button" className="guestprompt__x" onClick={dismiss} aria-label={t('modals.closeButton')}>✕</button>
+      <h2 id="nick-recover-title" className="guestprompt__title">{t('banners.nickRecoverTitle')}</h2>
+      <p id="nick-recover-desc" className="guestprompt__txt">
+        {t('banners.nickRecoverBody', { account, nick: target, current: nick })}
+      </p>
+      <div className="guestprompt__actions">
+        <button
+          type="button"
+          className="guestprompt__primary"
+          disabled={offer.pending}
+          onClick={() => confirm()}
+        >
+          {offer.pending ? t('banners.nickRecoverPending') : t('banners.nickRecoverAction')}
+        </button>
+      </div>
+      <button type="button" className="guestprompt__later" onClick={dismiss} disabled={offer.pending}>
+        {t('banners.nickRecoverLater')}
+      </button>
+    </div>
+  );
+}
+
 export function ReconnectBanner() {
   const { t } = useTranslation();
   const status = useActiveChat((s) => s.status);

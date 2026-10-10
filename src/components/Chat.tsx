@@ -7,7 +7,7 @@ import { TabBar, Sidebar } from './chat/Sidebar';
 import { Topbar } from './chat/Topbar';
 import { ChannelTopicBanner } from './chat/ChannelTopicBanner';
 import { MemberList } from './chat/MemberList';
-import { ReconnectBanner, KickToast, NickServAlert, BouncerVisualBanner, JoinDeniedPanel } from './chat/Banners';
+import { ReconnectBanner, KickToast, NickServAlert, BouncerVisualBanner, JoinDeniedPanel, NickRecoverPrompt } from './chat/Banners';
 import { usePluginRegistry } from '../modules/registry';
 import { PluginBoundary } from './PluginBoundary';
 import { FriendsPanel } from './chat/FriendsPanel';
@@ -106,6 +106,7 @@ export function Chat({ locked = false }: { locked?: boolean }) {
       {profileOpen && <Suspense fallback={null}><ProfileModal /></Suspense>}
       <KickToast />
       <NickServAlert />
+      <NickRecoverPrompt />
       <ReconnectBanner />
     </div>
       {rootOverlays.map((u) => <PluginBoundary key={u.id} render={u.render} label="overlay" />)}

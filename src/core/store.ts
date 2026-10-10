@@ -11,6 +11,7 @@ import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBo
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
 import { findWhoisKey, makeHelpers, rememberQueryAccount } from './store/helpers';
 import { clearPmPeerOffline, listOpenQueryNicks } from './store/pm-presence';
+import { shouldOfferNickRecover, type NickRecoverOffer } from './store/nick-recover';
 import { isService, isStatusService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
@@ -150,10 +151,18 @@ export interface ChatState {
   kicked: KickInfo | null; // last time we got kicked — drives the dismissible toast
   nickServAlert: ServiceAlert | null; // incoming NickServ notice — centered popup
   nickError: { nick: string; code: string; text: string } | null; // 432/433 after a NICK attempt
+  /** Nick requested at connect (before a 433 suffix). Used for optional RECOVER. */
+  wantedNick: string;
+  /** Manual NickServ RECOVER offer when SASL ok but the nick is held by a ghost. */
+  nickRecoverOffer: NickRecoverOffer | null;
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
   sidebarOrder: { channels: string[]; queries: string[] };
 
   connect: (opts: ConnectOptions) => void;
+  confirmNickRecover: () => void;
+  dismissNickRecover: () => void;
+  /** Recompute the optional NickServ RECOVER banner (after 900 / NICK). */
+  refreshNickRecoverOffer: () => void;
   setActive: (name: string) => void;
   openQuery: (nick: string, fromChannel?: string) => void;
   closeBuffer: (name: string) => void;
@@ -248,6 +257,18 @@ export function createChatStore(ns = '') {
   const { uploadImage, uploadAudio, deleteHostedFile } = makeUpload({ get, filehost, helpers });
   const { accountRegister, accountVerify, accountResend, accountChangePassword, accountChallengeComplete, resetReg } = makeAccount({ get, set });
 
+  const refreshNickRecoverOffer = () => {
+    const s = get();
+    const next = shouldOfferNickRecover({
+      status: s.status,
+      account: s.account,
+      nick: s.nick,
+      wantedNick: s.wantedNick,
+      offer: s.nickRecoverOffer,
+    });
+    if (next !== s.nickRecoverOffer) set({ nickRecoverOffer: next });
+  };
+
   return {
     status: 'idle',
     nick: '',
@@ -313,6 +334,8 @@ export function createChatStore(ns = '') {
     kicked: null,
     nickServAlert: null,
     nickError: null,
+    wantedNick: '',
+    nickRecoverOffer: null,
 
     connect(opts) {
       // Retrying after a failed/closed attempt re-enters connect() on the same
@@ -404,6 +427,8 @@ export function createChatStore(ns = '') {
         userCmdEchoUntil: 0,
         displayedHost: '',
         parentalControls: false,
+        wantedNick: (opts.nick || '').trim(),
+        nickRecoverOffer: null,
       });
       // Land on the first requested salon. The ircd auto-joins #EntreNous.chat
       // on connect; without this, that JOIN would steal the active buffer.
@@ -426,6 +451,8 @@ export function createChatStore(ns = '') {
           if (get().account) set({ account: '' });
         }
         set({ status: st, nick: client.nick });
+        if (st === 'registered') refreshNickRecoverOffer();
+        else if (st === 'closed' || st === 'error' || st === 'sasl-failed') set({ nickRecoverOffer: null });
         // Once we leave 'connecting' (registered, or an auth/connection failure),
         // a handoff is no longer in flight: drop the splash so failures fall back
         // to the join form (with the nick/channel still prefilled from the URL).
@@ -814,6 +841,31 @@ export function createChatStore(ns = '') {
     },
     dismissKick() { set({ kicked: null }); },
     dismissNickServAlert() { set({ nickServAlert: null }); },
+    confirmNickRecover() {
+      const s = get();
+      const offer = s.nickRecoverOffer;
+      const target = (offer?.target || s.wantedNick || '').trim();
+      if (!target || !s.client || offer?.pending) return;
+      // Identified session: Anope accepts RECOVER without the password.
+      // Never auto-run — only this explicit click.
+      set({ nickRecoverOffer: { target, pending: true, dismissed: false } });
+      s.client.privmsg('NickServ', `RECOVER ${target}`);
+      window.setTimeout(() => {
+        const cur = get();
+        if (cur.client !== s.client) return;
+        if (canon(cur.nick) === canon(target)) {
+          set({ nickRecoverOffer: null });
+          return;
+        }
+        cur.client?.setNick(target);
+      }, 900);
+    },
+    dismissNickRecover() {
+      const offer = get().nickRecoverOffer;
+      if (!offer) return;
+      set({ nickRecoverOffer: { ...offer, pending: false, dismissed: true } });
+    },
+    refreshNickRecoverOffer,
     openStatusFromNickServAlert() {
       get().setActive(SERVER);
       set({ nickServAlert: null });

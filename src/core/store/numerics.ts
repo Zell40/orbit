@@ -343,6 +343,8 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const account = msg.params[2] || '';
         set({ account });
         setActiveOwner(account, get().nick);
+        // SASL ok under a 433-suffixed nick → offer manual NickServ RECOVER.
+        get().refreshNickRecoverOffer?.();
         return true;
       }
       case '901': { // RPL_LOGGEDOUT
@@ -676,7 +678,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const wanted = msg.params[1] || '';
         const serverText = msg.params.length > 2 ? msg.params[msg.params.length - 1] : '';
         const text = (i18n.t(`numerics.${msg.command}`, { nick: wanted }) as string) || serverText;
-        set({ nickError: { nick: wanted, code: msg.command, text } });
+        const offer = get().nickRecoverOffer;
+        set({
+          nickError: { nick: wanted, code: msg.command, text },
+          // RECOVER then NICK can race the ghost — let the user click again.
+          ...(offer?.pending ? { nickRecoverOffer: { ...offer, pending: false } } : {}),
+        });
         sysLine(get().active || SERVER, `⚠️ ${text}`, 'system');
         if (get().prefs.sound) blip();
         return true;

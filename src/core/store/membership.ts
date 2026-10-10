@@ -184,6 +184,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           const client = get().client;
           if (account && client && getConfig().features.push)
             void refreshPush(client, account);
+          get().refreshNickRecoverOffer?.();
         }
         const s = get();
         for (const name of s.order) {
@@ -265,12 +266,14 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
             // not drop the session mid-login.
             if (next && next.toLowerCase() !== String(prev || '').toLowerCase()) {
               set({ account: next });
+              get().refreshNickRecoverOffer?.();
             }
             return true;
           }
           if (prev && !next && get().client) void unregisterPushOnAccountLogout(get().client!, prev);
           if (prev && !next) void import('../resume').then((m) => m.clearSaslResume());
           set({ account: next });
+          get().refreshNickRecoverOffer?.();
         }
         return true;
       }
