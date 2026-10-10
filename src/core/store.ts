@@ -20,6 +20,7 @@ import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
+import { refreshIrcListenCookie } from '../platform/irc-listen';
 import { mintChatResumeResult, saveSaslResume, clearSaslResume } from './resume';
 import type { MintResult } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
@@ -609,7 +610,19 @@ export function createChatStore(ns = '') {
         inbox.push(m);
         if (!pending) pending = setTimeout(drain, 0) as unknown as number;
       });
-      client.connect(opts);
+      // Apache routes wss via orbit_en_listen *at* the WebSocket handshake.
+      // Refresh it before open (join-form / parked SASL never hit chat_resume).
+      const openSocket = () => { client.connect(opts); };
+      if (opts.serverPassword) {
+        openSocket();
+      } else {
+        const acct = (opts.saslAuthzid || '').trim()
+          || ((opts.password || opts.passkey || opts.keycard) ? opts.nick.trim() : '');
+        void refreshIrcListenCookie({
+          account: acct,
+          realname: opts.realname,
+        }).finally(openSocket);
+      }
     },
 
     openQuery(nick, fromChannel) {
