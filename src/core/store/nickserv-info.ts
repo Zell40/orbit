@@ -308,10 +308,10 @@ export function parseNickServInfo(raw: string, fallbackAccount = ''): NickServIn
 async function nickservRpc(
   account: string,
   nick: string,
-  action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist' | 'nsajoin' | 'nsset',
+  action: 'nsinfo' | 'nsalist' | 'nshelp' | 'nsglist' | 'nslist' | 'nsajoin' | 'nsset' | 'nsrecover',
   extra?: {
     pattern?: string; flags?: string[]; op?: string; channel?: string; key?: string;
-    option?: string; value?: string; topic?: string;
+    option?: string; value?: string; topic?: string; target?: string;
   },
 ): Promise<string | null> {
   if (!account) return null;
@@ -1080,6 +1080,32 @@ export async function nickServAjoinAdd(account: string, nick: string, chan: stri
 
 export async function nickServAjoinDel(account: string, nick: string, chan: string): Promise<boolean> {
   return nickServAjoinMutate(account, nick, 'DEL', chan);
+}
+
+/**
+ * NickServ RECOVER via Anope JSON-RPC (fast path). Returns true when the RPC
+ * answered without a clear denial. Caller still issues NICK afterward.
+ * Falls back to a PRIVMSG when RPC is unavailable.
+ */
+export async function nickServRecover(account: string, nick: string, target: string): Promise<'rpc' | 'irc' | 'fail'> {
+  const want = String(target || '').trim();
+  if (!account || !want) return 'fail';
+  const rpc = await nickservRpc(account, nick, 'nsrecover', { target: want });
+  const fold = stripFormatting(rpc || '').replace(/\s+/g, ' ').trim();
+  if (rpc != null && fold && !rpcLooksDenied(fold)
+    && !/unknown|inconnu|isn.?t registered|n.?est pas enregistr/i.test(fold)) {
+    return 'rpc';
+  }
+  try {
+    const { activeStore } = await import('@/core/networks');
+    const client = activeStore()?.getState?.()?.client;
+    if (!client) return 'fail';
+    markNickServAutoQuery(8000);
+    client.privmsg('NickServ', `RECOVER ${want}`);
+    return 'irc';
+  } catch {
+    return 'fail';
+  }
 }
 
 /** NickServ SET via RPC (no identify), else one IRC SET whose notices are swallowed. */

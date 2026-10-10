@@ -32,7 +32,8 @@ export function NickRecoverPrompt() {
   const target = offer.target;
   return (
     <div className="guestprompt" role="dialog" aria-labelledby="nick-recover-title" aria-describedby="nick-recover-desc">
-      <button type="button" className="guestprompt__x" onClick={dismiss} aria-label={t('modals.closeButton')}>✕</button>
+      <button type="button" className="guestprompt__x" onClick={dismiss} disabled={offer.pending}
+        aria-label={t('modals.closeButton')}>✕</button>
       <h2 id="nick-recover-title" className="guestprompt__title">{t('banners.nickRecoverTitle')}</h2>
       <p id="nick-recover-desc" className="guestprompt__txt">
         {t('banners.nickRecoverBody', { account, nick: target, current: nick })}
@@ -40,10 +41,12 @@ export function NickRecoverPrompt() {
       <div className="guestprompt__actions">
         <button
           type="button"
-          className="guestprompt__primary"
+          className={`guestprompt__primary${offer.pending ? ' is-busy' : ''}`}
           disabled={offer.pending}
+          aria-busy={offer.pending || undefined}
           onClick={() => confirm()}
         >
+          {offer.pending ? <span className="guestprompt__spin" aria-hidden /> : null}
           {offer.pending ? t('banners.nickRecoverPending') : t('banners.nickRecoverAction')}
         </button>
       </div>

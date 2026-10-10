@@ -5,7 +5,9 @@ describe('refreshIrcListenCookie', () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
   it('calls chat_listen with the account before any age fallback', async () => {
-    const fetch = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, listen: 'reg' }) }));
+    const fetch = vi.fn(async (_url: string, _init?: RequestInit) => ({
+      ok: true, json: async () => ({ ok: true, listen: 'reg' }),
+    }));
     vi.stubGlobal('fetch', fetch);
     await refreshIrcListenCookie({ account: 'Zell', realname: '40 - Homme - BENQUET' });
     expect(fetch).toHaveBeenCalledTimes(1);
@@ -16,7 +18,9 @@ describe('refreshIrcListenCookie', () => {
   });
 
   it('uses guest GECOS age when there is no account', async () => {
-    const fetch = vi.fn(async () => ({ ok: true, json: async () => ({ ok: true, listen: 'reg' }) }));
+    const fetch = vi.fn(async (_url: string) => ({
+      ok: true, json: async () => ({ ok: true, listen: 'reg' }),
+    }));
     vi.stubGlobal('fetch', fetch);
     await refreshIrcListenCookie({ realname: '40 - Homme - Paris' });
     expect(String(fetch.mock.calls[0]![0])).toBe('/accounts/api/chat_listen/?age=40');
@@ -36,14 +40,14 @@ describe('refreshIrcListenCookie', () => {
   });
 
   it('no-ops without account or age', async () => {
-    const fetch = vi.fn();
+    const fetch = vi.fn(async (_url: string) => ({ ok: true, json: async () => ({}) }));
     vi.stubGlobal('fetch', fetch);
     await refreshIrcListenCookie({});
     expect(fetch).not.toHaveBeenCalled();
   });
 
   it('swallows network errors so connect still proceeds', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
+    vi.stubGlobal('fetch', vi.fn(async (_url: string) => { throw new Error('offline'); }));
     await expect(refreshIrcListenCookie({ account: 'Zell' })).resolves.toBeUndefined();
   });
 });

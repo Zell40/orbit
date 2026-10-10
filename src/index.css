@@ -3118,13 +3118,20 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   width: 100%; margin-top: 1.05rem;
 }
 .guestprompt__primary {
-  display: inline-flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
   flex: 1 1 10rem; min-height: 42px; padding: .55rem 1rem; border-radius: 11px;
   background: var(--accent); color: #fff; font: inherit; font-weight: 700; font-size: .9rem;
   text-decoration: none; border: 0; cursor: pointer;
   box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 .guestprompt__primary:hover { filter: brightness(1.05); }
+.guestprompt__primary:disabled,
+.guestprompt__primary.is-busy { opacity: .88; cursor: wait; filter: none; }
+.guestprompt__spin {
+  width: 1em; height: 1em; border-radius: 50%; flex: none;
+  border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff;
+  animation: c-spin .7s linear infinite;
+}
 .guestprompt__secondary {
   flex: 1 1 10rem; min-height: 42px; padding: .55rem 1rem; border-radius: 11px;
   background: var(--bg-soft); color: var(--ink); font: inherit; font-weight: 700; font-size: .9rem;

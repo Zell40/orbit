@@ -878,20 +878,37 @@ export function createChatStore(ns = '') {
       const s = get();
       const offer = s.nickRecoverOffer;
       const target = (offer?.target || s.wantedNick || '').trim();
-      if (!target || !s.client || offer?.pending) return;
+      const account = (s.account || '').trim();
+      if (!target || !s.client || !account || offer?.pending) return;
       // Identified session: Anope accepts RECOVER without the password.
-      // Never auto-run — only this explicit click.
+      // Never auto-run — only this explicit click. Prefer JSON-RPC (faster).
       set({ nickRecoverOffer: { target, pending: true, dismissed: false } });
-      s.client.privmsg('NickServ', `RECOVER ${target}`);
-      window.setTimeout(() => {
+      const clientAtStart = s.client;
+      void (async () => {
+        const { nickServRecover } = await import('./store/nickserv-info');
+        const via = await nickServRecover(account, s.nick, target);
         const cur = get();
-        if (cur.client !== s.client) return;
+        if (cur.client !== clientAtStart) return;
+        if (via === 'fail') {
+          set({ nickRecoverOffer: { target, pending: false, dismissed: false } });
+          return;
+        }
         if (canon(cur.nick) === canon(target)) {
           set({ nickRecoverOffer: null });
           return;
         }
-        cur.client?.setNick(target);
-      }, 900);
+        // RPC already finished services-side; IRC path needs a short settle.
+        const delay = via === 'rpc' ? 120 : 900;
+        window.setTimeout(() => {
+          const now = get();
+          if (now.client !== clientAtStart) return;
+          if (canon(now.nick) === canon(target)) {
+            set({ nickRecoverOffer: null });
+            return;
+          }
+          now.client?.setNick(target);
+        }, delay);
+      })();
     },
     dismissNickRecover() {
       const offer = get().nickRecoverOffer;
