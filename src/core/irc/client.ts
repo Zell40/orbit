@@ -317,9 +317,9 @@ export class IrcClient {
   modeList(channel: string, mode: 'b' | 'e' | 'I' | 'g' | 'w' | 'X'): void {
     this.send(`MODE ${channel} ${mode}`);
   }
-  // WHOX: token(t)/channel(c)/nick(n)/user(u)/host(h)/flags(f)/account(a)/realname(r)
-  // so we can map members → services account (avatars), GECOS (EntreNous age/sexe/ville),
-  // and nick!user@host (topic setter mask, ban match). `r` must be last — trailing.
-  // Token 152 echoes back.
+  // WHOX: request t/c/n/u/h/f/a/r (token, channel, nick, user, host, flags,
+  // account, realname). Reply field order is IRCv3-fixed (t c u h n f a r),
+  // not the letter order here — see numerics 354. `r` must be requested so it
+  // is trailing. Token 152 echoes back.
   who(target: string): void { this.send(`WHO ${target} %tcnuhfar,152`); }
 }

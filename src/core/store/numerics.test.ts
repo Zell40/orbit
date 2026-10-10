@@ -111,12 +111,12 @@ describe('store numerics handler', () => {
 
   it('354 WHOX for ourselves fills the session account', () => {
     const { handleNumerics, state } = setup({ nick: 'Harry' });
-    // %tcnuhfar,152 → nick, user, host, flags, account, realname
-    handleNumerics(mk('354', ['me', '152', '#x', 'Harry', 'harry', 'cloak.example', 'H', 'Harry', '[12/H/Benquet]']));
+    // IRCv3 fixed order for %tcnuhfar: t c u h n f a r
+    handleNumerics(mk('354', ['me', '152', '#x', 'harry', 'cloak.example', 'Harry', 'H', 'Harry', '[12/H/Benquet]']));
     expect(state.account).toBe('Harry');
   });
 
-  it('354 WHOX stores user@host on the channel member', () => {
+  it('354 WHOX stores user@host on the channel member (not swapped with nick)', () => {
     const { handleNumerics, state } = setup({
       buffers: {
         '#x': {
@@ -126,7 +126,8 @@ describe('store numerics handler', () => {
         },
       },
     });
-    handleNumerics(mk('354', ['me', '152', '#x', 'Zell', 'zell', 'user.entrenous.chat', 'H', 'Zell', '']));
+    // Wire order: user, host, nick — not nick, user, host.
+    handleNumerics(mk('354', ['me', '152', '#x', 'zell', 'user.entrenous.chat', 'Zell', 'H', 'Zell', '']));
     expect(state.buffers['#x']!.members!.Zell).toMatchObject({
       user: 'zell',
       host: 'user.entrenous.chat',

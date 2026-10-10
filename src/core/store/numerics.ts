@@ -203,12 +203,15 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         }
         return true;
       }
-      case '354': { // RPL_WHOSPCRPL (WHOX): <me> <token> <chan> <nick> <user> <host> <flags> <account> [:<realname>]
+      case '354': {
+        // RPL_WHOSPCRPL (WHOX). IRCv3 sends requested fields in a *fixed* order
+        // (t c u i h s n f d l a o r), not the order of letters in `%…`.
+        // We ask `%tcnuhfar,152` → <me> <t> <c> <u> <h> <n> <f> <a> [:<r>]
         if (msg.params[1] !== '152') break; // not our query
         const chan = msg.params[2];
-        const who = msg.params[3];
-        const user = msg.params[4] || undefined;
-        const host = msg.params[5] || undefined;
+        const user = msg.params[3] || undefined;
+        const host = msg.params[4] || undefined;
+        const who = msg.params[5];
         const flags = msg.params[6] ?? '';
         const account = msg.params[7] && msg.params[7] !== '0' ? msg.params[7] : undefined;
         const realname = msg.params[8]?.trim() || undefined;
