@@ -263,6 +263,18 @@ describe('store numerics handler', () => {
     expect(sys).toHaveLength(1);
   });
 
+  it('401 after 731 MONITOR offline does not add a red triangle', () => {
+    clearPmPeerOffline('bob');
+    const { handleNumerics, sys } = setup({
+      friendsOnline: {},
+      buffers: { bob: { name: 'bob', joined: false, messages: [] } },
+    });
+    expect(handleNumerics(mk('731', ['me', 'bob']))).toBe(true);
+    expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
+    expect(sys.filter((l) => l.name === 'bob' && l.kind === 'info')).toHaveLength(1);
+    expect(sys.some((l) => String(l.text).includes('⚠️'))).toBe(false);
+  });
+
   it('401 without a WHOIS tracker prints in an open query with that nick', () => {
     const { handleNumerics, sys, state } = setup({
       active: '#x',

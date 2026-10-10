@@ -15,6 +15,7 @@ import {
   announcePmOnline,
   isPmPeerOffline,
   markPmPeerOffline,
+  noteOfflineAlreadyAnnounced,
   queryBufferKey,
   showMphistoryStoredHint,
   showOfflinePeerWarn,
@@ -539,6 +540,8 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
             const display = get().buffers[qKey]?.name || t;
             helpers.sysLine(qKey, i18n.t('system.offline', { nick: display }), 'info', display, '', Date.now());
           }
+          // MONITOR already told the user — skip a later 401 red triangle (openQuery/MARKREAD).
+          noteOfflineAlreadyAnnounced(t);
           markPmPeerOffline(t);
         }
         set({ friendsOnline: online });

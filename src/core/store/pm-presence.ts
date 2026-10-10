@@ -151,6 +151,14 @@ export function showMphistoryStoredHint(opts: {
 }
 
 /**
+ * MONITOR already announced offline/quit in the open PM — suppress a follow-up
+ * 401 red triangle for the same offline spell (e.g. JoinDialog openQuery + MARKREAD).
+ */
+export function noteOfflineAlreadyAnnounced(nick: string): void {
+  if (nick) offlineWarnShown.add(canon(nick));
+}
+
+/**
  * Once per offline spell: plain "nick is offline" after a 401 without MPHISTORY_STORED.
  * Suppresses duplicates from a follow-up MARKREAD/TAGMSG 401 on the same nick.
  */

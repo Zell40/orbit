@@ -12,11 +12,13 @@ import { useActiveChat } from '@/core/networks';
 import { UmodeBadges } from './UmodeBadges';
 import { formatChannelModes } from '@/core/irc/modes';
 
-/** Preferred order for left-cluster topbar plugins (invite → clock). */
-const TOPBAR_LEAD = ['invite', 'orbit-clock'] as const;
+/** Preferred order for left-cluster topbar plugins (invite). */
+const TOPBAR_LEAD = ['invite'] as const;
+/** Live clock sits just right of channel info (i), before the member pill. */
+const TOPBAR_CLOCK = ['orbit-clock'] as const;
 /** Video conference + callerid sit after search + notifications. */
 const TOPBAR_AFTER_NOTIFY = ['orbit-conference', 'orbit-callerid'] as const;
-/** ChanServ sits to the right of room settings (sliders), before the member pill. */
+/** ChanServ sits to the right of room settings (sliders), before channel info. */
 const TOPBAR_AFTER_MANAGE = ['orbit-chanserv'] as const;
 
 function sortByPluginOrder(items: PluginUi[], order: readonly string[]) {
@@ -72,15 +74,20 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
   const n = members ? Object.keys(members).length : 0;
   const plug = topbarItems.filter((u) => u.slot === 'topbar_item');
   const leadNames = new Set<string>(TOPBAR_LEAD);
+  const clockNames = new Set<string>(TOPBAR_CLOCK);
   const afterNotifyNames = new Set<string>(TOPBAR_AFTER_NOTIFY);
   const afterManageNames = new Set<string>(TOPBAR_AFTER_MANAGE);
   const plugLead = sortByPluginOrder(plug.filter((u) => leadNames.has(u.plugin)), TOPBAR_LEAD);
+  const plugClock = sortByPluginOrder(plug.filter((u) => clockNames.has(u.plugin)), TOPBAR_CLOCK);
   const plugAfterNotify = sortByPluginOrder(plug.filter((u) => afterNotifyNames.has(u.plugin)), TOPBAR_AFTER_NOTIFY);
   const plugAfterManage = sortByPluginOrder(plug.filter((u) => afterManageNames.has(u.plugin)), TOPBAR_AFTER_MANAGE);
-  const plugRest = plug.filter((u) => !leadNames.has(u.plugin) && !afterNotifyNames.has(u.plugin) && !afterManageNames.has(u.plugin));
+  const plugRest = plug.filter((u) =>
+    !leadNames.has(u.plugin) && !clockNames.has(u.plugin)
+    && !afterNotifyNames.has(u.plugin) && !afterManageNames.has(u.plugin));
   const plugEnd = topbarItems.filter((u) => u.slot === 'topbar_end');
   const manageBadges = topbarItems.filter((u) => u.slot === 'chanadmin_badge');
   const showManage = isChannel && amOp;
+  // Channel info (i) when not managing the room — placed left of the clock.
   const showInfo = isChannel && !amOp;
   const isServer = bname === SERVER;
   const isNotices = isNoticeBuffer(bname);
@@ -130,7 +137,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           </div>
         )}
       </div>
-      {/* invite → clock → search → notifications → camera → pin / manage / ChanServ / … */}
+      {/* invite → search → notifications → camera → pin / manage / ChanServ → info → clock → members */}
       {plugLead.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugLead)}</span>}
       <UmodeBadges />
       {!isServer && <button className="topbar__search topbar__hide-mobile" title={t('topbar.search')} aria-label={t('topbar.search')} onClick={() => setSearching(true)}><Icon name="search" size={19} /></button>}
@@ -145,12 +152,13 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
           {manageBadges.map((u) => <PluginBoundary key={u.id} render={u.render} label="chanadmin_badge" />)}
         </button>
       )}
+      {plugAfterManage.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterManage)}</span>}
       {showInfo && (
         <button className="topbar__search topbar__hide-mobile topbar__manage" title={t('topbar.channelInfo')} aria-label={t('topbar.channelInfo')} onClick={() => setModal('chaninfo')}>
           <Icon name="info" size={19} />
         </button>
       )}
-      {plugAfterManage.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugAfterManage)}</span>}
+      {plugClock.length > 0 && <span className="topbar__plugins topbar__hide-mobile">{renderPlugins(plugClock)}</span>}
       {isChannel && <button className="topbar__pill" onClick={onMembers} title={t('topbar.membersTitle')} aria-label={t('topbar.members')}><span className="dot" />{n}</button>}
       {!isServer && !isNotices && !isChannel && bname && !isBouncerServiceNick(bname) && (
         <button className="topbar__search" title={t('topbar.userInfo', { nick: label })}
