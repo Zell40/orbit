@@ -30,6 +30,7 @@ import { fetchChannelMlock } from './store/mlock-rpc';
 import { fetchChanServPublic } from './store/chanserv-info';
 import { resetGardianStatsGate } from './store/gardian-stats';
 import { onOwnerChange, setActiveOwner } from '../lib/identity-storage';
+import { bus } from '../modules/bus';
 
 
 
@@ -773,6 +774,8 @@ export function createChatStore(ns = '') {
       saveFriends(next); syncGlobal();
       set({ friends: next });
       get().client?.ircv3.monitor('+', n); // start watching
+      // EntreNous callerid: mirror into ACCEPT allow-list (+g / parental).
+      bus.emit('friends:add', n);
     },
 
     removeFriend(nick) {
@@ -781,6 +784,7 @@ export function createChatStore(ns = '') {
       const online = { ...get().friendsOnline }; delete online[nick.toLowerCase()];
       set({ friends: next, friendsOnline: online });
       get().client?.ircv3.monitor('-', nick);
+      bus.emit('friends:remove', nick);
     },
 
     loadBanList(channel) {
@@ -1067,13 +1071,16 @@ export function createChatStore(ns = '') {
     setSearch(q) { set({ search: q }); },
 
     toggleIgnore(nick) {
-      const lc = nick.toLowerCase();
+      const n = nick.trim();
+      if (!n) return;
+      const lc = n.toLowerCase();
       const cur = get().ignored;
-      const next = cur.some((n) => n.toLowerCase() === lc)
-        ? cur.filter((n) => n.toLowerCase() !== lc)
-        : [...cur, nick];
+      const was = cur.some((x) => x.toLowerCase() === lc);
+      const next = was ? cur.filter((x) => x.toLowerCase() !== lc) : [...cur, n];
       saveIgnored(next); syncGlobal();
       set({ ignored: next });
+      // EntreNous callerid: mirror into deny / SILENCE blacklist.
+      bus.emit(was ? 'ignore:remove' : 'ignore:add', n);
     },
     modKick(nick, reason) { const { client, active } = get(); if (isChannelName(active)) client?.kick(active, nick, reason); },
     // Ban by host if known (host bans survive nick changes), else by nick — no kick.
