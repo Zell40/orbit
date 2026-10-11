@@ -233,9 +233,14 @@ function NickServInfoCard({ account, nick }: { account: string; nick: string }) 
           <dl className="nsinfo-dl">
             {rows.map((row, i) => {
               const hostKind = nickServInfoLabelKind(row.key, rows, i);
+              // Prefer the cloaked host others see; skip the real IP when both exist.
+              if (hostKind === 'hostReal'
+                && rows.some((r, j) => nickServInfoLabelKind(r.key, rows, j) === 'hostHidden')) {
+                return null;
+              }
               return (
               <div className="nsinfo-row" key={`${row.key}-${i}`}>
-                <dt className="nsinfo-row__k">{hostKind ? t(`settings.account.${hostKind}`) : row.key}</dt>
+                <dt className="nsinfo-row__k">{hostKind ? t('settings.account.hostName') : row.key}</dt>
                 <dd className="nsinfo-row__v">
                   {row.pills
                     ? <NickServSetToggles account={account} nick={nick} pills={row.pills} rows={allRows} onChanged={() => load({ force: true, silent: true })} />

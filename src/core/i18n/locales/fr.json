@@ -477,6 +477,7 @@
       "glistLabel": "Pseudo(s) enregistré(s)",
       "hostReal": "Host réel",
       "hostHidden": "Host caché",
+      "hostName": "Nom d'hôte",
       "nsSearchTitle": "Recherche de compte / pseudo",
       "nsSearchIntro": "Cherche un pseudo ou un compte enregistré (NickServ LIST). Un « # » devant le modèle indique une page, ex. #51-100.",
       "nsSearchPattern": "Modèle",

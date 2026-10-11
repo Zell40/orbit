@@ -477,6 +477,7 @@
       "glistLabel": "Registered nick(s)",
       "hostReal": "Real host",
       "hostHidden": "Hidden host",
+      "hostName": "Hostname",
       "nsSearchTitle": "Account / nick search",
       "nsSearchIntro": "Search a registered nick or account (NickServ LIST). A leading “#” is a page, e.g. #51-100.",
       "nsSearchPattern": "Pattern",
