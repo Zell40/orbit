@@ -228,6 +228,13 @@ export function createChatStore(ns = '') {
   const profileCache = new Map<string, { realname?: string; account?: string }>();
   const lastCantSend: Record<string, number> = {}; // throttle the "you can't write here" notice per channel
   const lastAwayNotice: Record<string, number> = {}; // throttle the "X is away" notice per query
+  // Live connect opts — prune refused channels so 001 autojoin does not retry them.
+  let activeConnectOpts: { channels?: string[] } | null = null;
+  const pruneAutoJoin = (ch: string) => {
+    if (!activeConnectOpts?.channels?.length) return;
+    const key = canon(ch);
+    activeConnectOpts.channels = activeConnectOpts.channels.filter((c) => canon(c) !== key);
+  };
   const store = create<ChatState>((set, get) => {
   // Buffer/message helpers live in store/helpers.ts.
   const helpers = makeHelpers(set, get, closedChannels);
@@ -256,7 +263,7 @@ export function createChatStore(ns = '') {
     s.client?.ircv3.sendDisplayed(b.name, latestPeer);
   };
 
-  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns, mlockAsked });
+  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns, mlockAsked, pruneAutoJoin });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
   const { uploadImage, uploadAudio, deleteHostedFile } = makeUpload({ get, filehost, helpers });
@@ -419,6 +426,7 @@ export function createChatStore(ns = '') {
         };
       }
       const client = new IrcClient();
+      activeConnectOpts = opts;
       initNotify();
       setExpectedBootChannels(opts.channels);
       if (filehost.timer) clearTimeout(filehost.timer);
@@ -529,11 +537,12 @@ export function createChatStore(ns = '') {
           client.ircv3.subscribeMetadata(['avatar', 'bio', 'pronouns', 'timezone', 'url']);
           // On a RECONNECT, rejoin every channel we still have open (the client
           // only auto-joins the initial set; this restores ones joined later).
+          // Skip joinDenied — retrying a refused salon beeps in a loop.
           if (wasReconnect) {
             const s = get();
             for (const name of s.order) {
               const b = s.buffers[name];
-              if (b?.isChannel && !closedChannels.has(name)) client.join(b.name);
+              if (b?.isChannel && !closedChannels.has(name) && !b.joinDenied) client.join(b.name);
             }
           }
           // network icon from the server's draft/ICON ISUPPORT token (else branding favicon)
@@ -582,8 +591,10 @@ export function createChatStore(ns = '') {
               });
             }
           }
-          if (Object.keys(b.members).length) {
-            patchBuffer(name, (bb) => ({ ...bb, members: {} }));
+          // Clear nicklist + joined: the socket is down — next 001 will rejoin.
+          // Leaving joined:true made failed rejoins only blip (no joinDenied).
+          if (Object.keys(b.members).length || b.joined) {
+            patchBuffer(name, (bb) => ({ ...bb, members: {}, joined: false }));
           }
         }
         set({ reconnectIn: secs as number });
@@ -611,17 +622,30 @@ export function createChatStore(ns = '') {
         if (!pending) pending = setTimeout(drain, 0) as unknown as number;
       });
       // Apache routes wss via orbit_en_listen *at* the WebSocket handshake.
-      // Refresh it before open (join-form / parked SASL never hit chat_resume).
+      // Resolve GECOS first so age is known — otherwise chat_listen may force
+      // `reg` and wipe a prior `cp` cookie (minors land on WebsocketEN).
       const openSocket = () => { client.connect(opts); };
       if (opts.serverPassword) {
         openSocket();
       } else {
-        const acct = (opts.saslAuthzid || '').trim()
-          || ((opts.password || opts.passkey || opts.keycard) ? opts.nick.trim() : '');
-        void refreshIrcListenCookie({
-          account: acct,
-          realname: opts.realname,
-        }).finally(openSocket);
+        void (async () => {
+          try {
+            if (opts.resolveRealname) {
+              try {
+                const rn = await opts.resolveRealname();
+                if (typeof rn === 'string' && rn.trim()) opts.realname = rn.trim();
+              } catch { /* keep existing realname */ }
+            }
+            const acct = (opts.saslAuthzid || '').trim()
+              || ((opts.password || opts.passkey || opts.keycard) ? opts.nick.trim() : '');
+            await refreshIrcListenCookie({
+              account: acct,
+              realname: opts.realname,
+            });
+          } finally {
+            openSocket();
+          }
+        })();
       }
     },
 

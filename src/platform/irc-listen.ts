@@ -1,6 +1,8 @@
 // Refresh HttpOnly `orbit_en_listen` (cp|reg) on the Orbit origin *before* the
 // IRC WebSocket opens. Apache on irc.* reads that cookie to pick InspIRCd
 // Websocket-CP vs normal — join-form reconnects never hit chat_resume/handoff.
+// Caller should resolve GECOS/age first; the endpoint leaves the cookie unchanged
+// when age is unknown (avoids demoting a prior `cp` to `reg`).
 import { parseProfileGecos } from '@/lib/profile-gecos';
 
 export type IrcListenRefresh = {

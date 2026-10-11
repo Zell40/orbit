@@ -1009,7 +1009,8 @@
     "redirect": "Unable to join this channel.",
     "redirected": "You have been redirected to {{channel}}.",
     "closeToRedirect": "Go to {{channel}}",
-    "cban": "This channel is not available on the network."
+    "cban": "This channel is not available on the network.",
+    "nosuch": "This channel does not exist or is not accessible."
   },
   "banners": {
     "reconnecting": "Reconnecting…",

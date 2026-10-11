@@ -512,14 +512,30 @@ describe('store numerics handler', () => {
     expect(state.active).toBe('#_logs');
   });
 
-  it('477 while already joined does not overlay', () => {
-    const { handleNumerics, state, sys } = setup({
+  it('477 while already joined marks joinDenied so auto-rejoin stops', () => {
+    const { handleNumerics, state } = setup({
       buffers: { '#x': { name: '#x', joined: true, messages: [] } },
     });
     expect(handleNumerics(mk('477', ['me', '#x', 'Need registered nick']))).toBe(true);
-    expect(state.buffers['#x']?.joinDenied).toBeUndefined();
-    expect(state.buffers['#x']?.joined).toBe(true);
-    expect(sys.some((l) => l.name === '#x' && l.text.includes('⚠️'))).toBe(true);
+    expect(state.buffers['#x']?.joinDenied).toMatchObject({ code: '477', reasonKey: 'registered' });
+    expect(state.buffers['#x']?.joined).toBe(false);
+  });
+
+  it('repeated join errors after joinDenied do not stack', () => {
+    const { handleNumerics, state } = setup({
+      buffers: { '#x': { name: '#x', joined: false, messages: [], joinDenied: { code: '473', flag: '+i', reasonKey: 'invite', detail: 'x' } } },
+    });
+    expect(handleNumerics(mk('473', ['me', '#x', 'Cannot join channel (invite only)']))).toBe(true);
+    expect(handleNumerics(mk('403', ['me', '#x', 'No such channel']))).toBe(true);
+    expect(state.buffers['#x']?.joinDenied).toMatchObject({ code: '473', reasonKey: 'invite' });
+  });
+
+  it('403 on an open buffer sets joinDenied nosuch', () => {
+    const { handleNumerics, state } = setup({
+      buffers: { '#jeunes': { name: '#jeunes', joined: false, messages: [] } },
+    });
+    expect(handleNumerics(mk('403', ['me', '#jeunes', 'No such channel']))).toBe(true);
+    expect(state.buffers['#jeunes']?.joinDenied).toMatchObject({ code: '403', reasonKey: 'nosuch' });
   });
 
   it('341 RPL_INVITING writes an invite callout on the channel', () => {

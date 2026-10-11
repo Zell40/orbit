@@ -40,12 +40,14 @@ interface HandlerCtx {
   profileCache: Map<string, { realname?: string; account?: string }>;
   persistNs?: string;
   mlockAsked: Map<string, number>;
+  /** Drop a refused channel from the live connect autojoin list. */
+  pruneAutoJoin?: (ch: string) => void;
 }
 
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
-  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs = '', mlockAsked } = ctx;
+  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs = '', mlockAsked, pruneAutoJoin } = ctx;
   const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, announceLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
@@ -63,7 +65,7 @@ export function makeHandler(ctx: HandlerCtx) {
   // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
   const { handleMode } = makeMode({ get, set, helpers });
   // Numeric replies (RPL_*/ERR_*) + the generic error/console fallback. See ./numerics.
-  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs });
+  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs, pruneAutoJoin });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {

@@ -35,13 +35,15 @@ interface NumericsDeps {
   historyAsked: Set<string>;
   profileCache?: Map<string, { realname?: string; account?: string }>;
   persistNs?: string;
+  pruneAutoJoin?: (ch: string) => void;
 }
 
 // Numerics that are handled elsewhere (this switch, switch-2 in handler.ts, or the
 // client/server-info layer) and so must NOT be dumped by the generic fallback below.
-const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '405', '470', '471', '473', '474', '475', '476', '477', '489', '519', '520', '742', '926']);
+const HANDLED_NUMERICS = new Set(['005', '328', '332', '333', '353', '366', '381', '396', '491', '900', '901', '321', '322', '323', '354', '372', '375', '376', '422', '451', '432', '433', '403', '405', '470', '471', '473', '474', '475', '476', '477', '489', '519', '520', '742', '926']);
 
 const JOIN_DENIED: Record<string, { flag: string; reasonKey: string }> = {
+  '403': { flag: '', reasonKey: 'nosuch' },
   '405': { flag: '', reasonKey: 'toomany' },
   '471': { flag: '+l', reasonKey: 'full' },
   '473': { flag: '+i', reasonKey: 'invite' },
@@ -139,7 +141,7 @@ function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatStat
 // numeric was consumed. Every 3-digit reply is either handled by name here or
 // routed by the generic fallback (errors → a ⚠ line where the user is looking,
 // info → the server console), so nothing is ever dumped unlabelled.
-export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs = '' }: NumericsDeps) {
+export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs = '', pruneAutoJoin }: NumericsDeps) {
   const { ensureBuffer, patchBuffer, sysLine, serverLine, patchWhois } = helpers;
   // LIST: keep the previous catalogue on screen while a refresh is in flight
   // (wiping it on 321 made Explore look empty/stuck). Live-append only when
@@ -148,14 +150,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
   let listLive = false;
 
   function applyJoinDenied(ch: string, code: string, detail: string, extra?: { flag?: string; reasonKey?: string; redirectTo?: string; suggested?: string }): void {
-    const existing = get().buffers[canon(ch)];
-    if (existing?.joined) {
-      const key = extra?.reasonKey || JOIN_DENIED[code]?.reasonKey || 'fallback';
-      sysLine(ch, `⚠️ ${detail.trim() || i18n.t(`joinDenied.${key}`)}`, 'system');
-      if (get().prefs.sound) blip();
-      return;
-    }
-    closedChannels.delete(canon(ch));
+    const key = canon(ch);
+    const existing = get().buffers[key];
+    // Already refused — ignore further JOIN errors (no blip / sysLine spam).
+    if (existing?.joinDenied) return;
+    closedChannels.delete(key);
+    pruneAutoJoin?.(ch);
     ensureBuffer(ch);
     const meta = JOIN_DENIED[code] || { flag: '', reasonKey: 'fallback' };
     const flag = extra?.flag ?? meta.flag;
@@ -171,7 +171,7 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         ...(suggested && isChannelName(suggested) ? { suggested } : {}),
       },
     }));
-    if (get().active !== canon(ch)) set({ active: canon(ch) });
+    if (get().active !== key) set({ active: key });
     if (get().prefs.sound) blip();
   }
 
@@ -643,6 +643,19 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
           reasonKey: meta.reasonKey,
           redirectTo: failed ? undefined : parsed.to || undefined,
         });
+        return true;
+      }
+      case '403': { // ERR_NOSUCHCHANNEL — also used for secret/+i refusals on some paths
+        const ch = msg.params[1];
+        if (isChannelName(ch) && get().buffers[canon(ch)]) {
+          applyJoinDenied(ch, '403', msg.params[msg.params.length - 1] || '');
+          return true;
+        }
+        // Unknown channel name (typo /msg etc.) → Status once, not a joinDenied card.
+        const text = (i18n.t('numerics.403', { defaultValue: '' }) as string)
+          || msg.params[msg.params.length - 1] || '403';
+        sysLine(SERVER, `⚠️ ${text}`, 'system');
+        if (get().prefs.sound) blip();
         return true;
       }
       case '405': // ERR_TOOMANYCHANNELS

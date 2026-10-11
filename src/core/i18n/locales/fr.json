@@ -1010,7 +1010,8 @@
     "redirect": "Impossible de rejoindre ce salon.",
     "redirected": "Tu as été redirigé vers {{channel}}.",
     "closeToRedirect": "Aller sur {{channel}}",
-    "cban": "Ce salon n'est pas accessible sur le réseau."
+    "cban": "Ce salon n'est pas accessible sur le réseau.",
+    "nosuch": "Ce salon n'existe pas ou n'est pas accessible."
   },
   "banners": {
     "reconnecting": "Reconnexion…",
