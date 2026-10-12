@@ -55,7 +55,8 @@ describe('priority plugins / identity / display', () => {
     expect(priorityPluginIds([
       '/app/plugins/third/orbit-conference/orbit-conference.js?v=21',
       '/app/plugins/third/orbit-petitbac/orbit-petitbac.js?v=77',
-    ])).toEqual(['orbit-conference']);
+      '/app/plugins/third/orbit-callerid/orbit-callerid.js?v=35',
+    ])).toEqual(['orbit-conference', 'orbit-callerid']);
   });
 
   it('treats missing optional plugins as already registered', () => {

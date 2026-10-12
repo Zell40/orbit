@@ -7,12 +7,14 @@ export const BOOT_IDENTITY_MS = 1800;
 /** Priority plugin factories + topbar paint. */
 export const BOOT_CHROME_MS = 1200;
 
-/** Click-now chrome (visio, salon, members, bar). Games keep loading in the background. */
+/** Click-now chrome (visio, salon, members, bar, CP). Games stay off this list. */
 export const BOOT_PRIORITY_PLUGINS = [
   'orbit-conference',
   'orbit-chanserv',
   'orbit-asl',
   'orbit-navbar',
+  'orbit-callerid',
+  'orbit-room-gallery',
 ] as const;
 
 let expectedChannels: string[] = [];
