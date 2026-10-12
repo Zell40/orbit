@@ -1653,7 +1653,7 @@
       "clearHistory": "Delete history",
       "clearHistoryHint": "Erases every private message kept on the server. They will not be replayed the next time you connect.",
       "clearHistoryUnavailable": "Unavailable: this server does not keep private-message history.",
-      "clearHistoryAction": "Delete all history"
+      "clearHistoryAction": "Delete"
     }
   },
   "about": {

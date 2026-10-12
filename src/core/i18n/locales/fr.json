@@ -1654,7 +1654,7 @@
       "clearHistory": "Supprimer l’historique",
       "clearHistoryHint": "Efface tous les messages privés conservés sur le serveur. Ils ne seront plus rejoués à la connexion.",
       "clearHistoryUnavailable": "Indisponible : le serveur ne propose pas l’historique des messages privés.",
-      "clearHistoryAction": "Supprimer tout l’historique"
+      "clearHistoryAction": "Supprimer"
     }
   },
   "about": {
