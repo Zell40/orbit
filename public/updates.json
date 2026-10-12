@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "fr": "Contrôle parental : reconnexion sur Websocket-CP et avertissement salon sans doublon.",
+      "en": "Parental controls: reconnect on Websocket-CP and no duplicate channel safety tip."
+    },
+    {
+      "fr": "Amis → liste blanche ACCEPT ; Ignore → liste noire SILENCE (filtre +g).",
+      "en": "Friends → ACCEPT allow list; Ignore → SILENCE deny list (+g filter)."
+    },
+    {
+      "fr": "Explorer les salons : changer de page par glissement sur smartphone.",
+      "en": "Channel explorer: swipe to change page on phones."
+    },
+    {
+      "fr": "Compte : affichage du nom d’hôte vu par les autres (cloak), sans l’IP réelle.",
+      "en": "Account: show the hostname others see (cloak), not the real IP."
+    }
+  ]
+}

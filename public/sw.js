@@ -206,7 +206,10 @@ self.addEventListener('fetch', (e) => {
   }
   // version.json: the update probe — always straight to network, never cached, so
   // a poll (src/ui/appUpdate.ts) sees the freshly deployed build id immediately.
-  if (url.pathname === '/app/version.json') { e.respondWith(fetch(req)); return; }
+  if (url.pathname === '/app/version.json' || url.pathname === '/app/updates.json') {
+    e.respondWith(fetch(req));
+    return;
+  }
   // config.json: network-first so a deployer's edits apply WITHOUT a rebuild;
   // fall back to the last cached copy when offline.
   if (url.pathname === '/app/config.json') {

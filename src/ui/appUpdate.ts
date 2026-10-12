@@ -5,6 +5,8 @@
 // used to abort the IRC websocket mid-handshake).
 const UPDATE_EVT = 'orbit-app-update';
 
+export type UpdateNote = { fr?: string; en?: string };
+
 function announceUpdate() {
   window.dispatchEvent(new Event(UPDATE_EVT));
 }
@@ -22,6 +24,19 @@ async function deployedCommit(): Promise<string> {
     return typeof j.commit === 'string' ? j.commit : '';
   } catch {
     return '';
+  }
+}
+
+/** Release notes for the update popup (« Voir plus »). Deployers edit public/updates.json. */
+export async function fetchUpdateNotes(): Promise<UpdateNote[]> {
+  try {
+    const r = await fetch('/app/updates.json', { cache: 'no-cache' });
+    if (!r.ok) return [];
+    const j = (await r.json()) as { items?: UpdateNote[] };
+    if (!Array.isArray(j?.items)) return [];
+    return j.items.filter((it) => it && (it.fr || it.en));
+  } catch {
+    return [];
   }
 }
 
