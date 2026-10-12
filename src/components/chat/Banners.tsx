@@ -319,3 +319,119 @@ export function JoinDeniedPanel() {
     </div>
   );
 }
+
+/** Ask before closing a PM that still has server-replayed history. */
+export function PmHistoryClosePrompt() {
+  const { t } = useTranslation();
+  const offer = useActiveChat((s) => s.pmHistoryClose);
+  const finish = useActiveChat((s) => s.finishPmHistoryClose);
+  const dismiss = useActiveChat((s) => s.dismissPmHistoryClose);
+  if (!offer) return null;
+  const nick = offer.nick;
+  return (
+    <div className="guestprompt" role="dialog" aria-labelledby="pmhist-close-title" aria-describedby="pmhist-close-desc">
+      <button type="button" className="guestprompt__x" onClick={dismiss} aria-label={t('modals.closeButton')}>✕</button>
+      <h2 id="pmhist-close-title" className="guestprompt__title">{t('banners.pmHistoryCloseTitle')}</h2>
+      <p id="pmhist-close-desc" className="guestprompt__txt">{t('banners.pmHistoryCloseBody', { nick })}</p>
+      <div className="guestprompt__actions">
+        <button type="button" className="guestprompt__primary" onClick={() => finish(true)}>
+          {t('banners.pmHistoryCloseYes')}
+        </button>
+      </div>
+      <button type="button" className="guestprompt__later" onClick={() => finish(false)}>
+        {t('banners.pmHistoryCloseNo')}
+      </button>
+    </div>
+  );
+}
+
+/** Confirm, then acknowledge, MPHISTORY CLEAR * from Settings → Server. */
+export function PmHistoryClearAllPrompt() {
+  const { t } = useTranslation();
+  const offer = useActiveChat((s) => s.pmHistoryClearAll);
+  const confirm = useActiveChat((s) => s.confirmClearAllPmHistory);
+  const dismiss = useActiveChat((s) => s.dismissClearAllPmHistory);
+  if (!offer) return null;
+  if (offer.phase === 'done') {
+    return (
+      <div className="guestprompt" role="dialog" aria-labelledby="pmhist-all-done-title" aria-describedby="pmhist-all-done-desc">
+        <button type="button" className="guestprompt__x" onClick={dismiss} aria-label={t('modals.closeButton')}>✕</button>
+        <h2 id="pmhist-all-done-title" className="guestprompt__title">{t('banners.pmHistoryClearAllDoneTitle')}</h2>
+        <p id="pmhist-all-done-desc" className="guestprompt__txt">
+          {offer.n === 0
+            ? t('banners.pmHistoryClearAllDoneEmpty')
+            : t('banners.pmHistoryClearAllDoneBody', { count: offer.n })}
+        </p>
+        <div className="guestprompt__actions">
+          <button type="button" className="guestprompt__primary" onClick={dismiss}>
+            {t('banners.pmHistoryClearAllClose')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  const pending = offer.phase === 'pending';
+  return (
+    <div className="guestprompt" role="dialog" aria-labelledby="pmhist-all-title" aria-describedby="pmhist-all-desc">
+      <button type="button" className="guestprompt__x" onClick={dismiss} disabled={pending} aria-label={t('modals.closeButton')}>✕</button>
+      <h2 id="pmhist-all-title" className="guestprompt__title">{t('banners.pmHistoryClearAllTitle')}</h2>
+      <p id="pmhist-all-desc" className="guestprompt__txt">{t('banners.pmHistoryClearAllBody')}</p>
+      <div className="guestprompt__actions">
+        <button
+          type="button"
+          className={`guestprompt__primary guestprompt__primary--danger${pending ? ' is-busy' : ''}`}
+          disabled={pending}
+          aria-busy={pending || undefined}
+          onClick={() => confirm()}
+        >
+          {pending ? <span className="guestprompt__spin" aria-hidden /> : null}
+          {pending ? t('banners.pmHistoryClearAllPending') : t('banners.pmHistoryClearAllYes')}
+        </button>
+      </div>
+      <button type="button" className="guestprompt__later" onClick={dismiss} disabled={pending}>
+        {t('banners.pmHistoryCancel')}
+      </button>
+    </div>
+  );
+}
+
+/** Shown in a PM once ircv3_mphistory_v2 has replayed stored lines into it. */
+export function PmHistoryBar() {
+  const { t } = useTranslation();
+  const name = useActiveChat((s) => {
+    const b = s.buffers[s.active];
+    if (!b || b.isChannel || !b.mphistoryReplay) return '';
+    return b.name;
+  });
+  const client = useActiveChat((s) => s.client);
+  const [ask, setAsk] = useState(false);
+  useEffect(() => { setAsk(false); }, [name]);
+  if (!name) return null;
+  const send = () => {
+    if (!client || /[\s,]/.test(name) || name.startsWith('#') || name.startsWith('&')) return;
+    client.send(`MPHISTORY CLEAR ${name}`);
+  };
+  return (
+    <div className="pmhist" role="status">
+      <span className="pmhist__txt">
+        {ask ? t('banners.pmHistoryConfirm', { nick: name }) : t('banners.pmHistory')}
+      </span>
+      <span className="pmhist__actions">
+        {ask ? (
+          <>
+            <button type="button" className="pmhist__btn pmhist__btn--danger" onClick={send}>
+              {t('banners.pmHistoryDo')}
+            </button>
+            <button type="button" className="pmhist__btn" onClick={() => setAsk(false)}>
+              {t('banners.pmHistoryCancel')}
+            </button>
+          </>
+        ) : (
+          <button type="button" className="pmhist__btn pmhist__btn--danger" onClick={() => setAsk(true)}>
+            {t('banners.pmHistoryClear')}
+          </button>
+        )}
+      </span>
+    </div>
+  );
+}

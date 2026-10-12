@@ -3125,6 +3125,10 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 .guestprompt__primary:hover { filter: brightness(1.05); }
+.guestprompt__primary--danger {
+  background: var(--danger);
+  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--danger) 55%, transparent);
+}
 .guestprompt__primary:disabled,
 .guestprompt__primary.is-busy { opacity: .88; cursor: wait; filter: none; }
 .guestprompt__spin {
@@ -3245,6 +3249,27 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   background: #fff; color: var(--danger);
 }
 .reconnect-banner__act:hover { filter: brightness(.94); }
+
+/* PM: stored history was replayed — offer MPHISTORY CLEAR */
+.pmhist {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+  flex-wrap: wrap;
+  padding: .4rem .85rem;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border);
+  font-size: .82rem;
+  color: var(--ink);
+}
+.pmhist__actions { display: flex; align-items: center; gap: .4rem; }
+.pmhist__btn {
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: .18rem .7rem; background: var(--bg); color: var(--ink);
+  font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer;
+}
+.pmhist__btn:hover { background: var(--bg-soft); }
+.pmhist__btn--danger { border-color: transparent; background: var(--danger); color: #fff; }
+.pmhist__btn--danger:hover { filter: brightness(1.05); background: var(--danger); }
 
 /* chathistory "loading older messages" indicator (top of the timeline) */
 .histload {

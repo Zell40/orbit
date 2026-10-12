@@ -850,6 +850,7 @@
     "online": "{{nick}} est connecté",
     "offline": "{{nick}} n’est pas en ligne.",
     "mphistoryQueued": "Message enregistré : il sera remis à {{nick}} à sa reconnexion.",
+    "mphistoryCleared": "Historique privé avec {{nick}} effacé.",
     "kick": "{{target}} a été expulsé par {{by}}",
     "nick": "{{nick}} est désormais {{newnick}}",
     "modes": "{{nick}} a changé les modes : {{modes}}",
@@ -1057,7 +1058,25 @@
     "pushPromptLater": "Plus tard",
     "nickServTitle": "Message de {{from}}",
     "nickServViewStatus": "Voir le statut",
-    "nickServDismiss": "Fermer"
+    "nickServDismiss": "Fermer",
+    "pmHistory": "Historique privé rejoué",
+    "pmHistoryClear": "Supprimer",
+    "pmHistoryConfirm": "Effacer l’historique avec {{nick}} sur le serveur ?",
+    "pmHistoryDo": "Effacer",
+    "pmHistoryCancel": "Annuler",
+    "pmHistoryCloseTitle": "Fermer la conversation",
+    "pmHistoryCloseBody": "Supprimer l’historique privé avec {{nick}} ? Il ne sera plus affiché à la prochaine connexion.",
+    "pmHistoryCloseYes": "Supprimer l’historique",
+    "pmHistoryCloseNo": "Garder l’historique",
+    "pmHistoryClearAllTitle": "Supprimer tout l’historique ?",
+    "pmHistoryClearAllBody": "Tous les messages privés enregistrés pour ton compte seront effacés. Cette action est définitive.",
+    "pmHistoryClearAllYes": "Supprimer",
+    "pmHistoryClearAllPending": "Suppression…",
+    "pmHistoryClearAllDoneTitle": "Historique effacé",
+    "pmHistoryClearAllDoneBody_one": "{{count}} message privé a été effacé.",
+    "pmHistoryClearAllDoneBody_other": "{{count}} messages privés ont été effacés.",
+    "pmHistoryClearAllDoneEmpty": "Il n’y avait aucun message privé à effacer.",
+    "pmHistoryClearAllClose": "Fermer"
   },
   "themes": {
     "light": "Light",
@@ -1626,7 +1645,11 @@
       "limitsValue": "pseudo {{nick}} · salon {{chan}} · sujet {{topic}}",
       "navDesc": "Réseau & connexion",
       "maxChannels": "Salons max",
-      "advanced": "Avancé · ISUPPORT brut"
+      "advanced": "Avancé · ISUPPORT brut",
+      "clearHistory": "Supprimer l’historique",
+      "clearHistoryHint": "Efface tous les messages privés conservés sur le serveur. Ils ne seront plus rejoués à la connexion.",
+      "clearHistoryUnavailable": "Indisponible : le serveur ne propose pas l’historique des messages privés.",
+      "clearHistoryAction": "Supprimer tout l’historique"
     }
   },
   "about": {

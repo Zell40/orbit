@@ -38,6 +38,11 @@ export function ServerSection() {
   const raw = connected && client
     ? Object.entries(client.server.isupport).sort((a, b) => a[0].localeCompare(b[0])) : [];
 
+  const askClear = useActiveChat((s) => s.askClearAllPmHistory);
+  const clearPhase = useActiveChat((s) => s.pmHistoryClearAll?.phase);
+  const hasHistory = connected && !!client?.ircv3.hasCap('entrenous/mphistory');
+  const canClear = hasHistory && clearPhase !== 'confirm' && clearPhase !== 'pending';
+
   return (
     <>
     <div className="scard">
@@ -45,6 +50,17 @@ export function ServerSection() {
       <div className="scard__body">
         <ToggleRow icon="📨" label={t('settings.notifications.joinOnInvite')} hint={t('settings.notifications.joinOnInviteHint')} prefKey="joinOnInvite" />
         <ToggleRow icon="🚪" label={t('settings.notifications.confirmClose')} hint={t('settings.notifications.confirmCloseHint')} prefKey="confirmClose" />
+      </div>
+    </div>
+    <div className="scard">
+      <div className="scard__h">{t('caps.server.clearHistory')}</div>
+      <div className="scard__body">
+        <div className="sfield">
+          <p className="sfield__intro">{t(hasHistory || !connected ? 'caps.server.clearHistoryHint' : 'caps.server.clearHistoryUnavailable')}</p>
+          <button type="button" className="upbtn upbtn--danger" disabled={!canClear} onClick={() => askClear()}>
+            {t('caps.server.clearHistoryAction')}
+          </button>
+        </div>
       </div>
     </div>
     <div className="scard">

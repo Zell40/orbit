@@ -134,6 +134,8 @@ export interface Buffer {
   typing: Record<string, number>;  // nick -> expiry ms (draft/typing)
   /** JOIN refused (banned / +l / +i / +O / …) — overlay in this window until closed. */
   joinDenied?: { code: string; flag: string; reasonKey: string; detail: string; redirectTo?: string; suggested?: string };
+  /** Server replayed stored PM history into this query (`+entrenous/mphistory`). */
+  mphistoryReplay?: boolean;
 }
 
 export interface ConnectOptions {

@@ -161,6 +161,10 @@ export interface ChatState {
   wantedNick: string;
   /** Manual NickServ RECOVER offer when SASL ok but the nick is held by a ghost. */
   nickRecoverOffer: NickRecoverOffer | null;
+  /** Close of a PM that still has server-replayed history — ask before MPHISTORY CLEAR. */
+  pmHistoryClose: { nick: string } | null;
+  /** Settings → Server: MPHISTORY CLEAR * (confirm, wait, then done). */
+  pmHistoryClearAll: null | { phase: 'confirm' | 'pending' } | { phase: 'done'; n: number };
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
   sidebarOrder: { channels: string[]; queries: string[] };
 
@@ -172,6 +176,16 @@ export interface ChatState {
   setActive: (name: string) => void;
   openQuery: (nick: string, fromChannel?: string) => void;
   closeBuffer: (name: string) => void;
+  /** Close the PM from the history prompt. `clear` sends MPHISTORY CLEAR first. */
+  finishPmHistoryClose: (clear: boolean) => void;
+  /** Leave the PM open. */
+  dismissPmHistoryClose: () => void;
+  /** Open the confirm popup for MPHISTORY CLEAR *. */
+  askClearAllPmHistory: () => void;
+  /** Send MPHISTORY CLEAR * after the user confirmed. */
+  confirmClearAllPmHistory: () => void;
+  /** Close the confirm or the done popup. */
+  dismissClearAllPmHistory: () => void;
   reorderSidebar: (section: 'channels' | 'queries', from: string, to: string) => void;
   openUser: (nick: string) => void;
   refreshUser: (nick: string) => void;
@@ -351,6 +365,8 @@ export function createChatStore(ns = '') {
     nickError: null,
     wantedNick: '',
     nickRecoverOffer: null,
+    pmHistoryClose: null,
+    pmHistoryClearAll: null,
 
     connect(opts) {
       // Retrying after a failed/closed attempt re-enters connect() on the same
@@ -446,6 +462,8 @@ export function createChatStore(ns = '') {
         parentalControls: false,
         wantedNick: (opts.nick || '').trim(),
         nickRecoverOffer: null,
+        pmHistoryClose: null,
+        pmHistoryClearAll: null,
         serverError: '',
         connectFail: null,
       });
@@ -471,7 +489,7 @@ export function createChatStore(ns = '') {
         }
         set({ status: st, nick: client.nick });
         if (st === 'registered') refreshNickRecoverOffer();
-        else if (st === 'closed' || st === 'error' || st === 'sasl-failed') set({ nickRecoverOffer: null });
+        else if (st === 'closed' || st === 'error' || st === 'sasl-failed') set({ nickRecoverOffer: null, pmHistoryClose: null, pmHistoryClearAll: null });
         // Sticky pre-register failure (closed must not erase a prior sasl-failed).
         if (!get().everRegistered && (st === 'sasl-failed' || st === 'error' || st === 'closed')) {
           const prev = get().connectFail;
@@ -701,6 +719,10 @@ export function createChatStore(ns = '') {
       if (key === SERVER) return; // the console can't be closed
       const buf = get().buffers[key];
       if (!buf) return;
+      if (!buf.isChannel && buf.mphistoryReplay && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
+        set({ pmHistoryClose: { nick: buf.name || name } });
+        return;
+      }
       if (buf.isChannel) { closedChannels.add(key); if (buf.joined) get().client?.part(buf.name); } // leave + don't resurrect
       else if (!isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
         clearPmPeerOffline(buf.name || name);
@@ -710,6 +732,40 @@ export function createChatStore(ns = '') {
       }
       dropBuffer(key);
       set({ profileUser: '' });
+    },
+
+    finishPmHistoryClose(clear) {
+      const offer = get().pmHistoryClose;
+      if (!offer) return;
+      const nick = offer.nick;
+      set({ pmHistoryClose: null });
+      if (clear && nick && !/[\s,]/.test(nick) && nick[0] !== '#' && nick[0] !== '&')
+        get().client?.send(`MPHISTORY CLEAR ${nick}`);
+      patchBuffer(nick, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
+      get().closeBuffer(nick);
+    },
+
+    dismissPmHistoryClose() {
+      if (get().pmHistoryClose) set({ pmHistoryClose: null });
+    },
+
+    askClearAllPmHistory() {
+      const phase = get().pmHistoryClearAll?.phase;
+      if (phase === 'confirm' || phase === 'pending') return;
+      if (get().status !== 'registered' || !get().client) return;
+      set({ pmHistoryClearAll: { phase: 'confirm' } });
+    },
+
+    confirmClearAllPmHistory() {
+      const client = get().client;
+      if (!client || get().status !== 'registered') return;
+      if (get().pmHistoryClearAll?.phase !== 'confirm') return;
+      client.send('MPHISTORY CLEAR *');
+      set({ pmHistoryClearAll: { phase: 'pending' } });
+    },
+
+    dismissClearAllPmHistory() {
+      if (get().pmHistoryClearAll) set({ pmHistoryClearAll: null });
     },
 
     reorderSidebar(section, from, to) {

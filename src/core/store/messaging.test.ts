@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import i18n from '../i18n';
 import { makeMessaging } from './messaging';
 import { parseLine } from '../irc/parser';
 import { SERVER } from './context';
@@ -41,6 +42,12 @@ function setup(over: Partial<Record<string, unknown>> = {}, mlockAsked?: Map<str
       if (!state.buffers[k]) state.buffers[k] = { isChannel: true, joined: true, members: {} };
     },
     serverLine: (text: string) => { serverLines.push(text); },
+    sysLine: (name: string, text: string, kind: ChatMessage['kind']) => {
+      added.push({
+        name,
+        m: { id: 'sys', bufferName: name, from: '', text, ts: 1000, kind, self: false },
+      });
+    },
     announceLine: (text: string) => {
       const dest = state.active || SERVER;
       announceLines.push({ dest, text });
@@ -80,6 +87,57 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     const { on, added } = setup();
     on(':bob!u@h PRIVMSG me :hi there');
     expect(added[0].name).toBe('bob'); // PM buffer keyed by sender
+  });
+
+  it('marks a query when mphistory replays a stored line', () => {
+    const { on, state } = setup();
+    on('@+entrenous/mphistory=replay :bob!u@h PRIVMSG me :hier');
+    expect((state.buffers['bob'] as { mphistoryReplay?: boolean }).mphistoryReplay).toBe(true);
+  });
+
+  it('does not mark a live PM as replayed history', () => {
+    const { on, state } = setup();
+    on(':bob!u@h PRIVMSG me :now');
+    expect((state.buffers['bob'] as { mphistoryReplay?: boolean } | undefined)?.mphistoryReplay).toBeUndefined();
+  });
+
+  it('does not recreate a PM that was already closed when history clear is confirmed', () => {
+    const { on, added, serverLines, state } = setup();
+    on(':irc.example.com NOTICE me :*** Cleared 1 private history line with Bob');
+    expect(added).toEqual([]);
+    expect(serverLines).toEqual([]);
+    expect(state.buffers['bob']).toBeUndefined();
+  });
+
+  it('confirms MPHISTORY CLEAR * and drops replay flags on queries only', () => {
+    const { on, added, serverLines, state } = setup({
+      buffers: {
+        bob: { isChannel: false, joined: false, members: {}, mphistoryReplay: true },
+        '#x': { isChannel: true, joined: true, members: {}, mphistoryReplay: true },
+      },
+    });
+    on(':irc.example.com NOTICE me :*** Cleared 4 private history lines');
+    expect(added).toEqual([]);
+    expect(serverLines).toEqual([]);
+    expect((state.buffers['bob'] as { mphistoryReplay?: boolean }).mphistoryReplay).toBe(false);
+    expect((state.buffers['#x'] as { mphistoryReplay?: boolean }).mphistoryReplay).toBe(true);
+    expect((state as { pmHistoryClearAll?: { phase: string; n: number } }).pmHistoryClearAll)
+      .toEqual({ phase: 'done', n: 4 });
+  });
+
+  it('clears the PM history flag when the server confirms MPHISTORY CLEAR', () => {
+    const { on, state, added, serverLines } = setup({
+      buffers: {
+        bob: { isChannel: false, joined: false, members: {}, mphistoryReplay: true },
+      },
+    });
+    on(':irc.example.com NOTICE me :*** Cleared 2 private history lines with Bob');
+    expect((state.buffers['bob'] as { mphistoryReplay?: boolean }).mphistoryReplay).toBe(false);
+    expect(added[0]).toMatchObject({
+      name: 'Bob',
+      m: { text: i18n.t('system.mphistoryCleared', { nick: 'Bob' }), kind: 'info' },
+    });
+    expect(serverLines).toEqual([]);
   });
 
   it('advances DM peerReadTs on a live reply (non-Orbit implicit read)', () => {

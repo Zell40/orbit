@@ -34,6 +34,17 @@ import type { StoreHelpers } from './helpers';
 // endless fake service-tagged nicks to grow the learned set without bound.
 const KNOWN_SERVICES_CAP = 256;
 
+/** Server confirmed `MPHISTORY CLEAR`. No nick means `CLEAR *` (every PM). */
+function mphistoryCleared(text: string): { n: number; nick?: string } | null {
+  const m = /^\*\*\* Cleared (\d+) private history lines?(?: with (\S+))?$/.exec(text.trim());
+  if (!m) return null;
+  const n = Number(m[1]);
+  if (!Number.isFinite(n)) return null;
+  const nick = m[2];
+  if (nick && (nick === '*' || nick.startsWith('#') || nick.startsWith('&'))) return null;
+  return nick ? { n, nick } : { n };
+}
+
 /** Client tags plugins may read (skip tags already mapped to first-class fields). */
 function clientTagsForPlugins(tags: Record<string, string>): Record<string, string> | undefined {
   const out: Record<string, string> = {};
@@ -150,6 +161,23 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
     // Server-originated NOTICE (to "*", or a server-name prefix) → console.
     // A nick-only prefix (ChanServ, Operateur) is a user/service, not the ircd.
     if (msg.command === 'NOTICE' && noticeIsServerOrigin(msg)) {
+      const cleared = mphistoryCleared(text);
+      if (cleared) {
+        if (!cleared.nick) {
+          for (const [key, buf] of Object.entries(get().buffers)) {
+            if (buf && !buf.isChannel && buf.mphistoryReplay)
+              patchBuffer(key, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
+          }
+          set({ pmHistoryClearAll: { phase: 'done', n: cleared.n } });
+          return true;
+        }
+        // The PM may already be gone (close + delete). Don't recreate the tab.
+        if (get().buffers[canon(cleared.nick)]) {
+          patchBuffer(cleared.nick, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
+          sysLine(cleared.nick, i18n.t('system.mphistoryCleared', { nick: cleared.nick }), 'info');
+        }
+        return true;
+      }
       // Cloudflare/Turnstile anti-bot gate during REGISTER → surface it in the
       // account UI instead of dumping the raw challenge link in the console.
       const inReg = get().reg.busy || !!get().reg.challengeUrl;
@@ -339,6 +367,10 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       announcePmOnline(get().buffers, sysLine, msg.nick, cm.ts);
     }
     addMessage(bufferName, cm);
+    // m_ircv3_mphistory_v2 tags replayed history only — live PRIVMSG never has it.
+    if (!isChan && (kind === 'privmsg' || kind === 'action') && msg.tags['+entrenous/mphistory'] !== undefined) {
+      patchBuffer(bufferName, (b) => (b.mphistoryReplay ? b : { ...b, mphistoryReplay: true }));
+    }
     // Peer "seen" without Orbit TAGMSG: a live reply (channel or DM) from someone
     // else advances peerReadTs so our earlier ticks go ✓✓. Orbit clients still
     // send +entrenous/displayed when they open the PM (earlier, without reply);

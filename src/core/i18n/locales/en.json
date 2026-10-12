@@ -850,6 +850,7 @@
     "online": "{{nick}} is online",
     "offline": "{{nick}} is not online.",
     "mphistoryQueued": "Message saved: it will be delivered to {{nick}} when they reconnect.",
+    "mphistoryCleared": "Private history with {{nick}} cleared.",
     "kick": "{{target}} was kicked by {{by}}",
     "nick": "{{nick}} is now {{newnick}}",
     "modes": "{{nick}} changed the modes: {{modes}}",
@@ -1056,7 +1057,25 @@
     "pushPromptLater": "Not now",
     "nickServTitle": "Message from {{from}}",
     "nickServViewStatus": "View status",
-    "nickServDismiss": "Close"
+    "nickServDismiss": "Close",
+    "pmHistory": "Private history replayed",
+    "pmHistoryClear": "Delete",
+    "pmHistoryConfirm": "Erase the history with {{nick}} on the server?",
+    "pmHistoryDo": "Erase",
+    "pmHistoryCancel": "Cancel",
+    "pmHistoryCloseTitle": "Close the conversation",
+    "pmHistoryCloseBody": "Delete the private history with {{nick}}? It will not be shown again the next time you connect.",
+    "pmHistoryCloseYes": "Delete history",
+    "pmHistoryCloseNo": "Keep history",
+    "pmHistoryClearAllTitle": "Delete all history?",
+    "pmHistoryClearAllBody": "Every private message stored for your account will be erased. This cannot be undone.",
+    "pmHistoryClearAllYes": "Delete",
+    "pmHistoryClearAllPending": "Deleting…",
+    "pmHistoryClearAllDoneTitle": "History deleted",
+    "pmHistoryClearAllDoneBody_one": "{{count}} private message was deleted.",
+    "pmHistoryClearAllDoneBody_other": "{{count}} private messages were deleted.",
+    "pmHistoryClearAllDoneEmpty": "There was no private message to delete.",
+    "pmHistoryClearAllClose": "Close"
   },
   "themes": {
     "light": "Light",
@@ -1625,7 +1644,11 @@
       "limitsValue": "nick {{nick}} · channel {{chan}} · topic {{topic}}",
       "navDesc": "Network & connection",
       "maxChannels": "Max channels",
-      "advanced": "Advanced · raw ISUPPORT"
+      "advanced": "Advanced · raw ISUPPORT",
+      "clearHistory": "Delete history",
+      "clearHistoryHint": "Erases every private message kept on the server. They will not be replayed the next time you connect.",
+      "clearHistoryUnavailable": "Unavailable: this server does not keep private-message history.",
+      "clearHistoryAction": "Delete all history"
     }
   },
   "about": {
