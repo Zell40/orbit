@@ -26,6 +26,7 @@ import type { MintResult } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
 import { closeMobileNav } from '../lib/mobile-nav';
 import { mergeMlock } from './irc/mode-catalog';
+import { mphistoryModuleLoaded } from './irc/caps';
 import { fetchChannelMlock } from './store/mlock-rpc';
 import { fetchChanServPublic } from './store/chanserv-info';
 import { resetGardianStatsGate } from './store/gardian-stats';
@@ -730,7 +731,7 @@ export function createChatStore(ns = '') {
       if (key === SERVER) return; // the console can't be closed
       const buf = get().buffers[key];
       if (!buf) return;
-      if (get().status === 'registered' && get().account && !buf.isChannel && buf.mphistoryReplay && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
+      if (get().status === 'registered' && get().account && mphistoryModuleLoaded(get().client) && !buf.isChannel && buf.mphistoryReplay && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
         set({ pmHistoryClose: { nick: buf.name || name } });
         return;
       }
@@ -750,7 +751,7 @@ export function createChatStore(ns = '') {
       if (!offer) return;
       const nick = offer.nick;
       set({ pmHistoryClose: null });
-      if (clear && get().account && nick && !/[\s,]/.test(nick) && nick[0] !== '#' && nick[0] !== '&')
+      if (clear && get().account && mphistoryModuleLoaded(get().client) && nick && !/[\s,]/.test(nick) && nick[0] !== '#' && nick[0] !== '&')
         get().client?.send(`MPHISTORY CLEAR ${nick}`);
       patchBuffer(nick, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
       get().closeBuffer(nick);
@@ -763,13 +764,13 @@ export function createChatStore(ns = '') {
     askClearAllPmHistory() {
       const phase = get().pmHistoryClearAll?.phase;
       if (phase === 'confirm' || phase === 'pending') return;
-      if (get().status !== 'registered' || !get().account || !get().client) return;
+      if (get().status !== 'registered' || !get().account || !mphistoryModuleLoaded(get().client)) return;
       set({ pmHistoryClearAll: { phase: 'confirm' }, pmHistoryClearError: '' });
     },
 
     confirmClearAllPmHistory() {
       const client = get().client;
-      if (!client || get().status !== 'registered' || !get().account) return;
+      if (!client || get().status !== 'registered' || !get().account || !mphistoryModuleLoaded(client)) return;
       if (get().pmHistoryClearAll?.phase !== 'confirm') return;
       client.send('MPHISTORY CLEAR *');
       set({ pmHistoryClearAll: { phase: 'pending' } });

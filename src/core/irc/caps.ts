@@ -9,3 +9,13 @@ export const WANTED_CAPS = [
   'draft/pre-away', 'draft/webpush',
   'entrenous/mphistory',
 ];
+
+/** ircv3_mphistory is loaded: the CAP was ACKed, or 005 advertises MPHISTORY. */
+export function mphistoryModuleLoaded(client: {
+  ircv3: { hasCap: (name: string) => boolean };
+  server: { isupport: Record<string, string> };
+} | null | undefined): boolean {
+  if (!client) return false;
+  if (client.ircv3.hasCap('entrenous/mphistory')) return true;
+  return Object.prototype.hasOwnProperty.call(client.server.isupport, 'MPHISTORY');
+}

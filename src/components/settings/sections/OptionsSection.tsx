@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useActiveChat } from '@/core/networks';
+import { mphistoryModuleLoaded } from '@/core/irc/caps';
 import { ToggleRow } from '../rows';
 
 /** Client behaviour (invite join, close confirm, PM history) — not server facts. */
@@ -12,7 +13,7 @@ export function OptionsSection() {
   const clearPhase = useActiveChat((s) => s.pmHistoryClearAll?.phase);
   const clearError = useActiveChat((s) => s.pmHistoryClearError);
   const connected = status === 'registered' && !!client;
-  const hasHistory = connected && !!account.trim() && !!client?.ircv3.hasCap('entrenous/mphistory');
+  const hasHistory = connected && !!account.trim() && mphistoryModuleLoaded(client);
   const canClear = hasHistory && clearPhase !== 'confirm' && clearPhase !== 'pending';
 
   return (
@@ -21,7 +22,7 @@ export function OptionsSection() {
       <div className="scard__body">
         <ToggleRow icon="📨" label={t('settings.notifications.joinOnInvite')} hint={t('settings.notifications.joinOnInviteHint')} prefKey="joinOnInvite" />
         <ToggleRow icon="🚪" label={t('settings.notifications.confirmClose')} hint={t('settings.notifications.confirmCloseHint')} prefKey="confirmClose" />
-        {(hasHistory || !!clearError) && <div className={`srow${!canClear ? ' is-disabled' : ''}`}>
+        {hasHistory && <div className={`srow${!canClear ? ' is-disabled' : ''}`}>
           <span className="srow__ic" aria-hidden>🗑️</span>
           <div className="srow__txt">
             <div className="srow__label">{t('caps.server.clearHistory')}</div>
