@@ -489,7 +489,13 @@ export function createChatStore(ns = '') {
         }
         set({ status: st, nick: client.nick });
         if (st === 'registered') refreshNickRecoverOffer();
-        else if (st === 'closed' || st === 'error' || st === 'sasl-failed') set({ nickRecoverOffer: null, pmHistoryClose: null, pmHistoryClearAll: null });
+        else {
+          set({
+            ...(st === 'closed' || st === 'error' || st === 'sasl-failed' ? { nickRecoverOffer: null } : {}),
+            pmHistoryClose: null,
+            pmHistoryClearAll: null,
+          });
+        }
         // Sticky pre-register failure (closed must not erase a prior sasl-failed).
         if (!get().everRegistered && (st === 'sasl-failed' || st === 'error' || st === 'closed')) {
           const prev = get().connectFail;
@@ -719,7 +725,7 @@ export function createChatStore(ns = '') {
       if (key === SERVER) return; // the console can't be closed
       const buf = get().buffers[key];
       if (!buf) return;
-      if (!buf.isChannel && buf.mphistoryReplay && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
+      if (get().status === 'registered' && !buf.isChannel && buf.mphistoryReplay && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
         set({ pmHistoryClose: { nick: buf.name || name } });
         return;
       }
