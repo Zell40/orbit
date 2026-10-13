@@ -324,7 +324,7 @@ export function JoinDeniedPanel() {
 export function PmHistoryClosePrompt() {
   const { t } = useTranslation();
   const offer = useActiveChat((s) => s.pmHistoryClose);
-  const connected = useActiveChat((s) => s.status === 'registered');
+  const connected = useActiveChat((s) => s.status === 'registered' && !!s.account);
   const finish = useActiveChat((s) => s.finishPmHistoryClose);
   const dismiss = useActiveChat((s) => s.dismissPmHistoryClose);
   if (!connected || !offer) return null;
@@ -350,7 +350,7 @@ export function PmHistoryClosePrompt() {
 export function PmHistoryClearAllPrompt() {
   const { t } = useTranslation();
   const offer = useActiveChat((s) => s.pmHistoryClearAll);
-  const connected = useActiveChat((s) => s.status === 'registered');
+  const connected = useActiveChat((s) => s.status === 'registered' && !!s.account);
   const confirm = useActiveChat((s) => s.confirmClearAllPmHistory);
   const dismiss = useActiveChat((s) => s.dismissClearAllPmHistory);
   if (!connected || !offer) return null;
@@ -400,7 +400,7 @@ export function PmHistoryClearAllPrompt() {
 /** Shown in a PM once ircv3_mphistory_v2 has replayed stored lines into it. */
 export function PmHistoryBar() {
   const { t } = useTranslation();
-  const connected = useActiveChat((s) => s.status === 'registered');
+  const connected = useActiveChat((s) => s.status === 'registered' && !!s.account);
   const name = useActiveChat((s) => {
     const b = s.buffers[s.active];
     if (!b || b.isChannel || !b.mphistoryReplay) return '';

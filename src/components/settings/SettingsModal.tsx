@@ -8,6 +8,7 @@ import { ProfileSection } from './sections/ProfileSection';
 import { AppearanceSection } from './sections/AppearanceSection';
 import { NotificationsSection } from './sections/NotificationsSection';
 import { AccountSection } from './sections/AccountSection';
+import { OptionsSection } from './sections/OptionsSection';
 import { ServerSection } from './sections/ServerSection';
 import { CapabilitiesSection } from './sections/CapabilitiesSection';
 import { AboutSection } from './sections/AboutSection';
@@ -20,6 +21,7 @@ const SETTINGS_SECTIONS = [
   { id: 'apparence', icon: '🎨' },
   { id: 'notifs',    icon: '🔔' },
   { id: 'compte',    icon: '🔑' },
+  { id: 'options',   icon: '⚙️' },
   { id: 'server',    icon: '🖥️' },
   { id: 'ircv3',     icon: '🔌' },
   { id: 'about',     icon: 'ℹ️' },
@@ -32,6 +34,7 @@ const SEC_KEY: Record<SettingsSection, string> = {
   apparence: 'settings.sections.appearance',
   notifs: 'settings.sections.notifications',
   compte: 'settings.sections.account',
+  options: 'settings.sections.options',
   server: 'caps.server.title',
   ircv3: 'caps.navLabel',
   about: 'about.navLabel',
@@ -65,6 +68,7 @@ const SEC_DESC: Record<SettingsSection, string> = {
   apparence: 'settings.sectionDesc.appearance',
   notifs: 'settings.sectionDesc.notifications',
   compte: 'settings.sectionDesc.account',
+  options: 'settings.sectionDesc.options',
   server: 'caps.server.navDesc',
   ircv3: 'caps.navDesc',
   about: 'about.navDesc',
@@ -148,6 +152,7 @@ export function SettingsModal() {
             {section === 'apparence' && <AppearanceSection />}
             {section === 'notifs' && <NotificationsSection />}
             {section === 'compte' && <AccountSection />}
+            {section === 'options' && <OptionsSection />}
             {section === 'server' && <ServerSection />}
             {section === 'ircv3' && <CapabilitiesSection />}
             {section === 'about' && <AboutSection />}

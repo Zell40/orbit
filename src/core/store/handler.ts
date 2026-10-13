@@ -360,6 +360,19 @@ export function makeHandler(ctx: HandlerCtx) {
           failPushDeviceList();
           break;
         }
+        if (msg.command === 'FAIL' && cmd === 'MPHISTORY') {
+          if (get().pmHistoryClearAll) {
+            const reason = (desc || '').trim();
+            const needAccount = /must be logged into services|not (logged|identif|authentic)/i.test(reason);
+            set({
+              pmHistoryClearAll: null,
+              pmHistoryClearError: needAccount
+                ? i18n.t('caps.server.clearHistoryNeedAccount')
+                : (reason || i18n.t('caps.server.clearHistoryFailed')),
+            });
+          }
+          break;
+        }
         // m_ircv3_mphistory: NOTE PRIVMSG MPHISTORY_STORED <nick> :…
         // Arrives before the core 401 when the offline PM was actually queued.
         if (msg.command === 'NOTE' && cmd === 'PRIVMSG' && code === 'MPHISTORY_STORED') {

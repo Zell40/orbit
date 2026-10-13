@@ -125,6 +125,15 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       .toEqual({ phase: 'done', n: 4 });
   });
 
+  it('closes a pending full clear when the server requires identification', () => {
+    const { on, serverLines, state } = setup({ pmHistoryClearAll: { phase: 'pending' } });
+    on(':irc.example.com NOTICE me :*** You must be logged into services to clear private history');
+    expect(serverLines).toEqual([]);
+    expect((state as { pmHistoryClearAll?: unknown }).pmHistoryClearAll).toBeNull();
+    expect((state as { pmHistoryClearError?: string }).pmHistoryClearError)
+      .toBe(i18n.t('caps.server.clearHistoryNeedAccount'));
+  });
+
   it('clears the PM history flag when the server confirms MPHISTORY CLEAR', () => {
     const { on, state, added, serverLines } = setup({
       buffers: {

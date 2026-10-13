@@ -34,6 +34,16 @@ import type { StoreHelpers } from './helpers';
 // endless fake service-tagged nicks to grow the learned set without bound.
 const KNOWN_SERVICES_CAP = 256;
 
+/** Refusal notices from MPHISTORY CLEAR, as a settings-row message. */
+export function pmHistoryClearFailure(text: string): string | null {
+  const line = text.trim();
+  if (line === '*** You must be logged into services to clear private history')
+    return i18n.t('caps.server.clearHistoryNeedAccount');
+  if (/^\*\*\* Usage: MPHISTORY CLEAR\b/i.test(line))
+    return i18n.t('caps.server.clearHistoryFailed');
+  return null;
+}
+
 /** Server confirmed `MPHISTORY CLEAR`. No nick means `CLEAR *` (every PM). */
 function mphistoryCleared(text: string): { n: number; nick?: string } | null {
   const m = /^\*\*\* Cleared (\d+) private history lines?(?: with (\S+))?$/.exec(text.trim());
@@ -176,6 +186,12 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
           patchBuffer(cleared.nick, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
           sysLine(cleared.nick, i18n.t('system.mphistoryCleared', { nick: cleared.nick }), 'info');
         }
+        return true;
+      }
+      // Guest or bad target: the ircd refuses CLEAR. Show it on the settings option.
+      const clearFail = pmHistoryClearFailure(text);
+      if (clearFail) {
+        if (get().pmHistoryClearAll) set({ pmHistoryClearAll: null, pmHistoryClearError: clearFail });
         return true;
       }
       // Cloudflare/Turnstile anti-bot gate during REGISTER → surface it in the

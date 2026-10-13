@@ -709,6 +709,14 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
       }
     }
 
+    if (msg.command === '421' && /^MPHISTORY$/i.test(msg.params[1] || '') && get().pmHistoryClearAll) {
+      set({
+        pmHistoryClearAll: null,
+        pmHistoryClearError: i18n.t('caps.server.clearHistoryUnavailable'),
+      });
+      return true;
+    }
+
     // Every remaining numeric is recognised (see irc/numerics.ts) and routed:
     // errors → a visible ⚠ line where the user is looking; everything else →
     // the server console. Nothing is ever dumped unlabelled.

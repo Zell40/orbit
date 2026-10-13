@@ -411,7 +411,8 @@
       "account": "Account",
       "appearance": "Appearance",
       "notifications": "Notifications",
-      "modes": "Modes & privacy"
+      "modes": "Modes & privacy",
+      "options": "Options"
     },
     "account": {
       "login": "Log in",
@@ -717,7 +718,8 @@
       "appearance": "Theme & display",
       "notifications": "Alerts & sounds",
       "account": "NickServ info & security",
-      "modes": "Optional filters and protections"
+      "modes": "Optional filters and protections",
+      "options": "Invites, close confirm and history"
     },
     "modes": {
       "intro": "Privacy and message modes the server offers. Parental controls may lock some of them.",
@@ -1653,7 +1655,9 @@
       "clearHistory": "Delete history",
       "clearHistoryHint": "Erases every private message kept on the server. They will not be replayed the next time you connect.",
       "clearHistoryUnavailable": "Unavailable: this server does not keep private-message history.",
-      "clearHistoryAction": "Delete"
+      "clearHistoryAction": "Delete",
+      "clearHistoryNeedAccount": "You must be logged in to delete history.",
+      "clearHistoryFailed": "Could not delete history."
     }
   },
   "about": {

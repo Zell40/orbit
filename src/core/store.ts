@@ -165,6 +165,8 @@ export interface ChatState {
   pmHistoryClose: { nick: string } | null;
   /** Settings → Server: MPHISTORY CLEAR * (confirm, wait, then done). */
   pmHistoryClearAll: null | { phase: 'confirm' | 'pending' } | { phase: 'done'; n: number };
+  /** Last MPHISTORY CLEAR failure, shown on the settings option. */
+  pmHistoryClearError: string;
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
   sidebarOrder: { channels: string[]; queries: string[] };
 
@@ -367,6 +369,7 @@ export function createChatStore(ns = '') {
     nickRecoverOffer: null,
     pmHistoryClose: null,
     pmHistoryClearAll: null,
+    pmHistoryClearError: '',
 
     connect(opts) {
       // Retrying after a failed/closed attempt re-enters connect() on the same
@@ -464,6 +467,7 @@ export function createChatStore(ns = '') {
         nickRecoverOffer: null,
         pmHistoryClose: null,
         pmHistoryClearAll: null,
+        pmHistoryClearError: '',
         serverError: '',
         connectFail: null,
       });
@@ -494,6 +498,7 @@ export function createChatStore(ns = '') {
             ...(st === 'closed' || st === 'error' || st === 'sasl-failed' ? { nickRecoverOffer: null } : {}),
             pmHistoryClose: null,
             pmHistoryClearAll: null,
+            pmHistoryClearError: '',
           });
         }
         // Sticky pre-register failure (closed must not erase a prior sasl-failed).
@@ -725,7 +730,7 @@ export function createChatStore(ns = '') {
       if (key === SERVER) return; // the console can't be closed
       const buf = get().buffers[key];
       if (!buf) return;
-      if (get().status === 'registered' && !buf.isChannel && buf.mphistoryReplay && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
+      if (get().status === 'registered' && get().account && !buf.isChannel && buf.mphistoryReplay && !isPseudoBuffer(key) && !isBouncerServiceNick(key)) {
         set({ pmHistoryClose: { nick: buf.name || name } });
         return;
       }
@@ -745,7 +750,7 @@ export function createChatStore(ns = '') {
       if (!offer) return;
       const nick = offer.nick;
       set({ pmHistoryClose: null });
-      if (clear && nick && !/[\s,]/.test(nick) && nick[0] !== '#' && nick[0] !== '&')
+      if (clear && get().account && nick && !/[\s,]/.test(nick) && nick[0] !== '#' && nick[0] !== '&')
         get().client?.send(`MPHISTORY CLEAR ${nick}`);
       patchBuffer(nick, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
       get().closeBuffer(nick);
@@ -758,13 +763,13 @@ export function createChatStore(ns = '') {
     askClearAllPmHistory() {
       const phase = get().pmHistoryClearAll?.phase;
       if (phase === 'confirm' || phase === 'pending') return;
-      if (get().status !== 'registered' || !get().client) return;
-      set({ pmHistoryClearAll: { phase: 'confirm' } });
+      if (get().status !== 'registered' || !get().account || !get().client) return;
+      set({ pmHistoryClearAll: { phase: 'confirm' }, pmHistoryClearError: '' });
     },
 
     confirmClearAllPmHistory() {
       const client = get().client;
-      if (!client || get().status !== 'registered') return;
+      if (!client || get().status !== 'registered' || !get().account) return;
       if (get().pmHistoryClearAll?.phase !== 'confirm') return;
       client.send('MPHISTORY CLEAR *');
       set({ pmHistoryClearAll: { phase: 'pending' } });

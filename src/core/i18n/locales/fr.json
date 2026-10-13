@@ -411,7 +411,8 @@
       "account": "Compte",
       "appearance": "Apparence",
       "notifications": "Notifications",
-      "modes": "Modes & confidentialité"
+      "modes": "Modes & confidentialité",
+      "options": "Options"
     },
     "account": {
       "login": "Se connecter",
@@ -717,7 +718,8 @@
       "appearance": "Thème & affichage",
       "notifications": "Alertes & sons",
       "account": "Infos NickServ & sécurité",
-      "modes": "Filtres et protections optionnels"
+      "modes": "Filtres et protections optionnels",
+      "options": "Invitations, fermeture et historique"
     },
     "modes": {
       "intro": "Modes de confidentialité et de messages que le serveur propose. Le contrôle parental peut en verrouiller certains.",
@@ -1654,7 +1656,9 @@
       "clearHistory": "Supprimer l’historique",
       "clearHistoryHint": "Efface tous les messages privés conservés sur le serveur. Ils ne seront plus rejoués à la connexion.",
       "clearHistoryUnavailable": "Indisponible : le serveur ne propose pas l’historique des messages privés.",
-      "clearHistoryAction": "Supprimer"
+      "clearHistoryAction": "Supprimer",
+      "clearHistoryNeedAccount": "Tu dois être identifié pour supprimer l’historique.",
+      "clearHistoryFailed": "Impossible de supprimer l’historique."
     }
   },
   "about": {
