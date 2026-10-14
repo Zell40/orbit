@@ -12,6 +12,7 @@ import { TypingIndicator } from './composer/TypingIndicator';
 import { ReplyBar } from './composer/ReplyBar';
 import { useVoiceRecorder } from './composer/useVoiceRecorder';
 import { completeToken, type CompletionKind } from './composer/complete';
+import { textSmileyAt } from './composer/smileys';
 import { createSentHistory } from './composer/history';
 import { ImageSendPreview } from './composer/ImageSendPreview';
 import { resolveUploadTtlHours } from '@/core/store/upload';
@@ -146,6 +147,13 @@ export function Composer({ locked = false }: { locked?: boolean }) {
 
   function changed() {
     const root = ed.current; if (!root) return;
+    const text = root.textContent || '';
+    const pos = caretIndex(root);
+    const smiley = textSmileyAt(text, pos);
+    if (smiley) {
+      selectRange(root, smiley.start, pos);
+      document.execCommand('insertText', false, smiley.emoji);
+    }
     reflect();
     if ((root.textContent || '').trim() && !readOnlyLog) notifyTyping();
     history.reset(); // typing exits history-recall mode
