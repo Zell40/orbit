@@ -141,7 +141,9 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       },
     });
     on(':irc.example.com NOTICE me :*** Cleared 2 private history lines with Bob');
+    on(':irc.example.com NOTICE me :*** Cleared 2 private history lines with Bob');
     expect((state.buffers['bob'] as { mphistoryReplay?: boolean }).mphistoryReplay).toBe(false);
+    expect(added).toHaveLength(1);
     expect(added[0]).toMatchObject({
       name: 'Bob',
       m: { text: i18n.t('system.mphistoryCleared', { nick: 'Bob' }), kind: 'info' },

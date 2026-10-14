@@ -182,16 +182,33 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
           return true;
         }
         // The PM may already be gone (close + delete). Don't recreate the tab.
-        if (get().buffers[canon(cleared.nick)]) {
+        // One confirmation per click: a second notice for the same nick is dropped.
+        const key = canon(cleared.nick);
+        const buf = get().buffers[key];
+        if (buf) {
+          const clearing = get().pmHistoryClearing || {};
+          const show = !!buf.mphistoryReplay || !!clearing[key];
           patchBuffer(cleared.nick, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
-          sysLine(cleared.nick, i18n.t('system.mphistoryCleared', { nick: cleared.nick }), 'info');
+          if (clearing[key]) {
+            const next = { ...clearing };
+            delete next[key];
+            set({ pmHistoryClearing: next });
+          }
+          if (show) sysLine(cleared.nick, i18n.t('system.mphistoryCleared', { nick: cleared.nick }), 'info');
         }
         return true;
       }
       // Guest or bad target: the ircd refuses CLEAR. Show it on the settings option.
       const clearFail = pmHistoryClearFailure(text);
       if (clearFail) {
-        if (get().pmHistoryClearAll) set({ pmHistoryClearAll: null, pmHistoryClearError: clearFail });
+        const patch: { pmHistoryClearing: Record<string, true>; pmHistoryClearAll?: null; pmHistoryClearError?: string } = {
+          pmHistoryClearing: {},
+        };
+        if (get().pmHistoryClearAll) {
+          patch.pmHistoryClearAll = null;
+          patch.pmHistoryClearError = clearFail;
+        }
+        set(patch);
         return true;
       }
       // Cloudflare/Turnstile anti-bot gate during REGISTER → surface it in the

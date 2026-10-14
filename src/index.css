@@ -3341,7 +3341,15 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 }
 .pmhist__btn:hover { background: var(--bg-soft); }
 .pmhist__btn--danger { border-color: transparent; background: var(--danger); color: #fff; }
-.pmhist__btn--danger:hover { filter: brightness(1.05); background: var(--danger); }
+.pmhist__btn--danger:hover:not(:disabled) { filter: brightness(1.05); background: var(--danger); }
+.pmhist__btn:disabled,
+.pmhist__btn.is-busy { opacity: .88; cursor: wait; }
+.pmhist__btn.is-busy { display: inline-flex; align-items: center; gap: .35rem; }
+.pmhist__spin {
+  width: .85em; height: .85em; border-radius: 50%; flex: none;
+  border: 2px solid rgba(255, 255, 255, .35); border-top-color: #fff;
+  animation: c-spin .7s linear infinite;
+}
 
 /* chathistory "loading older messages" indicator (top of the timeline) */
 .histload {

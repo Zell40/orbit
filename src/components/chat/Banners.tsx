@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { mphistoryModuleLoaded } from '@/core/irc/caps';
+import { canon } from '@/core/store/context';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
 import { activeStore, useActiveChat } from '@/core/networks';
@@ -407,26 +408,33 @@ export function PmHistoryBar() {
     if (!b || b.isChannel || !b.mphistoryReplay) return '';
     return b.name;
   });
-  const client = useActiveChat((s) => s.client);
+  const clearPmHistory = useActiveChat((s) => s.clearPmHistory);
+  const pending = useActiveChat((s) => {
+    const b = s.buffers[s.active];
+    return !!(b && s.pmHistoryClearing[canon(b.name)]);
+  });
   const [ask, setAsk] = useState(false);
-  useEffect(() => { setAsk(false); }, [name]);
+  useEffect(() => { if (!pending) setAsk(false); }, [name, pending]);
   if (!connected || !name) return null;
   const send = () => {
-    if (!client || /[\s,]/.test(name) || name.startsWith('#') || name.startsWith('&')) return;
-    client.send(`MPHISTORY CLEAR ${name}`);
+    if (pending) return;
+    setAsk(true);
+    clearPmHistory(name);
   };
   return (
     <div className="pmhist" role="status">
       <span className="pmhist__txt">
-        {ask ? t('banners.pmHistoryConfirm', { nick: name }) : t('banners.pmHistory')}
+        {(ask || pending) ? t('banners.pmHistoryConfirm', { nick: name }) : t('banners.pmHistory')}
       </span>
       <span className="pmhist__actions">
-        {ask ? (
+        {(ask || pending) ? (
           <>
-            <button type="button" className="pmhist__btn pmhist__btn--danger" onClick={send}>
-              {t('banners.pmHistoryDo')}
+            <button type="button" className={`pmhist__btn pmhist__btn--danger${pending ? ' is-busy' : ''}`}
+              disabled={pending} aria-busy={pending || undefined} onClick={send}>
+              {pending ? <span className="pmhist__spin" aria-hidden /> : null}
+              {pending ? t('banners.pmHistoryClearAllPending') : t('banners.pmHistoryDo')}
             </button>
-            <button type="button" className="pmhist__btn" onClick={() => setAsk(false)}>
+            <button type="button" className="pmhist__btn" disabled={pending} onClick={() => setAsk(false)}>
               {t('banners.pmHistoryCancel')}
             </button>
           </>

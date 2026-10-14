@@ -169,6 +169,8 @@ export interface ChatState {
   pmHistoryClearAll: null | { phase: 'confirm' | 'pending' } | { phase: 'done'; n: number };
   /** Last MPHISTORY CLEAR failure, shown on the settings option. */
   pmHistoryClearError: string;
+  /** Nicks whose MPHISTORY CLEAR is in flight (canon key). Blocks a second click. */
+  pmHistoryClearing: Record<string, true>;
   pmContext: Record<string, string>; // canon(nick) → channel this DM relates to (+draft/channel-context)
   sidebarOrder: { channels: string[]; queries: string[] };
 
@@ -188,6 +190,8 @@ export interface ChatState {
   askClearAllPmHistory: () => void;
   /** Send MPHISTORY CLEAR * after the user confirmed. */
   confirmClearAllPmHistory: () => void;
+  /** MPHISTORY CLEAR for one PM. Ignored while that nick's clear is in flight. */
+  clearPmHistory: (nick: string) => void;
   /** Close the confirm or the done popup. */
   dismissClearAllPmHistory: () => void;
   reorderSidebar: (section: 'channels' | 'queries', from: string, to: string) => void;
@@ -372,6 +376,7 @@ export function createChatStore(ns = '') {
     pmHistoryClose: null,
     pmHistoryClearAll: null,
     pmHistoryClearError: '',
+    pmHistoryClearing: {},
 
     connect(opts) {
       // Retrying after a failed/closed attempt re-enters connect() on the same
@@ -470,6 +475,7 @@ export function createChatStore(ns = '') {
         pmHistoryClose: null,
         pmHistoryClearAll: null,
         pmHistoryClearError: '',
+        pmHistoryClearing: {},
         serverError: '',
         connectFail: null,
       });
@@ -501,6 +507,7 @@ export function createChatStore(ns = '') {
             pmHistoryClose: null,
             pmHistoryClearAll: null,
             pmHistoryClearError: '',
+            pmHistoryClearing: {},
           });
         }
         // Sticky pre-register failure (closed must not erase a prior sasl-failed).
@@ -760,8 +767,13 @@ export function createChatStore(ns = '') {
       if (!offer) return;
       const nick = offer.nick;
       set({ pmHistoryClose: null });
-      if (clear && get().account && mphistoryModuleLoaded(get().client) && nick && !/[\s,]/.test(nick) && nick[0] !== '#' && nick[0] !== '&')
-        get().client?.send(`MPHISTORY CLEAR ${nick}`);
+      if (clear && get().account && mphistoryModuleLoaded(get().client) && nick && !/[\s,]/.test(nick) && nick[0] !== '#' && nick[0] !== '&') {
+        const key = canon(nick);
+        if (!get().pmHistoryClearing[key]) {
+          set({ pmHistoryClearing: { ...get().pmHistoryClearing, [key]: true } });
+          get().client?.send(`MPHISTORY CLEAR ${nick}`);
+        }
+      }
       patchBuffer(nick, (b) => (b.mphistoryReplay ? { ...b, mphistoryReplay: false } : b));
       get().closeBuffer(nick);
     },
@@ -787,6 +799,17 @@ export function createChatStore(ns = '') {
 
     dismissClearAllPmHistory() {
       if (get().pmHistoryClearAll) set({ pmHistoryClearAll: null });
+    },
+
+    clearPmHistory(nick) {
+      const client = get().client;
+      if (!client || get().status !== 'registered' || !get().account || !mphistoryModuleLoaded(client)) return;
+      const name = (nick || '').trim();
+      if (!name || /[\s,]/.test(name) || name[0] === '#' || name[0] === '&') return;
+      const key = canon(name);
+      if (get().pmHistoryClearing[key]) return;
+      set({ pmHistoryClearing: { ...get().pmHistoryClearing, [key]: true } });
+      client.send(`MPHISTORY CLEAR ${name}`);
     },
 
     reorderSidebar(section, from, to) {
