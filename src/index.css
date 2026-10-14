@@ -1187,7 +1187,18 @@ html[data-mono="on"] .line { font-family: var(--mono); font-size: .92rem; }
 }
 .chaninfo__urllink:hover { border-color: var(--accent); }
 .chaninfo__empty { margin: .2rem 0 0; color: var(--faint); font-size: .9rem; }
-.chaninfo__modes { margin: .7rem 0 0; }
+.chaninfo__modelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .35rem; }
+.chaninfo__modelist li {
+  display: flex; align-items: baseline; gap: .55rem;
+  padding: .45rem .65rem; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--bg);
+}
+.chaninfo__modelist code {
+  flex: none; min-width: 1.6rem; font-family: var(--mono); font-size: .78rem; font-weight: 800;
+  color: var(--accent);
+}
+.chaninfo__modelist span { flex: 1; min-width: 0; font-size: .86rem; color: var(--ink); }
+.chaninfo__modelist em { flex: none; font-style: normal; font-size: .75rem; color: var(--muted); font-family: var(--mono); }
 
 /* NOTICE — callout turquoise (même teinte salon / privé / services) */
 .noticeline {

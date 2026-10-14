@@ -265,7 +265,9 @@
       "description": "Description",
       "owner": "Propriétaire",
       "official": "Salon officiel",
-      "officialHint": "Salon officiel du réseau"
+      "officialHint": "Salon officiel du réseau",
+      "modes": "Modes du salon",
+      "modeUnknown": "Non documenté"
     },
     "chanadmin": {
       "title": "Gérer le salon",

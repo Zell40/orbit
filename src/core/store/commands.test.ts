@@ -91,6 +91,13 @@ describe('sendInput — slash commands', () => {
     expect(whoisCalls.whoisText).toEqual(['alice']);
     expect(whoisCalls.openUser).toEqual([]);
   });
+
+  it('/whois from a channel prints classic text WHOIS in that window', () => {
+    const { sendInput, whoisCalls } = setup({ active: '#x' });
+    sendInput('/whois boris');
+    expect(whoisCalls.whoisText).toEqual(['boris']);
+    expect(whoisCalls.openUser).toEqual([]);
+  });
 });
 
 describe('sendInput — messages + console', () => {

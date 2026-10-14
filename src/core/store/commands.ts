@@ -5,7 +5,6 @@
 // plain-message path (with reply + channel-context tags and the optimistic echo).
 // Split out of store.ts; the store wires `sendInput: makeCommands(...).sendInput`.
 import i18n from '../i18n';
-import { getTheme } from '@/themes';
 import { usePluginRegistry } from '@/modules/registry';
 import { isService, isStatusService, maskSecret, detectServiceLeak } from '../services';
 import { stripFormatting, tidyOutgoing } from './text';
@@ -91,10 +90,9 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         case 'whois': {
           const who = arg.trim().split(' ')[0] || (active === SERVER ? get().nick : active);
           if (!who) break;
-          // Status console (and yomirc): classic mIRC text WHOIS in the active
-          // window. Elsewhere the modern profile panel.
-          if (active === SERVER || getTheme().startsWith('yomirc')) get().whoisText(who);
-          else get().openUser(who);
+          // Typed /whois always dumps the classic reply into the window it was
+          // run from. The profile panel stays for clicks (openUser).
+          get().whoisText(who);
           break;
         }
         case 'msg': {

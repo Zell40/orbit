@@ -10,7 +10,7 @@ import { bus } from '@/modules/bus';
 import { fetchChanServPublic } from '@/core/store/chanserv-info';
 import { Icon } from '../Icon';
 import { Modal } from './Modal';
-import { formatChannelModes } from '@/core/irc/modes';
+import { CHAN_FLAGS, CHAN_PARAMS } from '@/core/irc/mode-catalog';
 
 function fmtDate(sec: number, locale: string): string {
   if (!sec) return '';
@@ -22,6 +22,16 @@ function sameChan(a: string, b: string): boolean {
 }
 
 type CsInfo = { founder: string; description: string; official: boolean };
+
+const MODE_LABEL = new Map<string, string>([
+  ...CHAN_FLAGS.map((f) => [f.m, `chanFlags.${f.key}.label`] as const),
+  ...CHAN_PARAMS.map((p) => [p.m, `chanParams.${p.key}.label`] as const),
+  ['l', 'modals.chanadmin.limit'],
+]);
+
+function modeLetters(modes: string): string[] {
+  return [...String(modes || '').replace(/^\+/, '').replace(/[^A-Za-z]/g, '')];
+}
 
 function OfficialBadge() {
   const { t } = useTranslation();
@@ -42,7 +52,6 @@ export function ChanInfoModal() {
   const buffer = useActiveChat((s) => s.buffers[s.active]);
   const topicFull = useActiveChat((s) => s.prefs.topicSetterFull);
   const linkPreviews = useActiveChat((s) => s.prefs.linkPreviews);
-  const showExtendedModes = useActiveChat((s) => s.prefs.showExtendedModes);
   const locale = i18n.language;
   const account = useActiveChat((s) => s.account);
   const nick = useActiveChat((s) => s.nick);
@@ -173,10 +182,24 @@ export function ChanInfoModal() {
           ) : null}
         </div>
 
-        {buffer.modes && buffer.modes !== '+' && (
-          <p className="chaninfo__modes">
-            <span className="topbar__modes" title={t('topbar.modes')}>{formatChannelModes(buffer.modes, showExtendedModes ? buffer.modeParams : undefined)}</span>
-          </p>
+        {modeLetters(buffer.modes || '').length > 0 && (
+          <div className="ca-sec">
+            <h4 className="ca-h">{t('modals.chaninfo.modes')}</h4>
+            <ul className="chaninfo__modelist">
+              {modeLetters(buffer.modes || '').map((letter) => {
+                const key = MODE_LABEL.get(letter);
+                const label = key ? t(key, { defaultValue: '' }) : '';
+                const param = letter === 'k' ? '' : (buffer.modeParams?.[letter] || '');
+                return (
+                  <li key={letter}>
+                    <code>+{letter}</code>
+                    <span>{label || t('modals.chaninfo.modeUnknown')}</span>
+                    {param ? <em>{param}</em> : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
       </div>
     </Modal>

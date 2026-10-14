@@ -265,7 +265,9 @@
       "description": "Description",
       "owner": "Owner",
       "official": "Official channel",
-      "officialHint": "Official network channel"
+      "officialHint": "Official network channel",
+      "modes": "Channel modes",
+      "modeUnknown": "Undocumented"
     },
     "chanadmin": {
       "title": "Manage channel",
