@@ -10,6 +10,7 @@ import { prefetchLatestHistory } from './history-prefetch';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import { findMemberKey, findWhoisKey, type StoreHelpers } from './helpers';
+import { takeTextWhois } from './whois';
 import { loadChanUrls, saveChanUrls } from './persistence';
 import {
   announcePmOnline,
@@ -555,7 +556,9 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const w = findWhois(get().whois, nk);
         if (w) {
           // yomirc text WHOIS: print the miss to its window and drop the entry.
-          if (w.printTo) { sysLine(w.printTo, `${w.nick} No such nick/channel`, 'info'); clearWhois(w.nick); return true; }
+          const dest = w.printTo || takeTextWhois(nk);
+          if (w.printTo) takeTextWhois(nk);
+          if (dest) { sysLine(dest, `* ${w.nick} No such nick/channel`, 'system'); clearWhois(w.nick); return true; }
           // Not online — try WHOWAS for last-known info; 406/369 will mark notFound if absent.
           if (canon(get().profileUser) === canon(nk) || canon(get().profileUser) === canon(w.nick)) {
             get().client?.whowas(nk || w.nick);
@@ -606,7 +609,9 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const nk = msg.params[1];
         const w = findWhois(get().whois, nk);
         if (w) {
-          if (w.printTo) { sysLine(w.printTo, `${w.nick} was never on this network`, 'info'); clearWhois(w.nick); return true; }
+          const dest = w.printTo || takeTextWhois(nk);
+          if (w.printTo) takeTextWhois(nk);
+          if (dest) { sysLine(dest, `* ${w.nick} was never on this network`, 'system'); clearWhois(w.nick); return true; }
           patchWhois(w.nick, (ww) => ({ ...ww, loading: false, notFound: true }));
           return true;
         }

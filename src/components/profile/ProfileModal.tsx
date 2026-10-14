@@ -101,7 +101,7 @@ export function ProfileModal() {
         <span className="pm-groups">{groups[1].split(/[\s,]+/).filter(Boolean).map((g) => <span className="pm-grouptag" key={g}>{g}</span>)}</span>]);
     } else if (score) {
       rows.push(['📊', 'score', score[1]]);
-    } else {
+    } else if (line.trim() && line.trim() !== '*') {
       rows.push(['ℹ️', 'info', line]);
     }
   }

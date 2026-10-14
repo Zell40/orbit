@@ -17,6 +17,30 @@ import type { StoreApi } from 'zustand';
 import type { ChatState } from '../store';
 import { findWhoisKey, type StoreHelpers } from './helpers';
 
+// /whois typed in a window. Kept beside the WhoisInfo map: opening the profile
+// (or a second WHOIS under another nick case) must not drop the destination.
+const textWhoisDest = new Map<string, string>();
+
+export function requestTextWhois(nick: string, buffer: string): void {
+  if (!nick || !buffer) return;
+  textWhoisDest.set(canon(nick), buffer);
+}
+
+export function textWhoisBuffer(nick: string): string | undefined {
+  return nick ? textWhoisDest.get(canon(nick)) : undefined;
+}
+
+export function takeTextWhois(nick: string): string | undefined {
+  const dest = textWhoisBuffer(nick);
+  if (nick) textWhoisDest.delete(canon(nick));
+  return dest;
+}
+
+/** Drop the dummy `*` servers put in the middle of a WHOIS line; keep the sentence. */
+export function whoisExtraText(params: string[]): string {
+  return params.slice(2).map((s) => s.trim()).filter((s) => s && s !== '*').join(' ').trim();
+}
+
 interface WhoisDeps {
   get: StoreApi<ChatState>['getState'];
   set: StoreApi<ChatState>['setState'];
@@ -53,7 +77,8 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
   function printWhois(w: WhoisInfo): void {
     const to = w.printTo!;
     const n = w.nick;
-    const p = (text: string) => sysLine(to, text, 'info');
+    // Plain "* …" lines in the window the command was typed in — not an Info card.
+    const p = (text: string) => sysLine(to, `* ${text}`, 'system');
     if (w.user || w.host) p(`${n} is ${w.user ?? '?'}@${w.host ?? '?'}${w.realname ? ` * ${w.realname}` : ''}`);
     if (w.account) p(`${n} is logged in as ${w.account}`);
     if (w.channels) p(`${n} is on ${w.channels}`);
@@ -64,7 +89,10 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
     if (w.secure) p(`${n} is using a secure connection (TLS)`);
     if (w.certfp) p(`${n} has client certificate ${w.certfp}`);
     if (w.actualHost) p(`${n} is actually using ${w.actualHost}`);
-    for (const sp of w.special ?? []) p(`${n} ${sp}`);
+    for (const sp of w.special ?? []) {
+      const line = sp.trim();
+      if (line && line !== '*') p(`${n} ${line}`);
+    }
     if (w.away) p(`${n} is away: ${w.away}`);
     if (w.idle != null || w.signon) {
       const idle = w.idle != null ? `has been idle ${fmtDuration(w.idle)}` : '';
@@ -152,14 +180,17 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
       case '307': // RPL_WHOISREGNICK: nick is a registered/identified account
         patchWhois(msg.params[1], (w) => ({ ...w, regnick: true }));
         return true;
-      case '320': // RPL_WHOISSPECIAL: free-form extra whois line
-        patchWhois(msg.params[1], (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), msg.params[2]] }));
+      case '320': { // RPL_WHOISSPECIAL: free-form extra whois line (`*` alone is a placeholder)
+        const extra = whoisExtraText(msg.params);
+        if (extra) patchWhois(msg.params[1], (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), extra] }));
         return true;
+      }
       case '344': // RPL_WHOISCOUNTRY (InspIRCd / Unreal geo)
       case '345': { // RPL_WHOISASN
         const who = msg.params[1];
         if (!who) return false;
-        const extra = msg.params.length > 2 ? msg.params[msg.params.length - 1] : '';
+        const extra = (msg.params[msg.params.length - 1] || '').trim();
+        if (!extra || extra === '*') return true;
         const inflight = get().whois[who]
           || Object.values(get().whois).find((w) => canon(w.nick) === canon(who));
         if (!inflight) return false;
@@ -191,7 +222,9 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
         patchWhois(nk, (w) => ({ ...w, loading: false, nick: nk || w.nick }));
         const key = findWhoisKey(get().whois, nk);
         const w = key ? get().whois[key] : undefined;
-        if (w?.printTo) printWhois(w); // yomirc: dump it to the active window as text
+        const dest = w?.printTo || takeTextWhois(nk);
+        if (w?.printTo) takeTextWhois(nk);
+        if (w && dest) printWhois({ ...w, printTo: dest });
         return true;
       }
       // draft/metadata-2 account profile (avatar/bio/pronouns/timezone/url), pushed

@@ -90,8 +90,8 @@ export function makeCommands({ get, set, helpers, resetTyping }: CommandsDeps) {
         case 'whois': {
           const who = arg.trim().split(' ')[0] || (active === SERVER ? get().nick : active);
           if (!who) break;
-          // Typed /whois always dumps the classic reply into the window it was
-          // run from. The profile panel stays for clicks (openUser).
+          // Typed /whois dumps the classic reply into the window it was run from.
+          sysLine(active, `» /whois ${who}`, 'system');
           get().whoisText(who);
           break;
         }

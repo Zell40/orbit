@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { makeWhois } from './whois';
+import { makeWhois, requestTextWhois } from './whois';
 import { parseLine } from '../irc/parser';
 import { canon, trackBufferMuteSync } from './context';
 import { findWhoisKey } from './helpers';
@@ -143,6 +143,22 @@ describe('makeWhois — yomirc text WHOIS (printTo)', () => {
       user: 'u', host: 'host.example', realname: 'Real', loading: false, nick: 'Borisismo',
     });
     expect(whois()['Borisismo']).toBeUndefined();
+  });
+
+  it('drops a WHOIS special line that is only the * placeholder', () => {
+    const { w, whois } = setup({ bob: { nick: 'bob', loading: true } });
+    w.handleWhois(parseLine(':srv 320 me bob *'));
+    w.handleWhois(parseLine(':srv 320 me bob * :is connecting from France'));
+    expect(whois()['bob'].special).toEqual(['is connecting from France']);
+  });
+
+  it('prints a typed /whois into its window even if the cached entry has no printTo', () => {
+    const { w, lines } = setup({
+      Boris: { nick: 'Boris', loading: true, user: 'u', host: 'h' },
+    });
+    requestTextWhois('boris', '#entrenous.chat');
+    w.handleWhois(parseLine(':srv 318 me Boris :End of /WHOIS'));
+    expect(lines.some(([to, text]) => to === '#entrenous.chat' && text.startsWith('* ') && text.includes('is u@h'))).toBe(true);
   });
 
   it('on 318 without printTo just finalises loading, prints nothing', () => {

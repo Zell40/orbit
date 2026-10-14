@@ -16,6 +16,7 @@ import { isService, isStatusService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
 import { makeHandler } from './store/handler';
+import { requestTextWhois } from './store/whois';
 import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
@@ -707,7 +708,15 @@ export function createChatStore(ns = '') {
     whoisText(nick) {
       if (!nick || isPseudoBuffer(nick) || isBouncerServiceNick(nick)) return;
       const s = get();
-      set({ whois: { ...s.whois, [nick]: { nick, loading: true, printTo: s.active } } });
+      const key = findWhoisKey(s.whois, nick) || nick;
+      const whois = { ...s.whois };
+      const folded = canon(nick);
+      for (const k of Object.keys(whois)) {
+        if (k !== key && canon(k) === folded) delete whois[k];
+      }
+      whois[key] = { nick: key, loading: true, printTo: s.active };
+      requestTextWhois(nick, s.active);
+      set({ whois });
       s.client?.whois(nick);
     },
 
