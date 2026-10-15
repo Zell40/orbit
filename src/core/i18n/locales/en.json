@@ -1674,6 +1674,9 @@
     "upstream": "Orbit upstream",
     "project": "Project page",
     "running": "Deployment",
+    "whatsNew": "Latest updates",
+    "notesLoading": "Loading…",
+    "notesEmpty": "No notes for this version.",
     "madeWith": "Built with React · IRCv3"
   },
   "switcher": {

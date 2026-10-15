@@ -1675,6 +1675,9 @@
     "upstream": "Orbit amont",
     "project": "Page du projet",
     "running": "Déploiement",
+    "whatsNew": "Dernières mises à jour",
+    "notesLoading": "Chargement…",
+    "notesEmpty": "Aucune note pour cette version.",
     "madeWith": "Conçu avec React · IRCv3"
   },
   "switcher": {

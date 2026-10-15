@@ -39,6 +39,14 @@
     {
       "fr": "Notices d’un bot (aide, réponse) : affichées dans la fenêtre ouverte, plus dans un autre salon.",
       "en": "Bot notices (help, replies) show in the window you are looking at, not another channel."
+    },
+    {
+      "fr": "Réglages : l’onglet Compte est en tête de liste.",
+      "en": "Settings: the Account tab is first in the list."
+    },
+    {
+      "fr": "Changer de pseudo : « déjà utilisé » seulement si le pseudo du compte est encore pris par un fantôme.",
+      "en": "Nick change: “already in use” only when the account nick is still held by a ghost."
     }
   ]
 }

@@ -1,6 +1,8 @@
-import { type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
+import { fetchUpdateNotes, type UpdateNote } from '@/ui/appUpdate';
+import { Icon } from '../../Icon';
 
 // About — the app's own identity card (version/build injected at build time +
 // the project's open-source links). Orbit is the client; branding.* is the host.
@@ -14,8 +16,19 @@ function hostPath(url: string): string {
 }
 
 export function AboutSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const cfg = getConfig();
+  const [notes, setNotes] = useState<UpdateNote[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void fetchUpdateNotes().then((list) => { if (!cancelled) setNotes(list); });
+    return () => { cancelled = true; };
+  }, []);
+  const lang = (i18n.language || 'fr').slice(0, 2).toLowerCase();
+  const noteLines = (notes || [])
+    .map((n) => (lang === 'en' ? (n.en || n.fr) : (n.fr || n.en)))
+    .filter(Boolean)
+    .reverse();
   const buildDate = (() => { try { return new Date(__BUILD_TIME__).toLocaleDateString(); } catch { return ''; } })();
   const build = [buildDate, __GIT_COMMIT__].filter(Boolean).join(' · ') || '—';
   const rows: { label: string; value: ReactNode }[] = [
@@ -50,6 +63,21 @@ export function AboutSection() {
             </div>
           ))}
         </dl>
+        <div className="about-notes">
+          <div className="about-notes__h">{t('about.whatsNew')}</div>
+          {notes === null && <p className="about-notes__empty">{t('about.notesLoading')}</p>}
+          {notes !== null && noteLines.length === 0 && <p className="about-notes__empty">{t('about.notesEmpty')}</p>}
+          {noteLines.length > 0 && (
+            <ul className="about-notes__list">
+              {noteLines.map((line) => (
+                <li key={line}>
+                  <span className="about-notes__check" aria-hidden="true"><Icon name="check" size={14} /></span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         <div className="about-foot">{t('about.madeWith')}</div>
       </div>
     </div>
