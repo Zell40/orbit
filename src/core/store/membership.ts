@@ -178,7 +178,9 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
       case 'NICK': {
         const nn = msg.params[0];
         if (msg.nick === me) {
-          set({ nick: nn, nickError: null });
+          // The nick the user just took is the one they want. A stale connect nick
+          // (Zell742) must not stay "wanted" after they moved to their account nick.
+          set({ nick: nn, nickError: null, ...(nn ? { wantedNick: nn } : {}) });
           // Keep IrcClient.nick in sync — MODE/WHOIS/queryUserModes use it.
           // Without this, RECOVER /nick leaves setUserModes targeting the ghost nick
           // (silent no-op, no Status error).

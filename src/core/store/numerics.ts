@@ -703,11 +703,20 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         const serverText = msg.params.length > 2 ? msg.params[msg.params.length - 1] : '';
         const text = (i18n.t(`numerics.${msg.command}`, { nick: wanted }) as string) || serverText;
         const offer = get().nickRecoverOffer;
+        // Recover only the account nick, and only when that exact nick is refused.
+        const account = (get().account || '').trim();
+        const owns = msg.command === '433'
+          && !!account
+          && !!wanted
+          && canon(wanted) === canon(account)
+          && canon(get().nick) !== canon(wanted);
         set({
           nickError: { nick: wanted, code: msg.command, text },
+          ...(owns ? { wantedNick: wanted } : {}),
           // RECOVER then NICK can race the ghost — let the user click again.
           ...(offer?.pending ? { nickRecoverOffer: { ...offer, pending: false, done: false } } : {}),
         });
+        if (owns) get().refreshNickRecoverOffer?.();
         sysLine(get().active || SERVER, `⚠️ ${text}`, 'system');
         if (get().prefs.sound) blip();
         return true;

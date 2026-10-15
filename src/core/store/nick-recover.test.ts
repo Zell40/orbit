@@ -64,6 +64,26 @@ describe('shouldOfferNickRecover', () => {
     })).toBe(dismissed);
   });
 
+  it('does not offer to recover a suffix nick once the account nick is in use', () => {
+    expect(shouldOfferNickRecover({
+      status: 'registered',
+      account: 'Zell',
+      nick: 'Zell',
+      wantedNick: 'Zell742',
+      offer: null,
+    })).toBeNull();
+  });
+
+  it('does not offer when the live nick is a suffix the user asked for', () => {
+    expect(shouldOfferNickRecover({
+      status: 'registered',
+      account: 'Zell',
+      nick: 'Zell742',
+      wantedNick: 'Zell742',
+      offer: null,
+    })).toBeNull();
+  });
+
   it('needs an account and a registered session', () => {
     expect(shouldOfferNickRecover({
       status: 'registered',
