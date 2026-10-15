@@ -15,6 +15,13 @@ function hostPath(url: string): string {
   return url.replace(/^https?:\/\//, '');
 }
 
+function formatNoteDate(iso: string | undefined, lang: string): string {
+  if (!iso) return '';
+  const d = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(lang.startsWith('en') ? 'en-GB' : 'fr-FR');
+}
+
 export function AboutSection() {
   const { t, i18n } = useTranslation();
   const cfg = getConfig();
@@ -25,10 +32,15 @@ export function AboutSection() {
     return () => { cancelled = true; };
   }, []);
   const lang = (i18n.language || 'fr').slice(0, 2).toLowerCase();
-  const noteLines = (notes || [])
-    .map((n) => (lang === 'en' ? (n.en || n.fr) : (n.fr || n.en)))
-    .filter(Boolean)
-    .reverse();
+  const noteLines = [...(notes || [])]
+    .reverse()
+    .map((n) => ({
+      text: lang === 'en' ? (n.en || n.fr || '') : (n.fr || n.en || ''),
+      iso: n.date || '',
+      date: formatNoteDate(n.date, lang),
+    }))
+    .filter((n) => n.text)
+    .slice(0, 5);
   const buildDate = (() => { try { return new Date(__BUILD_TIME__).toLocaleDateString(); } catch { return ''; } })();
   const build = [buildDate, __GIT_COMMIT__].filter(Boolean).join(' · ') || '—';
   const rows: { label: string; value: ReactNode }[] = [
@@ -70,9 +82,10 @@ export function AboutSection() {
           {noteLines.length > 0 && (
             <ul className="about-notes__list">
               {noteLines.map((line) => (
-                <li key={line}>
+                <li key={`${line.iso}-${line.text}`}>
                   <span className="about-notes__check" aria-hidden="true"><Icon name="check" size={14} /></span>
-                  <span>{line}</span>
+                  {line.date && <time className="about-notes__date" dateTime={line.iso}>{line.date}</time>}
+                  <span>{line.text}</span>
                 </li>
               ))}
             </ul>

@@ -5,7 +5,7 @@
 // used to abort the IRC websocket mid-handshake).
 const UPDATE_EVT = 'orbit-app-update';
 
-export type UpdateNote = { fr?: string; en?: string };
+export type UpdateNote = { fr?: string; en?: string; date?: string };
 
 function announceUpdate() {
   window.dispatchEvent(new Event(UPDATE_EVT));

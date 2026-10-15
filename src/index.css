@@ -2505,11 +2505,12 @@ textarea.modal__input { resize: vertical; min-height: 5rem; line-height: 1.45; }
 .about-hero__name { font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; }
 .about-hero__ver { font-size: .8rem; font-weight: 700; color: var(--muted); }
 .about-hero__tag { font-size: .82rem; color: var(--muted); margin-top: .1rem; }
-.about-notes { margin-top: .9rem; padding-top: .85rem; border-top: 1px solid var(--border); }
+.about-notes { margin-top: .35rem; padding: .85rem .95rem .15rem; border-top: 1px solid var(--border); }
 .about-notes__h { margin: 0 0 .55rem; font-size: .72rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
 .about-notes__empty { margin: 0; font-size: .8rem; color: var(--muted); }
-.about-notes__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .4rem; }
-.about-notes__list li { display: flex; align-items: flex-start; gap: .45rem; font-size: .84rem; line-height: 1.4; color: var(--ink); }
+.about-notes__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+.about-notes__list li { display: flex; align-items: flex-start; gap: .5rem; font-size: .84rem; line-height: 1.4; color: var(--ink); }
+.about-notes__date { flex: none; width: 5.6rem; font-size: .78rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 .about-notes__check {
   flex: none; width: 18px; height: 18px; margin-top: .08rem; border-radius: 999px;
   display: grid; place-items: center;
