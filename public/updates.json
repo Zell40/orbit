@@ -15,6 +15,30 @@
     {
       "fr": "Compte : affichage du nom d’hôte vu par les autres (cloak), sans l’IP réelle.",
       "en": "Account: show the hostname others see (cloak), not the real IP."
+    },
+    {
+      "fr": "Démarrage plus léger : les jeux se chargent après l’écran d’accueil.",
+      "en": "Lighter startup: games load after the welcome screen."
+    },
+    {
+      "fr": "Nouvel onglet Options : invitation, confirmation de fermeture, historique des MP.",
+      "en": "New Options tab: invite join, close confirmation, and PM history."
+    },
+    {
+      "fr": "Infos salon : chaque mode est expliqué, même sans être opérateur.",
+      "en": "Channel info: each mode is explained, even without operator access."
+    },
+    {
+      "fr": "Smileys texte (:) :D <3…) affichés directement dans la barre de saisie.",
+      "en": "Text smileys (:) :D <3…) show as the glyph in the message bar."
+    },
+    {
+      "fr": "/whois tapé dans la barre s’affiche en texte dans le salon ouvert. La fiche ne montre plus une ligne Info vide.",
+      "en": "Typed /whois prints in the open channel. The profile no longer shows an empty Info row."
+    },
+    {
+      "fr": "Notices d’un bot (aide, réponse) : affichées dans la fenêtre ouverte, plus dans un autre salon.",
+      "en": "Bot notices (help, replies) show in the window you are looking at, not another channel."
     }
   ]
 }

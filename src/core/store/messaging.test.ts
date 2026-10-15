@@ -315,7 +315,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       },
     });
     on(':ChanServ!s@services NOTICE me :AIDE: …');
-    expect(added[0].name).toBe('#entrenous.chat');
+    expect(added[0].name).toBe(SERVER);
     expect(added[0].m).toMatchObject({ kind: 'notice', from: 'ChanServ', noticeScope: 'direct' });
   });
 
@@ -334,7 +334,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect(added[0].m).toMatchObject({ self: true, kind: 'privmsg' });
   });
 
-  it('shows a bot notice in the shared channel, not the unrelated active window', () => {
+  it('shows an unhandled bot notice in the window you are looking at', () => {
     const { on, added } = setup({
       active: '#entrenous.chat',
       order: ['#entrenous.chat', '#baccalaureat.chat'],
@@ -344,8 +344,8 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
       },
     });
     on(':Bac!bot@host NOTICE me :Une partie est en cours !');
-    expect(added[0].name).toBe('#baccalaureat.chat');
-    expect(added[0].m).toMatchObject({ kind: 'notice', from: 'Bac', noticeScope: 'room' });
+    expect(added[0].name).toBe('#entrenous.chat');
+    expect(added[0].m).toMatchObject({ kind: 'notice', from: 'Bac', noticeScope: 'direct' });
   });
 
   it('drops a user NOTICE that copies a recent channel PRIVMSG from the same nick', () => {

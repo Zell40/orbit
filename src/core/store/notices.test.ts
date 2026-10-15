@@ -34,7 +34,7 @@ describe('resolveNoticeDest', () => {
     })).toBe('#baccalaureat.chat');
   });
 
-  it('does not dump into the active channel when the sender is elsewhere', () => {
+  it('stays in the window you are looking at when the sender is only in another salon', () => {
     expect(dest({
       sender: 'Bac',
       active: '#entrenous.chat',
@@ -43,7 +43,7 @@ describe('resolveNoticeDest', () => {
         '#baccalaureat.chat': chan(['Bac', 'Jessie']),
       },
       order: ['#entrenous.chat', '#baccalaureat.chat'],
-    })).toBe('#baccalaureat.chat');
+    })).toBe('#entrenous.chat');
   });
 
   it('lands in the current window when no joined channel is shared with the sender', () => {

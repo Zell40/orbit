@@ -1,8 +1,9 @@
 // Where an incoming user-targeted NOTICE belongs: the PM if you are talking to
-// that nick there, else the channel we share with the sender when that's
-// unambiguous, else the window you are looking at. Notices must not *open* a
-// PM tab. Bots like Bac also PRIVMSG the same lines to the channel — those
-// copies must not be re-inserted as NOTICE.
+// that nick there, else the window you are looking at. A notice about a channel
+// (+draft/channel-context) stays on that channel when we share it. Notices must
+// not *open* a PM tab, and must not jump to another salon just because the
+// sender is only a member there. Bots like Bac also PRIVMSG the same lines to
+// the channel — those copies must not be re-inserted as NOTICE.
 import { canon, isChannelName, SERVER, isPseudoBuffer } from './context';
 import { isStatusService } from '../services';
 
@@ -108,7 +109,6 @@ export function resolveNoticeDest(opts: {
     ? canon(opts.channelContext) : '';
   if (ctx && shared.includes(ctx)) return ctx;
   if (activeKey && shared.includes(activeKey)) return activeKey;
-  if (shared.length === 1) return shared[0];
   if (skipServicePm) {
     if (opts.active && isChannelName(opts.active)) return opts.active;
     return SERVER;
