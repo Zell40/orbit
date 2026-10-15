@@ -16,11 +16,11 @@ import { ModesSection } from './sections/ModesSection';
 
 // Labels & descriptions are resolved via i18n (SEC_KEY / SEC_DESC).
 const SETTINGS_SECTIONS = [
+  { id: 'compte',    icon: '🔑' },
   { id: 'profil',    icon: '👤' },
   { id: 'modes',     icon: '🛡️' },
   { id: 'apparence', icon: '🎨' },
   { id: 'notifs',    icon: '🔔' },
-  { id: 'compte',    icon: '🔑' },
   { id: 'options',   icon: '⚙️' },
   { id: 'server',    icon: '🖥️' },
   { id: 'ircv3',     icon: '🔌' },
