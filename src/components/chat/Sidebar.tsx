@@ -16,6 +16,7 @@ import { NetworkTabs } from './NetworkTabs';
 import { StatusMenu } from './StatusMenu';
 import { getConfig } from '@/core/config';
 import { queryPresence } from '@/core/store/pm-presence';
+import { useAvatarUrl } from '@/platform/avatars';
 // The footer bar (TabBar) is in the DOM twice for the responsive layout — a
 // window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on
 // mobile (`.sidebar .appbar`), with CSS showing one at the 880px breakpoint. So
@@ -124,6 +125,18 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
   const reorderSidebar = useActiveChat((s) => s.reorderSidebar);
   const serverName = useActiveChat((s) => s.serverName);
   const presence = useActiveChat((s) => queryPresence(s.buffers[name]?.name || name, s.friendsOnline, s.buffers));
+  // Services account for a PM, so a real photo can replace the letter.
+  const account = useActiveChat((s) => {
+    const buf = s.buffers[name];
+    if (!buf || buf.isChannel || name === SERVER || isNoticeBuffer(name)) return '';
+    for (const m of Object.values(buf.members)) if (m.account) return m.account;
+    for (let i = buf.messages.length - 1; i >= 0; i--) {
+      const msg = buf.messages[i];
+      if (!msg.self && msg.account) return msg.account;
+    }
+    return s.whois[buf.name]?.account || s.whois[name]?.account || '';
+  });
+  const avatarUrl = useAvatarUrl(account || null);
   const [over, setOver] = useState(false);
   const skipClick = useRef(false);
   if (!b) return null;
@@ -177,20 +190,22 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
         reorderSidebar(section, dnd.name, name);
         dnd = null;
       }}>
-      <span className="room__av" data-server={isServer || undefined} data-notices={isNotices || undefined}
-        style={isServer || (isNotices && !noticeNick) ? undefined : { background: avatarBg(noticeNick || name) }}>
-        {b.isChannel ? <span className="room__hash">#</span> : glyph}
+      <span className={`room__av${avatarUrl ? ' room__av--photo' : ''}`} data-server={isServer || undefined} data-notices={isNotices || undefined}
+        style={isServer || (isNotices && !noticeNick) || avatarUrl ? undefined : { background: avatarBg(noticeNick || name) }}>
+        {avatarUrl
+          ? <img className="room__av-img" src={avatarUrl} alt="" />
+          : b.isChannel ? <span className="room__hash">#</span> : glyph}
+        {presence && (
+          <span
+            className={`room__presence${presence === 'on' ? ' is-on' : ' is-off'}`}
+            title={presence === 'on' ? t('whois.online') : t('whois.offline')}
+            aria-label={presence === 'on' ? t('whois.online') : t('whois.offline')}
+          />
+        )}
       </span>
       <span className="room__body">
         <span className="room__nameline">
           <span className="room__name">{label}</span>
-          {presence && (
-            <span
-              className={`room__presence${presence === 'on' ? ' is-on' : ' is-off'}`}
-              title={presence === 'on' ? t('whois.online') : t('whois.offline')}
-              aria-label={presence === 'on' ? t('whois.online') : t('whois.offline')}
-            />
-          )}
         </span>
         <span className={`room__sub${genericSub ? ' room__sub--generic' : ''}`}>{
           isServer ? (serverName || t('sidebar.system'))
