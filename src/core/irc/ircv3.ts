@@ -209,10 +209,12 @@ export class Ircv3 {
     else this.tx.send(`METADATA ${target} SET soju.im/muted 0`);
     return 'sent';
   }
-  /** Restore mute level after JOIN (multi-device sync). */
+  /** Restore mute level after JOIN (multi-device sync).
+   *  Live queue — must not sit behind CHATHISTORY or the Status Web Push
+   *  check arrives long after the splash. */
   fetchBufferMuted(target: string): boolean {
     if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return false;
-    this.tx.lowSend(`METADATA ${target} GET soju.im/muted`);
+    this.tx.send(`METADATA ${target} GET soju.im/muted`);
     return true;
   }
   // MONITOR (online-notify): + add, - remove, L list, C clear.

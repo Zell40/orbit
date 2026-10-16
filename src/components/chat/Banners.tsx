@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { mphistoryModuleLoaded } from '@/core/irc/caps';
-import { canon } from '@/core/store/context';
+import { canon, isPseudoBuffer } from '@/core/store/context';
 import { useTranslation } from 'react-i18next';
 import { getConfig } from '@/core/config';
 import { activeStore, useActiveChat } from '@/core/networks';
@@ -405,7 +405,7 @@ export function PmHistoryBar() {
   const connected = useActiveChat((s) => s.status === 'registered' && !!s.account && mphistoryModuleLoaded(s.client));
   const name = useActiveChat((s) => {
     const b = s.buffers[s.active];
-    if (!b || b.isChannel || !b.mphistoryReplay) return '';
+    if (!b || b.isChannel || isPseudoBuffer(s.active) || !b.mphistoryReplay) return '';
     return b.name;
   });
   const clearPmHistory = useActiveChat((s) => s.clearPmHistory);

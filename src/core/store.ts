@@ -15,6 +15,8 @@ import { shouldOfferNickRecover, type NickRecoverOffer } from './store/nick-reco
 import { isService, isStatusService } from './services';
 import { loadSidebarOrder, saveSidebarOrder, arrangeNames, liveChannels, liveQueries, moveName } from './store/sidebar-order';
 import { prefetchLatestHistory } from './store/history-prefetch';
+import { prefetchJoinedBufferMutes } from './store/mute-prefetch';
+import { refreshPush } from '../platform/push';
 import { makeHandler } from './store/handler';
 import { requestTextWhois } from './store/whois';
 import { makeCommands } from './store/commands';
@@ -246,6 +248,7 @@ export function createChatStore(ns = '') {
   const knownServices = new Set<string>(); // canon nicks the server tagged as services
   const namesInFlight = new Set<string>(); // channels currently receiving a NAMES (353…366) burst
   const historyAsked = new Set<string>(); // channels already sent CHATHISTORY LATEST this session
+  const muteAsked = new Set<string>(); // channels already sent METADATA GET soju.im/muted this session
   const mlockAsked = new Map<string, number>(); // canon channel → ChanServ INFO expiry for MLOCK
   // Soft cache of GECOS/account across reconnect nicklist clears (until WHOX refills).
   const profileCache = new Map<string, { realname?: string; account?: string }>();
@@ -287,7 +290,7 @@ export function createChatStore(ns = '') {
     s.client?.ircv3.sendDisplayed(b.name, latestPeer);
   };
 
-  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns, mlockAsked, pruneAutoJoin });
+  const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, muteAsked, profileCache, persistNs: ns, mlockAsked, pruneAutoJoin });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
   const upload = makeUpload({ get, filehost, helpers });
@@ -580,6 +583,9 @@ export function createChatStore(ns = '') {
           }
           // Subscribe to account-profile metadata so cards show avatar/bio/etc.
           client.ircv3.subscribeMetadata(['avatar', 'bio', 'pronouns', 'timezone', 'url']);
+          // Re-assert Web Push as soon as 001 lands (don't wait for a React paint).
+          if (get().account && getConfig().features.push) void refreshPush(client, get().account);
+          prefetchJoinedBufferMutes(get, muteAsked);
           // On a RECONNECT, rejoin every channel we still have open (the client
           // only auto-joins the initial set; this restores ones joined later).
           // Skip joinDenied — retrying a refused salon beeps in a loop.
@@ -605,6 +611,7 @@ export function createChatStore(ns = '') {
               const b = s.buffers[name];
               if (b?.isChannel && b.joined) prefetchLatestHistory(get, historyAsked, b.name);
             }
+            prefetchJoinedBufferMutes(get, muteAsked);
           }, 800);
           // Catalogue for Explorer / galerie: start LIST during splash so the
           // first open is not waiting behind ChanServ/WHOIS on the 1/s bucket.
@@ -616,6 +623,7 @@ export function createChatStore(ns = '') {
         knownServices.clear(); // re-learn services after reconnect rather than accrete forever
         namesInFlight.clear();
         historyAsked.clear();
+        muteAsked.clear();
         mlockAsked.clear();
         if (get().account) set({ account: '' });
         // Drop stale nicklists immediately — NAMES on rejoin will refill them.

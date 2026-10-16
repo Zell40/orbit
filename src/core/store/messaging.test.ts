@@ -95,6 +95,14 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     expect((state.buffers['bob'] as { mphistoryReplay?: boolean }).mphistoryReplay).toBe(true);
   });
 
+  it('does not replay private history into the status console', () => {
+    const { on, added, state } = setup();
+    on('@+entrenous/mphistory=replay :NickServ!s@services PRIVMSG me :ancien message');
+    on('@+entrenous/mphistory=replay :ChanServ!s@services PRIVMSG me :ancien message');
+    expect(added).toEqual([]);
+    expect((state.buffers[SERVER] as { mphistoryReplay?: boolean } | undefined)?.mphistoryReplay).toBeFalsy();
+  });
+
   it('does not mark a live PM as replayed history', () => {
     const { on, state } = setup();
     on(':bob!u@h PRIVMSG me :now');

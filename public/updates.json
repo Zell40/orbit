@@ -1,11 +1,6 @@
 {
   "items": [
     {
-      "date": "2026-10-14",
-      "fr": "fix bouton mphistory",
-      "en": "fix bouton mphistory"
-    },
-    {
       "date": "2026-10-15",
       "fr": "Afficher les notices privées dans la fenêtre ouverte et compléter les notes de mise à jour.",
       "en": "Afficher les notices privées dans la fenêtre ouverte et compléter les notes de mise à jour."
@@ -59,6 +54,11 @@
       "date": "2026-10-16",
       "fr": "Accelerer encore et mieux afficher quand l'app est prête au démarrage d'orbit",
       "en": "Accelerer encore et mieux afficher quand l'app est prête au démarrage d'orbit"
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "Afficher dans le popup les 5 derniers commits Orbit, régénérés à chaque build.",
+      "en": "Afficher dans le popup les 5 derniers commits Orbit, régénérés à chaque build."
     }
   ]
 }

@@ -226,6 +226,15 @@ describe('Ircv3 cap-gated commands', () => {
     ]);
   });
 
+  it('sends soju.im/muted GET on the live queue, not behind history', () => {
+    const { ircv3, sent, low, cap } = make();
+    expect(ircv3.fetchBufferMuted('#x')).toBe(false);
+    cap('CAP * ACK :draft/metadata-2');
+    expect(ircv3.fetchBufferMuted('#x')).toBe(true);
+    expect(sent).toEqual(['METADATA #x GET soju.im/muted']);
+    expect(low).toHaveLength(0);
+  });
+
   it('routes chathistory prefetch through the low-priority queue', () => {
     const { ircv3, sent, low, cap } = make();
     cap('CAP * ACK :draft/chathistory');

@@ -100,6 +100,21 @@ describe('store numerics handler', () => {
     expect(state.account).toBe('bob');
   });
 
+  it('900 GET soju.im/muted for salons joined before SASL', () => {
+    const muted: string[] = [];
+    const { handleNumerics, state } = setup({
+      order: ['#x'],
+      buffers: { '#x': { name: '#x', joined: true, isChannel: true, messages: [] } },
+      client: {
+        numerics: new Numerics(),
+        ircv3: { fetchBufferMuted: (t: string) => { muted.push(t); return true; } },
+      },
+    });
+    handleNumerics(mk('900', ['me', 'nick!u@h', 'bob']));
+    expect(state.account).toBe('bob');
+    expect(muted).toEqual(['#x']);
+  });
+
   it('005 RPL_ISUPPORT stores NETWORK as ircNetwork', () => {
     const { handleNumerics, state } = setup({
       client: { server: { network: 'EntreNous.chat' } },

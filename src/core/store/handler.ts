@@ -37,6 +37,7 @@ interface HandlerCtx {
   };
   namesInFlight: Set<string>;
   historyAsked: Set<string>;
+  muteAsked?: Set<string>;
   profileCache: Map<string, { realname?: string; account?: string }>;
   persistNs?: string;
   mlockAsked: Map<string, number>;
@@ -47,13 +48,13 @@ interface HandlerCtx {
 // The IRC event -> state message handler, extracted from store.ts. Returns the
 // `handle` function; the store wires it to client.on('message', handle).
 export function makeHandler(ctx: HandlerCtx) {
-  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs = '', mlockAsked, pruneAutoJoin } = ctx;
+  const { set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, muteAsked, profileCache, persistNs = '', mlockAsked, pruneAutoJoin } = ctx;
   const { ensureBuffer, patchBuffer, tsOf, sysLine, serverLine, announceLine, patchWhois } = helpers;
 
   // WHOIS/WHOWAS → the profile panel (and yomirc text WHOIS). See ./whois.
   const { handleWhois, clearWhois } = makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs });
   // Channel-membership events (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME). See ./membership.
-  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers, historyAsked });
+  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers, historyAsked, muteAsked });
   // IRCv3 BATCH open/close (chathistory + multiline merge). See ./batch.
   const { handleBatch } = makeBatch({ get, set, helpers });
   // TAGMSG: typing indicators + reactions. See ./tagmsg.
@@ -65,7 +66,7 @@ export function makeHandler(ctx: HandlerCtx) {
   // MODE changes (user + channel modes, prefixes, ban lists). See ./mode.
   const { handleMode } = makeMode({ get, set, helpers });
   // Numeric replies (RPL_*/ERR_*) + the generic error/console fallback. See ./numerics.
-  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs, pruneAutoJoin });
+  const { handleNumerics } = makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, muteAsked, profileCache, persistNs, pruneAutoJoin });
 
   // ---- IRC event -> state ------------------------------------------------
   function handle(msg: IrcMessage): void {

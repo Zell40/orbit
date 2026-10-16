@@ -395,13 +395,18 @@ export function makeMessaging({ get, set, knownServices, filehost, helpers, mloc
       slot.lines.push({ text, concat });
       return true;
     }
+    // m_ircv3_mphistory_v2 tags replayed history only — live PRIVMSG never has it.
+    // Status and notice inboxes are not private conversations: drop the replay
+    // instead of offering "delete history" on the console.
+    const replayedPm = !isChan && (kind === 'privmsg' || kind === 'action')
+      && msg.tags['+entrenous/mphistory'] !== undefined;
+    if (replayedPm && isPseudoBuffer(bufferName)) return true;
     // Peer messaged an open PM after a QUIT → CONNEXION (fallback if MONITOR missed).
     if (!self && kind !== 'notice' && !isChannelName(bufferName) && !histRef) {
       announcePmOnline(get().buffers, sysLine, msg.nick, cm.ts);
     }
     addMessage(bufferName, cm);
-    // m_ircv3_mphistory_v2 tags replayed history only — live PRIVMSG never has it.
-    if (!isChan && (kind === 'privmsg' || kind === 'action') && msg.tags['+entrenous/mphistory'] !== undefined) {
+    if (replayedPm) {
       patchBuffer(bufferName, (b) => (b.mphistoryReplay ? b : { ...b, mphistoryReplay: true }));
     }
     // Peer "seen" without Orbit TAGMSG: a live reply (channel or DM) from someone

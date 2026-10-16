@@ -7,6 +7,7 @@ import { looksLikeMlock, mergeMlock, mlockLetters } from '../irc/mode-catalog';
 import { translateUmodeNotice } from '../irc/umode-notices';
 import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
 import { prefetchLatestHistory } from './history-prefetch';
+import { prefetchJoinedBufferMutes } from './mute-prefetch';
 import type { StoreApi } from 'zustand';
 import type { ChatState, KickInfo } from '../store';
 import { findMemberKey, findWhoisKey, type StoreHelpers } from './helpers';
@@ -34,6 +35,7 @@ interface NumericsDeps {
   clearWhois: (nick: string) => void;
   namesInFlight: Set<string>;
   historyAsked: Set<string>;
+  muteAsked?: Set<string>;
   profileCache?: Map<string, { realname?: string; account?: string }>;
   persistNs?: string;
   pruneAutoJoin?: (ch: string) => void;
@@ -142,7 +144,7 @@ function classifyCannotSend(ch: string, trailing: string, get: StoreApi<ChatStat
 // numeric was consumed. Every 3-digit reply is either handled by name here or
 // routed by the generic fallback (errors → a ⚠ line where the user is looking,
 // info → the server console), so nothing is ever dumped unlabelled.
-export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, profileCache, persistNs = '', pruneAutoJoin }: NumericsDeps) {
+export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, lastAwayNotice, clearWhois, namesInFlight, historyAsked, muteAsked = new Set(), profileCache, persistNs = '', pruneAutoJoin }: NumericsDeps) {
   const { ensureBuffer, patchBuffer, sysLine, serverLine, patchWhois } = helpers;
   // LIST: keep the previous catalogue on screen while a refresh is in flight
   // (wiping it on 321 made Explore look empty/stuck). Live-append only when
@@ -350,6 +352,8 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         setActiveOwner(account, get().nick);
         // SASL ok under a 433-suffixed nick → offer manual NickServ RECOVER.
         get().refreshNickRecoverOffer?.();
+        // JOIN can race SASL: mute GET was skipped while we were a guest.
+        prefetchJoinedBufferMutes(get, muteAsked);
         return true;
       }
       case '901': { // RPL_LOGGEDOUT

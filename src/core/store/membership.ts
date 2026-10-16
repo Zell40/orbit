@@ -8,9 +8,10 @@ import i18n from '../i18n';
 import { desktopNotify, blip } from '@/platform/notify';
 import { getConfig } from '@/core/config';
 import { hostmask } from './text';
-import { SERVER, canon, isChannelName, inQuietBatch, trackBufferMuteSync } from './context';
+import { SERVER, canon, isChannelName, inQuietBatch } from './context';
 import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import { forgetHistoryPrefetch, prefetchLatestHistory } from './history-prefetch';
+import { forgetBufferMutePrefetch, prefetchBufferMuted } from './mute-prefetch';
 import { unregisterPushOnAccountLogout, refreshPush } from '@/platform/push';
 import { nickServSessionBusy } from './nickserv-info';
 import { announcePmOnline, markPmPeerOffline, queryBufferKey } from './pm-presence';
@@ -26,9 +27,10 @@ interface MembershipDeps {
   closedChannels: Set<string>;
   helpers: StoreHelpers;
   historyAsked: Set<string>;
+  muteAsked?: Set<string>;
 }
 
-export function makeMembership({ get, set, closedChannels, helpers, historyAsked }: MembershipDeps) {
+export function makeMembership({ get, set, closedChannels, helpers, historyAsked, muteAsked = new Set() }: MembershipDeps) {
   const { ensureBuffer, patchBuffer, dropBuffer, patchMemberEverywhere, patchWhois, sysLine, tsOf } = helpers;
 
   // Handle a membership event (JOIN/PART/KICK/QUIT/NICK/CHGHOST/SETNAME) or a live
@@ -65,7 +67,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           prefetchLatestHistory(get, historyAsked, ch);
           // Restore per-channel mute from the server (soju.im/muted → Web Push).
           // Guests have no persisted buffer prefs — skip the GET (avoids Status noise).
-          if (get().account && get().client?.ircv3.fetchBufferMuted(ch)) trackBufferMuteSync(ch, 'get');
+          prefetchBufferMuted(get, muteAsked, ch);
         }
         // extended-join: ":nick JOIN #chan <account> :<realname>" — '*'/'0' = none.
         // Gives us account + realname up front, so no WHO needed for joiners.
@@ -97,7 +99,10 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
       case 'PART': {
         const ch = msg.params[0];
         const selfPart = !!me && canon(msg.nick) === canon(me);
-        if (selfPart) forgetHistoryPrefetch(historyAsked, ch);
+        if (selfPart) {
+          forgetHistoryPrefetch(historyAsked, ch);
+          forgetBufferMutePrefetch(muteAsked, ch);
+        }
         patchBuffer(ch, (b) => {
           const members = { ...b.members };
           const mk = findMemberKey(members, msg.nick);
@@ -128,6 +133,7 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           desktopNotify(i18n.t('system.kickedTitle', { ch }), `${i18n.t('system.kickedByNotif', { by: msg.nick })}${tail}`);
           if (get().prefs.sound) blip();
           forgetHistoryPrefetch(historyAsked, ch);
+          forgetBufferMutePrefetch(muteAsked, ch);
           closedChannels.add(canon(ch));
           dropBuffer(ch);
           set({ profileUser: '', kicked: { channel: ch, by: msg.nick, reason, kind: 'kick' } });

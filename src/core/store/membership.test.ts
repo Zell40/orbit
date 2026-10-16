@@ -7,7 +7,7 @@ import type { StoreHelpers } from './helpers';
 
 // A minimal fake store: buffers keyed by lowercased name, with member maps the
 // membership handler mutates through the helper stubs.
-function setup(historyAsked = new Set<string>()) {
+function setup(historyAsked = new Set<string>(), muteAsked = new Set<string>()) {
   const state = {
     nick: 'me', account: '', active: '', order: [] as string[],
     buffers: {} as Record<string, { name: string; isChannel: boolean; members: Record<string, { nick: string; user?: string; host?: string; realname?: string; account?: string; prefix?: string; away?: boolean }>; joined: boolean }>,
@@ -45,7 +45,7 @@ function setup(historyAsked = new Set<string>()) {
     state.buffers[k(chan)] = { name: chan, isChannel: true, joined: true, members: Object.fromEntries(members.map((n) => [n, { nick: n }])) };
     state.order.push(k(chan));
   };
-  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers, historyAsked } as Parameters<typeof makeMembership>[0]);
+  const { handleMembership } = makeMembership({ get, set, closedChannels, helpers, historyAsked, muteAsked } as Parameters<typeof makeMembership>[0]);
   const on = (line: string) => handleMembership(parseLine(line), state.nick);
   return { on, state, lines, closedChannels, seed, k };
 }
@@ -223,6 +223,24 @@ describe('membership handler', () => {
     on(':me!u@h JOIN #x');
     expect(latest).toEqual(['#x']);
     expect(muted).toEqual(['#x']);
+  });
+
+  it('asks soju.im/muted again after PART then rejoin', () => {
+    const muteAsked = new Set<string>();
+    const { on, state } = setup(new Set(), muteAsked);
+    const muted: string[] = [];
+    state.account = 'alice';
+    state.client = {
+      ircv3: {
+        hasCap: () => false,
+        chathistoryLatest: () => {},
+        fetchBufferMuted: (t: string) => { muted.push(t); return true; },
+      },
+    };
+    on(':me!u@h JOIN #x');
+    on(':me!u@h PART #x');
+    on(':me!u@h JOIN #x');
+    expect(muted).toEqual(['#x', '#x']);
   });
 
   it('skips soju.im/muted GET on JOIN when not logged into an account', () => {
