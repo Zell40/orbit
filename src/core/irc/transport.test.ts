@@ -156,43 +156,43 @@ describe('Transport — outbound', () => {
     expect(last().sent).toEqual([]);
   });
 
-  it('token bucket: sends a burst immediately then paces the overflow', () => {
+  it('token bucket: sends a burst immediately then paces the overflow at 5/s', () => {
     const { t } = setup();
-    t.connect('ws://x'); last()._open(); // tokens reset to burst (8)
-    for (let i = 0; i < 10; i++) t.send(`L${i}`);
-    expect(last().sent).toHaveLength(8);       // burst
-    vi.advanceTimersByTime(1000);
-    expect(last().sent).toHaveLength(9);       // +1 token
-    vi.advanceTimersByTime(1000);
-    expect(last().sent).toHaveLength(10);      // drained
+    t.connect('ws://x'); last()._open(); // tokens reset to burst (32)
+    for (let i = 0; i < 34; i++) t.send(`L${i}`);
+    expect(last().sent).toHaveLength(32);
+    vi.advanceTimersByTime(200);
+    expect(last().sent).toHaveLength(33);
+    vi.advanceTimersByTime(200);
+    expect(last().sent).toHaveLength(34);
   });
 
   it('sendFirst jumps ahead of a boot backlog once a token refills', () => {
     const { t } = setup();
     t.connect('ws://x'); last()._open();
-    for (let i = 0; i < 8; i++) t.send(`WHO ${i}`);
+    for (let i = 0; i < 32; i++) t.send(`WHO ${i}`);
     t.send('METADATA #a GET soju.im/muted');
     t.send('METADATA #b GET soju.im/muted');
     t.sendFirst('PRIVMSG bob :salut');
     expect(last().sent.some((s) => s.includes('PRIVMSG'))).toBe(false);
-    vi.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(200);
     const sent = last().sent;
-    expect(sent[8]).toContain('PRIVMSG bob :salut');
-    expect(sent.slice(8).some((s) => s.includes('METADATA'))).toBe(false);
+    expect(sent[32]).toContain('PRIVMSG bob :salut');
+    expect(sent.slice(32).some((s) => s.includes('METADATA'))).toBe(false);
   });
 
-  it('lowSend paces at 2/s without waiting for a chat token', () => {
+  it('lowSend shares the 5/s bucket and yields until a token exists', () => {
     const { t } = setup();
     t.connect('ws://x'); last()._open();
-    for (let i = 0; i < 8; i++) t.send(`L${i}`);
-    expect(last().sent).toHaveLength(8);
+    for (let i = 0; i < 32; i++) t.send(`L${i}`);
+    expect(last().sent).toHaveLength(32);
     t.lowSend('CHATHISTORY LATEST #x * 50');
     t.lowSend('CHATHISTORY LATEST #y * 50');
-    vi.advanceTimersByTime(499);
+    vi.advanceTimersByTime(199);
     expect(last().sent.some((s) => s.includes('CHATHISTORY'))).toBe(false);
     vi.advanceTimersByTime(1);
     expect(last().sent.filter((s) => s.includes('CHATHISTORY'))).toHaveLength(1);
-    vi.advanceTimersByTime(500);
+    vi.advanceTimersByTime(200);
     expect(last().sent.filter((s) => s.includes('CHATHISTORY'))).toHaveLength(2);
   });
 });

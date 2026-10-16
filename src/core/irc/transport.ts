@@ -383,13 +383,14 @@ export class Transport {
   }
 
   // ---- outbound flood protection (token bucket) ---------------------------
-  // Servers kill clients for "Excess Flood". We allow a generous burst (so
-  // registration + normal chatting are instant) then pace the rest at ~1/sec,
-  // which keeps a big multi-line paste under typical server limits.
+  // Matches WebsocketEN / Websocket-CP once the connect class allows it:
+  // commandrate 5000 (5 lines/s) and threshold 40 (~40 lines before fakelag).
+  // Burst stays under that ceiling; both queues share the same tokens so a
+  // WHO in the background cannot double the rate.
   private sendQueue: string[] = [];
-  private tokens = 8;
-  private readonly burst = 8;
-  private readonly refillMs = 1000;
+  private tokens = 32;
+  private readonly burst = 32;
+  private readonly refillMs = 200;
   private lastRefill = Date.now();
   private drainTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -441,28 +442,29 @@ export class Transport {
   }
 
   // ---- low-priority background queue (history prefetch, other rooms) ------
-  // Yields to live chat. Own clock at 2/s — it does not spend the 1/s chat
-  // token, otherwise WHO/history of the extra rooms waited behind that bucket.
+  // Same bucket as live lines (5/s after the burst). Yields while chat is queued.
   private lowQueue: string[] = [];
   private lowTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly lowGapMs = 500;
   lowSend(line: string): void {
     if (!this.lowQueue.includes(line)) this.lowQueue.push(line);
     this.drainLow();
   }
   private drainLow(): void {
     if (this.lowTimer || !this.lowQueue.length) return;
-    this.pumpLow(this.lowGapMs);
+    this.pumpLow(this.refillMs);
   }
   private pumpLow(delay: number): void {
     this.lowTimer = setTimeout(() => {
       this.lowTimer = null;
       if (!this.lowQueue.length) return;
-      if (this.sendQueue.length) { this.drain(); this.pumpLow(this.lowGapMs); return; }
+      this.refillTokens();
+      if (this.sendQueue.length) { this.drain(); this.pumpLow(this.refillMs); return; }
+      if (this.tokens <= 0) { this.pumpLow(this.refillMs); return; }
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.tokens--;
         this.sendRaw(this.lowQueue.shift()!);
       }
-      if (this.lowQueue.length) this.pumpLow(this.lowGapMs);
+      if (this.lowQueue.length) this.pumpLow(this.refillMs);
     }, delay);
   }
 
