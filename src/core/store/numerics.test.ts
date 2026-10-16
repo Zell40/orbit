@@ -417,7 +417,7 @@ describe('store numerics handler', () => {
       client: {
         numerics: new Numerics(),
         who: () => {},
-        send: () => {},
+        queryChannelModes: () => {},
         ircv3: {
           hasCap: (c: string) => c === 'draft/chathistory',
           chathistoryLatest: (t: string) => latest.push(t),
@@ -428,28 +428,28 @@ describe('store numerics handler', () => {
     expect(latest).toEqual(['#EntreNous.chat']);
   });
 
-  it('sends WHO + MODE immediately for the home salon on 366', () => {
+  it('sends WHO + MODE immediately for the home or focused salon on 366', () => {
     setExpectedBootChannels(['#entrenous.chat']);
     const who: { t: string; urgent?: boolean }[] = [];
-    const now: string[] = [];
-    const queued: string[] = [];
+    const modes: { t: string; urgent?: boolean }[] = [];
     const { handleNumerics } = setup({
+      active: '#village.chat',
       client: {
         numerics: new Numerics(),
         who: (t: string, opts?: { urgent?: boolean }) => who.push({ t, urgent: opts?.urgent }),
-        send: (l: string) => queued.push(l),
-        sendNow: (l: string) => now.push(l),
+        queryChannelModes: (t: string, opts?: { urgent?: boolean }) => modes.push({ t, urgent: opts?.urgent }),
         ircv3: { hasCap: () => false, chathistoryLatest: () => {} },
       },
     });
     handleNumerics(mk('366', ['me', '#entrenous.chat', 'End of /NAMES list']));
+    handleNumerics(mk('366', ['me', '#village.chat', 'End of /NAMES list']));
     handleNumerics(mk('366', ['me', '#Aide.chat', 'End of /NAMES list']));
     expect(who).toEqual([
       { t: '#entrenous.chat', urgent: true },
+      { t: '#village.chat', urgent: true },
       { t: '#Aide.chat', urgent: false },
     ]);
-    expect(now).toEqual(['MODE #entrenous.chat']);
-    expect(queued).toEqual(['MODE #Aide.chat']);
+    expect(modes).toEqual(who);
   });
 
   it('marks whoComplete on RPL_ENDOFWHO for a channel', () => {
@@ -464,7 +464,7 @@ describe('store numerics handler', () => {
       client: {
         numerics: new Numerics(),
         who: () => {},
-        send: () => {},
+        queryChannelModes: () => {},
         ircv3: {
           hasCap: (c: string) => c === 'draft/chathistory',
           chathistoryLatest: (t: string) => latest.push(t),

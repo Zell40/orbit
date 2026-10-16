@@ -276,11 +276,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
             sessionJoinedAt: b.sessionJoinedAt || Date.now(),
           }));
           const home = (getExpectedBootChannels()[0] || '').trim();
-          const urgent = !!home && normChan(chan) === normChan(home);
+          const looking = (get().active || '').trim();
+          const urgent = (!!home && normChan(chan) === normChan(home))
+            || (!!looking && normChan(chan) === normChan(looking));
           const client = get().client;
           client?.who(chan, { urgent });
-          if (urgent) client?.sendNow(`MODE ${chan}`);
-          else client?.send(`MODE ${chan}`);
+          client?.queryChannelModes?.(chan, { urgent });
           // Join is complete here — CAP is ACK'd even if the server autojoin JOIN
           // raced ahead of draft/chathistory (or arrived without a self-JOIN).
           prefetchLatestHistory(get, historyAsked, chan);

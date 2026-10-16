@@ -198,8 +198,10 @@ export class IrcClient {
   }
 
   // ---- high-level senders -------------------------------------------------
-  join(channel: string): void { this.send(`JOIN ${channel}`); }
-  part(channel: string): void { this.send(`PART ${channel}`); }
+  // sendNow: a click-to-join must not sit behind boot WHO/MODE (1/s bucket) or
+  // the window stays on « Connexion au salon… » for many seconds.
+  join(channel: string): void { this.sendNow(`JOIN ${channel}`); }
+  part(channel: string): void { this.sendNow(`PART ${channel}`); }
   // draft/multiline batched sending: multi-line pastes go as one batch (recipients
   // see a single message). The server's m_ircv3_multiline now honours echo-message
   // (fixed), so the sender sees its own batch too.
@@ -325,6 +327,12 @@ export class IrcClient {
   who(target: string, opts?: { urgent?: boolean }): void {
     const line = `WHO ${target} %tcnuhfar,152`;
     if (opts?.urgent) this.sendNow(line);
-    else this.send(line);
+    else this.lowSend(line);
+  }
+  /** MODE #chan (RPL_CHANNELMODEIS). Background rooms yield to live JOIN/chat. */
+  queryChannelModes(channel: string, opts?: { urgent?: boolean }): void {
+    const line = `MODE ${channel}`;
+    if (opts?.urgent) this.sendNow(line);
+    else this.lowSend(line);
   }
 }
