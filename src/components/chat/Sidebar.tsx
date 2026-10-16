@@ -5,6 +5,7 @@ import { arrangedChannels, arrangedQueries } from '@/core/store/sidebar-order';
 import { avatarBg } from '@/lib/format';
 import { switchWithTransition } from '@/lib/viewTransition';
 import { stripFormatting } from '@/core/store/text';
+import { queryPeerAccount } from '@/core/store/helpers';
 import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
 import { Icon } from '../Icon';
@@ -125,16 +126,19 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
   const reorderSidebar = useActiveChat((s) => s.reorderSidebar);
   const serverName = useActiveChat((s) => s.serverName);
   const presence = useActiveChat((s) => queryPresence(s.buffers[name]?.name || name, s.friendsOnline, s.buffers));
-  // Services account for a PM, so a real photo can replace the letter.
+  // Photo of the other person in the PM, never the account using Orbit.
   const account = useActiveChat((s) => {
     const buf = s.buffers[name];
+    const peer = queryPeerAccount(buf, s.nick, s.account);
+    if (peer) return peer;
     if (!buf || buf.isChannel || name === SERVER || isNoticeBuffer(name)) return '';
-    for (const m of Object.values(buf.members)) if (m.account) return m.account;
-    for (let i = buf.messages.length - 1; i >= 0; i--) {
-      const msg = buf.messages[i];
-      if (!msg.self && msg.account) return msg.account;
-    }
-    return s.whois[buf.name]?.account || s.whois[name]?.account || '';
+    const w = s.whois[buf.name] || s.whois[name];
+    if (!w?.account) return '';
+    const mine = (s.account || '').toLowerCase();
+    const me = (s.nick || '').toLowerCase();
+    if (mine && w.account.toLowerCase() === mine && (buf.name || name).toLowerCase() !== me) return '';
+    if (me && (w.nick || '').toLowerCase() === me && (buf.name || name).toLowerCase() !== me) return '';
+    return w.account;
   });
   const avatarUrl = useAvatarUrl(account || null);
   const [over, setOver] = useState(false);

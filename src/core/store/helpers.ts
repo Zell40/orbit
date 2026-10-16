@@ -53,6 +53,32 @@ export function rememberQueryAccount(
   });
 }
 
+/** Account of the other person in a PM. The local user is also stored on the
+ *  query (for their own bubbles) and must not supply the row avatar. */
+export function queryPeerAccount(
+  buf: Pick<Buffer, 'name' | 'isChannel' | 'members' | 'messages'> | undefined,
+  myNick: string,
+  myAccount: string,
+): string {
+  if (!buf || buf.isChannel) return '';
+  const peer = buf.name;
+  const me = canon(myNick);
+  const mine = myAccount ? canon(myAccount) : '';
+  const own = (acct: string, nick: string) =>
+    (!!me && canon(nick) === me) || (!!mine && canon(acct) === mine && canon(peer) !== me);
+  const mk = findMemberKey(buf.members, peer);
+  const member = mk ? buf.members[mk] : undefined;
+  if (member?.account && !own(member.account, member.nick)) return member.account;
+  for (let i = buf.messages.length - 1; i >= 0; i--) {
+    const msg = buf.messages[i];
+    if (!msg.account || msg.self) continue;
+    if (msg.from && canon(msg.from) !== canon(peer)) continue;
+    if (own(msg.account, msg.from || peer)) continue;
+    return msg.account;
+  }
+  return '';
+}
+
 
 /** Join LineWrapper fragments; keep every other frame on its own line. */
 function joinCoalescedText(prev: string, next: string): string {

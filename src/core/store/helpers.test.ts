@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { makeHelpers, rememberQueryAccount, presenceInterrupted, sameReplayEvent } from './helpers';
+import { makeHelpers, queryPeerAccount, rememberQueryAccount, presenceInterrupted, sameReplayEvent } from './helpers';
 import type { ChatState } from '../store';
 import type { ChatMessage, Member, WhoisInfo } from '../irc/types';
 
@@ -217,6 +217,34 @@ describe('rememberQueryAccount', () => {
     expect(state.buffers.aidemoi.members['AideMoi']?.account).toBe('harry');
     rememberQueryAccount(helpers.patchBuffer, '#Aide.chat', 'bob', 'bobacct');
     expect(state.buffers['#aide.chat'].members.bob).toBeUndefined();
+  });
+});
+
+describe('queryPeerAccount', () => {
+  it('uses the other person in the PM, not the local account stored beside them', () => {
+    const buf = {
+      name: 'Moi299',
+      isChannel: false,
+      members: {
+        Zell: { nick: 'Zell', prefix: '', account: 'Zell' },
+        Moi299: { nick: 'Moi299', prefix: '', account: 'Moi299' },
+      },
+      messages: [
+        { self: true, from: 'Zell', account: 'Zell', text: 'yo' },
+        { self: false, from: 'Moi299', account: 'Moi299', text: 'salut' },
+      ],
+    };
+    expect(queryPeerAccount(buf as never, 'Zell', 'Zell')).toBe('Moi299');
+  });
+
+  it('stays empty when only the local user has an account on the query', () => {
+    const buf = {
+      name: 'Moi299',
+      isChannel: false,
+      members: { Zell: { nick: 'Zell', prefix: '', account: 'Zell' } },
+      messages: [{ self: true, from: 'Zell', account: 'Zell', text: 'yo' }],
+    };
+    expect(queryPeerAccount(buf as never, 'Zell', 'Zell')).toBe('');
   });
 });
 
