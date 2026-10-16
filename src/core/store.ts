@@ -258,6 +258,7 @@ export function createChatStore(ns = '') {
     const key = canon(ch);
     activeConnectOpts.channels = activeConnectOpts.channels.filter((c) => canon(c) !== key);
   };
+  let prefetchFilehostToken: () => Promise<void> = async () => {};
   const store = create<ChatState>((set, get) => {
   // Buffer/message helpers live in store/helpers.ts.
   const helpers = makeHelpers(set, get, closedChannels);
@@ -289,7 +290,9 @@ export function createChatStore(ns = '') {
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns, mlockAsked, pruneAutoJoin });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
-  const { uploadImage, uploadAudio, deleteHostedFile, prefetchFilehostToken } = makeUpload({ get, filehost, helpers });
+  const upload = makeUpload({ get, filehost, helpers });
+  const { uploadImage, uploadAudio, deleteHostedFile } = upload;
+  prefetchFilehostToken = upload.prefetchFilehostToken;
   const { accountRegister, accountVerify, accountResend, accountChangePassword, accountChallengeComplete, resetReg } = makeAccount({ get, set });
 
   const refreshNickRecoverOffer = () => {
