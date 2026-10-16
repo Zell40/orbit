@@ -9,14 +9,21 @@ describe('isDeferredPluginUrl', () => {
     expect(isDeferredPluginUrl('/app/plugins/third/orbit-rss/orbit-rss.js?v=31')).toBe(true);
     expect(isDeferredPluginUrl('/app/plugins/third/orbit-memoserv/orbit-memoserv.js?v=22')).toBe(true);
     expect(isDeferredPluginUrl('/app/plugins/third/orbit-radio.js?v=5')).toBe(true);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-copy.js')).toBe(true);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-invite.js')).toBe(true);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-ircop.js')).toBe(true);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-helpserv-welcome/orbit-helpserv-welcome.js?v=10')).toBe(true);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-anope/orbit-anope.js?v=11')).toBe(true);
   });
 
-  it('keeps salon / nick / CP chrome on the first wave', () => {
+  it('keeps salon / nick / CP / aide chrome on the first wave', () => {
     expect(isDeferredPluginUrl('/app/plugins/third/orbit-room-gallery/orbit-room-gallery.js?v=37')).toBe(false);
     expect(isDeferredPluginUrl('/app/plugins/third/orbit-chanserv/orbit-chanserv.js?v=104')).toBe(false);
     expect(isDeferredPluginUrl('/app/plugins/third/orbit-callerid/orbit-callerid.js?v=35')).toBe(false);
-    expect(isDeferredPluginUrl('/app/plugins/third/orbit-anope/orbit-anope.js?v=11')).toBe(false);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-helpdesk/orbit-helpdesk.js?v=5')).toBe(false);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-conference/orbit-conference.js?v=55')).toBe(false);
     expect(isDeferredPluginUrl('/app/plugins/third/orbit-navbar.js')).toBe(false);
+    expect(isDeferredPluginUrl('/app/plugins/third/orbit-asl/orbit-asl.js?v=2')).toBe(false);
   });
 });
 

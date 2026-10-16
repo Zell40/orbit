@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useChat } from '../core/store';
 import { getConfig } from '../core/config';
 import {
-  BOOT_CHROME_MS, BOOT_IDENTITY_MS, BOOT_MAX_MS, BOOT_MIN_MS,
+  BOOT_IDENTITY_MS, BOOT_MAX_MS, BOOT_MIN_MS,
   bootPhase, bootProgress, displayReady, getExpectedBootChannels,
-  identityReady, pluginsRegistered, priorityPluginIds,
+  identityReady, pluginReadyFrac, pluginsRegistered, priorityPluginIds,
   readSidebarChannelLabels, roomFrac, roomsListed, roomsReady,
   selfInPrimaryRoom, shellPainted,
   type BootPhase,
@@ -28,14 +28,17 @@ function pluginUrls(): string[] {
 function bootSlice(registeredAt: number, expectAccount: boolean) {
   const st = useChat.getState();
   const stats = pluginLoadStats();
-  const pluginFrac = stats.total ? stats.settled / stats.total : 1;
+  const needed = priorityPluginIds(pluginUrls());
+  const have = registeredPluginIds();
+  const loadFrac = stats.total ? stats.settled / stats.total : 1;
+  const factoryFrac = pluginReadyFrac(needed, have);
+  const pluginFrac = Math.min(loadFrac, factoryFrac);
   const expected = getExpectedBootChannels();
   const rf = roomFrac(st.buffers, expected);
   const listed = roomsListed(expected, readSidebarChannelLabels());
   const roomsDone = roomsReady(st.buffers, expected) && listed;
   const elapsed = registeredAt ? Date.now() - registeredAt : 0;
-  const pluginsOk = pluginsRegistered(priorityPluginIds(pluginUrls()), registeredPluginIds())
-    || elapsed >= BOOT_CHROME_MS;
+  const pluginsOk = pluginsRegistered(needed, have) || elapsed >= BOOT_MAX_MS;
   const identityOk = identityReady(expectAccount, st.account) || elapsed >= BOOT_IDENTITY_MS;
   const selfOk = selfInPrimaryRoom(st.buffers, expected, st.nick) || elapsed >= BOOT_IDENTITY_MS;
   const displayDone = displayReady({
@@ -44,7 +47,7 @@ function bootSlice(registeredAt: number, expectAccount: boolean) {
     identityOk,
     selfInRoom: selfOk,
   });
-  return { st, pluginFrac, rf, roomsDone, displayDone };
+  return { st, pluginFrac, rf, roomsDone, displayDone, pluginsOk };
 }
 
 export function useBootSplash() {
@@ -88,7 +91,7 @@ export function useBootSplash() {
       })));
       setPhase(bootPhase({
         status: slice.st.status,
-        pluginsDone: slice.pluginFrac >= 1,
+        pluginsDone: slice.pluginsOk,
         roomsDone: slice.roomsDone,
         displayDone: slice.displayDone,
       }));

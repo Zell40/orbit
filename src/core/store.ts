@@ -289,7 +289,7 @@ export function createChatStore(ns = '') {
   const handle = makeHandler({ set, get, helpers, closedChannels, knownServices, lastCantSend, lastAwayNotice, filehost, namesInFlight, historyAsked, profileCache, persistNs: ns, mlockAsked, pruneAutoJoin });
   // Outgoing input/slash-command parser lives in store/commands.ts.
   const { sendInput } = makeCommands({ get, set, helpers, resetTyping: () => { lastTypingSent = 0; } });
-  const { uploadImage, uploadAudio, deleteHostedFile } = makeUpload({ get, filehost, helpers });
+  const { uploadImage, uploadAudio, deleteHostedFile, prefetchFilehostToken } = makeUpload({ get, filehost, helpers });
   const { accountRegister, accountVerify, accountResend, accountChangePassword, accountChallengeComplete, resetReg } = makeAccount({ get, set });
 
   const refreshNickRecoverOffer = () => {
@@ -1313,6 +1313,18 @@ export function createChatStore(ns = '') {
       prefs: getPrefs(), friends: loadFriends(), ignored: loadIgnored(), highlightWords: loadStr(HIGHLIGHT_KEY),
     }));
   }
+  // Warm FILEHOST once the NickServ account is known — first 📷 must not wait.
+  let lastFilehostPrefetch = '';
+  store.subscribe((s) => {
+    if (s.status !== 'registered' || !s.account || !s.client) {
+      if (!s.account) lastFilehostPrefetch = '';
+      return;
+    }
+    const key = s.account;
+    if (key === lastFilehostPrefetch) return;
+    lastFilehostPrefetch = key;
+    void prefetchFilehostToken();
+  });
   // When NickServ account / nick changes, reload this identity's persisted data.
   onOwnerChange(() => {
     const prefs = getPrefs();

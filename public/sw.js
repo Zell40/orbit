@@ -242,7 +242,22 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
-  // Everything else under /app/ — plugins, icons, manifest — has a STABLE
+  // Plugins (and other /app/ files) with ?v= are cache-busted by the deployer:
+  // the URL changes on every bump, so cache-first is safe and skips a network
+  // round-trip on every app open.
+  if (url.searchParams.has('v')) {
+    e.respondWith(
+      caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+        if (res.ok && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      }).catch(() => caches.match(req)))
+    );
+    return;
+  }
+  // Everything else under /app/ — unversioned plugins, icons — has a STABLE
   // (unhashed) URL and is therefore mutable: network-first, or a cached copy would
   // pin an old build forever (this is what stuck a fixed plugin stale). Falls back
   // to cache when offline.

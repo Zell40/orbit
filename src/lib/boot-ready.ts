@@ -4,18 +4,24 @@ export const BOOT_MAX_MS = 8000;
 export const BOOT_MIN_MS = 400;
 /** NickServ account / nicklist: don't stall guests or a slow WHOIS. */
 export const BOOT_IDENTITY_MS = 1800;
-/** Priority plugin factories + topbar paint. */
-export const BOOT_CHROME_MS = 1200;
+/** Last-resort filet if a listed priority factory never runs (was 1.2s — too early). */
+export const BOOT_CHROME_MS = BOOT_MAX_MS;
 
-/** Click-now chrome (visio, salon, members, bar, CP). Games stay off this list. */
-export const BOOT_PRIORITY_PLUGINS = [
-  'orbit-conference',
-  'orbit-chanserv',
-  'orbit-asl',
-  'orbit-navbar',
-  'orbit-callerid',
-  'orbit-room-gallery',
-] as const;
+/**
+ * Click-now chrome. `slug` is the URL path fragment; `id` is Orbit.plugin().
+ * A few plugins register a shorter name than their folder.
+ */
+const BOOT_PRIORITY: { slug: string; id: string }[] = [
+  { slug: 'orbit-conference', id: 'orbit-conference' },
+  { slug: 'orbit-chanserv', id: 'orbit-chanserv' },
+  { slug: 'orbit-asl', id: 'orbit-asl' },
+  { slug: 'orbit-navbar', id: 'orbit-navbar' },
+  { slug: 'orbit-callerid', id: 'orbit-callerid' },
+  { slug: 'orbit-room-gallery', id: 'room-gallery' },
+  { slug: 'orbit-helpdesk', id: 'helpdesk' },
+];
+
+export const BOOT_PRIORITY_PLUGINS = BOOT_PRIORITY.map((p) => p.id);
 
 let expectedChannels: string[] = [];
 
@@ -105,13 +111,20 @@ export function selfInPrimaryRoom(
 
 export function priorityPluginIds(pluginUrls: string[]): string[] {
   const blob = pluginUrls.join('\n');
-  return BOOT_PRIORITY_PLUGINS.filter((id) => blob.includes(id));
+  return BOOT_PRIORITY.filter((p) => blob.includes(p.slug)).map((p) => p.id);
 }
 
 export function pluginsRegistered(needed: string[], have: string[]): boolean {
   if (!needed.length) return true;
   const set = new Set(have);
   return needed.every((id) => set.has(id));
+}
+
+/** How many listed click-now factories have actually run. */
+export function pluginReadyFrac(needed: string[], have: string[]): number {
+  if (!needed.length) return 1;
+  const set = new Set(have);
+  return needed.filter((id) => set.has(id)).length / needed.length;
 }
 
 export function identityReady(expectAccount: boolean, account: string): boolean {

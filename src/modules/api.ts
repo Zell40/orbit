@@ -29,6 +29,20 @@ const THEMES: Theme[] = ['light', 'dark', 'orbit', 'orbit-dark', 'yomirc', 'yomi
 const API_VERSION = 11;
 
 const registered = new Map<string, OrbitPluginApi>();
+type FactoryListener = (name: string) => void;
+const factoryListeners = new Set<FactoryListener>();
+
+/** Fires after a plugin factory has run (success or throw). */
+export function onPluginFactory(fn: FactoryListener): () => void {
+  factoryListeners.add(fn);
+  return () => { factoryListeners.delete(fn); };
+}
+
+function notifyFactory(name: string): void {
+  for (const fn of factoryListeners) {
+    try { fn(name); } catch { /* listener threw */ }
+  }
+}
 
 export interface OrbitPluginApi {
   /** This plugin's name. */
@@ -268,6 +282,7 @@ export const Orbit = {
     registered.set(name, api);
     try { fn(api, api.log); api.log('loaded'); }
     catch (e) { console.error(`[plugins] "${name}" threw during init`, e); }
+    notifyFactory(name);
   },
 };
 

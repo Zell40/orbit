@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   bootPhase, bootProgress, displayReady, identityReady,
-  pluginsRegistered, priorityPluginIds, roomFrac, roomsListed, roomsReady,
-  selfInPrimaryRoom,
+  pluginReadyFrac, pluginsRegistered, priorityPluginIds, roomFrac, roomsListed,
+  roomsReady, selfInPrimaryRoom,
 } from './boot-ready';
 
 const empty = {};
@@ -59,10 +59,26 @@ describe('priority plugins / identity / display', () => {
     ])).toEqual(['orbit-conference', 'orbit-callerid']);
   });
 
+  it('maps URL slugs to the ids Orbit.plugin() actually registers', () => {
+    expect(priorityPluginIds([
+      '/app/plugins/third/orbit-room-gallery/orbit-room-gallery.js?v=38',
+      '/app/plugins/third/orbit-helpdesk/orbit-helpdesk.js?v=5',
+      '/app/plugins/third/orbit-navbar.js',
+    ])).toEqual(['orbit-navbar', 'room-gallery', 'helpdesk']);
+  });
+
   it('treats missing optional plugins as already registered', () => {
     expect(pluginsRegistered([], ['orbit-clock'])).toBe(true);
     expect(pluginsRegistered(['orbit-conference'], ['orbit-asl'])).toBe(false);
     expect(pluginsRegistered(['orbit-conference'], ['orbit-conference', 'orbit-asl'])).toBe(true);
+    expect(pluginsRegistered(['room-gallery'], ['orbit-room-gallery'])).toBe(false);
+    expect(pluginsRegistered(['room-gallery', 'helpdesk'], ['room-gallery', 'helpdesk'])).toBe(true);
+  });
+
+  it('counts registered click-now factories for the splash bar', () => {
+    expect(pluginReadyFrac([], ['x'])).toBe(1);
+    expect(pluginReadyFrac(['room-gallery', 'helpdesk'], ['helpdesk'])).toBe(0.5);
+    expect(pluginReadyFrac(['room-gallery'], ['room-gallery'])).toBe(1);
   });
 
   it('waits for a NickServ account only when one is expected', () => {

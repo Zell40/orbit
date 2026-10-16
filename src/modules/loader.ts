@@ -6,6 +6,8 @@
 // the script with Subresource Integrity — strongly recommended for any plugin
 // served from a third-party origin, so a compromised host can't swap the file.
 import { getConfig, pluginDebug, type PluginEntry } from '../core/config';
+import { pluginsRegistered, priorityPluginIds } from '../lib/boot-ready';
+import { onPluginFactory, registeredPluginIds } from './api';
 
 export interface ScriptAttrs { url: string; integrity?: string; crossorigin?: string }
 
@@ -21,9 +23,10 @@ export function scriptAttrs(entry: PluginEntry): ScriptAttrs {
 
 const PLUGIN_WAIT_MS = 8000;
 
-/** Games / extras — parse+run on the main thread after the shell is usable. */
+/** Games / extras — parse+run on the main thread after the shell is usable.
+ *  Also copy/invite/ircop/anope/helpserv-welcome: not click-now chrome. */
 const DEFERRED_PLUGIN_RE =
-  /orbit-(petitbac|echecs|harrypotter|rss|memoserv|radio|clock)\b/i;
+  /orbit-(petitbac|echecs|harrypotter|rss|memoserv|radio|clock|copy|invite|ircop|helpserv-welcome|anope)\b/i;
 
 export function isDeferredPluginUrl(url: string): boolean {
   return DEFERRED_PLUGIN_RE.test(url);
@@ -71,6 +74,54 @@ export function whenPluginsLoaded(): Promise<void> {
   return pluginsPromise;
 }
 
+function pluginUrlsFromConfig(): string[] {
+  return (getConfig().plugins ?? []).map((e) => typeof e === 'string' ? e : e.url);
+}
+
+/** Script onload ≠ factory finished — wait until click-now Orbit.plugin() ids exist. */
+function whenPriorityFactoriesReady(): Promise<void> {
+  const needed = priorityPluginIds(pluginUrlsFromConfig());
+  if (pluginsRegistered(needed, registeredPluginIds())) return Promise.resolve();
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(t);
+      off();
+      resolve();
+    };
+    const t = window.setTimeout(done, PLUGIN_WAIT_MS);
+    const off = onPluginFactory(() => {
+      if (pluginsRegistered(needed, registeredPluginIds())) done();
+    });
+    if (pluginsRegistered(needed, registeredPluginIds())) done();
+  });
+}
+
+function idleGap(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(() => resolve(), { timeout: 800 });
+    } else {
+      window.setTimeout(resolve, 40);
+    }
+  });
+}
+
+function preloadBigBootScripts(list: ScriptAttrs[]): void {
+  if (typeof document === 'undefined') return;
+  for (const p of list) {
+    if (!/orbit-(conference|chanserv|callerid|room-gallery)\b/i.test(p.url)) continue;
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'script';
+    link.href = p.url;
+    if (p.crossorigin) link.crossOrigin = p.crossorigin;
+    document.head.appendChild(link);
+  }
+}
+
 function startDeferredPlugins(): void {
   if (deferredStarted) return;
   deferredStarted = true;
@@ -81,19 +132,19 @@ function startDeferredPlugins(): void {
   if (pluginDebug() && (extra.length || boxed.length)) {
     console.log(`[plugins] deferred wave ${extra.length} in-page, ${boxed.length} sandboxed`);
   }
-  const run = () => {
-    for (const p of extra) void injectScript(p);
-    if (boxed.length) {
-      void import('./sandbox/host').then(({ mountSandboxedPlugin }) => {
-        for (const entry of boxed) void mountSandboxedPlugin(entry);
-      });
+  void (async () => {
+    for (const p of extra) {
+      await idleGap();
+      await injectScript(p);
     }
-  };
-  if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(run, { timeout: 2500 });
-  } else {
-    window.setTimeout(run, 0);
-  }
+    if (boxed.length) {
+      const { mountSandboxedPlugin } = await import('./sandbox/host');
+      for (const entry of boxed) {
+        await idleGap();
+        void mountSandboxedPlugin(entry);
+      }
+    }
+  })();
 }
 
 export function loadPlugins(): void {
@@ -112,8 +163,10 @@ export function loadPlugins(): void {
   pluginSettled = 0;
   deferredStarted = false;
 
+  preloadBigBootScripts(now);
   const waits = now.map((p) => injectScript(p).then(() => { pluginSettled += 1; }));
-  pluginsPromise = waits.length ? Promise.all(waits).then(() => undefined) : Promise.resolve();
+  pluginsPromise = (waits.length ? Promise.all(waits).then(() => undefined) : Promise.resolve())
+    .then(() => whenPriorityFactoriesReady());
 
   if (sandboxedNow.length) {
     void import('./sandbox/host').then(({ mountSandboxedPlugin }) => {

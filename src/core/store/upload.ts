@@ -111,25 +111,32 @@ export function hostedFileName(url: string): string | null {
 
 export function makeUpload({ get, filehost, helpers }: UploadDeps) {
   const { addMessage, sysLine } = helpers;
+  let tokenWait: Promise<string> | null = null;
 
   function askFilehost(client: IrcClient): void {
     if (typeof client.sendNow === 'function') client.sendNow('FILEHOST');
     else client.send('FILEHOST');
   }
 
-  function takeLateToken(): string | null {
+  function peekLateToken(): string | null {
     const tok = filehost.lateToken;
     const at = filehost.lateAt || 0;
+    if (!tok || Date.now() - at >= 45000) return null;
+    return filehostTokenFresh(tok) ? tok : null;
+  }
+
+  function takeLateToken(): string | null {
+    const tok = peekLateToken();
     filehost.lateToken = null;
     filehost.lateAt = 0;
     filehost.awaitingLate = false;
-    if (!tok || Date.now() - at >= 45000) return null;
-    return filehostTokenFresh(tok) ? tok : null;
+    return tok;
   }
 
   function requestToken(client: IrcClient): Promise<string> {
     const late = takeLateToken();
     if (late) return Promise.resolve(late);
+    if (tokenWait) return tokenWait;
     const oneTry = (ms: number) => new Promise<string>((resolve, reject) => {
       filehost.resolve = resolve; filehost.reject = reject;
       filehost.timer = setTimeout(() => {
@@ -141,12 +148,28 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     });
     // After connect the FILEHOST NOTICE can trail the flood queue / account
     // bind. One retry beats a cryptic timeout the user only "fixes" by waiting.
-    return oneTry(15000).catch((e) => {
+    tokenWait = oneTry(15000).catch((e) => {
       if (!(e instanceof Error) || e.message !== 'timeout') throw e;
       const again = takeLateToken();
       if (again) return again;
       return oneTry(20000);
-    });
+    }).finally(() => { tokenWait = null; });
+    return tokenWait;
+  }
+
+  /** Warm a FILEHOST token so the first 📷 does not wait on services. */
+  async function prefetchFilehostToken(): Promise<void> {
+    const { client, account, status } = get();
+    if (!client || !account || status !== 'registered') return;
+    if (getConfig().features.imageUpload === false) return;
+    if (peekLateToken() || tokenWait || filehost.resolve) return;
+    try {
+      const tok = await requestToken(client);
+      if (tok && filehostTokenFresh(tok)) {
+        filehost.lateToken = tok;
+        filehost.lateAt = Date.now();
+      }
+    } catch { /* first tap still goes through requestToken */ }
   }
 
   function waitForAccount(ms: number): Promise<void> {
@@ -267,5 +290,5 @@ export function makeUpload({ get, filehost, helpers }: UploadDeps) {
     }
   }
 
-  return { uploadImage, uploadAudio, deleteHostedFile };
+  return { uploadImage, uploadAudio, deleteHostedFile, prefetchFilehostToken };
 }

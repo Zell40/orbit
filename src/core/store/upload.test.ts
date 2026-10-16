@@ -16,7 +16,7 @@ function fakeClient() {
 
 function setup() {
   const client = fakeClient();
-  const state = { active: '#x', nick: 'me', client };
+  const state = { active: '#x', nick: 'me', client, account: '', status: 'registered' };
   const added: { name: string }[] = [];
   const lines: { name: string; text: string }[] = [];
   const get = () => state as unknown as ChatState;
@@ -32,8 +32,8 @@ function setup() {
     addMessage: (name: string) => { added.push({ name }); },
     sysLine: (name: string, text: string) => { lines.push({ name, text }); },
   } as unknown as StoreHelpers;
-  const { uploadImage, uploadAudio, deleteHostedFile } = makeUpload({ get, filehost, helpers } as Parameters<typeof makeUpload>[0]);
-  return { uploadImage, uploadAudio, deleteHostedFile, client, added, lines, filehost };
+  const { uploadImage, uploadAudio, deleteHostedFile, prefetchFilehostToken } = makeUpload({ get, filehost, helpers } as Parameters<typeof makeUpload>[0]);
+  return { uploadImage, uploadAudio, deleteHostedFile, prefetchFilehostToken, client, added, lines, filehost, state };
 }
 
 const okJson = (body: unknown, status = 200) =>
@@ -169,6 +169,21 @@ describe('upload', () => {
     filehost.resolve!('tok2');
     await p;
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('tok2');
+  });
+
+  it('prefetches a FILEHOST token once the account is known', async () => {
+    const { prefetchFilehostToken, client, filehost, state } = setup();
+    await prefetchFilehostToken();
+    expect(client.calls).toHaveLength(0);
+    state.account = 'Jessie';
+    const p = prefetchFilehostToken();
+    expect(client.calls).toEqual([['sendNow', ['FILEHOST']]]);
+    const tok = dummyJwt({ iss: 'FILEHOST', iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 3600 });
+    filehost.resolve!(tok);
+    await p;
+    expect(filehost.lateToken).toBe(tok);
+    await prefetchFilehostToken();
+    expect(client.calls.filter(([n]) => n === 'sendNow')).toHaveLength(1);
   });
 
   it('deletes a hosted file with a FILEHOST token', async () => {
