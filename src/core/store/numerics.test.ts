@@ -24,7 +24,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     nick: 'me',
     banlists: {}, exceptlists: {}, invexlists: {},
     filterlists: {} as Record<string, { mask: string; by: string; ts: number }[]>,
-    friends: [], friendsOnline: {},
+    friends: [], friendsOnline: {} as Record<string, boolean>,
     prefs: { sound: false }, whois,
     profileUser: '', nickError: null as { nick: string; code: string; text: string } | null,
     userCmdEchoUntil: 0,
