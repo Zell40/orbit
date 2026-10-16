@@ -181,16 +181,19 @@ describe('Transport — outbound', () => {
     expect(sent.slice(8).some((s) => s.includes('METADATA'))).toBe(false);
   });
 
-  it('lowSend still goes out after the token burst is spent', () => {
+  it('lowSend paces at 2/s without waiting for a chat token', () => {
     const { t } = setup();
     t.connect('ws://x'); last()._open();
     for (let i = 0; i < 8; i++) t.send(`L${i}`);
     expect(last().sent).toHaveLength(8);
     t.lowSend('CHATHISTORY LATEST #x * 50');
-    vi.advanceTimersByTime(400);
+    t.lowSend('CHATHISTORY LATEST #y * 50');
+    vi.advanceTimersByTime(499);
     expect(last().sent.some((s) => s.includes('CHATHISTORY'))).toBe(false);
-    vi.advanceTimersByTime(1000); // token refill + drainLow retry
-    expect(last().sent.some((s) => s.includes('CHATHISTORY'))).toBe(true);
+    vi.advanceTimersByTime(1);
+    expect(last().sent.filter((s) => s.includes('CHATHISTORY'))).toHaveLength(1);
+    vi.advanceTimersByTime(500);
+    expect(last().sent.filter((s) => s.includes('CHATHISTORY'))).toHaveLength(2);
   });
 });
 

@@ -440,32 +440,29 @@ export class Transport {
     this.drain();
   }
 
-  // ---- low-priority background queue (history prefetch) -------------------
-  // On (re)connect the client rejoins every channel; firing a CHATHISTORY per
-  // channel through the normal queue would starve the user's own typing. This
-  // queue drains ONE item at a time, slowly, and always yields to live traffic.
+  // ---- low-priority background queue (history prefetch, other rooms) ------
+  // Yields to live chat. Own clock at 2/s — it does not spend the 1/s chat
+  // token, otherwise WHO/history of the extra rooms waited behind that bucket.
   private lowQueue: string[] = [];
   private lowTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly lowGapMs = 500;
   lowSend(line: string): void {
     if (!this.lowQueue.includes(line)) this.lowQueue.push(line);
     this.drainLow();
   }
   private drainLow(): void {
     if (this.lowTimer || !this.lowQueue.length) return;
-    this.pumpLow(400);
+    this.pumpLow(this.lowGapMs);
   }
   private pumpLow(delay: number): void {
     this.lowTimer = setTimeout(() => {
       this.lowTimer = null;
       if (!this.lowQueue.length) return;
-      this.refillTokens();
-      if (this.sendQueue.length) { this.drain(); this.pumpLow(400); return; }
-      if (this.tokens <= 0) { this.pumpLow(this.refillMs); return; }
+      if (this.sendQueue.length) { this.drain(); this.pumpLow(this.lowGapMs); return; }
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.tokens--;
         this.sendRaw(this.lowQueue.shift()!);
       }
-      if (this.lowQueue.length) this.pumpLow(400);
+      if (this.lowQueue.length) this.pumpLow(this.lowGapMs);
     }, delay);
   }
 
