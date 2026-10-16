@@ -9,7 +9,7 @@ import { resolveConnectUsername } from './irc/ident';
 import { HIGHLIGHT_KEY, loadStr, saveStr, loadIgnored, saveIgnored, loadFriends, saveFriends, loadNotify, saveNotify, loadPins, savePins, togglePinIn, unpinIn, type NotifyLevel, type Pin } from './store/persistence';
 import { SERVER, canon, isChannelName, resetBatches, newId, isPseudoBuffer, isBouncerServiceNick, trackBufferMuteSync } from './store/context';
 export { SERVER, NOTICES, isNoticeBuffer, noticeBufferNick, noticeBufferName, isBouncerServiceNick } from './store/context';
-import { findWhoisKey, makeHelpers, rememberQueryAccount } from './store/helpers';
+import { findMemberKey, findWhoisKey, makeHelpers, rememberQueryAccount } from './store/helpers';
 import { clearPmPeerOffline, listOpenQueryNicks } from './store/pm-presence';
 import { shouldOfferNickRecover, type NickRecoverOffer } from './store/nick-recover';
 import { isService, isStatusService } from './services';
@@ -724,7 +724,35 @@ export function createChatStore(ns = '') {
       if (!nick || isPseudoBuffer(nick) || isBouncerServiceNick(nick)) return;
       const s = get();
       const key = findWhoisKey(s.whois, nick) || nick;
-      set({ profileUser: key, whois: { ...s.whois, [key]: { nick: key, loading: true } } });
+      const cur = s.whois[key];
+      let seed: WhoisInfo = { nick: key, loading: true };
+      if (cur && !cur.notFound && (cur.user || cur.realname || cur.account)) {
+        seed = { ...cur, nick: key, loading: true };
+      } else {
+        const buf = s.buffers[s.active];
+        const activeKey = buf?.members ? findMemberKey(buf.members, nick) : undefined;
+        let m = activeKey ? buf.members[activeKey] : undefined;
+        if (!m) {
+          for (const name of s.order) {
+            const members = s.buffers[name]?.members;
+            if (!members) continue;
+            const mk = findMemberKey(members, nick);
+            if (mk) { m = members[mk]; break; }
+          }
+        }
+        if (m) {
+          seed = {
+            ...seed,
+            ...(m.user ? { user: m.user } : {}),
+            ...(m.host ? { host: m.host } : {}),
+            ...(m.account ? { account: m.account } : {}),
+            ...(m.realname ? { realname: m.realname } : {}),
+            ...(m.oper ? { oper: true } : {}),
+            ...(m.bot ? { bot: true } : {}),
+          };
+        }
+      }
+      set({ profileUser: key, whois: { ...s.whois, [key]: seed } });
       s.client?.whois(nick);
       s.client?.ircv3.fetchMetadata(nick);
     },

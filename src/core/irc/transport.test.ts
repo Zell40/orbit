@@ -167,6 +167,20 @@ describe('Transport — outbound', () => {
     expect(last().sent).toHaveLength(10);      // drained
   });
 
+  it('sendFirst jumps ahead of a boot backlog once a token refills', () => {
+    const { t } = setup();
+    t.connect('ws://x'); last()._open();
+    for (let i = 0; i < 8; i++) t.send(`WHO ${i}`);
+    t.send('METADATA #a GET soju.im/muted');
+    t.send('METADATA #b GET soju.im/muted');
+    t.sendFirst('PRIVMSG bob :salut');
+    expect(last().sent.some((s) => s.includes('PRIVMSG'))).toBe(false);
+    vi.advanceTimersByTime(1000);
+    const sent = last().sent;
+    expect(sent[8]).toContain('PRIVMSG bob :salut');
+    expect(sent.slice(8).some((s) => s.includes('METADATA'))).toBe(false);
+  });
+
   it('lowSend still goes out after the token burst is spent', () => {
     const { t } = setup();
     t.connect('ws://x'); last()._open();

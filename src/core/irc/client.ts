@@ -45,6 +45,7 @@ export class IrcClient {
   readonly ircv3 = new Ircv3({
     send: (l) => this.send(l),
     lowSend: (l) => this.lowSend(l),
+    sendNow: (l) => this.sendNow(l),
     isupport: () => this.server.isupport,
   });
 
@@ -107,6 +108,8 @@ export class IrcClient {
 
   // Outbound writes go through the transport's flood-control queues.
   send(line: string): void { this.transport.send(line); }
+  /** Chat ahead of the boot backlog; still paced by the token bucket. */
+  private sendFirst(line: string): void { this.transport.sendFirst(line); }
   /** Skip the token bucket — FILEHOST / PONG-class lines that must not wait
    *  behind CHATHISTORY after a (re)connect. */
   sendNow(line: string): void { this.transport.sendRaw(line); }
@@ -231,7 +234,7 @@ export class IrcClient {
       }
     }
     const pre = ctx ? `@${ctx} ` : '';
-    for (const part of this.splitForLine('PRIVMSG', target, text)) this.send(`${pre}PRIVMSG ${target} :${part}`);
+    for (const part of this.splitForLine('PRIVMSG', target, text)) this.sendFirst(`${pre}PRIVMSG ${target} :${part}`);
   }
   /** PRIVMSG with arbitrary client tags (needs message-tags). Falls back to plain msg. */
   privmsgTagged(target: string, text: string, tags: Record<string, string>): void {
@@ -242,7 +245,7 @@ export class IrcClient {
     const tagStr = Object.entries(tags)
       .map(([k, v]) => (v === '' ? k : `${k}=${escapeTagValue(v)}`))
       .join(';');
-    for (const part of this.splitForLine('PRIVMSG', target, text)) this.send(`@${tagStr} PRIVMSG ${target} :${part}`);
+    for (const part of this.splitForLine('PRIVMSG', target, text)) this.sendFirst(`@${tagStr} PRIVMSG ${target} :${part}`);
   }
   private batchSeq = 0;
   private multilineMsg(target: string, lines: string[], ctx = ''): void {
@@ -268,13 +271,13 @@ export class IrcClient {
     const parts = this.splitForLine('PRIVMSG', target, text);
     // only the first line carries the reply (+ context) tags; continuations are plain.
     parts.forEach((part, i) =>
-      this.send(i === 0 ? `@+draft/reply=${replyTo}${ctx} PRIVMSG ${target} :${part}` : `PRIVMSG ${target} :${part}`));
+      this.sendFirst(i === 0 ? `@+draft/reply=${replyTo}${ctx} PRIVMSG ${target} :${part}` : `PRIVMSG ${target} :${part}`));
   }
   action(target: string, text: string): void {
     // Proper CTCP ACTION (\x01ACTION …\x01); reserve 9 bytes for the wrapper.
     // Without the \x01 delimiters other clients (mIRC, …) show a literal "ACTION"
     // in a normal line instead of rendering "* nick …".
-    for (const part of this.splitForLine('PRIVMSG', target, text, 9)) this.send(`PRIVMSG ${target} :\x01ACTION ${part}\x01`);
+    for (const part of this.splitForLine('PRIVMSG', target, text, 9)) this.sendFirst(`PRIVMSG ${target} :\x01ACTION ${part}\x01`);
   }
   setNick(nick: string): void { this.send(`NICK ${nick}`); }
   // User modes (global, per-user). Query with no modestring → RPL_UMODEIS (221).
@@ -304,7 +307,8 @@ export class IrcClient {
   whois(nick: string): void {
     // Local buffers ($server, $notice:…) and ZNC module nicks (*status, *sasl).
     if (!nick || nick.startsWith('$') || nick.startsWith('*')) return;
-    this.send(`WHOIS ${nick} ${nick}`);
+    // sendNow: a nick click must not wait behind boot WHO/MODE (1/s bucket).
+    this.sendNow(`WHOIS ${nick} ${nick}`);
   }
   whowas(nick: string): void {
     if (!nick || nick.startsWith('$') || nick.startsWith('*')) return;

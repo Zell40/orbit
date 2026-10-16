@@ -19,6 +19,8 @@ export interface Ircv3Transport {
   send(line: string): void;
   /** Low-priority background queue — history prefetch, must yield to live traffic. */
   lowSend(line: string): void;
+  /** Skip the token bucket (profile card, FILEHOST-class). */
+  sendNow?(line: string): void;
   /** Live view of the parsed ISUPPORT (005) tokens. */
   isupport(): Record<string, string>;
 }
@@ -199,7 +201,9 @@ export class Ircv3 {
   // (SUB only streams FUTURE changes); the reply fills the card in.
   fetchMetadata(target: string): void {
     if (!this.acked.has('draft/metadata-2') || skipIrcdTarget(target)) return;
-    this.tx.send(`METADATA ${target} GET avatar bio pronouns timezone url`);
+    const line = `METADATA ${target} GET avatar bio pronouns timezone url`;
+    if (this.tx.sendNow) this.tx.sendNow(line);
+    else this.tx.send(line);
   }
   /** Per-buffer mute flag (soju.im/muted) — silences Web Push on the server. */
   setBufferMuted(target: string, muted: boolean): 'sent' | 'no-cap' | 'skipped-target' {

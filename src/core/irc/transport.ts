@@ -433,6 +433,13 @@ export class Transport {
     this.drain();
   }
 
+  /** Same bucket as send(), but ahead of boot housekeeping (WHO/MODE/METADATA).
+   *  A PM typed while the splash just closed must not wait out that backlog. */
+  sendFirst(line: string): void {
+    this.sendQueue.unshift(line);
+    this.drain();
+  }
+
   // ---- low-priority background queue (history prefetch) -------------------
   // On (re)connect the client rejoins every channel; firing a CHATHISTORY per
   // channel through the normal queue would starve the user's own typing. This

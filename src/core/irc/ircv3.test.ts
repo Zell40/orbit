@@ -160,6 +160,21 @@ describe('Ircv3 cap-gated commands', () => {
     ]);
   });
 
+  it('sends profile METADATA GET on the live queue when sendNow is available', () => {
+    const sent: string[] = [];
+    const now: string[] = [];
+    const ircv3 = new Ircv3({
+      send: (l) => sent.push(l),
+      lowSend: () => {},
+      sendNow: (l) => now.push(l),
+      isupport: () => ({}),
+    });
+    ircv3.handleCap(parseLine('CAP * ACK :draft/metadata-2'), { registered: false, hasPassword: false });
+    ircv3.fetchMetadata('Mo1299');
+    expect(now).toEqual(['METADATA Mo1299 GET avatar bio pronouns timezone url']);
+    expect(sent).toHaveLength(0);
+  });
+
   it('skips MARKREAD, METADATA and TAGMSG to local $ buffers', () => {
     const { ircv3, sent, cap } = make();
     cap('CAP * ACK :draft/read-marker draft/metadata-2 message-tags');
