@@ -607,12 +607,12 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
             });
             return true;
           }
-          // One warn per offline spell — a follow-up MARKREAD/TAGMSG 401 is noise.
-          showOfflinePeerWarn({
-            buffers: get().buffers,
-            nick: nk,
-            sysLine: helpers.sysLine,
-          });
+          // One note per offline spell — a follow-up MARKREAD/TAGMSG 401 is noise.
+          // The PM top bar shows hors ligne; don't paint a red error in the transcript.
+          showOfflinePeerWarn({ buffers: get().buffers, nick: nk });
+          const presence = { ...get().friendsOnline };
+          presence[nk.toLowerCase()] = false;
+          set({ friendsOnline: presence });
           return true;
         }
         serverLine(nk ? `${nk}: ${i18n.t('numerics.401', { nick: nk })}` : i18n.t('numerics.401'), 'info');

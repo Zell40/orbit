@@ -15,6 +15,7 @@ import { useActiveChat } from '@/core/networks';
 import { NetworkTabs } from './NetworkTabs';
 import { StatusMenu } from './StatusMenu';
 import { getConfig } from '@/core/config';
+import { queryPresence } from '@/core/store/pm-presence';
 // The footer bar (TabBar) is in the DOM twice for the responsive layout — a
 // window-bottom bar on desktop (`.app > .appbar`) and docked in the drawer on
 // mobile (`.sidebar .appbar`), with CSS showing one at the 880px breakpoint. So
@@ -122,6 +123,7 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
   const closeBuffer = useActiveChat((s) => s.closeBuffer);
   const reorderSidebar = useActiveChat((s) => s.reorderSidebar);
   const serverName = useActiveChat((s) => s.serverName);
+  const presence = useActiveChat((s) => queryPresence(s.buffers[name]?.name || name, s.friendsOnline, s.buffers));
   const [over, setOver] = useState(false);
   const skipClick = useRef(false);
   if (!b) return null;
@@ -182,6 +184,13 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
       <span className="room__body">
         <span className="room__nameline">
           <span className="room__name">{label}</span>
+          {presence && (
+            <span
+              className={`room__presence${presence === 'on' ? ' is-on' : ' is-off'}`}
+              title={presence === 'on' ? t('whois.online') : t('whois.offline')}
+              aria-label={presence === 'on' ? t('whois.online') : t('whois.offline')}
+            />
+          )}
         </span>
         <span className={`room__sub${genericSub ? ' room__sub--generic' : ''}`}>{
           isServer ? (serverName || t('sidebar.system'))

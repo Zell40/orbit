@@ -2,7 +2,7 @@
 // line into their PM (if still open), watch them via MONITOR, and announce
 // CONNEXION when they come back — even if we share no channel with them.
 import i18n from '../i18n';
-import { canon, isBouncerServiceNick, isPseudoBuffer } from './context';
+import { canon, isBouncerServiceNick, isChannelName, isPseudoBuffer } from './context';
 import { findMemberKey } from './helpers';
 import type { Buffer, MessageKind } from '../irc/types';
 import { isStatusService } from '../services';
@@ -97,6 +97,23 @@ export function takeMphistoryStored(nick: string): boolean {
   return true;
 }
 
+/** '' until we know, 'on' if connected, 'off' if MONITOR or a 401 said they left.
+ *  Shared by the PM top bar and the sidebar list. */
+export function queryPresence(
+  name: string,
+  friendsOnline: Record<string, boolean> | undefined,
+  buffers: Record<string, Buffer | undefined>,
+): '' | 'on' | 'off' {
+  if (!name || isChannelName(name) || isPseudoBuffer(name) || isBouncerServiceNick(name) || isStatusService(name)) return '';
+  const flagged = friendsOnline?.[name.toLowerCase()];
+  if (flagged === false) return 'off';
+  if (flagged === true) return 'on';
+  for (const buf of Object.values(buffers)) {
+    if (buf?.isChannel && findMemberKey(buf.members, name)) return 'on';
+  }
+  return '';
+}
+
 /** True when the nick is not present in any channel member map. */
 export function nickAbsentFromChannels(
   buffers: Record<string, Buffer | undefined>,
@@ -159,22 +176,20 @@ export function noteOfflineAlreadyAnnounced(nick: string): void {
 }
 
 /**
- * Once per offline spell: plain "nick is offline" after a 401 without MPHISTORY_STORED.
- * Suppresses duplicates from a follow-up MARKREAD/TAGMSG 401 on the same nick.
+ * Once per offline spell: remember that a 401 already told us this nick is gone.
+ * Presence is shown next to the nick in the top bar — not as a red error in the PM.
+ * Suppresses a second pass from a follow-up MARKREAD/TAGMSG 401.
  */
 export function showOfflinePeerWarn(opts: {
   buffers: Record<string, Buffer | undefined>;
   nick: string;
-  sysLine: SysLine;
 }): boolean {
-  const { buffers, nick, sysLine } = opts;
+  const { buffers, nick } = opts;
   if (!nick) return false;
   const qKey = queryBufferKey(buffers, nick);
   if (!qKey) return false;
   const key = canon(nick);
   if (offlineWarnShown.has(key) || mphistHintShown.has(key)) return false;
   offlineWarnShown.add(key);
-  const display = buffers[qKey]?.name || nick;
-  sysLine(qKey, `⚠️ ${i18n.t('numerics.401', { nick: display })}`, 'system');
   return true;
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   announcePmOnline,
+  queryPresence,
   clearPmPeerOffline,
   isMphistoryStored,
   isPmPeerOffline,
@@ -112,18 +113,24 @@ describe('pm-presence', () => {
     expect(isMphistoryStored('bob')).toBe(false);
   });
 
-  it('showOfflinePeerWarn posts once per offline spell', () => {
-    const lines: { name: string; text: string; kind: string }[] = [];
-    const buffers = { bob: buf('bob') };
-    const opts = {
-      buffers,
-      nick: 'bob',
-      sysLine: (name: string, text: string, kind: string) => { lines.push({ name, text, kind }); },
+  it('queryPresence is on, off, or unknown for a private nick only', () => {
+    const buffers = {
+      bob: buf('bob'),
+      '#x': buf('#x', true),
+      $server: buf('$server'),
     };
-    expect(showOfflinePeerWarn(opts)).toBe(true);
-    expect(lines[0]).toMatchObject({ name: 'bob', kind: 'system' });
-    expect(String(lines[0].text)).toContain('⚠️');
-    expect(showOfflinePeerWarn(opts)).toBe(false);
-    expect(lines).toHaveLength(1);
+    buffers['#x'].members = { Bob: { nick: 'Bob', prefix: '' } };
+    expect(queryPresence('bob', { bob: false }, buffers)).toBe('off');
+    expect(queryPresence('bob', { bob: true }, buffers)).toBe('on');
+    expect(queryPresence('Bob', {}, buffers)).toBe('on');
+    expect(queryPresence('zoe', {}, buffers)).toBe('');
+    expect(queryPresence('#x', {}, buffers)).toBe('');
+    expect(queryPresence('$server', {}, buffers)).toBe('');
+  });
+
+  it('showOfflinePeerWarn notes the offline spell once and stays out of the transcript', () => {
+    const buffers = { bob: buf('bob') };
+    expect(showOfflinePeerWarn({ buffers, nick: 'bob' })).toBe(true);
+    expect(showOfflinePeerWarn({ buffers, nick: 'bob' })).toBe(false);
   });
 });

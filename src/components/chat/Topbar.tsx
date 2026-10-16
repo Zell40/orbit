@@ -11,6 +11,7 @@ import { Icon } from '../Icon';
 import { useActiveChat } from '@/core/networks';
 import { UmodeBadges } from './UmodeBadges';
 import { formatChannelModes } from '@/core/irc/modes';
+import { queryPresence } from '@/core/store/pm-presence';
 
 /** Preferred order for left-cluster topbar plugins (invite). */
 const TOPBAR_LEAD = ['invite'] as const;
@@ -62,6 +63,12 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       return n + (b.unread || 0);
     }, 0));
   const noticeAlert = useActiveChat((s) => !!s.chatCovered && ((s.buffers[s.active]?.unread || 0) > 0 || !!s.buffers[s.active]?.highlight));
+  // PM only: en ligne / hors ligne next to the nick. Unknown until MONITOR or a 401.
+  const peerPresence = useActiveChat((s) => {
+    const b = s.buffers[s.active];
+    if (!b || b.isChannel) return '';
+    return queryPresence(b.name, s.friendsOnline, s.buffers);
+  });
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
   const menuBtn = (
@@ -115,6 +122,12 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       <div className="topbar__meta">
         <span className="topbar__title">
           <span className="topbar__name">{isServer ? statusTitle : label}</span>
+          {peerPresence && (
+            <span className={`topbar__presence${peerPresence === 'on' ? ' is-on' : ' is-off'}`}>
+              <span className="dot" aria-hidden="true" />
+              {peerPresence === 'on' ? t('whois.online') : t('whois.offline')}
+            </span>
+          )}
           {!isServer && isChannel && showChannelModes && modes && modes !== '+' && (
             <span className="topbar__modes" title={t('topbar.modes')}>
               {formatChannelModes(modes, showExtendedModes ? modeParams : undefined)}

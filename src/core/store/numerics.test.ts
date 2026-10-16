@@ -303,7 +303,8 @@ describe('store numerics handler', () => {
       },
     });
     expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
-    expect(sys).toEqual([{ name: 'bob', text: expect.stringContaining('⚠️'), kind: 'system' }]);
+    expect(sys).toEqual([]);
+    expect(state.friendsOnline.bob).toBe(false);
     // Optimistic clock (local-*) must clear — offline PMs get no echo-message.
     expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-1');
   });
@@ -328,8 +329,8 @@ describe('store numerics handler', () => {
     // Follow-up 401 (e.g. MARKREAD to the same offline nick) must not duplicate.
     expect(handleNumerics(mk('401', ['me', 'bob', 'No such nick']))).toBe(true);
     expect((state.buffers.bob.messages[0] as { id: string }).id).toBe('queued-9');
-    expect(sys.filter((l) => l.name === 'bob' && String(l.text).includes('⚠️'))).toHaveLength(1);
-    expect(sys.some((l) => l.name === 'bob' && l.kind === 'info')).toBe(false);
+    expect(sys.filter((l) => l.name === 'bob')).toHaveLength(0);
+    expect(state.friendsOnline.bob).toBe(false);
   });
 
   it('401 after MPHISTORY_STORED soft-hints instead of warning', () => {
