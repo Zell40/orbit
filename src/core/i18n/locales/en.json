@@ -77,7 +77,7 @@
     "connecting": "Connecting…",
     "loadingPlugins": "Loading features ({{ok}}/{{total}})…",
     "joiningRooms": "Opening rooms ({{ok}}/{{total}})…",
-    "preparingUi": "Finishing the interface…",
+    "preparingUi": "Room modes and profiles…",
     "almostReady": "Ready",
     "joinHint": "You're joining",
     "registered": "Already have an account?",

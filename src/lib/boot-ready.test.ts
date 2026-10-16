@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  bootPhase, bootProgress, displayReady, identityReady,
+  bootPhase, bootProgress, displayReady, homeChromeReady, identityReady,
   pluginReadyFrac, pluginsRegistered, priorityPluginIds, roomFrac, roomsListed,
   roomsReady, selfInPrimaryRoom,
 } from './boot-ready';
@@ -93,6 +93,20 @@ describe('priority plugins / identity / display', () => {
     expect(displayReady({ topbar: true, pluginsOk: true })).toBe(true);
     expect(displayReady({ topbar: false, pluginsOk: true })).toBe(false);
     expect(displayReady({ topbar: true, pluginsOk: false })).toBe(false);
+    expect(displayReady({ topbar: true, pluginsOk: true, homeChrome: false })).toBe(false);
+    expect(displayReady({ topbar: true, pluginsOk: true, homeChrome: true })).toBe(true);
+  });
+});
+
+describe('homeChromeReady', () => {
+  it('waits for MODE 324 and WHO 315 on the home salon', () => {
+    expect(homeChromeReady(one, ['#taverne'])).toBe(false);
+    expect(homeChromeReady({
+      '#taverne': { name: '#Taverne', isChannel: true, joined: true, modes: '+nt' },
+    }, ['#taverne'])).toBe(false);
+    expect(homeChromeReady({
+      '#taverne': { name: '#Taverne', isChannel: true, joined: true, modes: '+nt', whoComplete: true },
+    }, ['#taverne'])).toBe(true);
   });
 });
 

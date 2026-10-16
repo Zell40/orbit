@@ -48,6 +48,8 @@ type BootBuf = {
   isChannel?: boolean;
   name?: string;
   members?: Record<string, unknown>;
+  modes?: string;
+  whoComplete?: boolean;
 };
 
 export function roomsReady(buffers: Record<string, BootBuf>, expected: string[]): boolean {
@@ -137,11 +139,27 @@ export function identityReady(expectAccount: boolean, account: string): boolean 
   return !expectAccount || !!String(account || '').trim();
 }
 
+/** Home salon chrome: channel modes in the top bar + WHOX (âge/genre) on the nicklist. */
+export function homeChromeReady(
+  buffers: Record<string, BootBuf>,
+  expected: string[],
+): boolean {
+  const target = expected[0]
+    || Object.values(buffers).find((b) => b.isChannel && b.joined)?.name;
+  if (!target) return false;
+  const n = normChan(target);
+  const buf = Object.values(buffers).find((b) => b.joined && normChan(b.name || '') === n);
+  if (!buf) return false;
+  if (!buf.modes || buf.modes === '+') return false;
+  return !!buf.whoComplete;
+}
+
 export function displayReady(opts: {
   topbar: boolean;
   pluginsOk: boolean;
+  homeChrome?: boolean;
 }): boolean {
-  return opts.topbar && opts.pluginsOk;
+  return opts.topbar && opts.pluginsOk && opts.homeChrome !== false;
 }
 
 function clamp01(n: number): number {

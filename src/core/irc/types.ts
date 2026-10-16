@@ -112,6 +112,8 @@ export interface Buffer {
   topic: string;
   modes?: string;        // active channel mode letters, e.g. "+nt" (RPL_CHANNELMODEIS / live MODE)
   modeParams?: Record<string, string>; // type B/C mode params, e.g. { k: 'secret', l: '50' }
+  /** True after RPL_ENDOFWHO (315) for this channel — nicklist ASL/account is filled. */
+  whoComplete?: boolean;
   /** ChanServ/InspIRCd MLOCK letters (from 742) — not toggleable in the Modes tab. */
   mlock?: string;
   createdAt?: number;    // channel creation unix time (RPL_CREATIONTIME 329)

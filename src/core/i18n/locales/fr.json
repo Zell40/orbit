@@ -77,7 +77,7 @@
     "connecting": "Connexion au tchat…",
     "loadingPlugins": "Chargement des fonctions ({{ok}}/{{total}})…",
     "joiningRooms": "Ouverture des salons ({{ok}}/{{total}})…",
-    "preparingUi": "Derniers réglages de l’écran…",
+    "preparingUi": "Modes et profils du salon…",
     "almostReady": "Prêt",
     "joinHint": "Tu entres dans",
     "registered": "Pseudo déjà enregistré ?",

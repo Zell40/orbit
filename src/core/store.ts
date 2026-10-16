@@ -650,7 +650,9 @@ export function createChatStore(ns = '') {
           // Clear nicklist + joined: the socket is down — next 001 will rejoin.
           // Leaving joined:true made failed rejoins only blip (no joinDenied).
           if (Object.keys(b.members).length || b.joined) {
-            patchBuffer(name, (bb) => ({ ...bb, members: {}, joined: false }));
+            patchBuffer(name, (bb) => ({
+              ...bb, members: {}, joined: false, whoComplete: false, modes: undefined, modeParams: undefined,
+            }));
           }
         }
         set({ reconnectIn: secs as number });

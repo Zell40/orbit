@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { makeNumerics } from './numerics';
 import { saveChanUrls } from './persistence';
+import { setExpectedBootChannels } from '../../lib/boot-ready';
 import { Numerics } from '../irc/numerics';
 import { clearPmPeerOffline, markMphistoryStored } from './pm-presence';
 import type { IrcMessage } from '../irc/types';
@@ -85,6 +86,7 @@ describe('store numerics handler', () => {
   afterEach(() => {
     clearPmPeerOffline('bob');
     saveChanUrls({});
+    setExpectedBootChannels([]);
   });
 
   it('433 ERR_NICKNAMEINUSE sets nickError and a line in the active window', () => {
@@ -424,6 +426,36 @@ describe('store numerics handler', () => {
     });
     expect(handleNumerics(mk('366', ['me', '#EntreNous.chat', 'End of /NAMES list']))).toBe(true);
     expect(latest).toEqual(['#EntreNous.chat']);
+  });
+
+  it('sends WHO + MODE immediately for the home salon on 366', () => {
+    setExpectedBootChannels(['#entrenous.chat']);
+    const who: { t: string; urgent?: boolean }[] = [];
+    const now: string[] = [];
+    const queued: string[] = [];
+    const { handleNumerics } = setup({
+      client: {
+        numerics: new Numerics(),
+        who: (t: string, opts?: { urgent?: boolean }) => who.push({ t, urgent: opts?.urgent }),
+        send: (l: string) => queued.push(l),
+        sendNow: (l: string) => now.push(l),
+        ircv3: { hasCap: () => false, chathistoryLatest: () => {} },
+      },
+    });
+    handleNumerics(mk('366', ['me', '#entrenous.chat', 'End of /NAMES list']));
+    handleNumerics(mk('366', ['me', '#Aide.chat', 'End of /NAMES list']));
+    expect(who).toEqual([
+      { t: '#entrenous.chat', urgent: true },
+      { t: '#Aide.chat', urgent: false },
+    ]);
+    expect(now).toEqual(['MODE #entrenous.chat']);
+    expect(queued).toEqual(['MODE #Aide.chat']);
+  });
+
+  it('marks whoComplete on RPL_ENDOFWHO for a channel', () => {
+    const { handleNumerics, state } = setup();
+    handleNumerics(mk('315', ['me', '#entrenous.chat', 'End of WHO list']));
+    expect(state.buffers['#entrenous.chat'].whoComplete).toBe(true);
   });
 
   it('does not request CHATHISTORY twice for the same channel on 366', () => {

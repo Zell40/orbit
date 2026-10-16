@@ -4,7 +4,7 @@ import { getConfig } from '../core/config';
 import {
   BOOT_MAX_MS, BOOT_MIN_MS,
   bootPhase, bootProgress, displayReady, getExpectedBootChannels,
-  pluginReadyFrac, pluginsRegistered, priorityPluginIds,
+  homeChromeReady, pluginReadyFrac, pluginsRegistered, priorityPluginIds,
   roomFrac, roomsReady, shellPainted,
   type BootPhase,
 } from '../lib/boot-ready';
@@ -44,7 +44,8 @@ function bootSlice() {
   const roomsDone = roomsReady(st.buffers, expected);
   const pluginsOk = pluginsRegistered(needed, have);
   const topbar = shellPainted();
-  const displayDone = displayReady({ topbar, pluginsOk });
+  const chromeOk = homeChromeReady(st.buffers, expected);
+  const displayDone = displayReady({ topbar, pluginsOk, homeChrome: chromeOk });
   const ready = st.status === 'registered' && roomsDone && displayDone;
   const roomTotal = expected.length || 1;
   const roomOk = expected.length

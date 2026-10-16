@@ -6,6 +6,7 @@ import { buildModeContext, parseModeChanges, applyChannelFlag, umodeLettersFrom2
 import { looksLikeMlock, mergeMlock, mlockLetters } from '../irc/mode-catalog';
 import { translateUmodeNotice } from '../irc/umode-notices';
 import { SERVER, canon, isChannelName, isPseudoBuffer, isBouncerServiceNick } from './context';
+import { getExpectedBootChannels, normChan } from '../../lib/boot-ready';
 import { prefetchLatestHistory } from './history-prefetch';
 import { prefetchJoinedBufferMutes } from './mute-prefetch';
 import type { StoreApi } from 'zustand';
@@ -256,18 +257,32 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         }
         return true;
       }
-      case '315': // RPL_ENDOFWHO
+      case '315': { // RPL_ENDOFWHO — nicklist ASL (GECOS) + account flags are in
+        const whoTarget = msg.params[1];
+        if (isChannelName(whoTarget)) {
+          ensureBuffer(whoTarget);
+          patchBuffer(whoTarget, (b) => (b.whoComplete ? b : { ...b, whoComplete: true }));
+        }
         return true;
+      }
       case '366': { // RPL_ENDOFNAMES → pull WHO (oper/away flags) + the channel modes
         const chan = msg.params[1];
         if (isChannelName(chan)) {
           namesInFlight.delete(canon(chan));
-          get().client?.who(chan);
-          get().client?.send(`MODE ${chan}`);
+          ensureBuffer(chan);
+          patchBuffer(chan, (b) => ({
+            ...b,
+            whoComplete: false,
+            sessionJoinedAt: b.sessionJoinedAt || Date.now(),
+          }));
+          const home = (getExpectedBootChannels()[0] || '').trim();
+          const urgent = !!home && normChan(chan) === normChan(home);
+          const client = get().client;
+          client?.who(chan, { urgent });
+          if (urgent) client?.sendNow(`MODE ${chan}`);
+          else client?.send(`MODE ${chan}`);
           // Join is complete here — CAP is ACK'd even if the server autojoin JOIN
           // raced ahead of draft/chathistory (or arrived without a self-JOIN).
-          ensureBuffer(chan);
-          patchBuffer(chan, (b) => (b.sessionJoinedAt ? b : { ...b, sessionJoinedAt: Date.now() }));
           prefetchLatestHistory(get, historyAsked, chan);
         }
         return true;

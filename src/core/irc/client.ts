@@ -322,5 +322,9 @@ export class IrcClient {
   // account, realname). Reply field order is IRCv3-fixed (t c u h n f a r),
   // not the letter order here — see numerics 354. `r` must be requested so it
   // is trailing. Token 152 echoes back.
-  who(target: string): void { this.send(`WHO ${target} %tcnuhfar,152`); }
+  who(target: string, opts?: { urgent?: boolean }): void {
+    const line = `WHO ${target} %tcnuhfar,152`;
+    if (opts?.urgent) this.sendNow(line);
+    else this.send(line);
+  }
 }
