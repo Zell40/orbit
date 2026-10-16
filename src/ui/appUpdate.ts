@@ -27,7 +27,7 @@ async function deployedCommit(): Promise<string> {
   }
 }
 
-/** Release notes for the update popup. public/updates.json is regenerated from git log at build. */
+/** Release notes for the update popup. The build emits updates.json from git log. */
 export async function fetchUpdateNotes(): Promise<UpdateNote[]> {
   try {
     const r = await fetch('/app/updates.json', { cache: 'no-store' });

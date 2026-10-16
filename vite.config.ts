@@ -52,9 +52,10 @@ const sandboxGuest: Plugin = {
   },
 }
 
-// The update popup and À propos read public/updates.json. Keep it aligned with
-// the commits actually in this build — a hand-written list lagged behind and the
-// popup kept showing old notes. Oldest first; the UI reverses and keeps 5.
+// The update popup and À propos read /app/updates.json. Generate it from the
+// commits in this build. Do not write public/updates.json: deploy.sh refuses a
+// dirty Orbit tree, and a build used to leave that tracked file modified.
+// Oldest first; the UI reverses and keeps 5.
 function gitReleaseNotes(limit = 12): string | null {
   try {
     const raw = execSync(
@@ -78,9 +79,21 @@ function gitReleaseNotes(limit = 12): string | null {
 
 const emitUpdateNotes: Plugin = {
   name: 'emit-update-notes',
-  buildStart() {
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      const path = (req.url || '').split('?')[0]
+      if (!path.endsWith('/updates.json')) return next()
+      const json = gitReleaseNotes()
+      if (!json) return next()
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-store')
+      res.end(json)
+    })
+  },
+  generateBundle() {
     const json = gitReleaseNotes()
-    if (json) writeFileSync('public/updates.json', json)
+    if (!json) return
+    this.emitFile({ type: 'asset', fileName: 'updates.json', source: json })
   },
 }
 

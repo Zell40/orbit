@@ -2,11 +2,6 @@
   "items": [
     {
       "date": "2026-10-15",
-      "fr": "Afficher les notices privées dans la fenêtre ouverte et compléter les notes de mise à jour.",
-      "en": "Afficher les notices privées dans la fenêtre ouverte et compléter les notes de mise à jour."
-    },
-    {
-      "date": "2026-10-15",
       "fr": "Placer l'onglet Compte en tête de la liste des réglages.",
       "en": "Placer l'onglet Compte en tête de la liste des réglages."
     },
@@ -59,6 +54,11 @@
       "date": "2026-10-16",
       "fr": "Afficher dans le popup les 5 derniers commits Orbit, régénérés à chaque build.",
       "en": "Afficher dans le popup les 5 derniers commits Orbit, régénérés à chaque build."
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "fix webpush",
+      "en": "fix webpush"
     }
   ]
 }
