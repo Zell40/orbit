@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../Icon';
-import { useActiveChat } from '@/core/networks';
+import { activeStore, useActiveChat } from '@/core/networks';
 import { advertisedUserModes } from '@/core/irc/mode-catalog';
+import { applyUserModes } from '@/core/irc/modes';
 
 function DeafChanBadge({ onDisable }: { onDisable: () => void }) {
   const { t } = useTranslation();
@@ -42,12 +43,17 @@ export function UmodeBadges() {
   const showPrivDeaf = !advertised.size || advertised.has('D');
   if (!deaf && !showPrivDeaf) return null;
 
+  function toggleOwnMode(change: string) {
+    activeStore().setState({ umodes: applyUserModes(umodes, change) });
+    client?.setUserModes(change);
+  }
+
   const tip = privDeaf ? t('topbar.deafPrivTip') : t('topbar.deafPrivEnableTip');
 
   return (
     <span className="topbar__umodes">
       {deaf && (
-        <DeafChanBadge onDisable={() => client?.setUserModes('-d')} />
+        <DeafChanBadge onDisable={() => toggleOwnMode('-d')} />
       )}
       {showPrivDeaf && (
         <button
@@ -56,7 +62,7 @@ export function UmodeBadges() {
           title={tip}
           aria-label={t('topbar.deafPriv')}
           aria-pressed={privDeaf}
-          onClick={() => client?.setUserModes(privDeaf ? '-D' : '+D')}
+          onClick={() => toggleOwnMode(privDeaf ? '-D' : '+D')}
         >
           <Icon name="deafPriv" size={19} />
         </button>

@@ -603,6 +603,9 @@ export function createChatStore(ns = '') {
               if (b?.isChannel && b.joined) prefetchLatestHistory(get, historyAsked, b.name);
             }
           }, 800);
+          // Catalogue for Explorer / galerie: start LIST during splash so the
+          // first open is not waiting behind ChanServ/WHOIS on the 1/s bucket.
+          if (!get().channels.length && !get().listLoading) get().refreshChannels();
         }
       });
       client.on('reconnecting', (secs) => {
@@ -1234,6 +1237,9 @@ export function createChatStore(ns = '') {
       sysLine(SERVER, i18n.t('system.reportFiled', { target: t }), 'system');
     },
     refreshChannels() {
+      // One LIST in flight is enough — a second would race 321/322/323.
+      // Retry is allowed when still empty (the first LIST likely never came back).
+      if (get().listLoading && get().channels.length) return;
       set({ listLoading: true });
       get().client?.list();
     },

@@ -99,12 +99,15 @@ function whenPriorityFactoriesReady(): Promise<void> {
   });
 }
 
+/** After splash, leave the UI clickable before Petit Bac / échecs parse. */
+const DEFERRED_START_MS = 3000;
+
 function idleGap(): Promise<void> {
   return new Promise((resolve) => {
     if (typeof requestIdleCallback === 'function') {
-      requestIdleCallback(() => resolve(), { timeout: 800 });
+      requestIdleCallback(() => resolve(), { timeout: 4000 });
     } else {
-      window.setTimeout(resolve, 40);
+      window.setTimeout(resolve, 200);
     }
   });
 }
@@ -133,6 +136,7 @@ function startDeferredPlugins(): void {
     console.log(`[plugins] deferred wave ${extra.length} in-page, ${boxed.length} sandboxed`);
   }
   void (async () => {
+    await new Promise<void>((r) => window.setTimeout(r, DEFERRED_START_MS));
     for (const p of extra) {
       await idleGap();
       await injectScript(p);

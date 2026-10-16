@@ -9,7 +9,7 @@ import {
   selfInPrimaryRoom, shellPainted,
   type BootPhase,
 } from '../lib/boot-ready';
-import { pluginLoadStats, whenPluginsLoaded } from '../modules/loader';
+import { pluginLoadStats } from '../modules/loader';
 import { registeredPluginIds } from '../modules/api';
 import { bus } from '../modules/bus';
 
@@ -109,9 +109,6 @@ export function useBootSplash() {
     const expectAccount = viaBouncer || !!useChat.getState().account;
 
     void (async () => {
-      await whenPluginsLoaded();
-      if (stop) return;
-
       const until = t0 + BOOT_MAX_MS;
       while (!stop && Date.now() < until) {
         const slice = bootSlice(registeredAt.current, expectAccount);

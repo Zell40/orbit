@@ -277,7 +277,7 @@ export class IrcClient {
   setNick(nick: string): void { this.send(`NICK ${nick}`); }
   // User modes (global, per-user). Query with no modestring → RPL_UMODEIS (221).
   queryUserModes(): void { this.send(`MODE ${this.nick}`); }
-  setUserModes(modestring: string): void { this.send(`MODE ${this.nick} ${modestring}`); }
+  setUserModes(modestring: string): void { this.sendNow(`MODE ${this.nick} ${modestring}`); }
   setTopic(channel: string, topic: string): void { this.send(`TOPIC ${channel} :${topic}`); }
   kick(channel: string, nick: string, reason = ''): void { this.send(`KICK ${channel} ${nick}${reason ? ` :${reason}` : ''}`); }
   // Channel user-mode change, e.g. setUserMode('#x','o',true,'bob') → MODE #x +o bob.
@@ -297,7 +297,8 @@ export class IrcClient {
       : (/^[#:]/.test(param) || /\s/.test(param) ? ` :${param.replace(/^:/, '')}` : ` ${param}`);
     this.send(`MODE ${channel} ${add ? '+' : '-'}${mode}${extra}`);
   }
-  list(): void { this.send('LIST'); }
+  // sendNow: Explorer / galerie must not wait behind ChanServ/WHOIS (1/s bucket).
+  list(): void { this.sendNow('LIST'); }
   whois(nick: string): void {
     // Local buffers ($server, $notice:…) and ZNC module nicks (*status, *sasl).
     if (!nick || nick.startsWith('$') || nick.startsWith('*')) return;
