@@ -52,6 +52,38 @@ const sandboxGuest: Plugin = {
   },
 }
 
+// The update popup and À propos read public/updates.json. Keep it aligned with
+// the commits actually in this build — a hand-written list lagged behind and the
+// popup kept showing old notes. Oldest first; the UI reverses and keeps 5.
+function gitReleaseNotes(limit = 12): string | null {
+  try {
+    const raw = execSync(
+      `git log -n ${limit} --no-merges --format=%ad%x09%s --date=short`,
+      { encoding: 'utf8' },
+    ).trim()
+    if (!raw) return null
+    const items = raw.split(/\r?\n/).map((line) => {
+      const i = line.indexOf('\t')
+      const date = i === -1 ? '' : line.slice(0, i).trim()
+      const subject = (i === -1 ? line : line.slice(i + 1)).trim()
+      return { date, fr: subject, en: subject }
+    }).filter((it) => it.fr)
+    if (!items.length) return null
+    items.reverse()
+    return JSON.stringify({ items }, null, 2) + '\n'
+  } catch {
+    return null
+  }
+}
+
+const emitUpdateNotes: Plugin = {
+  name: 'emit-update-notes',
+  buildStart() {
+    const json = gitReleaseNotes()
+    if (json) writeFileSync('public/updates.json', json)
+  },
+}
+
 // Stamp the built app with its commit so the running client can poll for a newer
 // deploy (src/ui/appUpdate.ts) and refresh itself in place, no manual reload.
 const emitVersion: Plugin = {
@@ -128,7 +160,7 @@ const preloadAppChunk: Plugin = {
 export default defineConfig({
   base: BASE,
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } }, // @/x ÔåÆ src/x
-  plugins: [react(), emitVersion, sandboxGuest, stampServiceWorker, preloadAppChunk],
+  plugins: [react(), emitUpdateNotes, emitVersion, sandboxGuest, stampServiceWorker, preloadAppChunk],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),

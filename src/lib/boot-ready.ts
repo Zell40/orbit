@@ -19,6 +19,12 @@ const BOOT_PRIORITY: { slug: string; id: string }[] = [
   { slug: 'orbit-callerid', id: 'orbit-callerid' },
   { slug: 'orbit-room-gallery', id: 'room-gallery' },
   { slug: 'orbit-helpdesk', id: 'helpdesk' },
+  { slug: 'orbit-rss', id: 'orbit-rss' },
+  { slug: 'orbit-memoserv', id: 'orbit-memoserv' },
+  { slug: 'orbit-ircop', id: 'orbit-ircop' },
+  { slug: 'orbit-helpserv-welcome', id: 'helpserv-welcome' },
+  { slug: 'orbit-anope', id: 'orbit-anope' },
+  { slug: 'orbit-invite', id: 'invite' },
 ];
 
 export const BOOT_PRIORITY_PLUGINS = BOOT_PRIORITY.map((p) => p.id);

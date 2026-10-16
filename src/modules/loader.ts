@@ -23,10 +23,9 @@ export function scriptAttrs(entry: PluginEntry): ScriptAttrs {
 
 const PLUGIN_WAIT_MS = 8000;
 
-/** Games / extras — parse+run on the main thread after the shell is usable.
- *  Also copy/invite/ircop/anope/helpserv-welcome: not click-now chrome. */
+/** Games only — chrome (RSS, radio, mémo, IRCop, Anope, notices) stays on the splash. */
 const DEFERRED_PLUGIN_RE =
-  /orbit-(petitbac|echecs|harrypotter|rss|memoserv|radio|clock|copy|invite|ircop|helpserv-welcome|anope)\b/i;
+  /orbit-(petitbac|echecs|harrypotter|clock)\b/i;
 
 export function isDeferredPluginUrl(url: string): boolean {
   return DEFERRED_PLUGIN_RE.test(url);

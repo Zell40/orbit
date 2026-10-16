@@ -458,7 +458,10 @@ export function createChatStore(ns = '') {
       const client = new IrcClient();
       activeConnectOpts = opts;
       initNotify();
-      setExpectedBootChannels(opts.channels);
+      // Wait for the home salon only — resume can list 6–7 channels and the
+      // splash would sit at 97% (6/7) while Radio / Mémo / notices are still off.
+      const home = (getConfig().startup?.channels?.[0] || opts.channels?.[0] || '').trim();
+      setExpectedBootChannels(home ? [home] : undefined);
       if (filehost.timer) clearTimeout(filehost.timer);
       filehost.resolve = null; filehost.reject = null; filehost.timer = null;
       filehost.lateToken = null; filehost.lateAt = 0; filehost.awaitingLate = false;

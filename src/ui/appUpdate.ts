@@ -27,10 +27,10 @@ async function deployedCommit(): Promise<string> {
   }
 }
 
-/** Release notes for the update popup (« Voir plus »). Deployers edit public/updates.json. */
+/** Release notes for the update popup. public/updates.json is regenerated from git log at build. */
 export async function fetchUpdateNotes(): Promise<UpdateNote[]> {
   try {
-    const r = await fetch('/app/updates.json', { cache: 'no-cache' });
+    const r = await fetch('/app/updates.json', { cache: 'no-store' });
     if (!r.ok) return [];
     const j = (await r.json()) as { items?: UpdateNote[] };
     if (!Array.isArray(j?.items)) return [];

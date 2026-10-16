@@ -64,7 +64,9 @@ describe('priority plugins / identity / display', () => {
       '/app/plugins/third/orbit-room-gallery/orbit-room-gallery.js?v=38',
       '/app/plugins/third/orbit-helpdesk/orbit-helpdesk.js?v=5',
       '/app/plugins/third/orbit-navbar.js',
-    ])).toEqual(['orbit-navbar', 'room-gallery', 'helpdesk']);
+      '/app/plugins/third/orbit-anope/orbit-anope.js?v=11',
+      '/app/plugins/third/orbit-rss/orbit-rss.js?v=32',
+    ])).toEqual(['orbit-navbar', 'room-gallery', 'helpdesk', 'orbit-rss', 'orbit-anope']);
   });
 
   it('treats missing optional plugins as already registered', () => {

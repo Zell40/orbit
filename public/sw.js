@@ -204,10 +204,10 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(req).catch(() => caches.match('/app/index.html')));
     return;
   }
-  // version.json: the update probe — always straight to network, never cached, so
-  // a poll (src/ui/appUpdate.ts) sees the freshly deployed build id immediately.
+  // version.json and updates.json: always straight to network, never cached, so
+  // a poll sees the freshly deployed build id and its commit notes immediately.
   if (url.pathname === '/app/version.json' || url.pathname === '/app/updates.json') {
-    e.respondWith(fetch(req));
+    e.respondWith(fetch(new Request(req, { cache: 'no-store' })));
     return;
   }
   // config.json: network-first so a deployer's edits apply WITHOUT a rebuild;

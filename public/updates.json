@@ -2,73 +2,63 @@
   "items": [
     {
       "date": "2026-10-14",
-      "fr": "Contrôle parental : reconnexion sur Websocket-CP et avertissement salon sans doublon.",
-      "en": "Parental controls: reconnect on Websocket-CP and no duplicate channel safety tip."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "Amis → liste blanche ACCEPT ; Ignore → liste noire SILENCE (filtre +g).",
-      "en": "Friends → ACCEPT allow list; Ignore → SILENCE deny list (+g filter)."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "Explorer les salons : changer de page par glissement sur smartphone.",
-      "en": "Channel explorer: swipe to change page on phones."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "Compte : affichage du nom d’hôte vu par les autres (cloak), sans l’IP réelle.",
-      "en": "Account: show the hostname others see (cloak), not the real IP."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "Démarrage plus léger : les jeux se chargent après l’écran d’accueil.",
-      "en": "Lighter startup: games load after the welcome screen."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "Nouvel onglet Options : invitation, confirmation de fermeture, historique des MP.",
-      "en": "New Options tab: invite join, close confirmation, and PM history."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "Infos salon : chaque mode est expliqué, même sans être opérateur.",
-      "en": "Channel info: each mode is explained, even without operator access."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "Smileys texte (:) :D <3…) affichés directement dans la barre de saisie.",
-      "en": "Text smileys (:) :D <3…) show as the glyph in the message bar."
-    },
-    {
-      "date": "2026-10-14",
-      "fr": "/whois tapé dans la barre s’affiche en texte dans le salon ouvert. La fiche ne montre plus une ligne Info vide.",
-      "en": "Typed /whois prints in the open channel. The profile no longer shows an empty Info row."
+      "fr": "fix bouton mphistory",
+      "en": "fix bouton mphistory"
     },
     {
       "date": "2026-10-15",
-      "fr": "Notices d’un bot (aide, réponse) : affichées dans la fenêtre ouverte, plus dans un autre salon.",
-      "en": "Bot notices (help, replies) show in the window you are looking at, not another channel."
+      "fr": "Afficher les notices privées dans la fenêtre ouverte et compléter les notes de mise à jour.",
+      "en": "Afficher les notices privées dans la fenêtre ouverte et compléter les notes de mise à jour."
     },
     {
       "date": "2026-10-15",
-      "fr": "Réglages : l’onglet Compte est en tête de liste.",
-      "en": "Settings: the Account tab is first in the list."
+      "fr": "Placer l'onglet Compte en tête de la liste des réglages.",
+      "en": "Placer l'onglet Compte en tête de la liste des réglages."
     },
     {
       "date": "2026-10-15",
-      "fr": "Changer de pseudo : « déjà utilisé » seulement si le pseudo du compte est encore pris par un fantôme.",
-      "en": "Nick change: “already in use” only when the account nick is still held by a ghost."
+      "fr": "Ne proposer la récupération du pseudo que s'il est réservé au compte et encore pris.",
+      "en": "Ne proposer la récupération du pseudo que s'il est réservé au compte et encore pris."
+    },
+    {
+      "date": "2026-10-15",
+      "fr": "Afficher les dernières mises à jour dans l'onglet À propos.",
+      "en": "Afficher les dernières mises à jour dans l'onglet À propos."
+    },
+    {
+      "date": "2026-10-15",
+      "fr": "Limiter l'À propos aux 5 dernières mises à jour, datées et alignées.",
+      "en": "Limiter l'À propos aux 5 dernières mises à jour, datées et alignées."
     },
     {
       "date": "2026-10-16",
-      "fr": "Démarrage : le tchat s’ouvre dès que l’essentiel est prêt, le reste se charge sans bloquer.",
-      "en": "Startup: chat opens once the essentials are ready; the rest loads without freezing the screen."
+      "fr": "Attendre les vrais plugins clic-immédiat avant de cacher le splash, et charger les extras sans figer l’UI.",
+      "en": "Attendre les vrais plugins clic-immédiat avant de cacher le splash, et charger les extras sans figer l’UI."
     },
     {
       "date": "2026-10-16",
-      "fr": "Connexion : « Pseudo déjà enregistré » et « Accès via un bouncer » sous sexe, âge et ville.",
-      "en": "Sign-in: “Already registered” and “Sign in via a bouncer” sit under gender, age and city."
+      "fr": "fix store.ts",
+      "en": "fix store.ts"
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "Modifier la page de connexion au tchat original d'orbit",
+      "en": "Modifier la page de connexion au tchat original d'orbit"
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "N'afficher dans le popup que les 5 dernières mises à jour des commits Orbit.",
+      "en": "N'afficher dans le popup que les 5 dernières mises à jour des commits Orbit."
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "Démarrage de l'app + rapide",
+      "en": "Démarrage de l'app + rapide"
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "Accelerer encore et mieux afficher quand l'app est prête au démarrage d'orbit",
+      "en": "Accelerer encore et mieux afficher quand l'app est prête au démarrage d'orbit"
     }
   ]
 }
