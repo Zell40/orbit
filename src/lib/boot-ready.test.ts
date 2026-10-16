@@ -87,21 +87,24 @@ describe('priority plugins / identity / display', () => {
     expect(identityReady(true, 'Jessie')).toBe(true);
   });
 
-  it('needs topbar, plugins, identity and nicklist before display is ready', () => {
-    expect(displayReady({
-      topbar: true, pluginsOk: true, identityOk: true, selfInRoom: true,
-    })).toBe(true);
-    expect(displayReady({
-      topbar: false, pluginsOk: true, identityOk: true, selfInRoom: true,
-    })).toBe(false);
+  it('needs topbar and click-now plugins before display is ready', () => {
+    expect(displayReady({ topbar: true, pluginsOk: true })).toBe(true);
+    expect(displayReady({ topbar: false, pluginsOk: true })).toBe(false);
+    expect(displayReady({ topbar: true, pluginsOk: false })).toBe(false);
   });
 });
 
 describe('bootProgress / bootPhase', () => {
-  it('crawls while connecting, then fills with plugins, rooms and display', () => {
+  it('uses discrete connection then real plugin/room/display fractions', () => {
     expect(bootProgress({
-      status: 'connecting', pluginFrac: 0, roomFrac: 0, displayFrac: 0, connectingForMs: 0,
-    })).toBe(8);
+      status: 'connecting', pluginFrac: 0, roomFrac: 0, displayFrac: 0, ready: false,
+    })).toBe(12);
+    expect(bootProgress({
+      status: 'registered', pluginFrac: 0.5, roomFrac: 0, displayFrac: 0, ready: false,
+    })).toBe(49);
+    expect(bootProgress({
+      status: 'registered', pluginFrac: 1, roomFrac: 1, displayFrac: 1, ready: true,
+    })).toBe(100);
     expect(bootPhase({
       status: 'registered', pluginsDone: false, roomsDone: false, displayDone: false,
     })).toBe('plugins');

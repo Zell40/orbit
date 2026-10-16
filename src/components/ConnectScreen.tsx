@@ -336,6 +336,7 @@ export function ConnectScreen() {
   const [nick, setNick] = useState(param('nick', directPref?.nick || lastResume?.nick || bouncerPrefs?.nick || ''));
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const pwRef = useRef<HTMLInputElement>(null);
   const [profileBusy, setProfileBusy] = useState(false);
   const [viaBouncer, setViaBouncer] = useState(
     !directPref && (param('bouncer', '') === '1' || (!!cfg.features.bouncer && lastResume?.bouncer === true)),
@@ -352,6 +353,9 @@ export function ConnectScreen() {
       : (viaBouncer ? '' : cfg.startup.channels.join(','))),
   );
   useEffect(() => { if (directPref) clearDirectReconnect(); }, []);
+  useEffect(() => {
+    if (showPw && !viaBouncer) pwRef.current?.focus();
+  }, [showPw, viaBouncer]);
   const parseChannels = (raw: string) =>
     raw.split(',').map((c) => c.trim()).filter(Boolean)
       .map((c) => (c.startsWith('#') || c.startsWith('&') ? c : `#${c}`));
@@ -540,6 +544,22 @@ export function ConnectScreen() {
           </div>
           <p className="cjoin__hint">{t('connect.nickHint')}</p>
 
+          {showPw && !viaBouncer && (
+            <input
+              ref={pwRef}
+              className="cjoin__pw"
+              type="password"
+              name="password"
+              value={password}
+              autoFocus
+              autoComplete="current-password"
+              placeholder={t('connect.passwordPlaceholder')}
+              aria-label={t('connect.passwordLabel')}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && go()}
+            />
+          )}
+
           {showAsl && !viaBouncer && !identifying && !showPw && (
             <div className="cjoin__me">
               <div className={`cjoin__seg${aslMark(aslOk.gender, !!cfg.asl?.requireGender)}`} role="group" aria-label={t('connect.sexAria')}
@@ -596,18 +616,6 @@ export function ConnectScreen() {
             </fieldset>
           )}
 
-          {phone && showPw && !viaBouncer && (
-            <input
-              className="cjoin__pw"
-              type="password"
-              name="password"
-              value={password}
-              placeholder={t('connect.passwordPlaceholder')}
-              aria-label={t('connect.passwordLabel')}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && go()}
-            />
-          )}
           {phone && viaBouncer && (
             <>
               <input
@@ -678,19 +686,6 @@ export function ConnectScreen() {
                 onKeyDown={(e) => e.key === 'Enter' && go()}
               />
             </>
-          )}
-
-          {!phone && showPw && !viaBouncer && (
-            <input
-              className="cjoin__pw"
-              type="password"
-              name="password"
-              value={password}
-              placeholder={t('connect.passwordPlaceholder')}
-              aria-label={t('connect.passwordLabel')}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && go()}
-            />
           )}
 
           {canPasskey && (

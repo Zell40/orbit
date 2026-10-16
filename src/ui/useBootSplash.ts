@@ -2,16 +2,22 @@ import { useEffect, useRef, useState } from 'react';
 import { useChat } from '../core/store';
 import { getConfig } from '../core/config';
 import {
-  BOOT_IDENTITY_MS, BOOT_MAX_MS, BOOT_MIN_MS,
+  BOOT_MAX_MS, BOOT_MIN_MS,
   bootPhase, bootProgress, displayReady, getExpectedBootChannels,
-  identityReady, pluginReadyFrac, pluginsRegistered, priorityPluginIds,
-  readSidebarChannelLabels, roomFrac, roomsListed, roomsReady,
-  selfInPrimaryRoom, shellPainted,
+  pluginReadyFrac, pluginsRegistered, priorityPluginIds,
+  roomFrac, roomsReady, shellPainted,
   type BootPhase,
 } from '../lib/boot-ready';
 import { pluginLoadStats } from '../modules/loader';
 import { registeredPluginIds } from '../modules/api';
 import { bus } from '../modules/bus';
+
+export type BootDetail = {
+  pluginOk: number;
+  pluginTotal: number;
+  roomOk: number;
+  roomTotal: number;
+};
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -25,29 +31,35 @@ function pluginUrls(): string[] {
   return (getConfig().plugins ?? []).map((e) => typeof e === 'string' ? e : e.url);
 }
 
-function bootSlice(registeredAt: number, expectAccount: boolean) {
+function bootSlice() {
   const st = useChat.getState();
   const stats = pluginLoadStats();
   const needed = priorityPluginIds(pluginUrls());
   const have = registeredPluginIds();
   const loadFrac = stats.total ? stats.settled / stats.total : 1;
   const factoryFrac = pluginReadyFrac(needed, have);
-  const pluginFrac = Math.min(loadFrac, factoryFrac);
+  const pluginFrac = 0.45 * loadFrac + 0.55 * factoryFrac;
   const expected = getExpectedBootChannels();
   const rf = roomFrac(st.buffers, expected);
-  const listed = roomsListed(expected, readSidebarChannelLabels());
-  const roomsDone = roomsReady(st.buffers, expected) && listed;
-  const elapsed = registeredAt ? Date.now() - registeredAt : 0;
-  const pluginsOk = pluginsRegistered(needed, have) || elapsed >= BOOT_MAX_MS;
-  const identityOk = identityReady(expectAccount, st.account) || elapsed >= BOOT_IDENTITY_MS;
-  const selfOk = selfInPrimaryRoom(st.buffers, expected, st.nick) || elapsed >= BOOT_IDENTITY_MS;
-  const displayDone = displayReady({
-    topbar: shellPainted(),
-    pluginsOk,
-    identityOk,
-    selfInRoom: selfOk,
-  });
-  return { st, pluginFrac, rf, roomsDone, displayDone, pluginsOk };
+  const roomsDone = roomsReady(st.buffers, expected);
+  const pluginsOk = pluginsRegistered(needed, have);
+  const topbar = shellPainted();
+  const displayDone = displayReady({ topbar, pluginsOk });
+  const ready = st.status === 'registered' && roomsDone && displayDone;
+  const roomTotal = expected.length || 1;
+  const roomOk = expected.length
+    ? Math.round(rf * expected.length)
+    : (roomsDone ? 1 : 0);
+  const pluginOk = needed.filter((id) => have.includes(id)).length;
+  return {
+    st, pluginFrac, rf, roomsDone, displayDone, pluginsOk, ready,
+    detail: {
+      pluginOk,
+      pluginTotal: needed.length,
+      roomOk,
+      roomTotal,
+    } satisfies BootDetail,
+  };
 }
 
 export function useBootSplash() {
@@ -61,33 +73,33 @@ export function useBootSplash() {
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(8);
   const [phase, setPhase] = useState<BootPhase>('connecting');
-  const connectStarted = useRef<number>(Date.now());
+  const [detail, setDetail] = useState<BootDetail>({
+    pluginOk: 0, pluginTotal: 0, roomOk: 0, roomTotal: 0,
+  });
   const registeredAt = useRef(0);
 
   const failed = status === 'error' || status === 'closed' || status === 'sasl-failed';
   const inApp = status === 'registered' || everRegistered;
   const connecting = status === 'connecting' || autoConnecting;
-  // Cover autoConnecting immediately so session resume never flashes the join form.
   const showSplash = !revealed && !failed && (connecting || inApp);
 
   useEffect(() => {
-    if (status === 'connecting' || autoConnecting) connectStarted.current = Date.now();
     if (status === 'registered' && !registeredAt.current) registeredAt.current = Date.now();
-  }, [status, autoConnecting]);
+  }, [status]);
 
   useEffect(() => {
     if (!showSplash || revealed) return;
     let stop = false;
-    const expectAccount = viaBouncer || !!useChat.getState().account;
     const tick = () => {
       if (stop) return;
-      const slice = bootSlice(registeredAt.current, expectAccount);
+      const slice = bootSlice();
+      setDetail(slice.detail);
       setProgress((cur) => Math.max(cur, bootProgress({
         status: slice.st.status,
         pluginFrac: slice.pluginFrac,
-        roomFrac: slice.roomsDone ? 1 : slice.rf * 0.85,
-        displayFrac: slice.displayDone ? 1 : (slice.roomsDone ? 0.35 : 0),
-        connectingForMs: Date.now() - connectStarted.current,
+        roomFrac: slice.roomsDone ? 1 : slice.rf,
+        displayFrac: slice.displayDone ? 1 : (slice.st.status === 'registered' && shellPainted() ? 0.5 : 0),
+        ready: slice.ready,
       })));
       setPhase(bootPhase({
         status: slice.st.status,
@@ -106,13 +118,12 @@ export function useBootSplash() {
     let stop = false;
     const t0 = Date.now();
     if (!registeredAt.current) registeredAt.current = t0;
-    const expectAccount = viaBouncer || !!useChat.getState().account;
 
     void (async () => {
       const until = t0 + BOOT_MAX_MS;
       while (!stop && Date.now() < until) {
-        const slice = bootSlice(registeredAt.current, expectAccount);
-        if (slice.roomsDone && slice.displayDone) break;
+        const slice = bootSlice();
+        if (slice.ready) break;
         await sleep(50);
       }
       if (stop) return;
@@ -133,7 +144,7 @@ export function useBootSplash() {
     })();
 
     return () => { stop = true; };
-  }, [status, revealed, failed, viaBouncer]);
+  }, [status, revealed, failed]);
 
-  return { showSplash, fading, progress, phase, inApp };
+  return { showSplash, fading, progress, phase, inApp, detail };
 }

@@ -152,8 +152,12 @@ input, textarea { font-family: inherit; }
   font-size: .92rem; font-weight: 500; letter-spacing: .01em;
   color: var(--muted); text-align: center;
 }
+.splash__meter {
+  display: flex; align-items: center; gap: .55rem;
+  width: min(15.5rem, 70vw); margin-top: .15rem;
+}
 .splash__bar {
-  width: min(13.5rem, 58vw); height: 5px; margin-top: .15rem;
+  flex: 1; height: 5px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--ink) 8%, transparent);
   overflow: hidden;
@@ -163,6 +167,11 @@ input, textarea { font-family: inherit; }
   background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #7eb6ff));
   box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
   transition: width .35s cubic-bezier(.2,.8,.2,1);
+}
+.splash__pct {
+  flex: none; min-width: 2.4em;
+  font-size: .78rem; font-weight: 650; font-variant-numeric: tabular-nums;
+  letter-spacing: .02em; color: var(--muted); text-align: right;
 }
 .splash__spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--bg-soft-2); border-top-color: var(--accent); animation: c-spin .7s linear infinite; }
 
@@ -182,6 +191,7 @@ input, textarea { font-family: inherit; }
 .splash--brand .splash__txt { color: color-mix(in srgb, var(--splash-ink, #fff) 72%, transparent); }
 .splash--brand .splash__mark { filter: drop-shadow(0 18px 32px rgba(0, 0, 0, .35)); }
 .splash--brand .splash__bar { background: color-mix(in srgb, var(--splash-ink, #fff) 18%, transparent); }
+.splash--brand .splash__pct { color: color-mix(in srgb, var(--splash-ink, #fff) 72%, transparent); }
 .splash--brand .splash__bar > i {
   background: var(--splash-ink, #fff);
   box-shadow: 0 0 14px color-mix(in srgb, var(--splash-ink, #fff) 40%, transparent);

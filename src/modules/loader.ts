@@ -32,13 +32,14 @@ export function isDeferredPluginUrl(url: string): boolean {
   return DEFERRED_PLUGIN_RE.test(url);
 }
 
-function injectScript(p: ScriptAttrs): Promise<void> {
+function injectScript(p: ScriptAttrs, priority: 'high' | 'auto' = 'auto'): Promise<void> {
   return new Promise<void>((resolve) => {
     let done = false;
     const finish = () => { if (done) return; done = true; resolve(); };
     const el = document.createElement('script');
     el.src = p.url;
     el.async = true;
+    if (priority === 'high') el.fetchPriority = 'high';
     el.dataset.orbitPlugin = p.url;
     if (p.integrity) el.integrity = p.integrity;
     if (p.crossorigin) el.crossOrigin = p.crossorigin;
@@ -112,14 +113,14 @@ function idleGap(): Promise<void> {
   });
 }
 
-function preloadBigBootScripts(list: ScriptAttrs[]): void {
+function hintScripts(list: ScriptAttrs[], rel: 'preload' | 'prefetch', priority?: 'high'): void {
   if (typeof document === 'undefined') return;
   for (const p of list) {
-    if (!/orbit-(conference|chanserv|callerid|room-gallery)\b/i.test(p.url)) continue;
     const link = document.createElement('link');
-    link.rel = 'preload';
+    link.rel = rel;
     link.as = 'script';
     link.href = p.url;
+    if (priority) link.fetchPriority = priority;
     if (p.crossorigin) link.crossOrigin = p.crossorigin;
     document.head.appendChild(link);
   }
@@ -167,8 +168,9 @@ export function loadPlugins(): void {
   pluginSettled = 0;
   deferredStarted = false;
 
-  preloadBigBootScripts(now);
-  const waits = now.map((p) => injectScript(p).then(() => { pluginSettled += 1; }));
+  hintScripts(now, 'preload', 'high');
+  hintScripts(deferredInPage, 'prefetch');
+  const waits = now.map((p) => injectScript(p, 'high').then(() => { pluginSettled += 1; }));
   pluginsPromise = (waits.length ? Promise.all(waits).then(() => undefined) : Promise.resolve())
     .then(() => whenPriorityFactoriesReady());
 

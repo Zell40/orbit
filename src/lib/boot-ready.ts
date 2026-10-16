@@ -134,27 +134,29 @@ export function identityReady(expectAccount: boolean, account: string): boolean 
 export function displayReady(opts: {
   topbar: boolean;
   pluginsOk: boolean;
-  identityOk: boolean;
-  selfInRoom: boolean;
 }): boolean {
-  return opts.topbar && opts.pluginsOk && opts.identityOk && opts.selfInRoom;
+  return opts.topbar && opts.pluginsOk;
 }
 
+function clamp01(n: number): number {
+  return Math.min(1, Math.max(0, n));
+}
+
+/** Weighted real steps. 100 only when `ready` (do not invent time-based crawl). */
 export function bootProgress(opts: {
   status: string;
   pluginFrac: number;
   roomFrac: number;
   displayFrac: number;
-  connectingForMs: number;
+  ready: boolean;
 }): number {
-  if (opts.status === 'connecting' || opts.status === 'idle') {
-    return Math.round(Math.min(32, 8 + opts.connectingForMs / 220));
-  }
-  let p = 36;
-  p += 22 * Math.min(1, Math.max(0, opts.pluginFrac));
-  p += 26 * Math.min(1, Math.max(0, opts.roomFrac));
-  p += 12 * Math.min(1, Math.max(0, opts.displayFrac));
-  return Math.max(8, Math.min(96, Math.round(p)));
+  if (opts.ready) return 100;
+  if (opts.status === 'connecting' || opts.status === 'idle') return 12;
+  let p = 28;
+  p += 42 * clamp01(opts.pluginFrac);
+  p += 22 * clamp01(opts.roomFrac);
+  p += 8 * clamp01(opts.displayFrac);
+  return Math.max(12, Math.min(99, Math.round(p)));
 }
 
 export type BootPhase = 'connecting' | 'plugins' | 'rooms' | 'display' | 'almost';
