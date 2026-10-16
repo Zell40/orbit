@@ -349,7 +349,7 @@ input, textarea { font-family: inherit; }
 .cjoin__bnc-adv summary { cursor: pointer; }
 .cjoin__bnc-adv summary:hover { color: var(--accent); }
 .cjoin__pw-t { margin-left: 0; border: 0; background: none; color: var(--faint); font: inherit; font-size: .8rem; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--border-2); transition: color .15s; }
-.cjoin__row-actions { margin-left: auto; display: flex; gap: .85rem; flex-wrap: wrap; align-items: center; }
+.cjoin__acct--desk { display: flex; gap: .85rem; flex-wrap: wrap; align-items: center; margin-top: .85rem; }
 .cjoin__pw-t:hover { color: var(--accent); }
 .cjoin__pw { width: 100%; margin-top: .9rem; padding: 0 0 .5rem; border: 0; border-bottom: 2px solid var(--border-2); background: none; color: var(--ink); font: inherit; outline: none; animation: cj-rise .3s ease both; transition: border-color .15s; }
 .cjoin__pw::placeholder { color: var(--faint); }

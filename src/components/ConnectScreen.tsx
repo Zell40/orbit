@@ -567,6 +567,21 @@ export function ConnectScreen() {
             <div className="cjoin__err" role="alert">⚠ {aslHint}</div>
           )}
 
+          {!phone && (
+            <div className="cjoin__acct cjoin__acct--desk">
+              {!viaBouncer && (
+                <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
+                  {showPw ? t('connect.hidePassword') : t('connect.registered')}
+                </button>
+              )}
+              {canBouncer && (
+                <button type="button" className="cjoin__pw-t" onClick={toggleBouncer}>
+                  {viaBouncer ? t('connect.bouncerHide') : t('connect.bouncerToggle')}
+                </button>
+              )}
+            </div>
+          )}
+
           {intents && !viaBouncer && (
             <fieldset className="cjoin__envie">
               <legend className="cjoin__envie-lab">{t('connect.wantLabel')}</legend>
@@ -634,18 +649,6 @@ export function ConnectScreen() {
                   {suggestions.map((c) => <option key={c} value={c} />)}
                 </datalist>
               </label>
-              <span className="cjoin__row-actions">
-                {!viaBouncer && (
-                  <button type="button" className="cjoin__pw-t" onClick={() => setShowPw((v) => !v)}>
-                    {showPw ? t('connect.hidePassword') : t('connect.registered')}
-                  </button>
-                )}
-                {canBouncer && (
-                  <button type="button" className="cjoin__pw-t" onClick={toggleBouncer}>
-                    {viaBouncer ? t('connect.bouncerHide') : t('connect.bouncerToggle')}
-                  </button>
-                )}
-              </span>
             </div>
           )}
 
