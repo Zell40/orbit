@@ -235,6 +235,7 @@ input, textarea { font-family: inherit; }
   display: flex; align-items: flex-start; gap: .45rem;
   font-size: .8rem; line-height: 1.4; color: var(--ink-2, var(--ink));
 }
+.appupd__date { flex: none; margin-top: .08rem; font-size: .72rem; font-weight: 700; color: var(--muted, #6b7280); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .appupd__check {
   flex: none; width: 20px; height: 20px; margin-top: .05rem; border-radius: 999px;
   display: grid; place-items: center;

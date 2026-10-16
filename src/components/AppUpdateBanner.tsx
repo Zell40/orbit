@@ -3,6 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { applyAppUpdate, fetchUpdateNotes, onAppUpdate, type UpdateNote } from '../ui/appUpdate';
 
+const LATEST_NOTES = 5;
+
+function formatNoteDate(iso: string | undefined, lang: string): string {
+  if (!iso) return '';
+  const d = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(lang.startsWith('en') ? 'en-GB' : 'fr-FR');
+}
+
 export function AppUpdateBanner() {
   const { t, i18n } = useTranslation();
   const [show, setShow] = useState(false);
@@ -25,7 +34,15 @@ export function AppUpdateBanner() {
   if (!show) return null;
 
   const lang = (i18n.language || 'fr').slice(0, 2).toLowerCase();
-  const noteLines = (notes || []).map((n) => (lang === 'en' ? (n.en || n.fr) : (n.fr || n.en))).filter(Boolean);
+  const noteLines = [...(notes || [])]
+    .reverse()
+    .map((n: UpdateNote) => ({
+      text: lang === 'en' ? (n.en || n.fr || '') : (n.fr || n.en || ''),
+      iso: n.date || '',
+      date: formatNoteDate(n.date, lang),
+    }))
+    .filter((n) => n.text)
+    .slice(0, LATEST_NOTES);
 
   return (
     <div className={`appupd${open ? ' appupd--open' : ''}`} role="dialog" aria-labelledby="appupd-title">
@@ -52,9 +69,10 @@ export function AppUpdateBanner() {
           {!notesBusy && noteLines.length > 0 && (
             <ul className="appupd__list">
               {noteLines.map((line) => (
-                <li key={line}>
+                <li key={`${line.iso}-${line.text}`}>
                   <span className="appupd__check" aria-hidden="true"><Icon name="check" size={14} /></span>
-                  <span>{line}</span>
+                  {line.date && <time className="appupd__date" dateTime={line.iso}>{line.date}</time>}
+                  <span>{line.text}</span>
                 </li>
               ))}
             </ul>

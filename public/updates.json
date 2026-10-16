@@ -59,6 +59,16 @@
       "date": "2026-10-15",
       "fr": "Changer de pseudo : « déjà utilisé » seulement si le pseudo du compte est encore pris par un fantôme.",
       "en": "Nick change: “already in use” only when the account nick is still held by a ghost."
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "Démarrage : le tchat s’ouvre dès que l’essentiel est prêt, le reste se charge sans bloquer.",
+      "en": "Startup: chat opens once the essentials are ready; the rest loads without freezing the screen."
+    },
+    {
+      "date": "2026-10-16",
+      "fr": "Connexion : « Pseudo déjà enregistré » et « Accès via un bouncer » sous sexe, âge et ville.",
+      "en": "Sign-in: “Already registered” and “Sign in via a bouncer” sit under gender, age and city."
     }
   ]
 }
