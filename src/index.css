@@ -231,8 +231,6 @@ input, textarea { font-family: inherit; }
 .appupd__more {
   border-top: 1px solid var(--border, #e2e6ec);
   padding-top: .7rem;
-  max-height: min(40vh, 16rem);
-  overflow-y: auto;
 }
 .appupd__more-h {
   margin: 0 0 .45rem; display: inline-flex; align-items: center; gap: .35rem;
