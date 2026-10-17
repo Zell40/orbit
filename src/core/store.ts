@@ -279,10 +279,14 @@ export function createChatStore(ns = '') {
     const b = s.buffers[canon(name)];
     if (!b) return;
     let latestPeer = 0;
+    // Don't TAGMSG a peer we never wrote to: +g/callerid treats TAGMSG like PRIVMSG
+    // (716/718), so a mere open/read of their first DM looked like "message pending".
+    let wroteThem = false;
     for (const m of b.messages) {
       if (!m.self && (m.kind === 'privmsg' || m.kind === 'action') && m.ts > latestPeer) latestPeer = m.ts;
+      if (m.self && (m.kind === 'privmsg' || m.kind === 'action')) wroteThem = true;
     }
-    if (!latestPeer) return;
+    if (!latestPeer || !wroteThem) return;
     const now = Date.now();
     const key = canon(name);
     if (now - (displayedSent[key] || 0) < 2000) return;

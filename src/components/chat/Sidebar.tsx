@@ -5,7 +5,7 @@ import { arrangedChannels, arrangedQueries } from '@/core/store/sidebar-order';
 import { avatarBg } from '@/lib/format';
 import { switchWithTransition } from '@/lib/viewTransition';
 import { stripFormatting } from '@/core/store/text';
-import { queryPeerAccount } from '@/core/store/helpers';
+import { resolveQueryAccount } from '@/core/store/helpers';
 import { useTheme } from '@/themes';
 import { Avatar } from '../Avatar';
 import { Icon } from '../Icon';
@@ -129,16 +129,8 @@ const RoomRow = memo(function RoomRow({ name, mirc, onNavigate, section, canDrag
   // Photo of the other person in the PM, never the account using Orbit.
   const account = useActiveChat((s) => {
     const buf = s.buffers[name];
-    const peer = queryPeerAccount(buf, s.nick, s.account);
-    if (peer) return peer;
-    if (!buf || buf.isChannel || name === SERVER || isNoticeBuffer(name)) return '';
-    const w = s.whois[buf.name] || s.whois[name];
-    if (!w?.account) return '';
-    const mine = (s.account || '').toLowerCase();
-    const me = (s.nick || '').toLowerCase();
-    if (mine && w.account.toLowerCase() === mine && (buf.name || name).toLowerCase() !== me) return '';
-    if (me && (w.nick || '').toLowerCase() === me && (buf.name || name).toLowerCase() !== me) return '';
-    return w.account;
+    const whois = buf ? (s.whois[buf.name] || s.whois[name]) : s.whois[name];
+    return resolveQueryAccount(buf, name, s.nick, s.account, whois);
   });
   const avatarUrl = useAvatarUrl(account || null);
   const [over, setOver] = useState(false);

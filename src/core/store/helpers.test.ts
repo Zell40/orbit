@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { makeHelpers, queryPeerAccount, rememberQueryAccount, presenceInterrupted, sameReplayEvent } from './helpers';
+import { makeHelpers, queryPeerAccount, resolveQueryAccount, rememberQueryAccount, presenceInterrupted, sameReplayEvent } from './helpers';
 import type { ChatState } from '../store';
 import type { ChatMessage, Member, WhoisInfo } from '../irc/types';
 
@@ -245,6 +245,12 @@ describe('queryPeerAccount', () => {
       messages: [{ self: true, from: 'Zell', account: 'Zell', text: 'yo' }],
     };
     expect(queryPeerAccount(buf as never, 'Zell', 'Zell')).toBe('');
+  });
+
+  it('falls back to the peer WHOIS and ignores the local account', () => {
+    const buf = { name: 'Zell', isChannel: false, members: {}, messages: [] };
+    expect(resolveQueryAccount(buf as never, 'Zell', 'Nael', 'Nael', { account: 'Zell', nick: 'Zell' })).toBe('Zell');
+    expect(resolveQueryAccount(buf as never, 'Zell', 'Nael', 'Nael', { account: 'Nael', nick: 'Nael' })).toBe('');
   });
 });
 

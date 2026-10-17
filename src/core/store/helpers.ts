@@ -2,7 +2,7 @@
 // (they close over set/get + the network's closedChannels); the store destructures
 // the returned object so its call sites are unchanged.
 import type { StoreApi } from 'zustand';
-import { canon, isChannelName, newId, SERVER, isPseudoBuffer } from './context';
+import { canon, isChannelName, isNoticeBuffer, newId, SERVER, isPseudoBuffer } from './context';
 import { isStatusService } from '../services';
 import { stripFormatting } from './text';
 import type { Buffer, ChatMessage, Member, MessageKind, WhoisInfo, IrcMessage } from '../irc/types';
@@ -77,6 +77,27 @@ export function queryPeerAccount(
     return msg.account;
   }
   return '';
+}
+
+/** Peer account for a PM avatar: buffer first, then that nick's WHOIS.
+ *  Never the account of the person using Orbit. */
+export function resolveQueryAccount(
+  buf: Pick<Buffer, 'name' | 'isChannel' | 'members' | 'messages'> | undefined,
+  name: string,
+  myNick: string,
+  myAccount: string,
+  whois?: { account?: string; nick?: string } | null,
+): string {
+  const peer = queryPeerAccount(buf, myNick, myAccount);
+  if (peer) return peer;
+  if (!buf || buf.isChannel || !name || name === SERVER || isNoticeBuffer(name)) return '';
+  if (!whois?.account) return '';
+  const mine = myAccount ? canon(myAccount) : '';
+  const me = canon(myNick);
+  const peerName = canon(buf.name || name);
+  if (mine && canon(whois.account) === mine && peerName !== me) return '';
+  if (me && whois.nick && canon(whois.nick) === me && peerName !== me) return '';
+  return whois.account;
 }
 
 

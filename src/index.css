@@ -897,8 +897,10 @@ html[data-bubbles="on"] .main:has(.main__room-bg[data-rg-pic]) .group .line {
 }
 .topbar__av {
   width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 1.15rem;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); overflow: hidden;
 }
+.topbar__av-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.topbar__av--photo { background: var(--bg-soft-2); }
 .topbar__av[data-server] { background: #dfe4ea; color: var(--muted); }
 .topbar__av[data-notices] { background: color-mix(in srgb, #7c3aed 18%, var(--bg, #fff)); color: #6d28d9; }
 .topbar__meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }

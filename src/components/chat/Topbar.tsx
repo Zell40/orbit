@@ -12,6 +12,8 @@ import { useActiveChat } from '@/core/networks';
 import { UmodeBadges } from './UmodeBadges';
 import { formatChannelModes } from '@/core/irc/modes';
 import { queryPresence } from '@/core/store/pm-presence';
+import { resolveQueryAccount } from '@/core/store/helpers';
+import { useAvatarUrl } from '@/platform/avatars';
 
 /** Preferred order for left-cluster topbar plugins (invite). */
 const TOPBAR_LEAD = ['invite'] as const;
@@ -69,6 +71,13 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
     if (!b || b.isChannel) return '';
     return queryPresence(b.name, s.friendsOnline, s.buffers);
   });
+  // PM photo of the other person, never the account using Orbit.
+  const peerAccount = useActiveChat((s) => {
+    const b = s.buffers[s.active];
+    if (!b || b.isChannel || b.name === SERVER || isNoticeBuffer(b.name)) return '';
+    return resolveQueryAccount(b, b.name, s.nick, s.account, s.whois[b.name]);
+  });
+  const peerAvatar = useAvatarUrl(peerAccount || null);
   const topbarItems = usePluginRegistry((s) => s.ui);
   const [searching, setSearching] = useState(false);
   const menuBtn = (
@@ -118,7 +127,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {menuBtn}
       {isServer
         ? <span className="term-lights"><i /><i /><i /></span>
-        : <span className="topbar__av" style={isNotices && !noticeNick ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{isChannel ? '#' : isNotices && !noticeNick ? '!' : label[0]?.toUpperCase()}</span>}
+        : <span className={`topbar__av${peerAvatar ? ' topbar__av--photo' : ''}`} style={peerAvatar || (isNotices && !noticeNick) ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{peerAvatar ? <img className="topbar__av-img" src={peerAvatar} alt="" /> : isChannel ? '#' : isNotices && !noticeNick ? '!' : label[0]?.toUpperCase()}</span>}
       <div className="topbar__meta">
         <span className="topbar__title">
           <span className="topbar__name">{isServer ? statusTitle : label}</span>
