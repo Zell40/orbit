@@ -127,7 +127,7 @@ export function Topbar({ onMenu, onMembers }: { onMenu: () => void; onMembers: (
       {menuBtn}
       {isServer
         ? <span className="term-lights"><i /><i /><i /></span>
-        : <span className={`topbar__av${peerAvatar ? ' topbar__av--photo' : ''}`} style={peerAvatar || (isNotices && !noticeNick) ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{peerAvatar ? <img className="topbar__av-img" src={peerAvatar} alt="" /> : isChannel ? '#' : isNotices && !noticeNick ? '!' : label[0]?.toUpperCase()}</span>}
+        : <span className={`topbar__av${!isChannel && peerAvatar ? ' topbar__av--photo' : ''}`} style={(!isChannel && peerAvatar) || (isNotices && !noticeNick) ? undefined : { background: avatarBg(bname) }} data-notices={isNotices || undefined}>{!isChannel && peerAvatar ? <img className="topbar__av-img" src={peerAvatar} alt="" /> : isChannel ? '#' : isNotices && !noticeNick ? '!' : label[0]?.toUpperCase()}</span>}
       <div className="topbar__meta">
         <span className="topbar__title">
           <span className="topbar__name">{isServer ? statusTitle : label}</span>
