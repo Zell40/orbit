@@ -397,18 +397,18 @@ export function makeHelpers(set: S, get: G, closedChannels: Set<string>) {
     addMessage(name, { id: newId(), bufferName: name, from, text, ts: ts ?? Date.now(), kind, self: false, mask: mask || undefined });
   }
 
-  function serverLine(text: string, kind: MessageKind = 'system'): void {
+  function serverLine(text: string, kind: MessageKind = 'system', from = ''): void {
     if (!text) return;
     // IRCOP / plugin divert: show the reply where the user is looking.
     const echo = get().echoServerTo;
     if (echo) {
       ensureBuffer(echo);
-      addMessage(echo, { id: newId(), bufferName: echo, from: '', text, ts: Date.now(), kind, self: false });
+      addMessage(echo, { id: newId(), bufferName: echo, from, text, ts: Date.now(), kind, self: false });
       return;
     }
     ensureBuffer(SERVER);
     if (!get().active) set({ active: SERVER });
-    addMessage(SERVER, { id: newId(), bufferName: SERVER, from: '', text, ts: Date.now(), kind, self: false });
+    addMessage(SERVER, { id: newId(), bufferName: SERVER, from, text, ts: Date.now(), kind, self: false });
   }
 
   /** Network-wide announce ($* / $$host / WALLOPS / GLOBOPS) into the active buffer. */

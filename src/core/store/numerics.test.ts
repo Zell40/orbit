@@ -47,7 +47,7 @@ function setup(over: Record<string, unknown> = {}, historyAsked = new Set<string
     },
     dropBuffer: (name: string) => { delete state.buffers[name.toLowerCase()]; },
     sysLine: (name: string, text: string, kind?: string, from?: string) => { sys.push({ name, text, kind: kind || 'system', from }); },
-    serverLine: (text: string, kind?: string) => { server.push(text); serverKind.push(kind || ''); },
+    serverLine: (text: string, kind?: string, from?: string) => { server.push(from ? `${from} ${text}` : text); serverKind.push(kind || ''); },
     promoteLocalOutgoing: (name: string) => {
       const key = name.toLowerCase();
       const b = state.buffers[key];
@@ -542,6 +542,13 @@ describe('store numerics handler', () => {
     expect(handleNumerics(mk('470', ['me', '#a', '#b', 'You may not join this channel. A redirect is set, but you cannot be redirected as it is a circular loop.']))).toBe(true);
     expect(state.buffers['#a']?.joinDenied).toMatchObject({ code: '470' });
     expect((state.buffers['#a']?.joinDenied as { redirectTo?: string } | undefined)?.redirectTo).toBeUndefined();
+  });
+
+  it('an unnamed numeric is kept on Status with its code, not as Info', () => {
+    const { handleNumerics, server, serverKind } = setup();
+    expect(handleNumerics(mk('345', ['me', 'Nael', '*', 'is connecting from an unknown autonomous system']))).toBe(true);
+    expect(serverKind.at(-1)).toBe('raw');
+    expect(server.at(-1)).toBe('345 Nael * is connecting from an unknown autonomous system');
   });
 
   it('520 marks the buffer as oper-only', () => {

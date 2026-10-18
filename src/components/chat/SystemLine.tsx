@@ -525,8 +525,9 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
       body = m.text
         ? <>{m.from} {t('modeline.topicChanged')} {formatIrc(m.text, false, linkPreviews)}</>
         : <>{m.from} {t('modeline.topicRemoved')}</>;
-    } else if (m.kind === 'info' || m.kind === 'umode' || m.kind === 'oper') {
-      body = m.text.replace(/^[*•»]+\s*/, '');
+    } else if (m.kind === 'info' || m.kind === 'raw' || m.kind === 'umode' || m.kind === 'oper') {
+      const code = m.kind === 'raw' && m.from ? `${m.from} ` : '';
+      body = code + m.text.replace(/^[*•»]+\s*/, '');
     } else if (m.kind === 'motd') {
       body = formatIrc(m.text, false, false);
     } else { // join / part / quit / system
@@ -540,6 +541,21 @@ export const SystemLine = memo(function SystemLine({ m }: { m: ChatMessage }) {
         <span className="mircline__time">[{fmtTime(m.ts)}]</span>{' '}
         <span className="mircline__star">*</span>{' '}
         <span className="mircline__sys">{body}</span>
+      </div>
+    );
+  }
+  if (m.kind === 'raw') {
+    const infoText = m.text.replace(/^[*•]+\s*/, '');
+    const code = (m.from || '').trim();
+    const tag = t('system.unknownInfo');
+    return (
+      <div className="infoline infoline--raw">
+        <div className="infoline__head">
+          <span className="infoline__tag">{code ? `${tag} ${code}` : tag}</span>
+          <CalloutTime ts={m.ts} />
+          <span className="infoline__txt">{formatIrc(infoText, false, linkPreviews)}</span>
+        </div>
+        <CalloutPreviews text={infoText} />
       </div>
     );
   }

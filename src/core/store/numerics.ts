@@ -772,15 +772,16 @@ export function makeNumerics({ get, set, helpers, closedChannels, lastCantSend, 
         if (get().prefs.sound) blip();
         return true;
       }
-      // Informational numeric → console as Info (LUSERS, VERSION leftovers, …).
-      // Tag unknown ones with their RPL name so it's recognised rather than a bare number.
+      // Informational numeric Orbit does not name yet → Status, with the code
+      // so it can be given a real label later. Known notes stay plain Info.
       const label = numerics?.name(code);
       const umodeNote = translateUmodeNotice(serverText, get().nick);
       if (umodeNote !== null) {
         if (umodeNote) serverLine(umodeNote, 'info');
         return true;
       }
-      serverLine(label && !serverText ? `[${label}]` : msg.params.slice(1).join(' '), 'info');
+      const body = (label && !serverText ? `[${label}]` : msg.params.slice(1).join(' ')).trim();
+      serverLine(body || code, 'raw', code);
       return true;
     }
 

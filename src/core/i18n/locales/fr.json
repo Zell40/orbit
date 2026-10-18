@@ -858,6 +858,7 @@
     "connected_other": "sont connectés"
   },
   "system": {
+    "unknownInfo": "Info non connu d'orbit",
     "join": "{{nick}} est entré dans le salon",
     "part": "{{nick}} a quitté le salon",
     "quit": "{{nick}} s'est déconnecté",
