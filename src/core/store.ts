@@ -465,10 +465,13 @@ export function createChatStore(ns = '') {
       const client = new IrcClient();
       activeConnectOpts = opts;
       initNotify();
-      // Wait for the home salon only — resume can list 6–7 channels and the
+      // Wait for the room we'll show — resume can list 6–7 channels and the
       // splash would sit at 97% (6/7) while Radio / Mémo / notices are still off.
-      const home = (getConfig().startup?.channels?.[0] || opts.channels?.[0] || '').trim();
-      setExpectedBootChannels(home ? [home] : undefined);
+      // The first requested channel is that room (last one open, or the URL).
+      // Config's home salon is only the fallback when nothing was requested.
+      const requested = (opts.channels ?? []).map((c) => c.trim()).filter(Boolean);
+      const landOn = requested[0] || (getConfig().startup?.channels?.[0] || '').trim();
+      setExpectedBootChannels(landOn ? [landOn] : undefined);
       if (filehost.timer) clearTimeout(filehost.timer);
       filehost.resolve = null; filehost.reject = null; filehost.timer = null;
       filehost.lateToken = null; filehost.lateAt = 0; filehost.awaitingLate = false;
@@ -492,9 +495,8 @@ export function createChatStore(ns = '') {
         serverError: '',
         connectFail: null,
       });
-      // Land on the first requested salon. The ircd auto-joins #EntreNous.chat
-      // on connect; without this, that JOIN would steal the active buffer.
-      const landOn = (opts.channels ?? []).map((c) => c.trim()).find(Boolean);
+      // Show that room now. The ircd also auto-joins its home salon; the JOIN
+      // handler only follows the channel we asked to display.
       if (landOn) get().setActive(landOn);
       // Re-open PM windows from the last session (F5 / session resume).
       for (const raw of opts.queries ?? []) {

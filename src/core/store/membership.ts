@@ -54,8 +54,8 @@ export function makeMembership({ get, set, closedChannels, helpers, historyAsked
           const stayOnDenied = !!denied?.redirectTo && canon(denied.redirectTo) === canon(ch);
           if (!stayOnDenied) {
             if (want) {
-              // First URL/startup channel is the one to display. Ignore the
-              // network autojoin (#EntreNous.chat) so it doesn't steal focus.
+              // Only the room we asked to show takes focus. The network
+              // autojoin must not replace the last channel the user had open.
               if (normChan(ch) === normChan(want)) get().setActive(ch);
             } else if (!isChannelName(get().active) || get().active === '') {
               get().setActive(ch);

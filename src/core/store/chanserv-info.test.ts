@@ -37,6 +37,11 @@ describe('isChanServInfoNotice', () => {
     expect(isChanServInfoNotice('Description : Salon d\'accueil')).toBe(true);
     expect(isChanServInfoNotice('Enregistré le : 22 juil. 2025 21:44:52')).toBe(true);
     expect(isChanServInfoNotice('You have been given operator status')).toBe(false);
+    expect(isChanServInfoNotice('Paix, Persistant, Privé, Sécurité de fondateurice, Sécurité des OPs, Verrouillage du topic')).toBe(true);
+  });
+
+  it('does not treat an options list as INFO before the dump starts', () => {
+    expect(isChanServInfoNotice('Paix, Persistant, Privé, Verrouillage du topic')).toBe(false);
   });
 });
 

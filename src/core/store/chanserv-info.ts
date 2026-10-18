@@ -87,6 +87,11 @@ export function isChanServInfoNotice(raw: string): boolean {
       && !/^(syntaxe|syntax|aide|help|status)\b/i.test(s)) {
       return true;
     }
+    // Options value wrapped onto the next NOTICE, without a new "Options :" key.
+    if (s.includes(',') && !s.includes(':')
+      && !/^(syntaxe|syntax|aide|help|status)\b/i.test(s)) {
+      return true;
+    }
   }
   // Continuation / wrapped description without a new key.
   if (/^[-–—•]\s+\S/.test(s) && s.length > 20) return true;

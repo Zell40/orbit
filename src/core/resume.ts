@@ -22,6 +22,8 @@ export interface Resume {
   channels: string[];
   /** Open private-message windows (nicks) to reopen after F5 / session resume. */
   queries?: string[];
+  /** Last channel on screen. Restored on open / refresh instead of the network home. */
+  active?: string;
   /** IRC GECOS, e.g. "40 - Homme - Paris" — restored on USER after reconnect. */
   realname?: string;
   /** True when this session logged in through a bouncer (PASS). Prefills the
@@ -52,6 +54,8 @@ function parseResume(raw: string | null): Resume | null {
         .slice(0, MAX_RESUME_QUERIES);
     }
     r.account = typeof r.account === 'string' ? r.account : '';
+    if (typeof r.active === 'string' && r.active.trim()) r.active = r.active.trim();
+    else delete r.active;
     if (typeof r.realname !== 'string' || !r.realname.trim()) delete r.realname;
     else r.realname = r.realname.trim();
     r.bouncer = r.bouncer === true;
@@ -59,6 +63,20 @@ function parseResume(raw: string | null): Resume | null {
   } catch {
     return null;
   }
+}
+
+/** Channels to rejoin, with the last viewed room first so it is the one on screen. */
+export function resumeConnectChannels(
+  saved: string[] | undefined,
+  active: string | undefined,
+  fallback: string[],
+): string[] {
+  const list = (saved?.length ? saved : fallback).map((c) => String(c || '').trim()).filter(Boolean);
+  const focus = (active || '').trim();
+  if (!focus) return list;
+  const i = list.findIndex((c) => c.toLowerCase() === focus.toLowerCase());
+  if (i <= 0) return list;
+  return [list[i], ...list.slice(0, i), ...list.slice(i + 1)];
 }
 
 export function saveResume(r: Omit<Resume, 'v' | 'ts'>): void {

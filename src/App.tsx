@@ -13,7 +13,7 @@ import { activeStore, useAllNetworksUnread, useNetworks } from './core/networks'
 import { useChat } from './core/store';
 import { sidebarNavOrder } from './core/store/sidebar-order';
 import { getPrefs } from './ui/prefs';
-import { saveResume, MAX_RESUME_QUERIES } from './core/resume';
+import { loadResume, saveResume, MAX_RESUME_QUERIES } from './core/resume';
 import { listOpenQueryNicks } from './core/store/pm-presence';
 import { shouldSkipClosePrompt, armLeaveWithoutPrompt, siteAuthFailHref } from './core/direct-reconnect';
 import { consumeSiteBouncerAttempt, bouncerAuthFailHref } from './core/bouncer';
@@ -100,6 +100,8 @@ export default function App() {
     if (!getConfig().features.sessionResume || s.status !== 'registered') return '';
     const channels = s.order.filter((n) => s.buffers[n]?.isChannel && s.buffers[n]?.joined);
     const queries = listOpenQueryNicks(s.buffers, s.order, s.nick).slice(0, MAX_RESUME_QUERIES);
+    const viewing = s.buffers[s.active];
+    const focus = viewing?.isChannel && viewing.joined ? viewing.name : '';
     let realname = '';
     for (const name of s.order) {
       const rn = s.buffers[name]?.members[s.nick]?.realname;
@@ -109,14 +111,23 @@ export default function App() {
       nick: s.nick, account: s.account || '', channels, queries, realname,
       url: s.connectUrl || getConfig().server.url,
       bouncer: s.viaBouncer,
+      focus,
     });
   });
   useEffect(() => {
     if (!resumeSig) return;
-    saveResume(JSON.parse(resumeSig) as {
+    const parsed = JSON.parse(resumeSig) as {
       nick: string; account: string; channels: string[]; queries?: string[];
-      realname?: string; url: string; bouncer?: boolean;
-    });
+      realname?: string; url: string; bouncer?: boolean; focus?: string;
+    };
+    let active = (parsed.focus || '').trim();
+    if (!active) {
+      const prev = (loadResume()?.active || '').trim();
+      const fold = (c: string) => c.toLowerCase();
+      if (prev && parsed.channels.some((c) => fold(c) === fold(prev))) active = prev;
+    }
+    delete parsed.focus;
+    saveResume({ ...parsed, ...(active ? { active } : {}) });
   }, [resumeSig]);
 
   // Re-assert the Web Push subscription on every (re)connect so it survives

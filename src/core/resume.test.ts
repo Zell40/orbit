@@ -153,6 +153,41 @@ describe('per-account resume slots', () => {
   });
 });
 
+describe('resumeConnectChannels', () => {
+  it('puts the last open channel first and leaves the others', async () => {
+    const { resumeConnectChannels } = await import('./resume');
+    expect(resumeConnectChannels(
+      ['#EntreNous.chat', '#Aide.chat', '#Baccalaureat.chat'],
+      '#Baccalaureat.chat',
+      ['#EntreNous.chat'],
+    )).toEqual(['#Baccalaureat.chat', '#EntreNous.chat', '#Aide.chat']);
+  });
+
+  it('keeps the saved list when no channel was remembered', async () => {
+    const { resumeConnectChannels } = await import('./resume');
+    expect(resumeConnectChannels(
+      ['#EntreNous.chat', '#Aide.chat'],
+      '',
+      ['#accueil'],
+    )).toEqual(['#EntreNous.chat', '#Aide.chat']);
+  });
+
+  it('remembers the last open channel on the resume slot', async () => {
+    const { saveResume, loadResume } = await import('./resume');
+    saveResume({
+      url: 'wss://irc.example/ws', nick: 'Nael', account: 'Nael',
+      channels: ['#EntreNous.chat', '#Baccalaureat.chat'],
+      active: '#Baccalaureat.chat',
+    });
+    expect(loadResume()?.active).toBe('#Baccalaureat.chat');
+  });
+
+  it('falls back to the startup salon on a first visit', async () => {
+    const { resumeConnectChannels } = await import('./resume');
+    expect(resumeConnectChannels(undefined, undefined, ['#EntreNous.chat'])).toEqual(['#EntreNous.chat']);
+  });
+});
+
 describe('saslMatchesResume', () => {
   it('accepts a parked password when the live nick was suffix-mangled after connect', async () => {
     const { saslMatchesResume } = await import('./resume');

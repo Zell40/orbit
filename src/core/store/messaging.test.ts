@@ -298,6 +298,7 @@ describe('messaging (PRIVMSG/NOTICE)', () => {
     });
     on(':ChanServ!s@services NOTICE me :Informations à propos du salon #entrenous.chat :');
     on(':ChanServ!s@services NOTICE me :Fondateurice : Zell');
+    on(':ChanServ!s@services NOTICE me :Paix, Persistant, Privé, Sécurité de fondateurice, Sécurité des OPs, Verrouillage du topic');
     expect(added).toHaveLength(0);
   });
 

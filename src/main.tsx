@@ -137,7 +137,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
     // mints a JWT from the handoff cookie; a classic NickServ login reuses
     // the password parked in sessionStorage (this tab). A guest reconnects
     // under the same nick.
-    const { loadResume, mintChatResumeRetry, loadSaslResume, saslMatchesResume } = await import('./core/resume')
+    const { loadResume, mintChatResumeRetry, loadSaslResume, resumeConnectChannels, saslMatchesResume } = await import('./core/resume')
     const { fetchProfileGecos } = await import('./platform/profile-gecos')
     const resume = loadResume()
     if (resume?.bouncer) {
@@ -199,7 +199,7 @@ async function startSession(handoff: Handoff | null): Promise<void> {
           realname: resumeRealname,
           channels: paramChannels.length
             ? paramChannels
-            : (resume?.channels?.length ? resume.channels : cfg.startup.channels),
+            : resumeConnectChannels(resume?.channels, resume?.active, cfg.startup.channels),
           ...(resume?.queries?.length ? { queries: resume.queries } : {}),
           ...(fromSite ? { fromSite: true } : {}),
         })
