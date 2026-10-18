@@ -152,6 +152,17 @@ describe('makeWhois — yomirc text WHOIS (printTo)', () => {
     expect(whois()['bob'].special).toEqual(['is connecting from France']);
   });
 
+  it('does not stack the same special lines when WHOIS is asked again', () => {
+    const { w, whois } = setup({
+      bob: { nick: 'bob', loading: true, special: ['score: 10000', 'is connecting from France'] },
+    });
+    w.handleWhois(parseLine(':srv 311 me bob u h * :Real'));
+    w.handleWhois(parseLine(':srv 320 me bob * :score: 10000'));
+    w.handleWhois(parseLine(':srv 320 me bob * :score: 10000'));
+    w.handleWhois(parseLine(':srv 320 me bob * :is connecting from France'));
+    expect(whois()['bob'].special).toEqual(['score: 10000', 'is connecting from France']);
+  });
+
   it('prints a typed /whois into its window even if the cached entry has no printTo', () => {
     const { w, lines } = setup({
       Boris: { nick: 'Boris', loading: true, user: 'u', host: 'h' },

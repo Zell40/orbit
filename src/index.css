@@ -2956,6 +2956,25 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .pm-verif__net { color: var(--faint); font-weight: 600; }
 .pm-groups { display: flex; flex-wrap: wrap; gap: .3rem; }
 .pm-grouptag { font-size: .72rem; font-weight: 700; padding: .1rem .5rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent-d); }
+.pm-chans { display: flex; flex-wrap: wrap; gap: .35rem; }
+.pm-chantag {
+  display: inline-flex; align-items: center; gap: .28rem; max-width: 100%;
+  padding: .16rem .55rem; border-radius: 999px; font-size: .75rem; font-weight: 700;
+  background: var(--bg-soft-2); color: var(--ink); border: 1px solid var(--border);
+}
+.pm-chantag--owner { background: color-mix(in srgb, #d39d2a 18%, var(--bg)); border-color: color-mix(in srgb, #d39d2a 45%, var(--border)); }
+.pm-chantag--admin { background: color-mix(in srgb, #d6465f 16%, var(--bg)); border-color: color-mix(in srgb, #d6465f 40%, var(--border)); }
+.pm-chantag--op { background: color-mix(in srgb, #16a34a 16%, var(--bg)); border-color: color-mix(in srgb, #16a34a 40%, var(--border)); }
+.pm-chantag--halfop { background: color-mix(in srgb, #1f9e9e 16%, var(--bg)); border-color: color-mix(in srgb, #1f9e9e 40%, var(--border)); }
+.pm-chantag--voice { background: color-mix(in srgb, #3b82c4 16%, var(--bg)); border-color: color-mix(in srgb, #3b82c4 40%, var(--border)); }
+.pm-rep { font-weight: 800; }
+.pm-rep__n { font-weight: 700; color: var(--muted); margin-left: .35rem; }
+.pm-rep--excellent { color: #15803d; }
+.pm-rep--great { color: #0f766e; }
+.pm-rep--good { color: #1d4ed8; }
+.pm-rep--fair { color: #b45309; }
+.pm-rep--low { color: #475569; }
+.pm-rep--bad { color: #b42318; }
 .pm-handle { color: var(--muted); font-size: .9rem; margin-top: .1rem; }
 .pm-badges { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-start; margin-top: .6rem; }
 .pm-status { font-size: .74rem; font-weight: 800; padding: .26rem .6rem; border-radius: 999px; display: inline-flex; align-items: center; gap: .3rem; }
@@ -3052,6 +3071,7 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
 .pm-btn {
   flex: 1; padding: .72rem; border: 1px solid var(--border-2); border-radius: 13px; background: var(--bg-soft); color: var(--ink-2);
   font: inherit; font-weight: 800; font-size: .92rem; cursor: pointer; transition: transform .12s, background .14s, box-shadow .2s;
+  display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none;
 }
 .pm-btn:hover:not(:disabled) { transform: translateY(-1px); background: var(--bg-soft-2); }
 .pm-btn:disabled { cursor: default; }

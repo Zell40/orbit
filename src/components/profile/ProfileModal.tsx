@@ -9,9 +9,10 @@ import { PluginBoundary } from '../PluginBoundary';
 import { useActiveChat } from '@/core/networks';
 import { findWhoisKey } from '@/core/store/helpers';
 import { GENDER_COLOR, parseProfileGecos } from '@/lib/profile-gecos';
+import { connectingPlace, isProfileInfoLine, localCountryName, parseWhoisChannels, profileAccountFromLine, profileUrl, reputationTier } from '@/lib/whois-card';
 
 // Which info rows take the full width — keyed by stable id (not the translated label).
-const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'umodes', 'bio', 'url']);
+const PM_WIDE_KEYS = new Set(['identifier', 'server', 'channels', 'certfp', 'info', 'country', 'umodes', 'bio', 'url']);
 
 /* Wide horizontal profile card — pops over a blurred "nebula" of the app */
 export function ProfileModal() {
@@ -82,30 +83,68 @@ export function ProfileModal() {
     <a className="pm-link" href={info.meta.url} target="_blank" rel="noopener noreferrer nofollow">{info.meta.url}</a>]);
   if (info?.user || info?.host) rows.push(['🪪', 'identifier', `${info?.user ?? '?'}@${info?.host ?? '?'}`]);
   if (info?.server) rows.push(['🛰️', 'server', info.server + (info.serverInfo ? ` · ${info.serverInfo}` : '')]);
-  if (info?.channels) rows.push(['#️⃣', 'channels', info.channels]);
+  if (info?.channels) {
+    const tags = parseWhoisChannels(info.channels);
+    rows.push(['#️⃣', 'channels', tags.length
+      ? <span className="pm-chans">{tags.map((c) => (
+          <span className={`pm-chantag pm-chantag--${c.cls}`} key={`${c.mark}${c.name}`}>
+            {c.mark ? <span className={`role-${c.cls}`}>{c.mark}</span> : null}{c.name}
+          </span>
+        ))}</span>
+      : info.channels]);
+  }
   if (info?.signon) rows.push(['🕓', 'signon', new Date(info.signon * 1000).toLocaleString()]);
   if (info?.idle != null) rows.push(['💤', 'idle', fmtDuration(info.idle)]);
   if (info?.secure) rows.push(['🔒', 'connection', t('whois.secureTls')]);
   const shownModes = info?.modes || (isMe ? myUmodes : '');
   if (shownModes) rows.push(['⚙️', 'umodes', formatUserModes(shownModes)]);
   if (info?.certfp) rows.push(['🔑', 'certfp', <code className="pm-fp">{info.certfp}</code>]);
+  const seenInfo = new Set<string>();
+  let sawScore = false;
+  let sawGroups = false;
+  let sawCountry = false;
+  let sawVerified = false;
   for (const line of info?.special ?? []) {
-    const verif = line.match(/verified\s+(\S+)\s+account\s*\(([^)]+)\)/i);
-    const groups = line.match(/security groups?:?\s*(.+)/i);
-    const score = line.match(/score:?\s*([\d.]+)/i);
-    if (verif) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed === '*' || isProfileInfoLine(trimmed)) continue;
+    const place = connectingPlace(trimmed);
+    const verif = trimmed.match(/verified\s+(\S+)\s+account\s*\(([^)]+)\)/i);
+    const groups = trimmed.match(/security groups?:?\s*(.+)/i);
+    const score = trimmed.match(/score:?\s*([\d.]+)/i);
+    if (place) {
+      if (sawCountry) continue;
+      sawCountry = true;
+      rows.push(['🌍', 'country', place === 'unknown'
+        ? t('whois.connectingUnknown')
+        : t('whois.connectingFrom', { country: localCountryName(place) })]);
+    } else if (verif) {
+      if (sawVerified) continue;
+      sawVerified = true;
       rows.push(['✅', 'verified',
         <span className="pm-verif"><span className="pm-check pm-check--inline">✓</span>{verif[2]}<span className="pm-verif__net"> · {verif[1]}</span></span>]);
     } else if (groups) {
+      if (sawGroups) continue;
+      sawGroups = true;
       rows.push(['🛡️', 'groups',
         <span className="pm-groups">{groups[1].split(/[\s,]+/).filter(Boolean).map((g) => <span className="pm-grouptag" key={g}>{g}</span>)}</span>]);
     } else if (score) {
-      rows.push(['📊', 'score', score[1]]);
-    } else if (line.trim() && line.trim() !== '*') {
-      rows.push(['ℹ️', 'info', line]);
+      if (sawScore) continue;
+      sawScore = true;
+      const n = Number(score[1]);
+      const tier = reputationTier(Number.isFinite(n) ? n : 0);
+      rows.push(['📊', 'score',
+        <span className={`pm-rep pm-rep--${tier}`}>{t(`whois.reputation${tier[0].toUpperCase()}${tier.slice(1)}`)}<span className="pm-rep__n">({score[1]})</span></span>]);
+    } else {
+      const key = trimmed.toLowerCase();
+      if (seenInfo.has(key)) continue;
+      seenInfo.add(key);
+      rows.push(['ℹ️', 'info', trimmed]);
     }
   }
 
+  const profileAccount = info?.account
+    || (info?.special ?? []).map(profileAccountFromLine).find(Boolean)
+    || '';
   const statusText = info?.offline ? t('whois.offline') : info?.away ? t('whois.away') : t('whois.online');
   const statusKey = !info?.offline && !info?.away ? 'on' : 'away';
   const chCount = info?.channels?.trim() ? info.channels.trim().split(/\s+/).length : null;
@@ -190,10 +229,13 @@ export function ProfileModal() {
           </div>
         </div>
 
-        {!isMe && (
+        {(!isMe || profileAccount) && (
           <div className="pm-actions">
-            <button className="pm-btn pm-btn--primary" onClick={() => { openQuery(nick, activeChan.startsWith('#') ? activeChan : undefined); close(); }}>💬 {t('whois.dm')}</button>
-            <button className={`pm-btn pm-btn--icon ${spinning ? 'is-spinning' : ''}`} onClick={doRefresh} disabled={spinning} title={t('profile.refresh')} aria-label={t('profile.refresh')}><span className="pm-spin">↻</span></button>
+            {!isMe && <button className="pm-btn pm-btn--primary" onClick={() => { openQuery(nick, activeChan.startsWith('#') ? activeChan : undefined); close(); }}>💬 {t('whois.dm')}</button>}
+            {profileAccount && (
+              <a className="pm-btn" href={profileUrl(profileAccount)} target="_blank" rel="noopener noreferrer">{t('whois.viewProfile')}</a>
+            )}
+            {!isMe && <button className={`pm-btn pm-btn--icon ${spinning ? 'is-spinning' : ''}`} onClick={doRefresh} disabled={spinning} title={t('profile.refresh')} aria-label={t('profile.refresh')}><span className="pm-spin">↻</span></button>}
           </div>
         )}
 

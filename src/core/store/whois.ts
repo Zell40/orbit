@@ -131,12 +131,26 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
     });
   }
 
+  // One copy of each special line. A second WHOIS, or the same 320 twice, must
+  // not stack INFO / score / groups on the profile card.
+  function appendSpecial(nick: string, extra: string): void {
+    const line = extra.trim();
+    if (!nick || !line || line === '*') return;
+    patchWhois(nick, (w) => {
+      const cur = w.special ?? [];
+      if (cur.some((s) => s.trim() === line)) return w;
+      return { ...w, special: [...cur.slice(-49), line] };
+    });
+  }
+
   // Handle a RPL_WHOIS*/WHOWAS numeric. Returns true when it was one of ours (so
   // the dispatcher stops and doesn't echo it to the console).
   function handleWhois(msg: IrcMessage): boolean {
     switch (msg.command) {
       case '311': // RPL_WHOISUSER: <me> <nick> <user> <host> * :<realname>
-        patchWhois(msg.params[1], (w) => ({ ...w, nick: msg.params[1] || w.nick, user: msg.params[2], host: msg.params[3], realname: msg.params[5] }));
+        // A new WHOIS starts here. Special lines are appended, so the previous
+        // reply must be dropped or INFO / score / groups show twice.
+        patchWhois(msg.params[1], (w) => ({ ...w, nick: msg.params[1] || w.nick, user: msg.params[2], host: msg.params[3], realname: msg.params[5], special: [] }));
         return true;
       case '312': // RPL_WHOISSERVER: <me> <nick> <server> :<info>
         patchWhois(msg.params[1], (w) => ({ ...w, server: msg.params[2], serverInfo: msg.params[3] }));
@@ -182,7 +196,7 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
         return true;
       case '320': { // RPL_WHOISSPECIAL: free-form extra whois line (`*` alone is a placeholder)
         const extra = whoisExtraText(msg.params);
-        if (extra) patchWhois(msg.params[1], (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), extra] }));
+        if (extra) appendSpecial(msg.params[1], extra);
         return true;
       }
       case '344': // RPL_WHOISCOUNTRY (InspIRCd / Unreal geo)
@@ -194,7 +208,7 @@ export function makeWhois({ get, set, patchWhois, sysLine, serverLine, persistNs
         const inflight = get().whois[who]
           || Object.values(get().whois).find((w) => canon(w.nick) === canon(who));
         if (!inflight) return false;
-        patchWhois(inflight.nick, (w) => ({ ...w, special: [...(w.special ?? []).slice(-49), extra] }));
+        appendSpecial(inflight.nick, extra);
         return true;
       }
       case '379': { // RPL_WHOISMODES: <me> <nick> :is using modes <modes>

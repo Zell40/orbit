@@ -731,7 +731,7 @@ export function createChatStore(ns = '') {
       const cur = s.whois[key];
       let seed: WhoisInfo = { nick: key, loading: true };
       if (cur && !cur.notFound && (cur.user || cur.realname || cur.account)) {
-        seed = { ...cur, nick: key, loading: true };
+        seed = { ...cur, nick: key, loading: true, special: [] };
       } else {
         const buf = s.buffers[s.active];
         const activeKey = buf?.members ? findMemberKey(buf.members, nick) : undefined;
