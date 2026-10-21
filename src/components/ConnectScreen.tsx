@@ -397,10 +397,14 @@ export function ConnectScreen() {
   const aslBlock = (!viaBouncer && aslOn && !identifying && !showPw) ? aslGate(cfg.asl, aslFields) : null;
   const aslOk = aslFieldOk(cfg.asl, aslFields);
   const aslMinAge = aslOn && Number(cfg.asl?.minAge) > 0 ? Number(cfg.asl?.minAge) : 13;
-  const parentalUnder = Number(cfg.asl?.parentalUnder) || 0;
+  // EntreNous: under 17 is parental. The callerid group is already in the live
+  // config, so the gate holds even before asl.parentalUnder is deployed.
+  const rawUnder = cfg.asl?.parentalUnder;
+  const parentalUnder = typeof rawUnder === 'number' ? rawUnder : (cfg.callerid?.group ? 17 : 0);
   const ageN = parseInt(String(age).trim(), 10);
   const parentalAge = parentalUnder > 0 && Number.isFinite(ageN) && ageN < parentalUnder;
-  // Bouncer is not a services login. A filled parental age still needs an account.
+  // Guest or bouncer: no NickServ/passkey login. Password in the field is a services login.
+  const guestParental = !viaBouncer && showAsl && !identifying && !showPw && parentalAge;
   const bouncerParental = viaBouncer && parentalAge && !identifying;
   const aslHint = aslBlock === 'gender' ? t('connect.aslNeedGender')
     : aslBlock === 'age' ? t('connect.aslNeedAge')
@@ -408,14 +412,17 @@ export function ConnectScreen() {
         : aslBlock === 'minAge' ? t('connect.aslMinAge', { n: aslMinAge })
           : aslBlock === 'parentalAccount' ? t('connect.parentalAccount')
             : '';
-  const blockHint = aslHint || (bouncerParental ? t('connect.parentalAccount') : '');
+  const parentalStop = guestParental || bouncerParental || aslBlock === 'parentalAccount';
+  const blockHint = (aslBlock && aslBlock !== 'parentalAccount')
+    ? aslHint
+    : (parentalStop ? t('connect.parentalAccount') : '');
   const nickReady = nick.trim().length >= 2 && (!viaBouncer || bouncerReady);
   const wantAuto = param('autoconnect', param('autoconnect', '')) === '1';
   const autoOnce = useRef(false);
   useEffect(() => {
     if (autoOnce.current || !wantAuto || viaBouncer || connecting) return;
-    if (!nickReady || aslBlock || bouncerParental) {
-      if (aslBlock || bouncerParental) setAslTried(true);
+    if (!nickReady || aslBlock || parentalStop) {
+      if (aslBlock || parentalStop) setAslTried(true);
       return;
     }
     autoOnce.current = true;
@@ -455,7 +462,7 @@ export function ConnectScreen() {
   async function go(passkey = false) {
     if (!nickReady || connecting) return;
     if (showPw && !identifying && !passkey) return;
-    if (!passkey && (aslBlock || bouncerParental)) { setAslTried(true); return; }
+    if (!passkey && (aslBlock || parentalStop)) { setAslTried(true); return; }
     const channels = parseChannels(chanField);
     if (viaBouncer) {
       const url = (cfg.server.bouncerUrl || '').trim();
