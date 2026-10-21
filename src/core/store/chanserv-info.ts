@@ -126,6 +126,11 @@ export function parseChanServInfo(raw: string): ChanServPublicInfo {
       else if (/\b(actif|on|enabled|yes|oui)\b/.test(v)) out.topicLock = true;
     }
   }
+  if (!out.founder) {
+    const blob = stripFormatting(raw).replace(/\s+/g, ' ');
+    const fm = blob.match(/(?:fondateur(?:ice)?|fondatrice|founder)\s*:\s*(\S+)/i);
+    if (fm) out.founder = fm[1].replace(/[.,;]+$/, '');
+  }
   return out;
 }
 
@@ -139,7 +144,7 @@ export async function fetchChanServPublic(account: string, nick: string, channel
     const r = await fetch(CS_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ account: source, channel, action: 'probe', nick: nick || source }),
+      body: JSON.stringify({ account: source, channel, action: 'csinfo', nick: nick || source }),
       signal: ctrl.signal,
     });
     const data = await r.json() as { ok?: boolean; info?: unknown };

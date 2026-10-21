@@ -28,6 +28,11 @@ describe('parseChanServInfo', () => {
     expect(p.founder).toBe('Harry');
   });
 
+  it('finds Fondatrice in a flattened INFO blob', () => {
+    const p = parseChanServInfo('Informations à propos du salon #Echecs.chat : Fondatrice: Harry Enregistré : 2025');
+    expect(p.founder).toBe('Harry');
+  });
+
   it('does not mark official when the option is absent', () => {
     const p = parseChanServInfo('Options : Chanstats, Paix, Persistant');
     expect(p.official).toBe(false);
