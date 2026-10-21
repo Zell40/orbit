@@ -226,6 +226,8 @@ export interface AppConfig {
     requireCity?: boolean;
     /** Block connect when age is below this number (also requires a filled age). */
     minAge?: number;
+    /** Guest connect under this age needs a services login (EntreNous: 17). */
+    parentalUnder?: number;
   };
   /** Default kick / kickban reason when the operator leaves the field empty (orbit-chanserv + nicklist). */
   chanserv?: {

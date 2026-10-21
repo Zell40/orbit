@@ -1,7 +1,7 @@
 import type { AppConfig } from '@/core/config';
 
 export type AslFields = { sex: string; age: string; city: string };
-export type AslBlock = 'gender' | 'age' | 'city' | 'minAge';
+export type AslBlock = 'gender' | 'age' | 'city' | 'minAge' | 'parentalAccount';
 
 /** Homme, Femme, or “non indiqué” (stored as Autre in GECOS). */
 export function aslHasGender(sex: string): boolean {
@@ -23,6 +23,10 @@ export function aslGate(asl: AppConfig['asl'] | undefined, fields: AslFields): A
   const min = Number(asl.minAge);
   if (min > 0 && (!hasAge || n < min)) return 'minAge';
   if (asl.requireCity && !String(fields.city ?? '').trim()) return 'city';
+  // Guest under the parental threshold needs a services login (password / passkey).
+  // The connect screen skips this gate once a password is present.
+  const parentalUnder = Number(asl.parentalUnder);
+  if (parentalUnder > 0 && hasAge && n < parentalUnder) return 'parentalAccount';
   return null;
 }
 

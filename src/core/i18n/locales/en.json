@@ -106,6 +106,7 @@
     "aslNeedAge": "Enter your age to join.",
     "aslNeedCity": "Enter your city to join.",
     "aslMinAge": "You must be at least {{n}} to enter.",
+    "parentalAccount": "To connect with parental control, create an EntreNous account, then sign in with your password.",
     "wantLabel": "I feel like…",
     "wantChat": "Chatting",
     "wantLove": "Dating",

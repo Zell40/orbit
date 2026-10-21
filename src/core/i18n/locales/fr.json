@@ -106,6 +106,7 @@
     "aslNeedAge": "Indique ton âge pour entrer.",
     "aslNeedCity": "Indique ta ville pour entrer.",
     "aslMinAge": "Tu dois avoir au moins {{n}} ans pour entrer.",
+    "parentalAccount": "Pour te connecter avec le contrôle parental, crée un compte EntreNous, puis identifie-toi avec ton mot de passe.",
     "wantLabel": "J'ai envie de…",
     "wantChat": "Tchatter",
     "wantLove": "Rencontres",

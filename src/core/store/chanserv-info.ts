@@ -41,7 +41,7 @@ export function optionsHaveTopicLock(blob: string): boolean {
 const INFO_HEAD = /^(?:informations?\s+(?:à propos du salon|sur le salon|du salon|about(?: the)? channel|for|on)|info(?:rmation)?s?\s+(?:about|for|on))\s+(#\S+)/i;
 
 /** Anope INFO field keys (one NOTICE per line) — used to hide auto-probes in chat. */
-const INFO_FIELD = /^(fondateurice|fondateur|founder|description|desc|options?|enregistr[ée]e?(?:\s+le)?|registered(?:\s+on)?|derni[eè]re utilisation|last (?:used|use)|url|dernier (?:topic|sujet)|last topic|mode lock|mlock|verrouillage (?:des modes|du (?:sujet|topic))|bot|entr[ée]e|entry(?: msg|message)?|ban(nish)? type|type de ban|successor|success(?:eur|or)|email|e-mail|temps d'inactivit[ée]|inactivity|nombre de|number of|utilisateurs?|users?|topic|sujet)\s*:/i;
+const INFO_FIELD = /^(fondateur(?:ice)?|fondatrice|founder|description|desc|options?|enregistr[ée]e?(?:\s+le)?|registered(?:\s+on)?|derni[eè]re utilisation|last (?:used|use)|url|dernier (?:topic|sujet)|last topic|mode lock|mlock|verrouillage (?:des modes|du (?:sujet|topic))|bot|entr[ée]e|entry(?: msg|message)?|ban(nish)? type|type de ban|successor|success(?:eur|or)|email|e-mail|temps d'inactivit[ée]|inactivity|nombre de|number of|utilisateurs?|users?|topic|sujet)\s*:/i;
 
 const INFO_TAIL = /^(fin de|end of)\b/i;
 
@@ -113,7 +113,7 @@ export function parseChanServInfo(raw: string): ChanServPublicInfo {
     if (!m) continue;
     const key = fold(m[1]).replace(/\s+/g, ' ').trim();
     const val = m[2].trim();
-    if (/^(fondateur|fondateurice|founder)$/.test(key)) {
+    if (/^(fondateur(?:ice)?|fondatrice|founder)$/.test(key)) {
       out.founder = val.replace(/[.,;]+$/, '').split(/\s/)[0];
     } else if (/^(description|desc)$/.test(key)) {
       if (!/^(aucun|none|n\/a|vide|non definie|not set|-)$/i.test(fold(val))) out.description = val;
@@ -129,16 +129,17 @@ export function parseChanServInfo(raw: string): ChanServPublicInfo {
   return out;
 }
 
-/** Silent Anope probe (same RPC as MLOCK). Empty when guest / RPC down. */
+/** Silent Anope probe (same RPC as MLOCK). Uses nick as source when not identified. */
 export async function fetchChanServPublic(account: string, nick: string, channel: string): Promise<ChanServPublicInfo> {
-  if (!account || !channel) return {};
+  const source = String(account || nick || '').trim();
+  if (!source || !channel) return {};
   const ctrl = new AbortController();
   const to = window.setTimeout(() => ctrl.abort(), 6000);
   try {
     const r = await fetch(CS_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ account, channel, action: 'probe', nick }),
+      body: JSON.stringify({ account: source, channel, action: 'probe', nick: nick || source }),
       signal: ctrl.signal,
     });
     const data = await r.json() as { ok?: boolean; info?: unknown };

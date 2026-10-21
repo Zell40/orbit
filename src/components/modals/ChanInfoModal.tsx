@@ -84,17 +84,15 @@ export function ChanInfoModal() {
       official: !!buffer.csOfficial,
     });
     let cancelled = false;
-    if (account) {
-      void fetchChanServPublic(account, nick, buffer.name).then((info) => {
-        if (cancelled) return;
-        if (info.chan && !sameChan(info.chan, buffer.name)) return;
-        merge({
-          founder: info.founder || '',
-          description: info.description || '',
-          official: !!info.official,
-        });
+    void fetchChanServPublic(account || '', nick, buffer.name).then((info) => {
+      if (cancelled) return;
+      if (info.chan && !sameChan(info.chan, buffer.name)) return;
+      merge({
+        founder: info.founder || '',
+        description: info.description || '',
+        official: !!info.official,
       });
-    }
+    });
     return () => { cancelled = true; off(); };
   }, [buffer?.name, buffer?.csFounder, buffer?.csDescription, buffer?.csOfficial, account, nick]);
 
@@ -105,7 +103,7 @@ export function ChanInfoModal() {
   const url = (buffer.url || [...buffer.messages].reverse().find((m) => m.kind === 'url')?.text || '').trim();
   const previewUrl = previewableUrls(stripFormatting(url))[0] || (/^https?:\/\//i.test(url) ? url : '');
   const showPreview = !!(previewUrl && linkPreviews && getConfig().features.linkPreviews);
-  const owner = cs.founder || members.find((m) => /~/.test(m.prefixes || m.prefix || ''))?.nick || '';
+  const owner = cs.founder || '';
   const close = () => setModal('');
 
   return (

@@ -22,6 +22,15 @@ describe('aslGate', () => {
     expect(aslGate({ minAge: 10 }, { sex: 'f', age: '10', city: 'Paris' })).toBeNull();
   });
 
+  it('asks a guest under parentalUnder to create an account', () => {
+    const asl = { requireAge: true, requireGender: true, requireCity: true, minAge: 10, parentalUnder: 17 };
+    expect(aslGate(asl, { sex: 'h', age: '15', city: 'Nantes' })).toBe('parentalAccount');
+    expect(aslGate(asl, { sex: 'f', age: '16', city: 'Lyon' })).toBe('parentalAccount');
+    expect(aslGate(asl, { sex: 'a', age: '17', city: 'Paris' })).toBeNull();
+    expect(aslGate(asl, { sex: 'h', age: '9', city: 'Paris' })).toBe('minAge');
+    expect(aslGate(asl, { sex: '', age: '15', city: '' })).toBe('gender');
+  });
+
   it('accepts a complete profile', () => {
     expect(aslGate(
       { requireAge: true, requireGender: true, requireCity: true, minAge: 10 },

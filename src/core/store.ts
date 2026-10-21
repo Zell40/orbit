@@ -979,9 +979,9 @@ export function createChatStore(ns = '') {
     },
     loadChanServPublic(channel) {
       if (!isChannelName(channel)) return;
-      const account = get().account;
-      if (!account) return;
+      const account = get().account || '';
       const nick = get().nick || '';
+      if (!account && !nick) return;
       void fetchChanServPublic(account, nick, channel).then((info) => {
         if (get().client == null) return;
         if (!info.founder && !info.description && info.official === undefined

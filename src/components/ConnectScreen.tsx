@@ -397,17 +397,27 @@ export function ConnectScreen() {
   const aslBlock = (!viaBouncer && aslOn && !identifying && !showPw) ? aslGate(cfg.asl, aslFields) : null;
   const aslOk = aslFieldOk(cfg.asl, aslFields);
   const aslMinAge = aslOn && Number(cfg.asl?.minAge) > 0 ? Number(cfg.asl?.minAge) : 13;
+  const parentalUnder = Number(cfg.asl?.parentalUnder) || 0;
+  const ageN = parseInt(String(age).trim(), 10);
+  const parentalAge = parentalUnder > 0 && Number.isFinite(ageN) && ageN < parentalUnder;
+  // Bouncer is not a services login. A filled parental age still needs an account.
+  const bouncerParental = viaBouncer && parentalAge && !identifying;
   const aslHint = aslBlock === 'gender' ? t('connect.aslNeedGender')
     : aslBlock === 'age' ? t('connect.aslNeedAge')
       : aslBlock === 'city' ? t('connect.aslNeedCity')
         : aslBlock === 'minAge' ? t('connect.aslMinAge', { n: aslMinAge })
-          : '';
+          : aslBlock === 'parentalAccount' ? t('connect.parentalAccount')
+            : '';
+  const blockHint = aslHint || (bouncerParental ? t('connect.parentalAccount') : '');
   const nickReady = nick.trim().length >= 2 && (!viaBouncer || bouncerReady);
   const wantAuto = param('autoconnect', param('autoconnect', '')) === '1';
   const autoOnce = useRef(false);
   useEffect(() => {
     if (autoOnce.current || !wantAuto || viaBouncer || connecting) return;
-    if (!nickReady || aslBlock) return;
+    if (!nickReady || aslBlock || bouncerParental) {
+      if (aslBlock || bouncerParental) setAslTried(true);
+      return;
+    }
     autoOnce.current = true;
     go();
   });
@@ -445,7 +455,7 @@ export function ConnectScreen() {
   async function go(passkey = false) {
     if (!nickReady || connecting) return;
     if (showPw && !identifying && !passkey) return;
-    if (!passkey && aslBlock) { setAslTried(true); return; }
+    if (!passkey && (aslBlock || bouncerParental)) { setAslTried(true); return; }
     const channels = parseChannels(chanField);
     if (viaBouncer) {
       const url = (cfg.server.bouncerUrl || '').trim();
@@ -583,8 +593,8 @@ export function ConnectScreen() {
                 onChange={(e) => setCity(e.target.value)} />
             </div>
           )}
-          {aslTried && aslHint && !viaBouncer && (
-            <div className="cjoin__err" role="alert">⚠ {aslHint}</div>
+          {aslTried && blockHint && (
+            <div className="cjoin__err" role="alert">⚠ {blockHint}</div>
           )}
 
           {!phone && (
