@@ -23,7 +23,7 @@ import { makeCommands } from './store/commands';
 import { makeUpload } from './store/upload';
 import { makeAccount } from './store/account';
 import { fetchProfileGecos } from '../platform/profile-gecos';
-import { refreshIrcListenCookie } from '../platform/irc-listen';
+import { refreshIrcListenCookie, withListenQuery } from '../platform/irc-listen';
 import { mintChatResumeResult, saveSaslResume, clearSaslResume } from './resume';
 import type { MintResult } from './resume';
 import { setExpectedBootChannels } from '../lib/boot-ready';
@@ -702,10 +702,16 @@ export function createChatStore(ns = '') {
             }
             const acct = (opts.saslAuthzid || '').trim()
               || ((opts.password || opts.passkey || opts.keycard) ? opts.nick.trim() : '');
-            await refreshIrcListenCookie({
+            const listen = await refreshIrcListenCookie({
               account: acct,
               realname: opts.realname,
             });
+            // Cookie is one value for the whole browser. Keep this tab's choice
+            // on the URL so another account cannot reroute the handshake.
+            if (listen) {
+              opts.url = withListenQuery(opts.url, listen);
+              set({ connectUrl: opts.url });
+            }
           } finally {
             openSocket();
           }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { refreshIrcListenCookie } from './irc-listen';
+import { refreshIrcListenCookie, withListenQuery } from './irc-listen';
 
 describe('refreshIrcListenCookie', () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
@@ -9,7 +9,7 @@ describe('refreshIrcListenCookie', () => {
       ok: true, json: async () => ({ ok: true, listen: 'reg' }),
     }));
     vi.stubGlobal('fetch', fetch);
-    await refreshIrcListenCookie({ account: 'Zell', realname: '40 - Homme - BENQUET' });
+    await expect(refreshIrcListenCookie({ account: 'Zell', realname: '40 - Homme - BENQUET' })).resolves.toBe('reg');
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(String(fetch.mock.calls[0]![0])).toBe(
       '/accounts/api/chat_listen/?account=Zell&age=40',
@@ -22,7 +22,7 @@ describe('refreshIrcListenCookie', () => {
       ok: true, json: async () => ({ ok: true, listen: 'reg' }),
     }));
     vi.stubGlobal('fetch', fetch);
-    await refreshIrcListenCookie({ realname: '40 - Homme - Paris' });
+    await expect(refreshIrcListenCookie({ realname: '40 - Homme - Paris' })).resolves.toBe('reg');
     expect(String(fetch.mock.calls[0]![0])).toBe('/accounts/api/chat_listen/?age=40');
   });
 
@@ -34,7 +34,7 @@ describe('refreshIrcListenCookie', () => {
       return { ok: true, json: async () => ({ ok: true, listen: 'cp' }) };
     });
     vi.stubGlobal('fetch', fetch);
-    await refreshIrcListenCookie({ age: 15 });
+    await expect(refreshIrcListenCookie({ age: 15 })).resolves.toBe('cp');
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(String(fetch.mock.calls[1]![0])).toBe('/app/accounts/api/chat_listen/?age=15');
   });
@@ -48,6 +48,15 @@ describe('refreshIrcListenCookie', () => {
 
   it('swallows network errors so connect still proceeds', async () => {
     vi.stubGlobal('fetch', vi.fn(async (_url: string) => { throw new Error('offline'); }));
-    await expect(refreshIrcListenCookie({ account: 'Zell' })).resolves.toBeUndefined();
+    await expect(refreshIrcListenCookie({ account: 'Zell' })).resolves.toBeNull();
+  });
+
+  it('pins listen on the websocket URL without dropping an existing query', () => {
+    expect(withListenQuery('https://irc.entrenous.chat/', 'reg'))
+      .toBe('https://irc.entrenous.chat/?listen=reg');
+    expect(withListenQuery('https://irc.entrenous.chat/?listen=cp', 'reg'))
+      .toBe('https://irc.entrenous.chat/?listen=reg');
+    expect(withListenQuery('wss://irc.entrenous.chat/ws?x=1', 'cp'))
+      .toBe('wss://irc.entrenous.chat/ws?x=1&listen=cp');
   });
 });

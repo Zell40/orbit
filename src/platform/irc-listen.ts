@@ -5,12 +5,32 @@
 // when age is unknown (avoids demoting a prior `cp` to `reg`).
 import { parseProfileGecos } from '@/lib/profile-gecos';
 
+export type IrcListen = 'cp' | 'reg';
+
 export type IrcListenRefresh = {
   account?: string;
   /** Age from guest ASL / GECOS when there is no WP account lookup. */
   age?: number | string | null;
   realname?: string;
 };
+
+/**
+ * Pin this tab's websocket to one listener. The orbit_en_listen cookie is
+ * shared by every account in the browser, so another tab can flip it between
+ * the cookie write and the handshake. The query is per connection.
+ */
+export function withListenQuery(url: string, listen: IrcListen): string {
+  try {
+    const u = new URL(url);
+    u.searchParams.set('listen', listen);
+    return u.toString();
+  } catch {
+    const base = url
+      .replace(/([?&])listen=(?:cp|reg)(?=&|$)/g, '$1')
+      .replace(/[?&]$/, '');
+    return base + (base.includes('?') ? '&' : '?') + 'listen=' + listen;
+  }
+}
 
 function listenUrls(q: string): string[] {
   return [
@@ -35,11 +55,12 @@ function ageFromOpts(o: IrcListenRefresh): number | undefined {
 /**
  * Best-effort cookie refresh. Never throws; connect proceeds even if the
  * endpoint is missing (dev / non-EntreNous deploys).
+ * Returns the listener this account should use, when the endpoint says so.
  */
-export async function refreshIrcListenCookie(o: IrcListenRefresh): Promise<void> {
+export async function refreshIrcListenCookie(o: IrcListenRefresh): Promise<IrcListen | null> {
   const account = (o.account || '').trim();
   const age = ageFromOpts(o);
-  if (!account && age == null) return;
+  if (!account && age == null) return null;
 
   const params = new URLSearchParams();
   if (account) params.set('account', account);
@@ -58,7 +79,12 @@ export async function refreshIrcListenCookie(o: IrcListenRefresh): Promise<void>
           headers: { Accept: 'application/json' },
           signal: ctrl.signal,
         });
-        if (r.ok) return;
+        if (!r.ok) continue;
+        try {
+          const body = await r.json() as { listen?: unknown };
+          if (body && (body.listen === 'cp' || body.listen === 'reg')) return body.listen;
+        } catch { /* cookie may already be set */ }
+        return null;
       } catch {
         if (ctrl.signal.aborted) break;
       }
@@ -66,4 +92,5 @@ export async function refreshIrcListenCookie(o: IrcListenRefresh): Promise<void>
   } finally {
     clearTimeout(to);
   }
+  return null;
 }
