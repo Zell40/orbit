@@ -132,6 +132,8 @@ export interface ChatState {
   loadChannelMlock: (channel: string) => void;
   /** Refresh ChanServ public INFO (TOPICLOCK, founder, …) into the buffer. */
   loadChanServPublic: (channel: string) => void;
+  /** Diagnostic line on the Status buffer. */
+  noteStatus: (text: string) => void;
   setChannelMode: (channel: string, mode: string, add: boolean) => void;
   setChannelModeParam: (channel: string, mode: string, add: boolean, param?: string) => void;
   removeBan: (channel: string, mask: string) => void;
@@ -977,12 +979,17 @@ export function createChatStore(ns = '') {
         helpers.patchBuffer(channel, (b) => ({ ...b, mlock: mergeMlock(b.mlock, mlock) }));
       });
     },
+    noteStatus(text) {
+      const line = String(text || '').trim();
+      if (line) helpers.sysLine(SERVER, line, 'info');
+    },
     loadChanServPublic(channel) {
       if (!isChannelName(channel)) return;
       const account = get().account || '';
       const nick = get().nick || '';
       if (!account && !nick) return;
       void fetchChanServPublic(account, nick, channel).then((info) => {
+        if (info.debug) helpers.sysLine(SERVER, info.debug, 'info');
         if (get().client == null) return;
         if (!info.founder && !info.description && info.official === undefined
           && info.topicLock === undefined) return;

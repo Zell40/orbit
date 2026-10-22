@@ -134,26 +134,50 @@ export function parseChanServInfo(raw: string): ChanServPublicInfo {
   return out;
 }
 
+export type ChanServPublicFetch = ChanServPublicInfo & { debug: string };
+
+function clip(s: string, n = 220): string {
+  const t = s.replace(/\s+/g, ' ').trim();
+  return t.length > n ? t.slice(0, n) + '…' : t;
+}
+
 /** Silent Anope probe (same RPC as MLOCK). Uses nick as source when not identified. */
-export async function fetchChanServPublic(account: string, nick: string, channel: string): Promise<ChanServPublicInfo> {
+export async function fetchChanServPublic(account: string, nick: string, channel: string): Promise<ChanServPublicFetch> {
   const source = String(account || nick || '').trim();
-  if (!source || !channel) return {};
+  const chan = String(channel || '').trim();
+  if (!source || !chan) {
+    return { debug: `ChanServ INFO ${chan || '?'} · source vide (compte et pseudo)` };
+  }
   const ctrl = new AbortController();
   const to = window.setTimeout(() => ctrl.abort(), 6000);
   try {
     const r = await fetch(CS_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ account: source, channel, action: 'csinfo', nick: nick || source }),
+      body: JSON.stringify({ account: source, channel: chan, action: 'csinfo', nick: nick || source }),
       signal: ctrl.signal,
     });
-    const data = await r.json() as { ok?: boolean; info?: unknown };
-    if (!data?.ok || data.info == null) return {};
-    const parsed = parseChanServInfo(String(data.info));
-    if (!parsed.chan) parsed.chan = channel;
+    let data: { ok?: boolean; info?: unknown; error?: string } = {};
+    try { data = await r.json(); } catch { /* not JSON */ }
+    const raw = data.info == null ? '' : String(data.info);
+    const parsed: ChanServPublicFetch = data.ok && raw
+      ? { ...parseChanServInfo(raw), debug: '' }
+      : { debug: '' };
+    if (!parsed.chan) parsed.chan = chan;
+    const bits = [
+      `ChanServ INFO ${chan}`,
+      `source=${source}`,
+      `http=${r.status}`,
+      data.ok ? 'ok' : `erreur=${data.error || 'réponse refusée'}`,
+      `fondateur=${parsed.founder || '—'}`,
+      `description=${parsed.description ? 'oui' : 'non'}`,
+      `officiel=${parsed.official ? 'oui' : 'non'}`,
+      raw ? `réponse=${clip(raw)}` : 'réponse vide',
+    ];
+    parsed.debug = bits.join(' · ');
     return parsed;
   } catch {
-    return {};
+    return { debug: `ChanServ INFO ${chan} · source=${source} · échec réseau` };
   } finally {
     window.clearTimeout(to);
   }

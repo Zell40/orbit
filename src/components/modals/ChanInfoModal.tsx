@@ -55,6 +55,7 @@ export function ChanInfoModal() {
   const locale = i18n.language;
   const account = useActiveChat((s) => s.account);
   const nick = useActiveChat((s) => s.nick);
+  const noteStatus = useActiveChat((s) => s.noteStatus);
   const [cs, setCs] = useState<CsInfo>({ founder: '', description: '', official: false });
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export function ChanInfoModal() {
     });
     let cancelled = false;
     void fetchChanServPublic(account || '', nick, buffer.name).then((info) => {
+      if (info.debug) noteStatus(info.debug);
       if (cancelled) return;
       if (info.chan && !sameChan(info.chan, buffer.name)) return;
       merge({
@@ -94,7 +96,7 @@ export function ChanInfoModal() {
       });
     });
     return () => { cancelled = true; off(); };
-  }, [buffer?.name, buffer?.csFounder, buffer?.csDescription, buffer?.csOfficial, account, nick]);
+  }, [buffer?.name, buffer?.csFounder, buffer?.csDescription, buffer?.csOfficial, account, nick, noteStatus]);
 
   if (!buffer || !buffer.isChannel) return null;
 
