@@ -157,7 +157,7 @@ export async function fetchChanServPublic(account: string, nick: string, channel
       body: JSON.stringify({ account: source, channel: chan, action: 'csinfo', nick: nick || source }),
       signal: ctrl.signal,
     });
-    let data: { ok?: boolean; info?: unknown; error?: string } = {};
+    let data: { ok?: boolean; info?: unknown; error?: string; detail?: string } = {};
     try { data = await r.json(); } catch { /* not JSON */ }
     const raw = data.info == null ? '' : String(data.info);
     const parsed: ChanServPublicFetch = data.ok && raw
@@ -168,7 +168,7 @@ export async function fetchChanServPublic(account: string, nick: string, channel
       `ChanServ INFO ${chan}`,
       `source=${source}`,
       `http=${r.status}`,
-      data.ok ? 'ok' : `erreur=${data.error || 'réponse refusée'}`,
+      data.ok ? 'ok' : `erreur=${data.error || 'réponse refusée'}${data.detail ? ` (${data.detail})` : ''}`,
       `fondateur=${parsed.founder || '—'}`,
       `description=${parsed.description ? 'oui' : 'non'}`,
       `officiel=${parsed.official ? 'oui' : 'non'}`,

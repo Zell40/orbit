@@ -989,7 +989,7 @@ export function createChatStore(ns = '') {
       const nick = get().nick || '';
       if (!account && !nick) return;
       void fetchChanServPublic(account, nick, channel).then((info) => {
-        if (info.debug) helpers.sysLine(SERVER, info.debug, 'info');
+        if (info.debug && !info.founder && !info.description) helpers.sysLine(SERVER, info.debug, 'info');
         if (get().client == null) return;
         if (!info.founder && !info.description && info.official === undefined
           && info.topicLock === undefined) return;

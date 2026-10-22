@@ -86,7 +86,7 @@ export function ChanInfoModal() {
     });
     let cancelled = false;
     void fetchChanServPublic(account || '', nick, buffer.name).then((info) => {
-      if (info.debug) noteStatus(info.debug);
+      if (info.debug && !info.founder && !info.description) noteStatus(info.debug);
       if (cancelled) return;
       if (info.chan && !sameChan(info.chan, buffer.name)) return;
       merge({
