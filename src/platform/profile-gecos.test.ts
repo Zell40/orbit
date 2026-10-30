@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { fetchAvatar } from './avatars';
 import { fetchProfileGecos, fetchWpProfile } from './profile-gecos';
 
 describe('fetchProfileGecos', () => {
@@ -67,6 +68,25 @@ describe('fetchProfileGecos', () => {
       profileUrl: 'https://www.reseau-entrenous.fr/user/zell/',
       registered: '2012-03-14',
     });
+  });
+
+  it('publishes the profile photo for the member list and the footer', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (String(url).includes('wp-json/entrenous/v1/profile')) {
+        return {
+          ok: true,
+          json: async () => ({
+            exists: true,
+            login: 'Zell',
+            avatar: 'https://cdn.example/zell-new.jpg',
+          }),
+        };
+      }
+      return { ok: false, json: async () => ({}) };
+    }));
+    await fetchWpProfile('ZellPhoto');
+    await expect(fetchAvatar('ZellPhoto')).resolves.toBe('https://cdn.example/zell-new.jpg');
+    await expect(fetchAvatar('Zell')).resolves.toBe('https://cdn.example/zell-new.jpg');
   });
 
   it('fills ASL from the same-origin proxy realname', async () => {

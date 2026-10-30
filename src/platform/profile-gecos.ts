@@ -1,6 +1,7 @@
 // Fetch the user's WordPress profile (ASL + account) from reseau-entrenous.fr
 // BEFORE IRC USER (same source MonIdentité POSTs in the handoff). No post-connect SETNAME.
 import { formatProfileGecos, parseProfileGecos } from '@/lib/profile-gecos';
+import { rememberAvatar } from '@/platform/avatars';
 
 const WP_PROFILE = 'https://www.reseau-entrenous.fr/wp-json/entrenous/v1/profile';
 const gecosCache = new Map<string, string>();
@@ -125,6 +126,12 @@ function remember(account: string, j: unknown): void {
   if (parsed) profileCache.set(account.toLowerCase(), parsed);
   const rn = gecosFromPayload(j);
   if (rn) gecosCache.set(account.toLowerCase(), rn);
+  // Settings reads this profile directly. The nick list, the footer and PMs
+  // read the batched avatar cache, which can still hold the previous photo.
+  if (parsed?.avatar) {
+    rememberAvatar(account, parsed.avatar);
+    if (parsed.login) rememberAvatar(parsed.login, parsed.avatar);
+  }
 }
 
 export async function fetchProfileGecos(account: string): Promise<string | undefined> {

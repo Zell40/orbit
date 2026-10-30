@@ -8,13 +8,44 @@ import { useEffect, useState } from 'react';
 const cache = new Map<string, string | null>();          // account(lower) -> url | null
 const waiters = new Map<string, ((u: string | null) => void)[]>();
 const queue = new Set<string>();                          // accounts awaiting the next batch
+// Accounts whose URL came from the live WordPress profile. The batch endpoint
+// caches for minutes, so a just-updated photo must not be overwritten by it.
+const pinned = new Set<string>();
+const listeners = new Set<() => void>();
 let timer: ReturnType<typeof setTimeout> | null = null;
 
+function emit() {
+  listeners.forEach((fn) => fn());
+}
+
 function resolveKey(key: string, url: string | null) {
+  if (pinned.has(key)) {
+    const kept = cache.get(key) ?? null;
+    const ws = waiters.get(key);
+    waiters.delete(key);
+    ws?.forEach((fn) => fn(kept));
+    return;
+  }
   cache.set(key, url);
   const ws = waiters.get(key);
   waiters.delete(key);
   ws?.forEach((fn) => fn(url));
+}
+
+/** Publish a WordPress avatar so the member list, the footer and PMs follow it. */
+export function rememberAvatar(account: string, url: string | null): void {
+  const key = account.trim().toLowerCase();
+  if (!key) return;
+  pinned.add(key);
+  const prev = cache.has(key) ? (cache.get(key) ?? null) : undefined;
+  cache.set(key, url);
+  queue.delete(key);
+  const ws = waiters.get(key);
+  if (ws) {
+    waiters.delete(key);
+    ws.forEach((fn) => fn(url));
+  }
+  if (prev !== url) emit();
 }
 
 function flush() {
@@ -40,7 +71,7 @@ function flush() {
 
 function schedule() { if (timer == null) timer = setTimeout(flush, 40); }
 
-function fetchAvatar(account: string): Promise<string | null> {
+export function fetchAvatar(account: string): Promise<string | null> {
   const key = account.toLowerCase();
   if (cache.has(key)) return Promise.resolve(cache.get(key) ?? null);
   return new Promise((resolve) => {
@@ -63,8 +94,11 @@ export function useAvatarUrl(account?: string | null): string | null {
   useEffect(() => {
     if (!account) return;
     let dead = false;
+    const key = account.toLowerCase();
+    const pull = () => { if (!dead) setUrl(cache.get(key) ?? null); };
+    listeners.add(pull);
     fetchAvatar(account).then((u) => { if (!dead) setUrl(u); });
-    return () => { dead = true; };
+    return () => { dead = true; listeners.delete(pull); };
   }, [account]);
   return url;
 }
