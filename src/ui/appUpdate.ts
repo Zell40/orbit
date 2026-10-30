@@ -18,13 +18,33 @@ export function onAppUpdate(fn: () => void): () => void {
 
 async function deployedCommit(): Promise<string> {
   try {
-    const r = await fetch('/app/version.json', { cache: 'no-cache' });
+    const r = await fetch('/app/version.json', { cache: 'no-store' });
     if (!r.ok) return '';
-    const j = (await r.json()) as { commit?: string };
-    return typeof j.commit === 'string' ? j.commit : '';
+    const j = (await r.json()) as { commit?: string; plugins?: string; id?: string };
+    if (typeof j.id === 'string' && j.id) return j.id;
+    const commit = typeof j.commit === 'string' ? j.commit : '';
+    const plugins = typeof j.plugins === 'string' ? j.plugins : '';
+    return plugins ? `${commit}+${plugins}` : commit;
   } catch {
     return '';
   }
+}
+
+// Stamp read when this page started. A later version.json (Orbit rebuild or an
+// entrenous-orbit overlay) differs even when sw.js itself did not change.
+let deployBaseline = '';
+
+async function watchDeployedStamp(): Promise<void> {
+  const now = await deployedCommit();
+  if (!now) return;
+  if (!deployBaseline) {
+    deployBaseline = now;
+    return;
+  }
+  if (now === deployBaseline) return;
+  deployBaseline = now;
+  try { sessionStorage.setItem(seenKey(now), '1'); } catch { /* private mode */ }
+  announceUpdate();
 }
 
 /** Release notes for the update popup. The build emits updates.json from git log. */
@@ -120,7 +140,11 @@ export function registerAppUpdates(): void {
         check();
       });
 
-      const poke = () => { void reg.update().then(() => offerWaitingUpdate(reg)); };
+      void watchDeployedStamp();
+      const poke = () => {
+        void reg.update().then(() => offerWaitingUpdate(reg));
+        void watchDeployedStamp();
+      };
       window.setInterval(poke, 30 * 60 * 1000);
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') poke();
