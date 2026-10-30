@@ -26,6 +26,9 @@ export function ProfileModal() {
   });
   const me = useActiveChat((s) => s.nick);
   const openQuery = useActiveChat((s) => s.openQuery);
+  const setActive = useActiveChat((s) => s.setActive);
+  const client = useActiveChat((s) => s.client);
+  const buffers = useActiveChat((s) => s.buffers);
   const refreshUser = useActiveChat((s) => s.refreshUser);
   const close = useActiveChat((s) => s.closeProfile);
   const activeChan = useActiveChat((s) => s.active); // channel this profile was opened from (for +draft/channel-context)
@@ -85,11 +88,18 @@ export function ProfileModal() {
   if (info?.server) rows.push(['🛰️', 'server', info.server + (info.serverInfo ? ` · ${info.serverInfo}` : '')]);
   if (info?.channels) {
     const tags = parseWhoisChannels(info.channels);
+    const openChan = (name: string) => {
+      const already = Object.values(buffers).some((b) => b.isChannel && b.joined && b.name.toLowerCase() === name.toLowerCase());
+      if (!already) client?.join(name);
+      setActive(name, { keepProfile: true });
+    };
     rows.push(['#️⃣', 'channels', tags.length
       ? <span className="pm-chans">{tags.map((c) => (
-          <span className={`pm-chantag pm-chantag--${c.cls}`} key={`${c.mark}${c.name}`}>
+          <button type="button" className={`pm-chantag pm-chantag--${c.cls}`} key={`${c.mark}${c.name}`}
+            title={t('whois.openChannel', { chan: c.name })}
+            onClick={() => openChan(c.name)}>
             {c.mark ? <span className={`role-${c.cls}`}>{c.mark}</span> : null}{c.name}
-          </span>
+          </button>
         ))}</span>
       : info.channels]);
   }

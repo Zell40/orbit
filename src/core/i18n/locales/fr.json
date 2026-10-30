@@ -790,6 +790,7 @@
     "identifier": "Identifiant",
     "server": "Serveur",
     "channels": "Salons en commun",
+    "openChannel": "Ouvrir {{chan}}",
     "signon": "Connecté depuis",
     "idle": "Inactif depuis",
     "connection": "Connexion",

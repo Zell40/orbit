@@ -183,7 +183,7 @@ export interface ChatState {
   dismissNickRecover: () => void;
   /** Recompute the optional NickServ RECOVER banner (after 900 / NICK). */
   refreshNickRecoverOffer: () => void;
-  setActive: (name: string) => void;
+  setActive: (name: string, opts?: { keepProfile?: boolean }) => void;
   openQuery: (nick: string, fromChannel?: string) => void;
   closeBuffer: (name: string) => void;
   /** Close the PM from the history prompt. `clear` sends MPHISTORY CLEAR first. */
@@ -1123,10 +1123,13 @@ export function createChatStore(ns = '') {
       set({ kicked: null });
     },
 
-    setActive(name) {
+    setActive(name, opts) {
       ensureBuffer(name);
       const key = canon(name);
-      set({ profileUser: '', replyTarget: null, search: '' });
+      if (isChannelName(key)) closedChannels.delete(key);
+      set(opts?.keepProfile
+        ? { replyTarget: null, search: '' }
+        : { profileUser: '', replyTarget: null, search: '' });
       const prev = get().active;
       // Mark the buffer we're leaving as read (advances its read-marker).
       // Never MARKREAD the fake $server console — the ircd treats it as a nick

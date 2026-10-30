@@ -790,6 +790,7 @@
     "identifier": "Identifier",
     "server": "Server",
     "channels": "Common channels",
+    "openChannel": "Open {{chan}}",
     "signon": "Online since",
     "idle": "Idle for",
     "connection": "Connection",

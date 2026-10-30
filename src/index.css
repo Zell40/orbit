@@ -2964,7 +2964,9 @@ html[data-density="compact"] .sysline { padding-top: .06rem; padding-bottom: .06
   display: inline-flex; align-items: center; gap: .28rem; max-width: 100%;
   padding: .16rem .55rem; border-radius: 999px; font-size: .75rem; font-weight: 700;
   background: var(--bg-soft-2); color: var(--ink); border: 1px solid var(--border);
+  font-family: inherit; cursor: pointer;
 }
+.pm-chantag:hover { filter: brightness(.97); }
 .pm-chantag--owner { background: color-mix(in srgb, #d39d2a 18%, var(--bg)); border-color: color-mix(in srgb, #d39d2a 45%, var(--border)); }
 .pm-chantag--admin { background: color-mix(in srgb, #d6465f 16%, var(--bg)); border-color: color-mix(in srgb, #d6465f 40%, var(--border)); }
 .pm-chantag--op { background: color-mix(in srgb, #16a34a 16%, var(--bg)); border-color: color-mix(in srgb, #16a34a 40%, var(--border)); }
